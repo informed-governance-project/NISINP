@@ -1,6 +1,7 @@
 # NISINP
 
-NIS Incident Notification Platform for OES (Operators of Essential Services).
+NISINP is a unified
+_NIS Incident Notification Platform_ for OES (Operators of Essential Services).
 
 
 ## License
