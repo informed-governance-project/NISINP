@@ -10,12 +10,12 @@ class Incident(db.Model):
 
     ## Operator inputs
     incident_detection_date = db.Column(db.DateTime(), default=datetime.utcnow)
-    incident_duration = db.Column(db.String(), nullable=True)
-    geographical_extent = db.Column(db.String(), nullable=True)
+    incident_duration = db.Column(db.String(), nullable=True)  # 3.2 Duration of the incident
+    geographical_spread = db.Column(db.String(), nullable=True)
     incident_nature = db.Column(db.String(), nullable=True)
     impacted_service = db.Column(db.String(), nullable=True)  # or from a defined list of services
     # impacted_criteria  # availability, confidentiality, integrity, authenticity
-    number_impacted_users = db.Column(db.Integer, nullable=True)
+    number_impacted_users = db.Column(db.Integer, nullable=True)  # 3.1 Number of users affected by the disruption
     # importance_impacted_entity =
     taken_actions = db.Column(db.String(), nullable=False)
     description_current_situation = db.Column(db.String(), nullable=False)
