@@ -1,0 +1,16 @@
+# Ignore the following
+__pycache__/
+*.py[cod]
+*.sqlite[3]
+.idea
+
+docs/_build/
+
+*.egg-info/
+npm-debug.log
+node_modules/
+
+*.mo
+
+!docker/postgres/data/.gitkeep
+docker/postgres/data/*
