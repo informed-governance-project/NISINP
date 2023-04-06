@@ -14,3 +14,8 @@ node_modules/
 
 !docker/postgres/data/.gitkeep
 docker/postgres/data/*
+
+logs/
+
+governanceplatform/config_prod.py
+governanceplatform/config.py
