@@ -11,6 +11,7 @@ django = "^4.2"
 django-cors-headers = "^3.14.0"
 drf-spectacular = "^0.26.1"
 drf-spectacular-sidecar = "^2023.4.1"
+django-bootstrap-v5 = "^1.0.11"
 
 
 [tool.poetry.group.dev.dependencies]
