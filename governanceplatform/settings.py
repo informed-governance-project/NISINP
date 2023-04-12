@@ -10,10 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
-import importlib
 import os
-import sys
 
 try:
     from governanceplatform import config  # type: ignore
@@ -201,19 +198,23 @@ BOOTSTRAP5 = {
     # ("https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"),
     # or a dict with keys `url`, `integrity` and `crossorigin` like the default value below.
     "css_url": {
-        "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css",
-        "integrity": "sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx",
+        "href": "/static/npm_components/bootstrap/dist/css/bootstrap.min.css",
         "crossorigin": "anonymous",
     },
     # The complete URL to the Bootstrap bundle JavaScript file.
     "javascript_url": {
-        "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js",
-        "integrity": "sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa",
+        "url": "/static/npm_components/bootstrap/dist/js/bootstrap.min.js",
+        "crossorigin": "anonymous",
+    },
+    # The URL to the jQuery JavaScript file (full)
+    "jquery_url": {
+        "url": "/static/npm_components/jquery/dist/jquery.min.js",
         "crossorigin": "anonymous",
     },
     # The complete URL to the Bootstrap CSS theme file (None means no theme).
     "theme_url": None,
-    # Put JavaScript in the HEAD section of the HTML document (only relevant if you use bootstrap5.html).
+    # Put JavaScript in the HEAD section of the HTML document
+    # (only relevant if you use bootstrap5.html).
     "javascript_in_head": False,
     # Wrapper class for non-inline fields.
     # The default value "mb-3" is the spacing as used by Bootstrap 5 example code.
@@ -233,9 +234,11 @@ BOOTSTRAP5 = {
     "required_css_class": "",
     # Class to indicate field has one or more errors (better to set this in your Django form).
     "error_css_class": "",
-    # Class to indicate success, meaning the field has valid input (better to set this in your Django form).
+    # Class to indicate success, meaning the field has valid input
+    # (better to set this in your Django form).
     "success_css_class": "",
-    # Enable or disable Bootstrap 5 server side validation classes (separate from the indicator classes above).
+    # Enable or disable Bootstrap 5 server side validation classes
+    # (separate from the indicator classes above).
     "server_side_validation": True,
     # Renderers (only set these if you have studied the source and understand the inner workings).
     "formset_renderers": {
