@@ -19,3 +19,4 @@ logs/
 
 governanceplatform/config_prod.py
 governanceplatform/config.py
+governanceplatform/static/
