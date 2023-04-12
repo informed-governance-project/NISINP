@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.sqlite[3]
 .idea
+.vscode/
 
 docs/_build/
 
@@ -20,3 +21,5 @@ logs/
 governanceplatform/config_prod.py
 governanceplatform/config.py
 governanceplatform/static/
+
+static/npm_components
