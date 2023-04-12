@@ -1,0 +1,16 @@
+{
+  "name": "GovernancePlatform",
+  "version": "0.0.1",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "bootstrap": "^5.2.3",
+    "jquery": "^3.6.4"
+  },
+  "engines": {
+    "node": "16.x",
+    "npm": "8.19.2"
+  },
+  "scripts": {
+    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/'), 'static/npm_components', 'junction') } catch (e) { }\""
+  }
+}
