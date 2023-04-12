@@ -19,8 +19,9 @@ from django.urls import path
 from django.urls import include
 from django.views.generic import RedirectView
 
-urlpatterns = [
+from governanceplatform.settings import DEBUG
 
+urlpatterns = [
     # Regulator
     path("regulator/", include("regulator.urls")),
     path("regulator/", include("django.contrib.auth.urls")),
@@ -28,4 +29,5 @@ urlpatterns = [
     path("operateur/", include("operateur.urls")),
     path("operateur/", include("django.contrib.auth.urls")),
 ]
-
+if DEBUG:
+    urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))

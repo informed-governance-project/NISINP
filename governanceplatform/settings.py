@@ -33,6 +33,10 @@ try:
     DEBUG = config.DEBUG
     LOGGING = config.LOGGING
     LOG_DIRECTORY = config.LOG_DIRECTORY
+    
+    # Database
+    # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+    DATABASES = config.DATABASES
 
 
     ALLOWED_HOSTS = config.ALLOWED_HOSTS
@@ -105,21 +109,21 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-# if DEBUG:
-#     INSTALLED_APPS.append("debug_toolbar")
-#     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-#     context_processors.append("django.template.context_processors.debug")
-#     import socket
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    context_processors.append("django.template.context_processors.debug")
+    import socket
 
-#     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-#     INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
-#     DEBUG_TOOLBAR_CONFIG = {
-#         'INTERCEPT_REDIRECTS': False,
-#         "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
-#         "RESULTS_CACHE_SIZE": 3,
-#         "SHOW_COLLAPSED": True,
-#         "SQL_WARNING_THRESHOLD": 100,
-#     }
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
+    DEBUG_TOOLBAR_CONFIG = {
+        'INTERCEPT_REDIRECTS': False,
+        "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
+        "RESULTS_CACHE_SIZE": 3,
+        "SHOW_COLLAPSED": True,
+        "SQL_WARNING_THRESHOLD": 100,
+    }
 
 
 ROOT_URLCONF = "governanceplatform.urls"
@@ -130,7 +134,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             'templates',
-            PARTS_TEMPLATE_DIR,
+            # PARTS_TEMPLATE_DIR,
         ],
         "APP_DIRS": True,
         "OPTIONS": {
