@@ -16,16 +16,23 @@ Including another URLconf
 """
 from django.urls import path
 from django.urls import include
-
+from django.contrib.auth import views as auth_views
+from governanceplatform import views
 from governanceplatform.settings import DEBUG
 
 urlpatterns = [
+    # Root
+    path("", views.index, name="index"),
     # Regulator
     path("regulator/", include("regulator.urls")),
-    path("regulator/", include("django.contrib.auth.urls")),
     # Operator
     path("operateur/", include("operateur.urls")),
-    path("operateur/", include("django.contrib.auth.urls")),
+    # Login
+    path(
+        "login",
+        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        name="login",
+    ),
 ]
 if DEBUG:
     urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))

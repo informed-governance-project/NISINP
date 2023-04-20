@@ -80,7 +80,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "corsheaders",
-    "bootstrap5",
+    "django_bootstrap5",
 ]
 
 context_processors = [
@@ -124,13 +124,15 @@ if DEBUG:
 
 ROOT_URLCONF = "governanceplatform.urls"
 
+LOGIN_REDIRECT_URL = "/"
+
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             "templates",
-            # PARTS_TEMPLATE_DIR,
+            "theme/templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -184,7 +186,7 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 STATICFILES_DIRS = [
     STATIC_DIR,
-    'templates/css',
+    'theme/static',
 ]
 
 # Used to get an access to the header on JS side.
@@ -199,7 +201,7 @@ BOOTSTRAP5 = {
     # ("https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"),
     # or a dict with keys `url`, `integrity` and `crossorigin` like the default value below.
     "css_url": {
-        "href": "/static/npm_components/bootstrap/dist/css/bootstrap.min.css",
+        "url": "/static/npm_components/bootstrap/dist/css/bootstrap.min.css",
         "crossorigin": "anonymous",
     },
     # The complete URL to the Bootstrap bundle JavaScript file.
