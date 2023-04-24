@@ -4,6 +4,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "bootstrap": "^5.2.3",
+    "bootstrap-icons": "^1.10.4",
     "jquery": "^3.6.4"
   },
   "engines": {
