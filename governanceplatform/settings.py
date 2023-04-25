@@ -183,6 +183,7 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 STATICFILES_DIRS = [
     STATIC_DIR,
+    "templates/css",
 ]
 
 # Used to get an access to the header on JS side.
