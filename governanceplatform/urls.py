@@ -15,12 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib.auth import views as auth_views
-from governanceplatform import views
-from governanceplatform.settings import REGULATOR_CONTACT
-from governanceplatform.settings import SITE_NAME
 from django.urls import include, path
 from django.views.i18n import set_language
-from governanceplatform.settings import DEBUG
+
+from governanceplatform import views
+from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 urlpatterns = [
     # Root

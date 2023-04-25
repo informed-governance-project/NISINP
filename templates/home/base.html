@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block title %}
-{{ site_name }} 
+{{ site_name }}
 {% endblock %}
 
 {% block bootstrap5_before_content %}
@@ -23,10 +23,9 @@
     {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
     <div class="container-fluid px-5 py-1">
         {% block content %}{% endblock %}
-    </div>   
+    </div>
 {% endblock %}
 
 {% block bootstrap5_after_content %}
     {% include "parts/footer.html" %}
 {% endblock %}
-
