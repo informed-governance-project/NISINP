@@ -5,6 +5,8 @@
 {% block bootstrap5_extra_head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/language_selector.css' %}" /> 
     <script src='{% static "npm_components/@popperjs/core/dist/umd/popper.min.js" %}'></script>   
+    <script src='{% static "npm_components/jquery/dist/jquery.min.js" %}'></script>
+    <script src='{% static "js/language-selector.js" %}'></script>
 {% endblock %}
 
 {% bootstrap_javascript %}
@@ -13,15 +15,21 @@
 {% get_available_languages as available_languages %}
 {% get_language_info_list for available_languages as languages %}
 
-<div class="dropdown language_selector">
-    <button class="btn shadow-none dropdown-toggle text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-globe"></i>
-        {{ current_language|language_name_local }}
-    </button>
-    <ul class="dropdown-menu">
-        {% for language in languages %}
-            <li><a class="dropdown-item" href="#">{{ language.name_local }}</a></li>
-        {% endfor %}
-    </ul>
-</div>
+
+<form action="{% url 'set_language' %}" method="post">
+    {% csrf_token %}
+    <div class="input-group">
+        <label class="input-group-text" for=""><i class="bi bi-globe"></i></label>
+        <select class="form-select" id="language_selector" name="language">
+            {% for language in languages %}
+                <option value="{{ language.code }}"{% if language.code == current_language %} selected{% endif %}>
+                    {{ language.name_local }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>  
+</form>
+
+
+
 

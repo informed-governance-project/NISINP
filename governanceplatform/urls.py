@@ -18,6 +18,7 @@ from django.urls import path
 from django.urls import include
 from django.contrib.auth import views as auth_views
 from governanceplatform import views
+from django.views.i18n import set_language
 from governanceplatform.settings import DEBUG
 
 urlpatterns = [
@@ -33,6 +34,9 @@ urlpatterns = [
         auth_views.LoginView.as_view(template_name="registration/login.html"),
         name="login",
     ),
+    # Language Selector
+    path("set-language/", set_language, name="set_language"),
 ]
+
 if DEBUG:
     urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))
