@@ -173,14 +173,13 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 SITE_ID = 1
 
 LANGUAGES = [
-    ('en', 'English'),
-    ('fr', 'Français'),
-    ('nl', 'Dutch'),
+    ("en", "English"),
+    ("fr", "Français"),
+    ("nl", "Dutch"),
 ]
 
 
@@ -193,7 +192,7 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 STATICFILES_DIRS = [
     STATIC_DIR,
-    'theme/static',
+    "theme/static",
 ]
 
 # Used to get an access to the header on JS side.

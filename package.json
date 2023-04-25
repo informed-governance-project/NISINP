@@ -1,7 +1,8 @@
 {
-  "name": "GovernancePlatform",
+  "name": "governanceplatform",
   "version": "0.0.1",
   "license": "AGPL-3.0",
+  "private": true,
   "dependencies": {
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.4",
