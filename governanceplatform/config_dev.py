@@ -2,7 +2,7 @@ import os
 
 PUBLIC_URL = ""
 ALLOWED_HOSTS = ["127.0.0.1", locals().get("PUBLIC_URL", "")]
-OPERATOR_CONTACT = {
+REGULATOR_CONTACT = {
     "name": "Organization Name",
     "street": "Organization Street",
     "zip_code": "Organization Zip Code",
@@ -11,6 +11,9 @@ OPERATOR_CONTACT = {
     "website": "https://www.example.org",
     "contact_email": "contact@example.org",
     "privacy_email": "privacy@exemple.org",
+    "tos_url": None,  # "https://www.example.org/tos"
+    "privacy_policy_url": None,  # "https://www.example.org/privacy_policy"
+    "contact_url": None,  # "https://www.example.org/contact_us"
 }
 
 # The generic site/tool name. Used to load specific config, templates, styles, logo.
@@ -70,5 +73,3 @@ LOGGING = {
         },
     },
 }
-
-

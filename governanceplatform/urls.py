@@ -18,6 +18,8 @@ from django.urls import path
 from django.urls import include
 from django.contrib.auth import views as auth_views
 from governanceplatform import views
+from governanceplatform.settings import REGULATOR_CONTACT
+from governanceplatform.settings import SITE_NAME
 from django.views.i18n import set_language
 from governanceplatform.settings import DEBUG
 
@@ -31,9 +33,16 @@ urlpatterns = [
     # Login
     path(
         "login",
-        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        auth_views.LoginView.as_view(
+            extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
+            template_name="registration/login.html",
+        ),
         name="login",
     ),
+    # Terms of Service
+    path("terms/", views.terms, name="terms"),
+    # Privacy Policy
+    path("privacy/", views.privacy, name="privacy"),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
 ]
