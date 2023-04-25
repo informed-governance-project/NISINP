@@ -1,0 +1,35 @@
+{% load django_bootstrap5 %}
+{% load i18n %}
+{% load static %}
+
+{% block bootstrap5_extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/language_selector.css' %}" /> 
+    <script src='{% static "npm_components/@popperjs/core/dist/umd/popper.min.js" %}'></script>   
+    <script src='{% static "npm_components/jquery/dist/jquery.min.js" %}'></script>
+    <script src='{% static "js/language-selector.js" %}'></script>
+{% endblock %}
+
+{% bootstrap_javascript %}
+
+{% get_current_language as current_language %}
+{% get_available_languages as available_languages %}
+{% get_language_info_list for available_languages as languages %}
+
+
+<form action="{% url 'set_language' %}" method="post">
+    {% csrf_token %}
+    <div class="input-group">
+        <label class="input-group-text" for=""><i class="bi bi-globe"></i></label>
+        <select class="form-select" id="language_selector" name="language">
+            {% for language in languages %}
+                <option value="{{ language.code }}"{% if language.code == current_language %} selected{% endif %}>
+                    {{ language.name_local }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>  
+</form>
+
+
+
+

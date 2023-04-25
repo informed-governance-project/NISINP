@@ -1,0 +1,16 @@
+{% extends 'home/bootstrap.html' %}
+
+{% load django_bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+
+{% block bootstrap5_content %}
+
+    {% include "parts/header.html" %}
+
+    {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
+
+    {% block content %}{% endblock %}
+
+{% endblock %}
