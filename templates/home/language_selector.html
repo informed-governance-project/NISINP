@@ -15,20 +15,21 @@
 {% get_available_languages as available_languages %}
 {% get_language_info_list for available_languages as languages %}
 
-
-<form action="{% url 'set_language' %}" method="post">
-    {% csrf_token %}
-    <div class="input-group">
-        <label class="input-group-text" for=""><i class="bi bi-globe"></i></label>
-        <select class="form-select" id="language_selector" name="language">
-            {% for language in languages %}
-                <option value="{{ language.code }}"{% if language.code == current_language %} selected{% endif %}>
-                    {{ language.name_local }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>  
-</form>
+{% if languages|length > 1 %}
+    <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <label class="input-group-text" for=""><i class="bi bi-globe"></i></label>
+            <select class="form-select" id="language_selector" name="language">
+                {% for language in languages %}
+                    <option value="{{ language.code }}"{% if language.code == current_language %} selected{% endif %}>
+                        {{ language.name_local }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>  
+    </form>
+{% endif %}
 
 
 

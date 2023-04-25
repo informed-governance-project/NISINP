@@ -1,16 +1,32 @@
 {% extends 'home/bootstrap.html' %}
 
 {% load django_bootstrap5 %}
+{% load static %}
 
-{# Load CSS and JavaScript #}
 {% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{% block bootstrap5_extra_head %}
+    <meta name="description" content="{{ site_name }}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'npm_components/bootstrap-icons/font/bootstrap-icons.css' %}" />
+{% endblock %}
+
+{% block title %}
+{{ site_name }} 
+{% endblock %}
+
+{% block bootstrap5_before_content %}
+    {% include "parts/header.html" %}
+{% endblock %}
 
 {% block bootstrap5_content %}
-
-    {% include "parts/header.html" %}
-
     {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
-
-    {% block content %}{% endblock %}
-
+    <div class="container-fluid px-5 py-1">
+        {% block content %}{% endblock %}
+    </div>   
 {% endblock %}
+
+{% block bootstrap5_after_content %}
+    {% include "parts/footer.html" %}
+{% endblock %}
+
