@@ -20,8 +20,6 @@ from governanceplatform.settings import REGULATOR_CONTACT
 from governanceplatform.settings import SITE_NAME
 from django.urls import include, path
 from django.views.i18n import set_language
-
-from governanceplatform import views
 from governanceplatform.settings import DEBUG
 
 urlpatterns = [
