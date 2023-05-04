@@ -9,6 +9,7 @@ from typing import Any
 
 from django.db import models
 from django.db.models import Sum
+from django.contrib.auth.models import User
 
 class RightMixin:
     @staticmethod
@@ -56,12 +57,8 @@ class Regulator(models.Model):
     regulator_monarc_path = models.CharField(max_length=200)
 
 class RegulatorUser(models.Model):
-    user_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    user_email = models.CharField(max_length=100)
-    user_password = models.CharField(max_length=255)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     entity_id = models.ForeignKey(Regulator, on_delete=models.CASCADE)
-    user_lastname = models.CharField(max_length=64) 
-    user_firstname = models.CharField(max_length=64) 
     user_phone_number = models.CharField(max_length=30)
 
     class Meta:
