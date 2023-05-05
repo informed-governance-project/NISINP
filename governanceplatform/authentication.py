@@ -1,6 +1,6 @@
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
- 
+
 class CustomAuth(BaseBackend):
     def authenticate(self, request, **kvargs):
         try:
@@ -9,7 +9,6 @@ class CustomAuth(BaseBackend):
                 return user
         except:
             pass
-
 
     def get_user(self, user_id):
             try:

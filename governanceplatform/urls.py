@@ -37,6 +37,8 @@ urlpatterns = [
         ),
         name="login",
     ),
+    # Logout
+    path("", include("django.contrib.auth.urls")), 
     # Terms of Service
     path("terms/", views.terms, name="terms"),
     # Privacy Policy
