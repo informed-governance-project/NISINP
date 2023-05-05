@@ -165,6 +165,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication
+
+AUTHENTICATION_BACKENDS = [
+    "governanceplatform.authentication.CustomAuth"
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
