@@ -82,6 +82,11 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "corsheaders",
     "django_bootstrap5",
+    #2fa
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+    'two_factor',
 ]
 
 context_processors = [
@@ -100,6 +105,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    #2fa
+    'django_otp.middleware.OTPMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -172,6 +179,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGOUT_REDIRECT_URL = "login"
+LOGIN_URL = 'login'
+TWO_FACTOR_QR_FACTORY = 'qrcode.image.pil.PilImage'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

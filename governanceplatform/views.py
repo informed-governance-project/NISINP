@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django_otp.decorators import otp_required
 
 from governanceplatform.settings import SITE_NAME
 
 
-@login_required(login_url="login")
+@otp_required(login_url="login")
 def index(request):
     return render(request, "operateur/index.html")
 
