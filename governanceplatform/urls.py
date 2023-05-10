@@ -19,6 +19,8 @@ from django.urls import include, path
 from django.views.i18n import set_language
 
 from two_factor.urls import urlpatterns as tf_urls
+from two_factor import views as twofa_view
+from two_factor import forms as twofa_forms
 from django_otp.views import LoginView as OTPView
 from .forms import AuthenticationForm
 
@@ -33,8 +35,19 @@ urlpatterns = [
     path("regulator/", include("regulator.urls")),
     # Operator
     path("operateur/", include("operateur.urls")),
-    # Login
-  
+     # Login
+    path(
+        "login",
+        twofa_view.LoginView.as_view(form_list=(
+                ('auth', AuthenticationForm),
+                ('token', twofa_forms.AuthenticationTokenForm),
+                ('backup', twofa_forms.BackupTokenForm),
+            ),
+            extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
+            template_name="registration/login.html",
+        ),
+        name="login",
+    ),
     # Logout
     path("", include("django.contrib.auth.urls")), 
     # Terms of Service

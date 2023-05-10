@@ -179,7 +179,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGOUT_REDIRECT_URL = "login"
-LOGIN_URL = 'login'
+LOGIN_URL = 'two_factor:login'
 TWO_FACTOR_QR_FACTORY = 'qrcode.image.pil.PilImage'
 
 # Internationalization
