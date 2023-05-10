@@ -21,6 +21,7 @@ django-bootstrap5 = "^23.1"
 django-otp = "^1.1.6"
 django-formtools = "^2.4"
 django-two-factor-auth = "^1.15.2"
+phonenumbers = "^8.13.11"
 
 
 [tool.poetry.group.dev.dependencies]
