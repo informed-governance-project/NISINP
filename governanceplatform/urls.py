@@ -17,13 +17,7 @@ Including another URLconf
 from django.urls import include, path
 from django.views.i18n import set_language
 from two_factor.urls import urlpatterns as tf_urls
-from two_factor.views import (
-    BackupTokensView,
-    LoginView,
-    QRGeneratorView,
-    SetupCompleteView,
-    SetupView,
-)
+from two_factor.views import LoginView
 
 from governanceplatform import views
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
@@ -44,26 +38,6 @@ urlpatterns = [
             template_name="registration/login.html",
         ),
         name="login",
-    ),
-    path(
-        "account/two_factor/setup/",
-        SetupView.as_view(),
-        name="setup",
-    ),
-    path(
-        "account/two_factor/qrcode/",
-        QRGeneratorView.as_view(),
-        name="qr",
-    ),
-    path(
-        "account/two_factor/setup/complete/",
-        SetupCompleteView.as_view(),
-        name="setup_complete",
-    ),
-    path(
-        "account/two_factor/backup/tokens/",
-        BackupTokensView.as_view(),
-        name="backup_tokens",
     ),
     # Logout
     path("", include("django.contrib.auth.urls")),
