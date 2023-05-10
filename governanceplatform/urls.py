@@ -14,34 +14,33 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.i18n import set_language
-
-from two_factor.urls import urlpatterns as tf_urls
-from two_factor import views as twofa_view
 from two_factor import forms as twofa_forms
-from django_otp.views import LoginView as OTPView
-from .forms import AuthenticationForm
+from two_factor import views as twofa_view
+from two_factor.urls import urlpatterns as tf_urls
 
 from governanceplatform import views
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
+from .forms import AuthenticationForm
+
 urlpatterns = [
-    path('', include(tf_urls)),
+    path("", include(tf_urls)),
     # Root
     path("", views.index, name="index"),
     # Regulator
     path("regulator/", include("regulator.urls")),
     # Operator
     path("operateur/", include("operateur.urls")),
-     # Login
+    # Login
     path(
         "login",
-        twofa_view.LoginView.as_view(form_list=(
-                ('auth', AuthenticationForm),
-                ('token', twofa_forms.AuthenticationTokenForm),
-                ('backup', twofa_forms.BackupTokenForm),
+        twofa_view.LoginView.as_view(
+            form_list=(
+                ("auth", AuthenticationForm),
+                ("token", twofa_forms.AuthenticationTokenForm),
+                ("backup", twofa_forms.BackupTokenForm),
             ),
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
@@ -49,7 +48,7 @@ urlpatterns = [
         name="login",
     ),
     # Logout
-    path("", include("django.contrib.auth.urls")), 
+    path("", include("django.contrib.auth.urls")),
     # Terms of Service
     path("terms/", views.terms, name="terms"),
     # Privacy Policy
