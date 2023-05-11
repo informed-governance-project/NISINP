@@ -176,9 +176,8 @@ AUTH_PASSWORD_VALIDATORS = [
 #     "governanceplatform.authentication.CustomAuth"
 # ]
 
-LOGOUT_REDIRECT_URL = "login"
-LOGIN_URL = "two_factor:login"
-TWO_FACTOR_QR_FACTORY = "qrcode.image.pil.PilImage"
+LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "/account/login"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

@@ -23,30 +23,29 @@ from governanceplatform import views
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 urlpatterns = [
-    path("", include(tf_urls)),
     # Root
     path("", views.index, name="index"),
     # Regulator
     path("regulator/", include("regulator.urls")),
     # Operator
     path("operateur/", include("operateur.urls")),
-    # Login
+    # Accounts
+    path("account/", include("django.contrib.auth.urls")),
     path(
-        "login",
+        "account/login",
         LoginView.as_view(
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
         ),
         name="login",
     ),
-    # Logout
-    path("", include("django.contrib.auth.urls")),
     # Terms of Service
     path("terms/", views.terms, name="terms"),
     # Privacy Policy
     path("privacy/", views.privacy, name="privacy"),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
+    path("", include(tf_urls)),
 ]
 
 if DEBUG:

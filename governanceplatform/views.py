@@ -4,7 +4,7 @@ from django_otp.decorators import otp_required
 from governanceplatform.settings import SITE_NAME
 
 
-@otp_required(login_url="login")
+@otp_required()
 def index(request):
     return render(request, "operateur/index.html")
 
