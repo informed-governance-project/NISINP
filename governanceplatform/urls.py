@@ -31,6 +31,7 @@ urlpatterns = [
     path("operateur/", include("operateur.urls")),
     # Accounts
     path("account/", include("django.contrib.auth.urls")),
+    path("", include(tf_urls)),
     path(
         "account/login",
         LoginView.as_view(
@@ -45,7 +46,6 @@ urlpatterns = [
     path("privacy/", views.privacy, name="privacy"),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
-    path("", include(tf_urls)),
 ]
 
 if DEBUG:

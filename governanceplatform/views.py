@@ -1,12 +1,21 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
 
 from governanceplatform.settings import SITE_NAME
 
 
-@otp_required()
+@login_required
 def index(request):
-    return render(request, "operateur/index.html")
+    if not request.user.is_verified():
+        return redirect("two_factor:profile")
+
+    otp_required(index)
+
+    return render(
+        request,
+        "operateur/index.html",
+    )
 
 
 def terms(request):
