@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "governanceplatform",
     "regulator",
     "operateur",
     "drf_spectacular",
@@ -175,6 +176,10 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "governanceplatform.authentication.CustomAuth"
 ]
+
+# User Model 
+
+AUTH_USER_MODEL = "governanceplatform.User" 
 
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/account/login"

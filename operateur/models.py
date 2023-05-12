@@ -9,7 +9,7 @@ from typing import Any
 
 from django.db import models
 from django.db.models import Sum
-from django.contrib.auth.models import User
+from governanceplatform.models import User
 
 class RightMixin:
     @staticmethod
