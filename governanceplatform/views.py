@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
 from django.contrib.auth import logout
+from .decorators import regulator_required, operateur_required
 
 from governanceplatform.settings import SITE_NAME
 
@@ -13,10 +14,12 @@ def index(request):
 
     otp_required(index)
 
-    return render(
-        request,
-        "operateur/index.html",
-    )
+    user = request.user
+    if user.is_authenticated: 
+        if user.is_operateur:
+            return operateur_index(request)
+        elif user.is_regulator:
+            return regulator_index(request)
 
 def logout_view(request):
     logout(request)
@@ -28,3 +31,12 @@ def terms(request):
 
 def privacy(request):
     return render(request, "home/privacy_policy.html", context={"site_name": SITE_NAME})
+
+@operateur_required
+def operateur_index(request):
+    return render(request, "operateur/index.html", context={"site_name": SITE_NAME})
+
+@regulator_required
+def regulator_index(request):
+    return render(request, "regulator/index.html", context={"site_name": SITE_NAME})
+
