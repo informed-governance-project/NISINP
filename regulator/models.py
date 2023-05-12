@@ -61,10 +61,6 @@ class RegulatorUser(models.Model):
     entity_id = models.ForeignKey(Regulator, on_delete=models.CASCADE)
     user_phone_number = models.CharField(max_length=30)
 
-    class Meta:
-        db_table = 'users'
-        managed = False #table is created in the operateur module
-
 class Sector(models.Model):
     sector_id = models.UUIDField(default=uuid.uuid4, unique=True) 
     sector_name = models.CharField(max_length=100)
