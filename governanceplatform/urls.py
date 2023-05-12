@@ -40,6 +40,8 @@ urlpatterns = [
         ),
         name="login",
     ),
+    # Logout
+    path("logout", views.logout_view, name="logout"), 
     # Terms of Service
     path("terms/", views.terms, name="terms"),
     # Privacy Policy
