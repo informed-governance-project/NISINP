@@ -172,9 +172,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Authentication
 
-# AUTHENTICATION_BACKENDS = [
-#     "governanceplatform.authentication.CustomAuth"
-# ]
+AUTHENTICATION_BACKENDS = [
+    "governanceplatform.authentication.CustomAuth"
+]
 
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/account/login"
