@@ -173,13 +173,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Authentication
 
-AUTHENTICATION_BACKENDS = [
-    "governanceplatform.authentication.CustomAuth"
-]
+AUTHENTICATION_BACKENDS = ["governanceplatform.authentication.CustomAuth"]
 
-# User Model 
+# User Model
 
-AUTH_USER_MODEL = "governanceplatform.User" 
+AUTH_USER_MODEL = "governanceplatform.User"
 
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/account/login"
@@ -200,6 +198,10 @@ LANGUAGES = [
     ("nl", "Dutch"),
 ]
 
+# Email
+
+# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+# EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
