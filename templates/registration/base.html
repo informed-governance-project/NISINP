@@ -1,0 +1,45 @@
+{% extends 'home/base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+{% load i18n %}
+
+{% bootstrap_css %}
+{% block bootstrap5_extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'npm_components/bootstrap-icons/font/bootstrap-icons.css' %}" />
+{% endblock %}
+{% block bootstrap5_title %}
+        {% block title %}{% endblock %}
+{% endblock %}
+
+{% block bootstrap5_before_content %}
+    <div class="d-flex position-absolute top-0 end-0 p-1">
+        {% include "home/language_selector.html" %}
+    </div>
+{% endblock %}
+
+{% block bootstrap5_content %}
+
+    <div class="background">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card shadow px-5 py-3 mb-5 rounded-1">
+                        <div class="card-body text-center">
+                            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+                            {% block login_content %}
+                            {% endblock login_content %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block bootstrap5_after_content %}
+    <div class="position-absolute bottom-0 w-100">
+        {% include "parts/footer.html" %}
+    </div>
+{% endblock %}
