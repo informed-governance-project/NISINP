@@ -58,10 +58,5 @@ class Operateur(models.Model):
 
 class OperateurUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    entity_id = models.ForeignKey(Operateur, on_delete=models.CASCADE)
+    operateur = models.ForeignKey(Operateur, on_delete=models.CASCADE)
     user_phone_number = models.CharField(max_length=30)
-        
-    class Meta:
-        db_table = 'users'
-        managed = True
-

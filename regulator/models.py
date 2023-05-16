@@ -46,7 +46,7 @@ class RightMixin:
         return dict
 
 class Regulator(models.Model):
-    regulator_id = models.UUIDField(default=uuid.uuid4, unique=True) #use for DB purpose
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True) #use for DB purpose
     regulator_identifier = models.CharField(max_length=64) #requirement from business concat(name_country_regulator)
     regulator_name = models.CharField(max_length=64)
     regulator_country = models.CharField(max_length=64) 
@@ -58,7 +58,7 @@ class Regulator(models.Model):
 
 class RegulatorUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    entity_id = models.ForeignKey(Regulator, on_delete=models.CASCADE)
+    regulator = models.ForeignKey(Regulator, on_delete=models.CASCADE)
     user_phone_number = models.CharField(max_length=30)
 
 class Sector(models.Model):
