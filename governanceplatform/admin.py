@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 
 from governanceplatform.models import Company, Sector, User
 from governanceplatform.settings import SITE_NAME
@@ -19,14 +21,26 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
+class SectorResource(resources.ModelResource):
+    class Meta:
+        model = Sector
+
+
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(admin.ModelAdmin):
+class SectorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ["name", "parent"]
     search_fields = ["name"]
+    resource_classes = [SectorResource]
+
+
+class CompanyResource(resources.ModelResource):
+    class Meta:
+        model = Company
 
 
 @admin.register(Company, site=admin_site)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [CompanyResource]
     list_display = [
         "name",
         "address",
