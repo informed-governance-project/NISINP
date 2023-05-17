@@ -30,6 +30,7 @@ class ExternalToken(models.Model):
 class User(AbstractUser):
     is_operateur = models.BooleanField(default=True)
     is_regulator = models.BooleanField(default=False)
+    is_administrator = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=30)
     companies = models.ManyToManyField(Company)
     sectors = models.ManyToManyField(Sector)
