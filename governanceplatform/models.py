@@ -33,10 +33,18 @@ class Company(models.Model):
         verbose_name_plural = _("Companies")
 
 
+# define a token class for SSO on other application/module
+class ExternalToken(models.Model):
+    token = models.CharField(max_length=255)
+    module_path = models.CharField(max_length=255)
+    module_name = models.CharField(max_length=255)
+
+
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser):
     is_operateur = models.BooleanField(default=True)
     is_regulator = models.BooleanField(default=False)
+    is_administrator = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=30)
     companies = models.ManyToManyField(Company)
     sectors = models.ManyToManyField(Sector)
