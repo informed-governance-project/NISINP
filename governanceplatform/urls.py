@@ -14,8 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.i18n import set_language
+from revproxy.views import ProxyView
 from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
 
@@ -51,6 +52,11 @@ urlpatterns = [
     path("privacy/", views.privacy, name="privacy"),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
+    # Proxy views
+    # re_path(r'(?P<path>.*)', ProxyView.as_view(upstream='https://my.monarc.lu/casesmodels/'))
+    # re_path(r'^module/(?P<path>.*)$', ProxyView.as_view(upstream='https://my.monarc.lu/'))
+    # re_path(r'casesmodels', ProxyView.as_view(upstream='https://my.monarc.lu/casesmodels/'))
+    re_path(r"^(?P<path>.*)$", ProxyView.as_view(upstream="http://0.0.0.0:5000/")),
 ]
 
 if DEBUG:
