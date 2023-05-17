@@ -1,5 +1,10 @@
 {% extends "admin/base.html" %}
+{% load static %}
 {% load i18n %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/admin.css' %}" />
+{% endblock %}
 
 {% block usertools %}
     {% if has_permission %}
