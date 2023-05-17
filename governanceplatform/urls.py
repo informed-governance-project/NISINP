@@ -14,7 +14,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.i18n import set_language
 from revproxy.views import ProxyView
@@ -22,13 +21,14 @@ from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
 
 from governanceplatform import views
+from governanceplatform.admin import admin_site
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 urlpatterns = [
     # Root
     path("", views.index, name="index"),
     # Admin
-    path("admin/", admin.site.urls),
+    path("admin/", admin_site.urls),
     # Regulator
     path("regulator/", include("regulator.urls")),
     # Operator
