@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block usertools %}
+    {% if has_permission %}
+        <div id="user-tools">
+
+            {% block welcome-msg %}{% endblock %}
+            {% block userlinks %}
+                <a style="display: inline-block; margin: 10px" href="{% url 'logout' %}">{% translate 'Log out' %}</a>
+                <div style="display: inline-block"> {% include "home/language_selector.html" %}  </div>
+
+            {% endblock %}
+        </div>
+    {% endif %}
+{% endblock %}
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
