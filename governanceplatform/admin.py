@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
-from import_export import resources
+from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin
+from import_export.widgets import ForeignKeyWidget
 
 from governanceplatform.models import Company, Sector, User
 from governanceplatform.settings import SITE_NAME
@@ -23,8 +24,29 @@ admin_site = CustomAdminSite()
 
 
 class SectorResource(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
+    parent = fields.Field(
+        column_name="parent",
+        attribute="parent",
+        widget=ForeignKeyWidget(Sector, field="name"),
+    )
+
     class Meta:
         model = Sector
+        fields = (
+            "id",
+            "name",
+            "parent",
+        )
 
 
 @admin.register(Sector, site=admin_site)

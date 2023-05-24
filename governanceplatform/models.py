@@ -10,7 +10,10 @@ class Sector(TranslatableModel):
         name = models.CharField(max_length=100)
     )
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
-   
+
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")
