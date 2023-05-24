@@ -3,15 +3,15 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
-from parler.admin import TranslatableAdmin
 from import_export.widgets import ForeignKeyWidget
+from parler.admin import TranslatableAdmin
 
 from governanceplatform.models import Company, Sector, User
 from governanceplatform.settings import SITE_NAME
 
 
 # Customize the admin site
-class CustomAdminSite(admin.AdminSite):
+class CustomAdminSite(TranslatableAdmin, admin.AdminSite):
     site_header = SITE_NAME + " " + _("Administration")
     site_title = SITE_NAME
 
@@ -50,7 +50,7 @@ class SectorResource(resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class SectorAdmin(ImportExportModelAdmin, CustomAdminSite):
     list_display = ["name", "parent"]
     search_fields = ["name"]
     resource_classes = [SectorResource]
