@@ -1,13 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from parler.models import TranslatableModel, TranslatedFields
 
 
 # sector
-class Sector(models.Model):
-    name = models.CharField(max_length=100)
+class Sector(TranslatableModel):
+    translations = TranslatedFields(
+        name = models.CharField(max_length=100)
+    )
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
-
+   
     class Meta:
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")

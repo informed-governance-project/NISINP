@@ -24,6 +24,8 @@ django-two-factor-auth = "^1.15.2"
 phonenumbers = "^8.13.11"
 django-revproxy = {url = "https://github.com/jazzband/django-revproxy/archive/refs/tags/0.11.0.tar.gz"}
 django-import-export = "^3.2.0"
+parler = "^1.0.1"
+django-parler = "^2.3"
 
 
 [tool.poetry.group.dev.dependencies]

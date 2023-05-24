@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_static",
     "two_factor",
     "import_export",
+    "parler"
 ]
 
 context_processors = [
@@ -280,4 +281,15 @@ BOOTSTRAP5 = {
     "field_renderers": {
         "default": "django_bootstrap5.renderers.FieldRenderer",
     },
+}
+
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'en',}, # English
+        {'code': 'fr',}, # French
+    ),
+    'default': {
+        'fallbacks': ['en'],
+        'hide_untranslated': False,
+    }
 }
