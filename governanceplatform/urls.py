@@ -54,9 +54,16 @@ urlpatterns = [
     path("set-language/", set_language, name="set_language"),
     # Proxy views
     # re_path(r'(?P<path>.*)', ProxyView.as_view(upstream='https://my.monarc.lu/casesmodels/'))
-    # re_path(r'^module/(?P<path>.*)$', ProxyView.as_view(upstream='https://my.monarc.lu/'))
-    # re_path(r'casesmodels', ProxyView.as_view(upstream='https://my.monarc.lu/casesmodels/'))
-    re_path(r"^(?P<path>.*)$", ProxyView.as_view(upstream="http://0.0.0.0:5000/")),
+    # re_path(r'casesmodels', ProxyView.as_view(upstream='http://127.0.0.1:5001/')),
+    # re_path(r"^(?P<path>.*)$", ProxyView.as_view(upstream="http://127.0.0.1:5001/")),
+    re_path(
+        r"^monarc/(?P<path>.*)$", ProxyView.as_view(upstream="http://127.0.0.1:5001/")
+    ),
+    re_path(r"^bo/(?P<path>.*)$", ProxyView.as_view(upstream="http://127.0.0.1:5000/")),
+    re_path(
+        r"^notifications/(?P<path>.*)$",
+        ProxyView.as_view(upstream="http://127.0.0.1:5002/"),
+    ),
 ]
 
 if DEBUG:
