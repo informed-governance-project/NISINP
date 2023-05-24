@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
-from import_export.widgets import ForeignKeyWidget
+from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from governanceplatform.models import Company, Sector, User
 from governanceplatform.settings import SITE_NAME
@@ -41,11 +41,6 @@ class SectorResource(resources.ModelResource):
 
     class Meta:
         model = Sector
-        fields = (
-            "id",
-            "name",
-            "parent",
-        )
 
 
 @admin.register(Sector, site=admin_site)
@@ -56,6 +51,22 @@ class SectorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 class CompanyResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id")
+    identifier = fields.Field(column_name="identifier", attribute="identifier")
+    name = fields.Field(column_name="name", attribute="name")
+    address = fields.Field(column_name="address", attribute="address")
+    country = fields.Field(column_name="country", attribute="country")
+    email = fields.Field(column_name="email", attribute="email")
+    phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
+    is_operateur = fields.Field(column_name="is_operateur", attribute="is_operateur")
+    is_regulator = fields.Field(column_name="is_regulator", attribute="is_regulator")
+    monarc_path = fields.Field(column_name="monarc_path", attribute="monarc_path")
+    sectors = fields.Field(
+        column_name="sectors",
+        attribute="sectors",
+        widget=ManyToManyWidget(Sector, field="name", separator=","),
+    )
+
     class Meta:
         model = Company
 
@@ -72,7 +83,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "is_operateur",
         "is_regulator",
     ]
-    list_filter = ["is_operateur", "is_regulator"]
+    list_filter = ["is_operateur", "is_regulator", "sectors"]
     search_fields = ["name"]
 
 
