@@ -4,6 +4,7 @@ from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
+from parler.admin import TranslatableAdmin
 
 from governanceplatform.models import Company, Sector, User
 from governanceplatform.settings import SITE_NAME
@@ -44,7 +45,7 @@ class SectorResource(resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "parent"]
     search_fields = ["name"]
     resource_classes = [SectorResource]
