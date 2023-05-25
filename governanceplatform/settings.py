@@ -88,7 +88,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_static",
     "two_factor",
     "import_export",
-    "parler"
+    "parler",
 ]
 
 context_processors = [
@@ -283,16 +283,22 @@ BOOTSTRAP5 = {
     },
 }
 
-# Multinlingual DB parameter 
-PARLER_DEFAULT_LANGUAGE_CODE = 'en'
+# Multinlingual DB parameter
+PARLER_DEFAULT_LANGUAGE_CODE = "en"
 PARLER_LANGUAGES = {
     1: (
-        {'code': 'en',}, # English
-        {'code': 'fr',}, # French
-        {'code': 'nl',}, # Dutch
+        {
+            "code": "en",
+        },  # English
+        {
+            "code": "fr",
+        },  # French
+        {
+            "code": "nl",
+        },  # Dutch
     ),
-    'default': {
-        'fallbacks': ['en'],
-        'hide_untranslated': False,
-    }
+    "default": {
+        "fallbacks": ["en"],
+        "hide_untranslated": False,
+    },
 }
