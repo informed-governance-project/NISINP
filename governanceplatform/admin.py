@@ -94,8 +94,6 @@ class UserResource(resources.ModelResource):
     last_name = fields.Field(column_name="last_name", attribute="last_name")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    is_operateur = fields.Field(column_name="is_operateur", attribute="is_operateur")
-    is_regulator = fields.Field(column_name="is_regulator", attribute="is_regulator")
     is_administrator = fields.Field(
         column_name="is_administrator", attribute="is_administrator"
     )
@@ -118,8 +116,6 @@ class UserResource(resources.ModelResource):
             "last_name",
             "email",
             "phone_number",
-            "is_operateur",
-            "is_regulator",
             "is_administrator",
             "companies",
             "sectors",
@@ -134,8 +130,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "last_name",
         "email",
         "phone_number",
-        "is_operateur",
-        "is_regulator",
         "is_administrator",
     ]
     search_fields = ["first_name", "last_name", "email"]
@@ -157,7 +151,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
-                    ("is_operateur", "is_regulator", "is_administrator"),
+                    "is_administrator",
                     "companies",
                     "sectors",
                 ],
