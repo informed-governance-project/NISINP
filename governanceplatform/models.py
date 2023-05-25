@@ -6,9 +6,7 @@ from parler.models import TranslatableModel, TranslatedFields
 
 # sector
 class Sector(TranslatableModel):
-    translations = TranslatedFields(
-        name = models.CharField(max_length=100)
-    )
+    translations = TranslatedFields(name=models.CharField(max_length=100))
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -33,6 +31,9 @@ class Company(models.Model):
     phone_number = models.CharField(max_length=30, blank=True, null=True)
     sectors = models.ManyToManyField(Sector)
     monarc_path = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         verbose_name = _("Company")

@@ -130,9 +130,9 @@ class UserResource(resources.ModelResource):
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [UserResource]
     list_display = [
-        "email",
         "first_name",
         "last_name",
+        "email",
         "phone_number",
         "is_operateur",
         "is_regulator",
@@ -146,6 +146,8 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "companies",
         "sectors",
     ]
+
+    list_display_links = ("email", "first_name", "last_name")
 
     fieldsets = [
         (
