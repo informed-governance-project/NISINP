@@ -11,7 +11,7 @@ from governanceplatform.settings import SITE_NAME
 
 
 # Customize the admin site
-class CustomAdminSite(TranslatableAdmin, admin.AdminSite):
+class CustomAdminSite(admin.AdminSite):
     site_header = SITE_NAME + " " + _("Administration")
     site_title = SITE_NAME
 
@@ -50,7 +50,7 @@ class SectorResource(resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, CustomAdminSite):
+class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "parent"]
     search_fields = ["name"]
     resource_classes = [SectorResource]

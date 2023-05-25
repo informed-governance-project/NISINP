@@ -284,12 +284,12 @@ BOOTSTRAP5 = {
 }
 
 PARLER_LANGUAGES = {
-    None: (
-        {'code': 'en',}, # English
+    1: (
+        {'code': 'en-us',}, # English
         {'code': 'fr',}, # French
     ),
     'default': {
-        'fallbacks': ['en'],
+        'fallbacks': ['en-us'],
         'hide_untranslated': False,
     }
 }
