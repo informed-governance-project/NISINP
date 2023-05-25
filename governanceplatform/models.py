@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -35,6 +36,10 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
+    @admin.display(description="sectors")
+    def get_sectors(self):
+        return [sector.name for sector in self.sectors.all()]
+
     class Meta:
         verbose_name = _("Company")
         verbose_name_plural = _("Companies")
@@ -55,3 +60,11 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30)
     companies = models.ManyToManyField(Company)
     sectors = models.ManyToManyField(Sector)
+
+    @admin.display(description="sectors")
+    def get_sectors(self):
+        return [sector.name for sector in self.sectors.all()]
+
+    @admin.display(description="companies")
+    def get_companies(self):
+        return [company.name for company in self.companies.all()]

@@ -81,11 +81,13 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "country",
         "email",
         "phone_number",
+        "get_sectors",
         "is_operateur",
         "is_regulator",
     ]
     list_filter = ["is_operateur", "is_regulator", "sectors"]
     search_fields = ["name"]
+    filter_horizontal = ("sectors", "sectors")
 
     fieldsets = [
         (
@@ -156,16 +158,17 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "last_name",
         "email",
         "phone_number",
+        "get_companies",
+        "get_sectors",
         "is_administrator",
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
-        "is_operateur",
-        "is_regulator",
-        "is_administrator",
-        "companies",
         "sectors",
+        "is_administrator",
     ]
+
+    filter_horizontal = ("companies", "sectors")
 
     list_display_links = ("email", "first_name", "last_name")
 
