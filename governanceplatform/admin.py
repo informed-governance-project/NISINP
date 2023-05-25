@@ -88,8 +88,47 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     search_fields = ["name"]
 
 
+class UserResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id")
+    first_name = fields.Field(column_name="first_name", attribute="first_name")
+    last_name = fields.Field(column_name="last_name", attribute="last_name")
+    email = fields.Field(column_name="email", attribute="email")
+    phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
+    is_operateur = fields.Field(column_name="is_operateur", attribute="is_operateur")
+    is_regulator = fields.Field(column_name="is_regulator", attribute="is_regulator")
+    is_administrator = fields.Field(
+        column_name="is_administrator", attribute="is_administrator"
+    )
+    companies = fields.Field(
+        column_name="companies",
+        attribute="companies",
+        widget=ManyToManyWidget(Sector, field="name", separator=","),
+    )
+    sectors = fields.Field(
+        column_name="sectors",
+        attribute="sectors",
+        widget=ManyToManyWidget(Sector, field="name", separator=","),
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "is_operateur",
+            "is_regulator",
+            "is_administrator",
+            "companies",
+            "sectors",
+        ]
+
+
 @admin.register(User, site=admin_site)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_classes = [UserResource]
     list_display = ["email", "first_name", "last_name", "phone_number"]
     search_fields = ["first_name", "last_name", "email"]
 
