@@ -87,6 +87,32 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_filter = ["is_operateur", "is_regulator", "sectors"]
     search_fields = ["name"]
 
+    fieldsets = [
+        (
+            _("Contact Information"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "name",
+                    ("address", "country"),
+                    ("email", "phone_number"),
+                ],
+            },
+        ),
+        (
+            _("Configuration Information"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    ("is_operateur", "is_regulator"),
+                    "identifier",
+                    "monarc_path",
+                    "sectors",
+                ],
+            },
+        ),
+    ]
+
 
 class UserResource(resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id")
@@ -145,14 +171,22 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     fieldsets = [
         (
-            None,
+            _("Contact Information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
-                    "is_administrator",
                     "companies",
+                ],
+            },
+        ),
+        (
+            _("Configuration Information"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "is_administrator",
                     "sectors",
                 ],
             },
