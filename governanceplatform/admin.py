@@ -129,15 +129,36 @@ class UserResource(resources.ModelResource):
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [UserResource]
-    list_display = ["email", "first_name", "last_name", "phone_number"]
+    list_display = [
+        "email",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "is_operateur",
+        "is_regulator",
+        "is_administrator",
+    ]
     search_fields = ["first_name", "last_name", "email"]
+    list_filter = [
+        "is_operateur",
+        "is_regulator",
+        "is_administrator",
+        "companies",
+        "sectors",
+    ]
 
     fieldsets = [
         (
             None,
             {
                 "classes": ["extrapretty"],
-                "fields": [("first_name", "last_name"), "email", "phone_number"],
+                "fields": [
+                    ("first_name", "last_name"),
+                    ("email", "phone_number"),
+                    ("is_operateur", "is_regulator", "is_administrator"),
+                    "companies",
+                    "sectors",
+                ],
             },
         ),
     ]
