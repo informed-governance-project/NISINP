@@ -283,13 +283,16 @@ BOOTSTRAP5 = {
     },
 }
 
+# Multinlingual DB parameter 
+PARLER_DEFAULT_LANGUAGE_CODE = 'en'
 PARLER_LANGUAGES = {
     1: (
-        {'code': 'en-us',}, # English
+        {'code': 'en',}, # English
         {'code': 'fr',}, # French
+        {'code': 'nl',}, # Dutch
     ),
     'default': {
-        'fallbacks': ['en-us'],
+        'fallbacks': ['en'],
         'hide_untranslated': False,
     }
 }
