@@ -200,6 +200,12 @@ LANGUAGES = [
     ("nl", "Dutch"),
 ]
 
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, "locale"),
+    os.path.join(BASE_DIR, "theme/locale"),
+    os.path.join(BASE_DIR, "django_locale"),
+]
+
 # Email
 
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
