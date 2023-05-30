@@ -32,7 +32,6 @@ class Services(TranslatableModel):
 
 # regulator and operator are companies
 class Company(models.Model):
-    is_operateur = models.BooleanField(default=True)
     is_regulator = models.BooleanField(default=False)
     identifier = models.CharField(
         max_length=64
@@ -66,12 +65,11 @@ class ExternalToken(models.Model):
 
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser):
-    is_operateur = models.BooleanField(default=True)
     is_regulator = models.BooleanField(default=False)
     is_administrator = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=30)
     companies = models.ManyToManyField(Company)
-    sectors = models.ManyToManyField(Sector)
+    sectors = models.ManyToManyField(Sector, through='SectorAdministration')
 
     @admin.display(description="sectors")
     def get_sectors(self):
@@ -80,3 +78,9 @@ class User(AbstractUser):
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all()]
+
+# link between the users and the sector     
+class SectorAdministration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    is_sector_administrator = models.BooleanField(default=False)
