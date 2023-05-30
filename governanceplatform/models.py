@@ -17,6 +17,18 @@ class Sector(TranslatableModel):
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")
 
+# esssential services
+class Services(TranslatableModel):
+    translations = TranslatedFields(name=models.CharField(max_length=100))
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("Service")
+        verbose_name_plural = _("Services")
+
 
 # regulator and operator are companies
 class Company(models.Model):
