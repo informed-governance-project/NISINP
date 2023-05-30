@@ -6,7 +6,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from governanceplatform.models import Company, Sector, User
+from governanceplatform.models import Company, Sector, User, Services
 from governanceplatform.settings import SITE_NAME
 
 
@@ -49,6 +49,32 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "parent"]
     search_fields = ["name"]
     resource_classes = [SectorResource]
+
+class ServicesResouce(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
+    sector = fields.Field(
+        column_name="sector",
+        attribute="sector",
+        widget=ForeignKeyWidget(Sector, field="name"),
+    )
+
+    class Meta:
+        model = Sector
+
+@admin.register(Services, site=admin_site)
+class ServicesAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name", "sector"]
+    search_fields = ["name"]
+    resource_classes = [ServicesResouce]
 
 
 class CompanyResource(resources.ModelResource):
