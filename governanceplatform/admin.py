@@ -85,7 +85,6 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    is_operateur = fields.Field(column_name="is_operateur", attribute="is_operateur")
     is_regulator = fields.Field(column_name="is_regulator", attribute="is_regulator")
     monarc_path = fields.Field(column_name="monarc_path", attribute="monarc_path")
     sectors = fields.Field(
@@ -108,10 +107,9 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "get_sectors",
-        "is_operateur",
         "is_regulator",
     ]
-    list_filter = ["is_operateur", "is_regulator", "sectors"]
+    list_filter = ["is_regulator", "sectors"]
     search_fields = ["name"]
     filter_horizontal = ("sectors", "sectors")
 
@@ -132,7 +130,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    ("is_operateur", "is_regulator"),
+                    ("is_operateur",),
                     "identifier",
                     "monarc_path",
                     "sectors",
@@ -176,6 +174,9 @@ class UserResource(resources.ModelResource):
         ]
 
 
+class sectorInline(admin.TabularInline):
+    model = User.sectors.through
+
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [UserResource]
@@ -216,8 +217,9 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "is_administrator",
-                    "sectors",
                 ],
             },
         ),
     ]
+
+    inlines = (sectorInline,)
