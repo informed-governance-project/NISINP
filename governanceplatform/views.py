@@ -17,10 +17,10 @@ def index(request):
 
     user = request.user
     if user.is_authenticated:
-        if user.is_operateur:
-            return operateur_index(request)
-        elif user.is_regulator:
+        if user.is_regulator:
             return regulator_index(request)
+
+        return operateur_index(request)
 
 
 def logout_view(request):
