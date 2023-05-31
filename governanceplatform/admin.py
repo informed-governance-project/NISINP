@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 from import_export import fields, resources
@@ -21,6 +22,8 @@ class CustomAdminSite(admin.AdminSite):
 
 
 admin_site = CustomAdminSite()
+
+admin_site.register(Group)
 
 
 class SectorResource(resources.ModelResource):
@@ -223,6 +226,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = (userCompanyInline, userSectorInline)
+    filter_horizontal = ("groups", "groups")
     fieldsets = [
         (
             _("Contact Information"),
@@ -240,7 +244,12 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "is_administrator",
+                    "is_staff",
                 ],
             },
+        ),
+        (
+            "Group Permissions",
+            {"classes": ("collapse",), "fields": ("groups", "user_permissions")},
         ),
     ]
