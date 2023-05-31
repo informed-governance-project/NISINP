@@ -6,7 +6,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from governanceplatform.models import Company, Sector, User, Services
+from governanceplatform.models import Company, Sector, Services, User
 from governanceplatform.settings import SITE_NAME
 
 
@@ -50,6 +50,7 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["name"]
     resource_classes = [SectorResource]
 
+
 class ServicesResouce(resources.ModelResource):
     id = fields.Field(
         column_name="id",
@@ -69,6 +70,7 @@ class ServicesResouce(resources.ModelResource):
 
     class Meta:
         model = Sector
+
 
 @admin.register(Services, site=admin_site)
 class ServicesAdmin(ImportExportModelAdmin, TranslatableAdmin):
@@ -97,6 +99,13 @@ class CompanyResource(resources.ModelResource):
         model = Company
 
 
+class companySectorInline(admin.TabularInline):
+    model = Company.sectors.through
+    verbose_name = _("sector")
+    verbose_name_plural = _("sectors")
+    extra = 1
+
+
 @admin.register(Company, site=admin_site)
 class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_classes = [CompanyResource]
@@ -112,7 +121,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_filter = ["is_regulator", "sectors"]
     search_fields = ["name"]
     filter_horizontal = ("sectors", "sectors")
-
+    inlines = (companySectorInline,)
     fieldsets = [
         (
             _("Contact Information"),
@@ -126,14 +135,21 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
         (
+            _("Permissions"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "is_regulator",
+                ],
+            },
+        ),
+        (
             _("Configuration Information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    ("is_operateur",),
                     "identifier",
                     "monarc_path",
-                    "sectors",
                 ],
             },
         ),
@@ -174,8 +190,19 @@ class UserResource(resources.ModelResource):
         ]
 
 
-class sectorInline(admin.TabularInline):
+class userSectorInline(admin.TabularInline):
     model = User.sectors.through
+    verbose_name = _("sector")
+    verbose_name_plural = _("sectors")
+    extra = 1
+
+
+class userCompanyInline(admin.TabularInline):
+    model = User.companies.through
+    verbose_name = _("company")
+    verbose_name_plural = _("companies")
+    extra = 1
+
 
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
@@ -194,11 +221,8 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "sectors",
         "is_administrator",
     ]
-
-    filter_horizontal = ("companies", "sectors")
-
     list_display_links = ("email", "first_name", "last_name")
-
+    inlines = (userCompanyInline, userSectorInline)
     fieldsets = [
         (
             _("Contact Information"),
@@ -207,12 +231,11 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
-                    "companies",
                 ],
             },
         ),
         (
-            _("Configuration Information"),
+            _("Permissions"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
@@ -221,5 +244,3 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
     ]
-
-    inlines = (sectorInline,)
