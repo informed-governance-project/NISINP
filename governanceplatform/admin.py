@@ -5,6 +5,7 @@ from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
+from django_otp import devices_for_user
 
 from governanceplatform.models import Company, Sector, Services, User
 from governanceplatform.settings import SITE_NAME
@@ -203,6 +204,14 @@ class userCompanyInline(admin.TabularInline):
     verbose_name_plural = _("companies")
     extra = 1
 
+# reset the 2FA we delete the TOTP devices
+@admin.action(description='reset 2FA')
+def reset_2FA(modeladmin, request, queryset):
+    for user in queryset:
+        print(user)
+        devices = devices_for_user(user)
+        for device in devices:
+            device.delete()
 
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
@@ -244,3 +253,5 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
     ]
+    actions = [reset_2FA]
+
