@@ -8,7 +8,9 @@ from parler.models import TranslatableModel, TranslatedFields
 # sector
 class Sector(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(max_length=100))
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        "self", null=True, on_delete=models.CASCADE, blank=True, default=None
+    )
 
     def __str__(self):
         return self.name
@@ -16,6 +18,7 @@ class Sector(TranslatableModel):
     class Meta:
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")
+
 
 # esssential services
 class Services(TranslatableModel):
@@ -39,8 +42,8 @@ class Company(models.Model):
     name = models.CharField(max_length=64)
     country = models.CharField(max_length=64)
     address = models.CharField(max_length=255)
-    email = models.CharField(max_length=100, blank=True, null=True)
-    phone_number = models.CharField(max_length=30, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True, default=None)
+    phone_number = models.CharField(max_length=30, blank=True, null=True, default=None)
     sectors = models.ManyToManyField(Sector)
     monarc_path = models.CharField(max_length=200)
 
@@ -67,9 +70,9 @@ class ExternalToken(models.Model):
 class User(AbstractUser):
     is_regulator = models.BooleanField(default=False)
     is_administrator = models.BooleanField(default=False)
-    phone_number = models.CharField(max_length=30)
+    phone_number = models.CharField(max_length=30, blank=True, default=None)
     companies = models.ManyToManyField(Company)
-    sectors = models.ManyToManyField(Sector, through='SectorAdministration')
+    sectors = models.ManyToManyField(Sector, through="SectorAdministration")
 
     @admin.display(description="sectors")
     def get_sectors(self):
@@ -79,8 +82,13 @@ class User(AbstractUser):
     def get_companies(self):
         return [company.name for company in self.companies.all()]
 
-# link between the users and the sector     
+
+# link between the users and the sector
 class SectorAdministration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     is_sector_administrator = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _("Sector administration")
+        verbose_name_plural = _("Sectors administration")
