@@ -203,7 +203,6 @@ LANGUAGES = [
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),
     os.path.join(BASE_DIR, "theme/locale"),
-    os.path.join(BASE_DIR, "django_locale"),
 ]
 
 # Email
