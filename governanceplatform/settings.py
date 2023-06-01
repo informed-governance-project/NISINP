@@ -173,10 +173,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Authentication
-
-AUTHENTICATION_BACKENDS = ["governanceplatform.authentication.CustomAuth"]
-
 # User Model
 
 AUTH_USER_MODEL = "governanceplatform.User"
