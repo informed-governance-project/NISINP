@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
+from django_otp import devices_for_user
 from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
-from django_otp import devices_for_user
 
 from governanceplatform.models import Company, Sector, Services, User
 from governanceplatform.settings import SITE_NAME
@@ -52,10 +52,10 @@ class SectorResource(resources.ModelResource):
 class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "parent"]
     search_fields = ["name"]
-    resource_classes = [SectorResource]
+    resource_class = SectorResource
 
 
-class ServicesResouce(resources.ModelResource):
+class ServicesResource(resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -80,7 +80,7 @@ class ServicesResouce(resources.ModelResource):
 class ServicesAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "sector"]
     search_fields = ["name"]
-    resource_classes = [ServicesResouce]
+    resource_class = ServicesResource
 
 
 class CompanyResource(resources.ModelResource):
@@ -112,7 +112,7 @@ class companySectorInline(admin.TabularInline):
 
 @admin.register(Company, site=admin_site)
 class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    resource_classes = [CompanyResource]
+    resource_class = CompanyResource
     list_display = [
         "name",
         "address",
@@ -207,18 +207,19 @@ class userCompanyInline(admin.TabularInline):
     verbose_name_plural = _("companies")
     extra = 1
 
+
 # reset the 2FA we delete the TOTP devices
-@admin.action(description='reset 2FA')
+@admin.action(description=_("Reset 2FA"))
 def reset_2FA(modeladmin, request, queryset):
     for user in queryset:
-        print(user)
         devices = devices_for_user(user)
         for device in devices:
             device.delete()
 
+
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    resource_classes = [UserResource]
+    resource_class = UserResource
     list_display = [
         "first_name",
         "last_name",
@@ -235,7 +236,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = (userCompanyInline, userSectorInline)
-    filter_horizontal = ("groups", "groups")
+    filter_horizontal = ("groups",)
     fieldsets = [
         (
             _("Contact Information"),
@@ -264,3 +265,31 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if not request.user.is_superuser:
+            fieldsets = [fs for fs in fieldsets if fs[0] != _("Permissions")]
+        return fieldsets
+
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+
+        if not request.user.is_superuser:
+            inline_instances = [
+                inline(self.model, self.admin_site) for inline in self.inlines
+            ]
+
+        return inline_instances
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        if request.user.groups.filter(name="sectorAdmin").exists():
+            return queryset.filter(
+                sectors__in=request.user.sectors.filter(
+                    sectoradministration__is_sector_administrator=True
+                ),
+                companies__in=request.user.companies.all(),
+            ).distinct()
+        return queryset.exclude(username=request.user.username)
