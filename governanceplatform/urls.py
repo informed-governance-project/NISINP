@@ -53,7 +53,6 @@ urlpatterns = [
     # Language Selector
     path("set-language/", set_language, name="set_language"),
     # Proxy views
-    # re_path(r'(?P<path>.*)', ProxyView.as_view(upstream='https://my.monarc.lu/casesmodels/'))
     # re_path(r'casesmodels', ProxyView.as_view(upstream='http://127.0.0.1:5001/')),
     # re_path(r"^(?P<path>.*)$", ProxyView.as_view(upstream="http://127.0.0.1:5001/")),
     re_path(

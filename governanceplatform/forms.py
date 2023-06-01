@@ -1,5 +1,6 @@
-from django_otp.forms import OTPAuthenticationForm
 from django import forms
+from django_otp.forms import OTPAuthenticationForm
+
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
