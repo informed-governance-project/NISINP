@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("governanceplatform", "0004_remove_company_is_operateur"),
     ]

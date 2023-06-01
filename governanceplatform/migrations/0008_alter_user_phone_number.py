@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("governanceplatform", "0007_alter_sector_parent"),
     ]

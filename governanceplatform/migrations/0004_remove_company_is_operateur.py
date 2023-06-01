@@ -4,14 +4,16 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('governanceplatform', '0003_remove_user_is_operateur_sectoradministration_and_more'),
+        (
+            "governanceplatform",
+            "0003_remove_user_is_operateur_sectoradministration_and_more",
+        ),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='company',
-            name='is_operateur',
+            model_name="company",
+            name="is_operateur",
         ),
     ]
