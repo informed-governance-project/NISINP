@@ -315,22 +315,23 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         form.base_fields["list_sectors"].required = False
 
         if not request.user.is_superuser:
+            if obj is not None:
+                selected_companies = [company.id for company in obj.companies.all()]
+                selected_sectors = [sector.id for sector in obj.sectors.all()]
+                form.base_fields["list_companies"].initial = selected_companies
+                form.base_fields["list_sectors"].initial = selected_sectors
+
             companies_tuples = [
                 (company.id, company.name) for company in request.user.companies.all()
             ]
             form.base_fields["list_companies"].required = True
             form.base_fields["list_companies"].choices = companies_tuples
 
-            selected_companies = [company.id for company in obj.companies.all()]
-            form.base_fields["list_companies"].initial = selected_companies
             sectors_tuples = [
                 (sector.id, sector.name) for sector in request.user.sectors.all()
             ]
             form.base_fields["list_sectors"].required = True
             form.base_fields["list_sectors"].choices = sectors_tuples
-
-            selected_sectors = [sector.id for sector in obj.sectors.all()]
-            form.base_fields["list_sectors"].initial = selected_sectors
 
         return form
 
