@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
@@ -24,8 +24,6 @@ class CustomAdminSite(admin.AdminSite):
 
 
 admin_site = CustomAdminSite()
-
-admin_site.register(Group)
 
 
 class SectorResource(resources.ModelResource):
@@ -245,12 +243,13 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "phone_number",
         "get_companies",
         "get_sectors",
-        "is_administrator",
+        "is_superuser",
+        "is_staff",
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
         "sectors",
-        "is_administrator",
+        "is_staff",
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = (userCompanyInline, userSectorInline)
@@ -271,15 +270,15 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    "is_administrator",
+                    "is_superuser",
                     "is_staff",
                 ],
             },
         ),
-        (
-            "Group Permissions",
-            {"classes": ("collapse",), "fields": ("groups", "user_permissions")},
-        ),
+        # (
+        #     "Group Permissions",
+        #     {"classes": ("collapse",), "fields": ("groups", "user_permissions")},
+        # ),
     ]
     actions = [reset_2FA]
 
@@ -339,14 +338,21 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        if request.user.groups.filter(name="sectorAdmin").exists():
+
+        if request.user.has_perms(
+            [
+                "governanceplatform.add_user",
+                "governanceplatform.change_user",
+                "governanceplatform.delete_user",
+            ],
+        ):
             return queryset.filter(
                 sectors__in=request.user.sectors.filter(
                     sectoradministration__is_sector_administrator=True
                 ),
                 companies__in=request.user.companies.all(),
             ).distinct()
-        return queryset.exclude(username=request.user.username)
+        return queryset.exclude(email=request.user.email)
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
@@ -361,4 +367,11 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             if list_sectors is not None:
                 obj.sectors.set(list_sectors)
         else:
+            if obj.id is None and obj.is_staff:
+                super().save_model(request, obj, form, change)
+                obj.user_permissions.add(
+                    Permission.objects.get(codename="add_user"),
+                    Permission.objects.get(codename="change_user"),
+                    Permission.objects.get(codename="delete_user"),
+                )
             super().save_model(request, obj, form, change)
