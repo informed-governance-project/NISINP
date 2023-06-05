@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
@@ -160,6 +161,22 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
 
 
+class MyModelAdminForm(forms.ModelForm):
+    list_companies = forms.MultipleChoiceField(
+        label=_("Companies"),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    list_sectors = forms.MultipleChoiceField(
+        label=_("Sectors"),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
 class UserResource(resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id")
     first_name = fields.Field(column_name="first_name", attribute="first_name")
@@ -219,6 +236,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    form = MyModelAdminForm
     resource_class = UserResource
     list_display = [
         "first_name",
@@ -269,17 +287,52 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         fieldsets = super().get_fieldsets(request, obj)
         if not request.user.is_superuser:
             fieldsets = [fs for fs in fieldsets if fs[0] != _("Permissions")]
+
+            fieldsets.append(
+                (
+                    _("Companies"),
+                    {
+                        "classes": ["extrapretty"],
+                        "fields": ["list_companies"],
+                    },
+                )
+            )
+
+            fieldsets.append(
+                (
+                    _("Sectors"),
+                    {
+                        "classes": ["extrapretty"],
+                        "fields": ["list_sectors"],
+                    },
+                )
+            )
         return fieldsets
 
-    def get_inline_instances(self, request, obj=None):
-        inline_instances = super().get_inline_instances(request, obj)
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["list_companies"].required = False
+        form.base_fields["list_sectors"].required = False
 
         if not request.user.is_superuser:
-            inline_instances = [
-                inline(self.model, self.admin_site) for inline in self.inlines
+            companies_tuples = [
+                (company.id, company.name) for company in request.user.companies.all()
             ]
+            form.base_fields["list_companies"].required = True
+            form.base_fields["list_companies"].choices = companies_tuples
 
-        return inline_instances
+            selected_companies = [company.id for company in obj.companies.all()]
+            form.base_fields["list_companies"].initial = selected_companies
+            sectors_tuples = [
+                (sector.id, sector.name) for sector in request.user.sectors.all()
+            ]
+            form.base_fields["list_sectors"].required = True
+            form.base_fields["list_sectors"].choices = sectors_tuples
+
+            selected_sectors = [sector.id for sector in obj.sectors.all()]
+            form.base_fields["list_sectors"].initial = selected_sectors
+
+        return form
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -293,3 +346,18 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 companies__in=request.user.companies.all(),
             ).distinct()
         return queryset.exclude(username=request.user.username)
+
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser:
+            super().save_model(request, obj, form, change)
+
+            list_companies = form.cleaned_data.get("list_companies")
+            list_sectors = form.cleaned_data.get("list_sectors")
+
+            if list_companies is not None:
+                obj.companies.set(list_companies)
+
+            if list_sectors is not None:
+                obj.sectors.set(list_sectors)
+        else:
+            super().save_model(request, obj, form, change)
