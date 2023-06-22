@@ -187,7 +187,7 @@ class UserResource(resources.ModelResource):
     companies = fields.Field(
         column_name="companies",
         attribute="companies",
-        widget=ManyToManyWidget(Sector, field="name", separator=","),
+        widget=ManyToManyWidget(Company, field="name", separator=","),
     )
     sectors = fields.Field(
         column_name="sectors",
@@ -243,7 +243,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "phone_number",
         "get_companies",
         "get_sectors",
-        "is_superuser",
         "is_staff",
     ]
     search_fields = ["first_name", "last_name", "email"]
@@ -270,7 +269,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    "is_superuser",
                     "is_staff",
                 ],
             },
@@ -348,7 +346,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ):
             return queryset.filter(
                 sectors__in=request.user.sectors.filter(
-                    sectoradministration__is_sector_administrator=True
+                    sectorcontact__is_sector_contact=True
                 ),
                 companies__in=request.user.companies.all(),
             ).distinct()

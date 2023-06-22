@@ -4,6 +4,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
+from governanceplatform.managers import CustomUserManager
+
 
 # sector
 class Sector(TranslatableModel):
@@ -92,9 +94,9 @@ class User(AbstractUser):
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
     )
-    phone_number = models.CharField(max_length=30, blank=True, default=None)
-    companies = models.ManyToManyField(Company)
-    sectors = models.ManyToManyField(Sector, through="SectorAdministration")
+    phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
+    companies = models.ManyToManyField(Company, through="CompanyAdministrator")
+    sectors = models.ManyToManyField(Sector, through="SectorContact")
     email = models.EmailField(
         verbose_name=_("email address"),
         unique=True,
@@ -106,6 +108,8 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
+    objects = CustomUserManager()
+
     @admin.display(description="sectors")
     def get_sectors(self):
         return [sector.name for sector in self.sectors.all()]
@@ -116,13 +120,26 @@ class User(AbstractUser):
 
 
 # link between the users and the sector
-class SectorAdministration(models.Model):
+class SectorContact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    is_sector_administrator = models.BooleanField(
+    is_sector_contact = models.BooleanField(
+        default=False, verbose_name=_("Contact person")
+    )
+
+    class Meta:
+        verbose_name = _("Sector contact")
+        verbose_name_plural = _("Sectors contact")
+
+
+# link between the admin users and the companies
+class CompanyAdministrator(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    is_company_administrator = models.BooleanField(
         default=False, verbose_name=_("Administrator")
     )
 
     class Meta:
-        verbose_name = _("Sector administration")
-        verbose_name_plural = _("Sectors administration")
+        verbose_name = _("Company administrator")
+        verbose_name_plural = _("Company administrator")
