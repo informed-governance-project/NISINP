@@ -10,14 +10,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Page title -->
-    <title>{% block bootstrap5_title %}{% endblock %}</title>
+    <title>
+        {% block bootstrap5_title %}
+            {% block title %}{% endblock %}
+        {% endblock %}
+    </title>
 
     <!-- Bootstrap CSS -->
     {% bootstrap_css %}
 
     <!-- Bootstrap JavaScript if it is in head -->
     {% if 'javascript_in_head'|bootstrap_setting %}
-        {% bootstrap_javascript %}
+    {% bootstrap_javascript %}
     {% endif %}
 
     {% block bootstrap5_extra_head %}{% endblock %}
@@ -25,16 +29,16 @@
 </head>
 
 <body class="d-flex flex-column h-100">
-{% block bootstrap5_before_content %}{% endblock %}
-{% block bootstrap5_content %} CONTENT {% endblock %}
-{% block bootstrap5_after_content %}{% endblock %}
+    {% block bootstrap5_before_content %}{% endblock %}
+    {% block bootstrap5_content %} CONTENT {% endblock %}
+    {% block bootstrap5_after_content %}{% endblock %}
 
-<!-- Bootstrap JavaScript if it is in body -->
-{% if not 'javascript_in_head'|bootstrap_setting %}
+    <!-- Bootstrap JavaScript if it is in body -->
+    {% if not 'javascript_in_head'|bootstrap_setting %}
     {% bootstrap_javascript %}
-{% endif %}
+    {% endif %}
 
-{% block bootstrap5_extra_script %}{% endblock %}
+    {% block bootstrap5_extra_script %}{% endblock %}
 
 </body>
 

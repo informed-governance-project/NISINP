@@ -88,7 +88,6 @@ class ExternalToken(models.Model):
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser):
     username = None
-    is_regulator = models.BooleanField(default=False, verbose_name=_("Regulator"))
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,

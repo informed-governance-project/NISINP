@@ -5,22 +5,36 @@ from django_otp.decorators import otp_required
 
 from governanceplatform.settings import SITE_NAME
 
-from .decorators import operateur_required, regulator_required
+from .decorators import company_permission_required
+from .forms import SelectCompany
 
 
 @login_required
 def index(request):
-    if not request.user.is_verified():
+    user = request.user
+
+    if not user.is_verified():
         return redirect("two_factor:profile")
 
-    otp_required(index)
+    otp_required(lambda req: index(req))
 
-    user = request.user
+    company_cookie = request.session.get("company_in_use")
+
+    if user.companies.count() > 1 and not company_cookie:
+        return select_company(request)
+
+    if not company_cookie:
+        company_cookie = user.companies.first().id
+
+    user_company_selected = user.companies.get(id=company_cookie)
+
     if user.is_authenticated:
-        if user.is_regulator:
+        if user_company_selected.is_regulator:
             return regulator_index(request)
 
         return operateur_index(request)
+
+    return redirect("login")
 
 
 def logout_view(request):
@@ -33,14 +47,40 @@ def terms(request):
 
 
 def privacy(request):
-    return render(request, "home/privacy_policy.html", context={"site_name": SITE_NAME})
+    return render(
+        request,
+        "home/privacy_policy.html",
+        context={"site_name": SITE_NAME, "is_regulator": True},
+    )
 
 
-@operateur_required
+@company_permission_required(is_regulator=False)
 def operateur_index(request):
-    return render(request, "operateur/index.html", context={"site_name": SITE_NAME})
+    return render(
+        request,
+        "operateur/index.html",
+        context={"site_name": SITE_NAME, "is_regulator": False},
+    )
 
 
-@regulator_required
+@company_permission_required(is_regulator=True)
 def regulator_index(request):
-    return render(request, "regulator/index.html", context={"site_name": SITE_NAME})
+    return render(
+        request,
+        "regulator/index.html",
+        context={"site_name": SITE_NAME, "is_regulator": True},
+    )
+
+
+def select_company(request):
+    if request.method == "POST":
+        form = SelectCompany(request.POST, companies=request.user.companies)
+
+        if form.is_valid() and request.user.is_authenticated:
+            company_selected = form.cleaned_data["select_company"].id
+            request.session["company_in_use"] = company_selected
+
+            return index(request)
+    else:
+        form = SelectCompany(companies=request.user.companies)
+    return render(request, "registration/select_company.html", {"form": form})
