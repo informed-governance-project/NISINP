@@ -1,12 +1,13 @@
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
-
-from governanceplatform.settings import SITE_NAME
 
 from .decorators import company_permission_required
 from .forms import SelectCompany
+from .models import Company
 
 
 @login_required
@@ -18,15 +19,29 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
+    if user.is_superuser:
+        return redirect("admin:index")
+
     company_cookie = request.session.get("company_in_use")
 
     if user.companies.count() > 1 and not company_cookie:
         return select_company(request)
 
-    if not company_cookie:
+    if not company_cookie and user.companies.exists():
         company_cookie = user.companies.first().id
 
-    user_company_selected = user.companies.get(id=company_cookie)
+    try:
+        user_company_selected = user.companies.get(id=company_cookie)
+    except Company.DoesNotExist:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            _(
+                "There is no company associated with this account. Contact the administrator"
+            ),
+        )
+
+        return redirect("login")
 
     if user.is_authenticated:
         if user_company_selected.is_regulator:
@@ -43,15 +58,11 @@ def logout_view(request):
 
 
 def terms(request):
-    return render(request, "home/terms.html", context={"site_name": SITE_NAME})
+    return render(request, "home/terms.html")
 
 
 def privacy(request):
-    return render(
-        request,
-        "home/privacy_policy.html",
-        context={"site_name": SITE_NAME, "is_regulator": True},
-    )
+    return render(request, "home/privacy_policy.html")
 
 
 @company_permission_required(is_regulator=False)
@@ -59,17 +70,12 @@ def operateur_index(request):
     return render(
         request,
         "operateur/index.html",
-        context={"site_name": SITE_NAME, "is_regulator": False},
     )
 
 
 @company_permission_required(is_regulator=True)
 def regulator_index(request):
-    return render(
-        request,
-        "regulator/index.html",
-        context={"site_name": SITE_NAME, "is_regulator": True},
-    )
+    return render(request, "regulator/index.html")
 
 
 def select_company(request):

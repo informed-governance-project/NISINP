@@ -145,7 +145,12 @@ TEMPLATES = [
         ],
         "APP_DIRS": True,
         "OPTIONS": {
-            "context_processors": context_processors,
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
+                "governanceplatform.context_processors.extra_content_for_all_templates",
+            ],
         },
     },
 ]

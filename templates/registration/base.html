@@ -23,6 +23,15 @@
 
     <div class="background">
         <div class="container py-5 h-100">
+            {% block messages %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message|capfirst }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endblock messages %}
             <div class="row d-flex justify-content-center align-items-center h-100">
                 <div class="col-12 col-md-8 col-lg-6 col-xl-5">
                     <div class="card shadow px-5 py-3 mb-5 rounded-1">
