@@ -9,19 +9,4 @@
 {% endblock %}
 
 {% block usertools %}
-    {% if has_permission %}
-        <div id="user-tools">
-
-            {% block welcome-msg %}{% endblock %}
-            {% block userlinks %}
-                <a style="display: inline-block; margin: 10px" href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
-                <a style="display: inline-block; margin: 10px"  href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
-                <a style="display: inline-block; margin: 10px" href="{% url 'logout' %}">{% translate 'Log out' %}</a>
-                <div style="display: inline-block"> {% include "home/language_selector.html" %}  </div>
-            {% endblock %}
-        </div>
-    {% endif %}
 {% endblock %}
-{% block nav-global %}{% endblock %}
-
-{% block content_title %}{% endblock %}
