@@ -9,10 +9,10 @@
 
 {% endblock %}
 {% block nav-global %}
-<div>
-    <a style="padding: 10px"href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
-    <a href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
-    <a style="padding: 10px" href="{% url 'logout' %}">{% translate 'Log out' %}</a>
-    <div style="display: inline-block"> {% include "home/language_selector.html" %}  </div>
-</div>
+    <div class="header-links">
+        <a href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
+        <a href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
+        <a href="{% url 'logout' %}">{% translate 'Log out' %}</a>
+        {% include "home/language_selector.html" %}
+    </div>
 {% endblock %}

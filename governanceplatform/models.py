@@ -85,6 +85,7 @@ class Company(models.Model):
         verbose_name=_("phone number"),
     )
     sectors = models.ManyToManyField(Sector)
+    types = models.ManyToManyField(OperatorType)
     monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
 
     def __str__(self):
