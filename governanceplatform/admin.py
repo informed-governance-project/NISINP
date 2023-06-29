@@ -371,6 +371,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 is_company_admin = form.cleaned_data.get("is_company_administrator")
                 user = form.cleaned_data.get("user")
 
-                if user is not None:
+                if user is not None and request.user.is_staff:
                     user.is_staff = is_company_admin
                     user.save()
