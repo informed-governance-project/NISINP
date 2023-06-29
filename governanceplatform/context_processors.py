@@ -6,6 +6,8 @@ from .settings import SITE_NAME
 
 def extra_content_for_all_templates(request):
     extra_data = {"site_name": SITE_NAME}
+    extra_data["is_staff"] = request.user.is_staff
+    extra_data["is_superuser"] = request.user.is_superuser
 
     if request.user.is_superuser:
         extra_data["template_header"] = "admin/base_site.html"
