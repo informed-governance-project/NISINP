@@ -159,7 +159,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
 
 
-class MyModelAdminForm(forms.ModelForm):
+class CustomAdminForm(forms.ModelForm):
     list_companies = forms.MultipleChoiceField(
         label=_("Companies"),
         widget=forms.CheckboxSelectMultiple,
@@ -181,9 +181,6 @@ class UserResource(resources.ModelResource):
     last_name = fields.Field(column_name="last_name", attribute="last_name")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    is_administrator = fields.Field(
-        column_name="is_administrator", attribute="is_administrator"
-    )
     companies = fields.Field(
         column_name="companies",
         attribute="companies",
@@ -203,7 +200,6 @@ class UserResource(resources.ModelResource):
             "last_name",
             "email",
             "phone_number",
-            "is_administrator",
             "companies",
             "sectors",
         ]
@@ -213,14 +209,19 @@ class userSectorInline(admin.TabularInline):
     model = User.sectors.through
     verbose_name = _("sector")
     verbose_name_plural = _("sectors")
-    extra = 1
+    extra = 0
 
 
 class userCompanyInline(admin.TabularInline):
     model = User.companies.through
     verbose_name = _("company")
     verbose_name_plural = _("companies")
-    extra = 1
+    extra = 0
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.empty_permitted = False
+        return formset
 
 
 # reset the 2FA we delete the TOTP devices
@@ -234,7 +235,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    form = MyModelAdminForm
+    form = CustomAdminForm
     resource_class = UserResource
     list_display = [
         "first_name",
@@ -247,6 +248,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
+        "companies",
         "sectors",
         "is_staff",
     ]
@@ -264,19 +266,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 ],
             },
         ),
-        (
-            _("Permissions"),
-            {
-                "classes": ["extrapretty"],
-                "fields": [
-                    "is_staff",
-                ],
-            },
-        ),
-        # (
-        #     "Group Permissions",
-        #     {"classes": ("collapse",), "fields": ("groups", "user_permissions")},
-        # ),
     ]
     actions = [reset_2FA]
 
@@ -373,3 +362,15 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                     Permission.objects.get(codename="delete_user"),
                 )
             super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+
+        for formset in formsets:
+            for form in formset.forms:
+                is_company_admin = form.cleaned_data.get("is_company_administrator")
+                user = form.cleaned_data.get("user")
+
+                if user is not None:
+                    user.is_staff = is_company_admin
+                    user.save()

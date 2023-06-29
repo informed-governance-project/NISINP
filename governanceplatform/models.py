@@ -149,6 +149,11 @@ class SectorContact(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "sector"], name="unique_SectorContact"
+            ),
+        ]
         verbose_name = _("Sector contact")
         verbose_name_plural = _("Sectors contact")
 
@@ -162,5 +167,10 @@ class CompanyAdministrator(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "company"], name="unique_CompanyAdministrator"
+            ),
+        ]
         verbose_name = _("Company administrator")
         verbose_name_plural = _("Company administrator")
