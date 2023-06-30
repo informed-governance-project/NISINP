@@ -9,7 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from governanceplatform.models import Company, Sector, Services, User
+from governanceplatform.models import Company, Sector, Services, User, Functionality, OperatorType
 from governanceplatform.settings import SITE_NAME
 
 
@@ -374,3 +374,49 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 if user is not None and request.user.is_staff:
                     user.is_staff = is_company_admin
                     user.save()
+
+class FunctionalityResource(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
+@admin.register(Functionality, site=admin_site)
+class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+    resource_class = FunctionalityResource
+
+
+class OperatorTypeResource(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    type = fields.Field(
+        column_name="type",
+        attribute="type",
+    )
+
+    functionalities = fields.Field(
+        column_name="functionalities",
+        attribute="functionalities",
+        widget=ForeignKeyWidget(Functionality, field="name"),
+    )
+
+    class Meta:
+        model = Functionality
+
+@admin.register(OperatorType, site=admin_site)
+class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["type"]
+    search_fields = ["type"]
+    resource_class = OperatorTypeResource
+
+    
