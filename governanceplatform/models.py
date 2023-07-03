@@ -1,6 +1,8 @@
 from django.contrib import admin
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
@@ -174,3 +176,90 @@ class CompanyAdministrator(models.Model):
         ]
         verbose_name = _("Company administrator")
         verbose_name_plural = _("Company administrator")
+
+
+@receiver(post_save, sender=CompanyAdministrator)
+def create_user_groups(sender, instance, created, **kwargs):
+    user = instance.user
+    user.is_staff = False
+    user.is_superuser = False
+
+    group_permissions = {}
+    some_company_is_regulator = user.companyadministrator_set.filter(
+        company__is_regulator=True
+    )
+    some_company_is_administrator = user.companyadministrator_set.filter(
+        is_company_administrator=True
+    )
+
+    # Define a dictionary of group names and the associated permissions
+
+    if (
+        some_company_is_administrator.exists()
+        and some_company_is_administrator.filter(company__is_regulator=False).exists()
+    ):
+        user.is_staff = True
+        group_permissions["OperatorAdmin"] = [
+            "governanceplatform.add_user",
+            "governanceplatform.change_user",
+            "governanceplatform.delete_user",
+        ]
+
+    if (
+        some_company_is_regulator.exists()
+        and some_company_is_regulator.filter(is_company_administrator=True).exists()
+    ):
+        # Regulator Administrator permissions
+        user.is_staff = True
+        user.is_superuser = True
+
+    if (
+        some_company_is_regulator.exists()
+        and some_company_is_regulator.filter(is_company_administrator=False).exists()
+    ):
+        # Regulator Staff permission
+        user.is_staff = True
+        group_permissions["RegulatorStaff"] = [
+            "governanceplatform.add_user",
+            "governanceplatform.change_user",
+            "governanceplatform.delete_user",
+        ]
+
+    if not group_permissions or user.groups.exists():
+        user.groups.clear()
+
+    # Create or retrieve the groups and assign permissions
+    if group_permissions:
+        for group_name, permissions in group_permissions.items():
+            group, created = Group.objects.get_or_create(name=group_name)
+            if created:
+                for permission in permissions:
+                    app_label, codename = permission.split(".", 1)
+                    group.permissions.add(
+                        Permission.objects.get(
+                            content_type__app_label=app_label, codename=codename
+                        )
+                    )
+            # Add the user to the group
+            user.groups.add(group)
+
+    user.save()
+
+
+@receiver(post_delete, sender=CompanyAdministrator)
+def post_delete_handler(sender, instance, **kwargs):
+    user = instance.user
+    group = Group.objects.get(name="OperatorAdmin")
+
+    if not user.companyadministrator_set.all().exists():
+        user.is_staff = False
+        user.is_superuser = False
+
+    if instance.company.is_regulator:
+        group = Group.objects.get(name="RegulatorStaff")
+
+    # Remove the group from the user
+    if user.groups.filter(name=group.name).exists():
+        user.groups.remove(group)
+
+    user.save()

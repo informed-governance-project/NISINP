@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
@@ -9,7 +8,14 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from governanceplatform.models import Company, Sector, Services, User, Functionality, OperatorType
+from governanceplatform.models import (
+    Company,
+    Functionality,
+    OperatorType,
+    Sector,
+    Services,
+    User,
+)
 from governanceplatform.settings import SITE_NAME
 
 
@@ -341,39 +347,43 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             ).distinct()
         return queryset.exclude(email=request.user.email)
 
-    def save_model(self, request, obj, form, change):
-        if not request.user.is_superuser:
-            super().save_model(request, obj, form, change)
+    # def save_model(self, request, obj, form, change):
+    #     if not request.user.is_superuser:
+    #         super().save_model(request, obj, form, change)
 
-            list_companies = form.cleaned_data.get("list_companies")
-            list_sectors = form.cleaned_data.get("list_sectors")
+    #         list_companies = form.cleaned_data.get("list_companies")
+    #         list_sectors = form.cleaned_data.get("list_sectors")
 
-            if list_companies is not None:
-                obj.companies.set(list_companies)
+    #         if list_companies is not None:
+    #             obj.companies.set(list_companies)
 
-            if list_sectors is not None:
-                obj.sectors.set(list_sectors)
-        else:
-            if obj.id is None and obj.is_staff:
-                super().save_model(request, obj, form, change)
-                obj.user_permissions.add(
-                    Permission.objects.get(codename="add_user"),
-                    Permission.objects.get(codename="change_user"),
-                    Permission.objects.get(codename="delete_user"),
-                )
-            super().save_model(request, obj, form, change)
+    #         if list_sectors is not None:
+    #             obj.sectors.set(list_sectors)
 
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
+    #     super().save_model(request, obj, form, change)
 
-        for formset in formsets:
-            for form in formset.forms:
-                is_company_admin = form.cleaned_data.get("is_company_administrator")
-                user = form.cleaned_data.get("user")
+    # def save_related(self, request, form, formsets, change):
+    #     super().save_related(request, form, formsets, change)
 
-                if user is not None and request.user.is_staff:
-                    user.is_staff = is_company_admin
-                    user.save()
+    #     for formset in formsets:
+    #         for form in formset.forms:
+    #             is_company_admin = form.cleaned_data.get("is_company_administrator")
+    #             user = form.cleaned_data.get("user")
+
+    #             if user is not None and request.user.is_staff:
+    #                 user.is_staff = is_company_admin
+    #                 user.save()
+
+    # def response_change(self, request, obj):
+    #     if hasattr(obj, '_form_values'):
+    #         form_values = obj._form_values
+
+    #         # Send the post_save_signal with the form values
+    #         post_save_signal = Signal(providing_args=['form_values'])
+    #         post_save_signal.send(sender=self.model, instance=obj, created=False, form_values=form_values)
+
+    #     return super().response_change(request, obj)
+
 
 class FunctionalityResource(resources.ModelResource):
     id = fields.Field(
@@ -385,6 +395,7 @@ class FunctionalityResource(resources.ModelResource):
         column_name="name",
         attribute="name",
     )
+
 
 @admin.register(Functionality, site=admin_site)
 class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
@@ -413,10 +424,9 @@ class OperatorTypeResource(resources.ModelResource):
     class Meta:
         model = Functionality
 
+
 @admin.register(OperatorType, site=admin_site)
-class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
     search_fields = ["type"]
     resource_class = OperatorTypeResource
-
-    
