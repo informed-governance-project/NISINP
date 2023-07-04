@@ -49,17 +49,19 @@ def update_user_groups(sender, instance, created, **kwargs):
         user.groups.clear()
 
     # Create or retrieve the groups and assign permissions
-
     for group_name, permissions in group_permissions.items():
+
         group, created = Group.objects.get_or_create(name=group_name)
-        if created:
-            for permission in permissions:
-                app_label, codename = permission.split(".", 1)
-                group.permissions.add(
-                    Permission.objects.get(
-                        content_type__app_label=app_label, codename=codename
-                    )
-                )
+
+        # Remove existing permissions not in the desired permissions list
+        existing_permissions = group.permissions.all()
+        permissions_to_remove = existing_permissions.exclude(codename__in=permissions)
+        group.permissions.remove(*permissions_to_remove)
+
+        # Add the desired permissions not already assigned to the group
+        permissions_to_assign = Permission.objects.filter(codename__in=permissions)
+        group.permissions.add(*permissions_to_assign)
+
         # Add the user to the group
         user.groups.add(group)
 
@@ -89,14 +91,16 @@ def delete_user_groups(sender, instance, **kwargs):
 
 def get_operator_admin_permissions():
     operator_admin_permissions = []
-    model_permissions = ["add", "change", "delete"]
-    models = ["user"]
+    models = {
+        "user": ["add", "change", "delete"],
+        "sectorcontact": ["add", "change", "delete"],
+        "companyadministrator": ["add", "change", "delete"],
+        "company": ["change"],
+    }
 
-    for model in models:
-        for permission in model_permissions:
-            operator_admin_permissions.append(
-                "governanceplatform" + "." + permission + "_" + model
-            )
+    for model, permissions in models.items():
+        for permission in permissions:
+            operator_admin_permissions.append(permission + "_" + model)
 
     return operator_admin_permissions
 
@@ -104,12 +108,10 @@ def get_operator_admin_permissions():
 def get_regulator_staff_permissions():
     operator_admin_permissions = []
     model_permissions = ["add", "change", "delete"]
-    models = ["user", "sector"]
+    models = ["user", "sectorcontact", "companyadministrator"]
 
     for model in models:
         for permission in model_permissions:
-            operator_admin_permissions.append(
-                "governanceplatform" + "." + permission + "_" + model
-            )
+            operator_admin_permissions.append(permission + "_" + model)
 
     return operator_admin_permissions

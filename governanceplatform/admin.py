@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
@@ -10,9 +9,11 @@ from parler.admin import TranslatableAdmin
 
 from governanceplatform.models import (
     Company,
+    CompanyAdministrator,
     Functionality,
     OperatorType,
     Sector,
+    SectorContact,
     Services,
     User,
 )
@@ -129,7 +130,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     list_filter = ["is_regulator", "sectors"]
     search_fields = ["name"]
-    filter_horizontal = ("sectors", "sectors")
     inlines = (companySectorInline,)
     fieldsets = [
         (
@@ -164,21 +164,49 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ),
     ]
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
 
-class CustomAdminForm(forms.ModelForm):
-    list_companies = forms.MultipleChoiceField(
-        label=_("Companies"),
-        widget=forms.CheckboxSelectMultiple,
-    )
+        # Check if the user is a superuser
+        if not request.user.is_superuser:
+            fieldsets = [
+                fieldset for fieldset in fieldsets if fieldset[0] != _("Permissions")
+            ]
 
-    list_sectors = forms.MultipleChoiceField(
-        label=_("Sectors"),
-        widget=forms.CheckboxSelectMultiple,
-    )
+        return fieldsets
 
-    class Meta:
-        model = User
-        fields = "__all__"
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+
+        # Check user permissions
+        if not request.user.is_superuser:
+            list_display = [
+                field for field in list_display if field not in ("is_regulator")
+            ]
+
+        return list_display
+
+    def get_readonly_fields(self, request, obj=None):
+        # Get the original read-only fields
+        readonly_fields = super().get_readonly_fields(request, obj)
+
+        if not request.user.is_superuser:
+            readonly_fields = (
+                "identifier",
+                "monarc_path",
+            )
+
+        return readonly_fields
+
+    def get_queryset(self, request):
+        # Get the original queryset
+        queryset = super().get_queryset(request)
+
+        # Filter the queryset based on the user's related companies
+        if request.user.is_superuser:
+            return queryset  # Superuser can see all companies
+        else:
+            return queryset.filter(companyadministrator__user=request.user)
 
 
 class UserResource(resources.ModelResource):
@@ -212,17 +240,37 @@ class UserResource(resources.ModelResource):
 
 
 class userSectorInline(admin.TabularInline):
-    model = User.sectors.through
+    model = SectorContact
     verbose_name = _("sector")
     verbose_name_plural = _("sectors")
     extra = 0
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "sector":
+            if request.user.is_superuser:
+                # Display all available sectors for the superuser
+                kwargs["queryset"] = Sector.objects.all()
+            else:
+                # Filter the choices by the current user's associated sectors
+                kwargs["queryset"] = request.user.sectors.all()
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class userCompanyInline(admin.TabularInline):
-    model = User.companies.through
+    model = CompanyAdministrator
     verbose_name = _("company")
     verbose_name_plural = _("companies")
     extra = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "company":
+            if request.user.is_superuser:
+                # Display all available companies for the superuser
+                kwargs["queryset"] = Company.objects.all()
+            else:
+                # Filter the choices by the current user's associated companies
+                kwargs["queryset"] = request.user.companies.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
@@ -241,7 +289,6 @@ def reset_2FA(modeladmin, request, queryset):
 
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    form = CustomAdminForm
     resource_class = UserResource
     list_display = [
         "first_name",
@@ -259,7 +306,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "is_staff",
     ]
     list_display_links = ("email", "first_name", "last_name")
-    inlines = (userCompanyInline, userSectorInline)
+    inlines = [userCompanyInline, userSectorInline]
     filter_horizontal = ("groups",)
     fieldsets = [
         (
@@ -274,58 +321,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ),
     ]
     actions = [reset_2FA]
-
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        if not request.user.is_superuser:
-            fieldsets = [fs for fs in fieldsets if fs[0] != _("Permissions")]
-
-            fieldsets.append(
-                (
-                    _("Companies"),
-                    {
-                        "classes": ["extrapretty"],
-                        "fields": ["list_companies"],
-                    },
-                )
-            )
-
-            fieldsets.append(
-                (
-                    _("Sectors"),
-                    {
-                        "classes": ["extrapretty"],
-                        "fields": ["list_sectors"],
-                    },
-                )
-            )
-        return fieldsets
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields["list_companies"].required = False
-        form.base_fields["list_sectors"].required = False
-
-        if not request.user.is_superuser:
-            if obj is not None:
-                selected_companies = [company.id for company in obj.companies.all()]
-                selected_sectors = [sector.id for sector in obj.sectors.all()]
-                form.base_fields["list_companies"].initial = selected_companies
-                form.base_fields["list_sectors"].initial = selected_sectors
-
-            companies_tuples = [
-                (company.id, company.name) for company in request.user.companies.all()
-            ]
-            form.base_fields["list_companies"].required = True
-            form.base_fields["list_companies"].choices = companies_tuples
-
-            sectors_tuples = [
-                (sector.id, sector.name) for sector in request.user.sectors.all()
-            ]
-            form.base_fields["list_sectors"].required = True
-            form.base_fields["list_sectors"].choices = sectors_tuples
-
-        return form
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -346,43 +341,6 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 companies__in=request.user.companies.all(),
             ).distinct()
         return queryset.exclude(email=request.user.email)
-
-    # def save_model(self, request, obj, form, change):
-    #     if not request.user.is_superuser:
-    #         super().save_model(request, obj, form, change)
-
-    #         list_companies = form.cleaned_data.get("list_companies")
-    #         list_sectors = form.cleaned_data.get("list_sectors")
-
-    #         if list_companies is not None:
-    #             obj.companies.set(list_companies)
-
-    #         if list_sectors is not None:
-    #             obj.sectors.set(list_sectors)
-
-    #     super().save_model(request, obj, form, change)
-
-    # def save_related(self, request, form, formsets, change):
-    #     super().save_related(request, form, formsets, change)
-
-    #     for formset in formsets:
-    #         for form in formset.forms:
-    #             is_company_admin = form.cleaned_data.get("is_company_administrator")
-    #             user = form.cleaned_data.get("user")
-
-    #             if user is not None and request.user.is_staff:
-    #                 user.is_staff = is_company_admin
-    #                 user.save()
-
-    # def response_change(self, request, obj):
-    #     if hasattr(obj, '_form_values'):
-    #         form_values = obj._form_values
-
-    #         # Send the post_save_signal with the form values
-    #         post_save_signal = Signal(providing_args=['form_values'])
-    #         post_save_signal.send(sender=self.model, instance=obj, created=False, form_values=form_values)
-
-    #     return super().response_change(request, obj)
 
 
 class FunctionalityResource(resources.ModelResource):
