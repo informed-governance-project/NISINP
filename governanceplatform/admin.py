@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
@@ -7,7 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from governanceplatform.models import (
+from .models import (
     Company,
     CompanyAdministrator,
     Functionality,
@@ -17,7 +19,7 @@ from governanceplatform.models import (
     Services,
     User,
 )
-from governanceplatform.settings import SITE_NAME
+from .settings import SITE_NAME
 
 
 # Customize the admin site
@@ -116,6 +118,23 @@ class companySectorInline(admin.TabularInline):
     extra = 1
 
 
+class CompanySectorListFilter(SimpleListFilter):
+    title = _("Sectors")
+    parameter_name = "sectors"
+
+    def lookups(self, request, model_admin):
+        sectors = Sector.objects.all()
+        if not request.user.is_superuser:
+            sectors = sectors.filter(id__in=request.user.sectors.all())
+        return [(sector.id, sector.name) for sector in sectors]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(companies=value)
+        return queryset
+
+
 @admin.register(Company, site=admin_site)
 class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
@@ -128,7 +147,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "get_sectors",
         "is_regulator",
     ]
-    list_filter = ["is_regulator", "sectors"]
+    list_filter = ["is_regulator", CompanySectorListFilter]
     search_fields = ["name"]
     inlines = (companySectorInline,)
     fieldsets = [
@@ -163,6 +182,13 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
     ]
+
+    def get_list_filter(self, request):
+        list_filter = super().get_list_filter(request)
+        if not request.user.is_superuser:
+            list_filter = [field for field in list_filter if field != "is_regulator"]
+
+        return list_filter
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
@@ -287,6 +313,40 @@ def reset_2FA(modeladmin, request, queryset):
             device.delete()
 
 
+class UserCompaniesListFilter(SimpleListFilter):
+    title = _("Companies")
+    parameter_name = "companies"
+
+    def lookups(self, request, model_admin):
+        companies = Company.objects.all()
+        if not request.user.is_superuser:
+            companies = companies.filter(id__in=request.user.companies.all())
+        return [(company.id, company.name) for company in companies]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(companies=value)
+        return queryset
+
+
+class UserSectorListFilter(SimpleListFilter):
+    title = _("Sectors")
+    parameter_name = "sectors"
+
+    def lookups(self, request, model_admin):
+        sectors = Sector.objects.all()
+        if not request.user.is_superuser:
+            sectors = sectors.filter(id__in=request.user.sectors.all())
+        return [(sector.id, sector.name) for sector in sectors]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(companies=value)
+        return queryset
+
+
 @admin.register(User, site=admin_site)
 class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = UserResource
@@ -301,8 +361,8 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
-        "companies",
-        "sectors",
+        UserCompaniesListFilter,
+        UserSectorListFilter,
         "is_staff",
     ]
     list_display_links = ("email", "first_name", "last_name")
@@ -324,23 +384,19 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
+
+        # Filter the queryset based on the user's related companies
         if request.user.is_superuser:
             return queryset
 
-        if request.user.has_perms(
-            [
-                "governanceplatform.add_user",
-                "governanceplatform.change_user",
-                "governanceplatform.delete_user",
-            ],
-        ):
+        if user_in_group(request.user, "RegulatorStaff"):
             return queryset.filter(
-                sectors__in=request.user.sectors.filter(
-                    sectorcontact__is_sector_contact=True
-                ),
-                companies__in=request.user.companies.all(),
-            ).distinct()
-        return queryset.exclude(email=request.user.email)
+                companies__in=request.user.sectors.all(),
+            )
+
+        return queryset.filter(
+            companies__in=request.user.companies.all(),
+        )
 
 
 class FunctionalityResource(resources.ModelResource):
@@ -388,3 +444,11 @@ class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
     search_fields = ["type"]
     resource_class = OperatorTypeResource
+
+
+def user_in_group(user, group_name):
+    try:
+        group = Group.objects.get(name=group_name)
+        return user.groups.filter(id=group.id).exists()
+    except Group.DoesNotExist:
+        return False
