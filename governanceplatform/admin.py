@@ -489,16 +489,52 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
 
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+
+        # Exclude userCompanyInline for users in PlatformAdmin group
+        if obj and user_in_group(obj, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userCompanyInline)
+            ]
+
+        # Exclude userSectorInline for users in PlatformAdmin group
+        if user_in_group(request.user, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userSectorInline)
+            ]
+
+        return inline_instances
+
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+
+        # Exclude "get_sectors" for PlatformAdmin Group
+        if user_in_group(request.user, "PlatformAdmin"):
+            list_display = [field for field in list_display if field != "get_sectors"]
+
+        return list_display
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        PlatformGroupId = Group.objects.get(name="PlatformAdmin").id
+        PlatformAdminGroupId = Group.objects.get(name="PlatformAdmin").id
+        RegulatorAdminGroupId = Group.objects.get(name="RegulatorAdmin").id
+        RegulatorStaffGroupId = Group.objects.get(name="RegulatorStaff").id
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
-            return queryset.filter(groups__in=[PlatformGroupId])
+            return queryset.filter(
+                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId]
+            )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.exclude(groups__in=[PlatformGroupId])
+            return queryset.filter(
+                groups__in=[RegulatorAdminGroupId, RegulatorStaffGroupId]
+            )
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
             return queryset.filter(
