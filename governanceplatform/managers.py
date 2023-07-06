@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext as _
 
 
@@ -26,4 +27,13 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_staff=True."))
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
-        return self.create_user(email, password, **extra_fields)
+
+        # Create the superuser
+        user = self.create_user(email, password, **extra_fields)
+
+        group_user, created = Group.objects.get_or_create(name="PlatformAdmin")
+
+        # Assign the superuser to the group
+        user.groups.add(group_user)
+
+        return user

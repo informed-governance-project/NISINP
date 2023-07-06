@@ -116,12 +116,8 @@ class User(AbstractUser):
         help_text=_("Designates whether the user can log into this admin site."),
     )
     phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
-    companies = models.ManyToManyField(
-        Company, through="CompanyAdministrator", related_name="users"
-    )
-    sectors = models.ManyToManyField(
-        Sector, through="SectorContact", related_name="users"
-    )
+    companies = models.ManyToManyField(Company, through="CompanyAdministrator")
+    sectors = models.ManyToManyField(Sector, through="SectorContact")
     email = models.EmailField(
         verbose_name=_("email address"),
         unique=True,

@@ -20,8 +20,10 @@ def update_user_groups(sender, instance, created, **kwargs):
         is_company_administrator=True
     )
 
-    # Define a dictionary of group names and the associated permissions
+    # Platform Administrator permission
+    # They are defined in the managers.py file
 
+    # Operator Administrator permission
     if (
         some_company_is_administrator.exists()
         and some_company_is_administrator.filter(company__is_regulator=False).exists()
@@ -29,19 +31,22 @@ def update_user_groups(sender, instance, created, **kwargs):
         user.is_staff = True
         group_permissions["OperatorAdmin"] = get_operator_admin_permissions()
 
+    # Regulator Administrator permissions
     if (
         some_company_is_regulator.exists()
         and some_company_is_regulator.filter(is_company_administrator=True).exists()
     ):
-        # Regulator Administrator permissions
         user.is_staff = True
         user.is_superuser = True
+        group_permissions[
+            "RegulatorAdmin"
+        ] = []  # No permissions because is_superuser is True
 
+    # Regulator Staff permission
     if (
         some_company_is_regulator.exists()
         and some_company_is_regulator.filter(is_company_administrator=False).exists()
     ):
-        # Regulator Staff permission
         user.is_staff = True
         group_permissions["RegulatorStaff"] = get_regulator_staff_permissions()
 
@@ -50,7 +55,6 @@ def update_user_groups(sender, instance, created, **kwargs):
 
     # Create or retrieve the groups and assign permissions
     for group_name, permissions in group_permissions.items():
-
         group, created = Group.objects.get_or_create(name=group_name)
 
         # Remove existing permissions not in the desired permissions list
@@ -71,7 +75,7 @@ def update_user_groups(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=CompanyAdministrator)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
-    group_names = ["OperatorAdmin", "RegulatorStaff"]
+    group_names = ["PlatformAdmin", "RegulatorAdmin", "RegulatorStaff", "OperatorAdmin"]
 
     for group_name in group_names:
         try:
@@ -107,11 +111,15 @@ def get_operator_admin_permissions():
 
 def get_regulator_staff_permissions():
     operator_admin_permissions = []
-    model_permissions = ["add", "change", "delete"]
-    models = ["user", "sectorcontact", "companyadministrator"]
+    models = {
+        "user": ["add", "change", "delete"],
+        "sectorcontact": ["add", "change", "delete"],
+        "companyadministrator": ["add", "change", "delete"],
+        "company": ["change"],
+    }
 
-    for model in models:
-        for permission in model_permissions:
+    for model, permissions in models.items():
+        for permission in permissions:
             operator_admin_permissions.append(permission + "_" + model)
 
     return operator_admin_permissions

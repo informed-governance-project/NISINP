@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
@@ -22,7 +23,6 @@ from .models import (
 from .settings import SITE_NAME
 
 
-# Customize the admin site
 class CustomAdminSite(admin.AdminSite):
     site_header = SITE_NAME + " " + _("Administration")
     site_title = SITE_NAME
@@ -115,7 +115,7 @@ class companySectorInline(admin.TabularInline):
     model = Company.sectors.through
     verbose_name = _("sector")
     verbose_name_plural = _("sectors")
-    extra = 1
+    extra = 0
 
 
 class CompanySectorListFilter(SimpleListFilter):
@@ -123,9 +123,21 @@ class CompanySectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
-        if not request.user.is_superuser:
-            sectors = sectors.filter(id__in=request.user.sectors.all())
+        sectors = []
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            pass
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            sectors = Sector.objects.all()
+        # Regulator Staff
+        if user_in_group(user, "RegulatorStaff"):
+            sectors = sectors.filter(id__in=user.sectors.all())
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            sectors = sectors.filter(id__in=user.sectors.all())
+
         return [(sector.id, sector.name) for sector in sectors]
 
     def queryset(self, request, queryset):
@@ -145,9 +157,8 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "get_sectors",
-        "is_regulator",
     ]
-    list_filter = ["is_regulator", CompanySectorListFilter]
+    list_filter = [CompanySectorListFilter]
     search_fields = ["name"]
     inlines = (companySectorInline,)
     fieldsets = [
@@ -183,41 +194,24 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ),
     ]
 
-    def get_list_filter(self, request):
-        list_filter = super().get_list_filter(request)
-        if not request.user.is_superuser:
-            list_filter = [field for field in list_filter if field != "is_regulator"]
-
-        return list_filter
-
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
-
-        # Check if the user is a superuser
-        if not request.user.is_superuser:
+        user = request.user
+        # Only platform Administrator can create regulator companies
+        if not user_in_group(user, "PlatformAdmin"):
             fieldsets = [
                 fieldset for fieldset in fieldsets if fieldset[0] != _("Permissions")
             ]
 
         return fieldsets
 
-    def get_list_display(self, request):
-        list_display = super().get_list_display(request)
-
-        # Check user permissions
-        if not request.user.is_superuser:
-            list_display = [
-                field for field in list_display if field not in ("is_regulator")
-            ]
-
-        return list_display
-
     def get_readonly_fields(self, request, obj=None):
-        # Get the original read-only fields
+        # Platform Admin, Regulator Admin and Regulator Staff
         readonly_fields = super().get_readonly_fields(request, obj)
-
-        if not request.user.is_superuser:
-            readonly_fields = (
+        user = request.user
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            readonly_fields += (
                 "identifier",
                 "monarc_path",
             )
@@ -225,14 +219,24 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         return readonly_fields
 
     def get_queryset(self, request):
-        # Get the original queryset
         queryset = super().get_queryset(request)
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return queryset.filter(is_regulator=True)
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            return queryset.filter(is_regulator=False)
+        # Regulator Staff
+        if user_in_group(user, "RegulatorStaff"):
+            return queryset.filter(
+                sectors__in=user.sectors.all(),
+            ).distinct()
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(companyadministrator__user=user)
 
-        # Filter the queryset based on the user's related companies
-        if request.user.is_superuser:
-            return queryset  # Superuser can see all companies
-        else:
-            return queryset.filter(companyadministrator__user=request.user)
+        return queryset
 
 
 class UserResource(resources.ModelResource):
@@ -273,13 +277,37 @@ class userSectorInline(admin.TabularInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector":
-            if request.user.is_superuser:
-                # Display all available sectors for the superuser
+            user = request.user
+            # Platform Admin
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = Sector.objects.none()
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = Sector.objects.all()
-            else:
-                # Filter the choices by the current user's associated sectors
-                kwargs["queryset"] = request.user.sectors.all()
+            # Regulator Staff
+            if user_in_group(user, "RegulatorStaff"):
+                kwargs["queryset"] = user.sectors.all()
+            # Operator Admin
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = user.sectors.all()
+
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    # Revoke the permissions of the logged user
+    def has_add_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_add_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 class userCompanyInline(admin.TabularInline):
@@ -287,21 +315,50 @@ class userCompanyInline(admin.TabularInline):
     verbose_name = _("company")
     verbose_name_plural = _("companies")
     extra = 0
+    min_num = 1
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "company":
-            if request.user.is_superuser:
-                # Display all available companies for the superuser
-                kwargs["queryset"] = Company.objects.all()
-            else:
-                # Filter the choices by the current user's associated companies
-                kwargs["queryset"] = request.user.companies.all()
+            user = request.user
+            # Platform Admin
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = Company.objects.filter(is_regulator=True)
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = Company.objects.filter(
+                    Q(is_regulator=False) | Q(id__in=user.companies.all())
+                )
+            # Regulator Staff
+            if user_in_group(user, "RegulatorStaff"):
+                kwargs["queryset"] = Company.objects.filter(
+                    sectors__in=user.sectors.all(),
+                )
+            # Operator Admin
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = user.companies.all()
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
         formset.empty_permitted = False
         return formset
+
+    # Revoke the permissions of the logged user
+    def has_add_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_add_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 # reset the 2FA we delete the TOTP devices
@@ -318,9 +375,25 @@ class UserCompaniesListFilter(SimpleListFilter):
     parameter_name = "companies"
 
     def lookups(self, request, model_admin):
-        companies = Company.objects.all()
-        if not request.user.is_superuser:
-            companies = companies.filter(id__in=request.user.companies.all())
+        companies = []
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            companies = Company.objects.filter(is_regulator=True)
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            companies = Company.objects.filter(
+                Q(is_regulator=False) | Q(id__in=user.companies.all())
+            )
+        # Regulator Staff
+        if user_in_group(user, "RegulatorStaff"):
+            companies = Company.objects.filter(
+                sectors__in=user.sectors.all(),
+            )
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            companies = user.companies.all()
+
         return [(company.id, company.name) for company in companies]
 
     def queryset(self, request, queryset):
@@ -335,9 +408,21 @@ class UserSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
-        if not request.user.is_superuser:
-            sectors = sectors.filter(id__in=request.user.sectors.all())
+        sectors = []
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            pass
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            sectors = Sector.objects.all()
+        # Regulator Staff
+        if user_in_group(user, "RegulatorStaff"):
+            sectors = sectors.filter(id__in=user.sectors.all())
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            sectors = sectors.filter(id__in=user.sectors.all())
+
         return [(sector.id, sector.name) for sector in sectors]
 
     def queryset(self, request, queryset):
@@ -384,19 +469,25 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-
-        # Filter the queryset based on the user's related companies
-        if request.user.is_superuser:
-            return queryset
-
-        if user_in_group(request.user, "RegulatorStaff"):
+        user = request.user
+        PlatformGroupId = Group.objects.get(name="PlatformAdmin").id
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return queryset.filter(groups__in=[PlatformGroupId])
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            return queryset.exclude(groups__in=[PlatformGroupId])
+        # Regulator Staff
+        if user_in_group(user, "RegulatorStaff"):
             return queryset.filter(
-                companies__in=request.user.sectors.all(),
+                sectors__in=request.user.sectors.all(),
+            ).distinct()
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                companies__in=request.user.companies.all(),
             )
-
-        return queryset.filter(
-            companies__in=request.user.companies.all(),
-        )
+        return queryset
 
 
 class FunctionalityResource(resources.ModelResource):
