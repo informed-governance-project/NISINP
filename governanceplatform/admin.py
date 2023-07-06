@@ -205,6 +205,28 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
         return fieldsets
 
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+
+        # Exclude companySectorInline for PlatformAdmin Group
+        if user_in_group(request.user, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, companySectorInline)
+            ]
+
+        return inline_instances
+
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+
+        # Exclude "get_sectors" for PlatformAdmin Group
+        if user_in_group(request.user, "PlatformAdmin"):
+            list_display = [field for field in list_display if field != "get_sectors"]
+
+        return list_display
+
     def get_readonly_fields(self, request, obj=None):
         # Platform Admin, Regulator Admin and Regulator Staff
         readonly_fields = super().get_readonly_fields(request, obj)

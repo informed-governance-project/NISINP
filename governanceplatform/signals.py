@@ -94,7 +94,7 @@ def delete_user_groups(sender, instance, **kwargs):
 
 
 def get_operator_admin_permissions():
-    operator_admin_permissions = []
+    group_permissions = []
     models = {
         "user": ["add", "change", "delete"],
         "sectorcontact": ["add", "change", "delete"],
@@ -104,13 +104,13 @@ def get_operator_admin_permissions():
 
     for model, permissions in models.items():
         for permission in permissions:
-            operator_admin_permissions.append(permission + "_" + model)
+            group_permissions.append(permission + "_" + model)
 
-    return operator_admin_permissions
+    return group_permissions
 
 
 def get_regulator_staff_permissions():
-    operator_admin_permissions = []
+    group_permissions = []
     models = {
         "user": ["add", "change", "delete"],
         "sectorcontact": ["add", "change", "delete"],
@@ -120,6 +120,6 @@ def get_regulator_staff_permissions():
 
     for model, permissions in models.items():
         for permission in permissions:
-            operator_admin_permissions.append(permission + "_" + model)
+            group_permissions.append(permission + "_" + model)
 
-    return operator_admin_permissions
+    return group_permissions
