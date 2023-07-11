@@ -125,6 +125,7 @@ class User(AbstractUser):
             "unique": _("A user is already registered with this email address"),
         },
     )
+    proxy_token = models.CharField(max_length=255, unique=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
