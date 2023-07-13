@@ -1,3 +1,4 @@
+from django.contrib.auth import login
 from django.http import HttpResponseForbidden
 
 from .models import User
@@ -15,7 +16,13 @@ class proxyPortalMiddleware:
         if not user.exists():
             return HttpResponseForbidden("Invalid token")
 
-        # Token is valid, allow the request to proceed
-        request.user = user.first()
+        # Token is valid, authenticate the user in the second app
+        user = user.first()
+        if user is not None:
+            login(request, user)
+
+        # Set the user for the request
+        request.user = user
+
         response = self.get_response(request)
         return response

@@ -104,10 +104,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "governanceplatform.middleware.proxyPortalMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "governanceplatform.middleware.proxyPortalMiddleware",
     "django_otp.middleware.OTPMiddleware",
 ]
 
