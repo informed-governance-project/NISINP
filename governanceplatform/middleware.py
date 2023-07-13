@@ -12,6 +12,10 @@ class proxyPortalMiddleware:
         # Get the value of the Authorization header
         token = request.headers.get("Proxy-Token", None)
 
+        # When proxy is not used
+        if token is None:
+            return self.get_response(request)
+
         user = User.objects.filter(proxy_token=token)
         if not user.exists():
             return HttpResponseForbidden("Invalid token")
@@ -23,5 +27,4 @@ class proxyPortalMiddleware:
         # Set the user for the request
         request.user = user
 
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
