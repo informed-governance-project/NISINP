@@ -100,13 +100,6 @@ class Company(models.Model):
         verbose_name_plural = _("Companies")
 
 
-# define a token class for SSO on other application/module
-class ExternalToken(models.Model):
-    token = models.CharField(max_length=255)
-    module_path = models.CharField(max_length=255)
-    module_name = models.CharField(max_length=255)
-
-
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser):
     username = None
