@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
+from .helpers import generate_token
 from .managers import CustomUserManager
 
 
@@ -103,14 +104,6 @@ class Company(models.Model):
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser):
     username = None
-    is_staff = models.BooleanField(
-        verbose_name=_("Administrator"),
-        default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
-    )
-    phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
-    companies = models.ManyToManyField(Company, through="CompanyAdministrator")
-    sectors = models.ManyToManyField(Sector, through="SectorContact")
     email = models.EmailField(
         verbose_name=_("email address"),
         unique=True,
@@ -118,7 +111,15 @@ class User(AbstractUser):
             "unique": _("A user is already registered with this email address"),
         },
     )
-    proxy_token = models.CharField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
+    companies = models.ManyToManyField(Company, through="CompanyAdministrator")
+    sectors = models.ManyToManyField(Sector, through="SectorContact")
+    proxy_token = models.CharField(max_length=255, default=generate_token, unique=True)
+    is_staff = models.BooleanField(
+        verbose_name=_("Administrator"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -132,6 +133,12 @@ class User(AbstractUser):
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all()]
+
+    class Meta:
+        permissions = (
+            ("import_user", "Can import user"),
+            ("export_user", "Can export user"),
+        )
 
 
 # link between the users and the sector
