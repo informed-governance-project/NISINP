@@ -309,3 +309,11 @@ PARLER_LANGUAGES = {
         "hide_untranslated": False,
     },
 }
+
+
+# Import-export settings
+
+IMPORT_EXPORT_IMPORT_PERMISSION_CODE = "import"
+IMPORT_EXPORT_EXPORT_PERMISSION_CODE = "export"
+IMPORT_EXPORT_ESCAPE_HTML_ON_EXPORT = True
+IMPORT_EXPORT_ESCAPE_FORMULAE_ON_EXPORT = True

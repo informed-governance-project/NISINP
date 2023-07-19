@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
 from import_export import fields, resources, widgets
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 from parler.models import TranslationDoesNotExist
@@ -288,7 +288,6 @@ class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
 
 
 class UserResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id")
     first_name = fields.Field(column_name="first_name", attribute="first_name")
     last_name = fields.Field(column_name="last_name", attribute="last_name")
     email = fields.Field(column_name="email", attribute="email")
@@ -306,8 +305,9 @@ class UserResource(resources.ModelResource):
 
     class Meta:
         model = User
+        import_id_fields = ("email",)
+        skip_unchanged = True
         fields = [
-            "id",
             "first_name",
             "last_name",
             "email",
@@ -481,7 +481,7 @@ class UserSectorListFilter(SimpleListFilter):
 
 
 @admin.register(User, site=admin_site)
-class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = UserResource
     list_display = [
         "first_name",

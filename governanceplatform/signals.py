@@ -112,7 +112,7 @@ def get_operator_admin_permissions():
 def get_regulator_staff_permissions():
     group_permissions = []
     models = {
-        "user": ["add", "change", "delete"],
+        "user": ["add", "change", "delete", "import", "export"],
         "sectorcontact": ["add", "change", "delete"],
         "companyadministrator": ["add", "change", "delete"],
         "company": ["change"],
