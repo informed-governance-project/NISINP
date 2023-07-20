@@ -10,11 +10,10 @@
 {% endblock %}
 {% block nav-global %}
     <div class="header-links">
-        {% if is_superuser == True %}
+        {% if only_admin == True %}
             <a href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
             <a href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
-        {% endif %}
-        {% if is_staff == True and  is_superuser == False%}
+        {% else %}
             {% if site_url %}
                 <a href="{{ site_url }}">{% translate 'Return to' %} {{ site_name }}</a>
             {% endif %}
