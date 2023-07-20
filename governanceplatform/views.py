@@ -20,7 +20,7 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
-    if user_in_group(user, "PlatformAdmin"):
+    if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
         return redirect("admin:index")
 
     company_cookie = request.session.get("company_in_use")
