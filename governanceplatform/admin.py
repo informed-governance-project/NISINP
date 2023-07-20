@@ -250,7 +250,9 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return queryset.filter(is_regulator=True)
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.filter(is_regulator=False)
+            return queryset.filter(
+                Q(is_regulator=False) | Q(id__in=user.companies.all())
+            )
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
             return queryset.filter(
@@ -374,9 +376,7 @@ class userCompanyInline(admin.TabularInline):
                 kwargs["queryset"] = Company.objects.filter(is_regulator=True)
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
-                kwargs["queryset"] = Company.objects.filter(
-                    Q(is_regulator=False) | Q(id__in=user.companies.all())
-                )
+                kwargs["queryset"] = Company.objects.filter(id__in=user.companies.all())
             # Regulator Staff
             if user_in_group(user, "RegulatorStaff"):
                 kwargs["queryset"] = Company.objects.filter(
@@ -431,9 +431,7 @@ class UserCompaniesListFilter(SimpleListFilter):
             companies = Company.objects.filter(is_regulator=True)
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            companies = Company.objects.filter(
-                Q(is_regulator=False) | Q(id__in=user.companies.all())
-            )
+            companies = Company.objects.filter(id__in=user.companies.all())
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
             companies = Company.objects.filter(
