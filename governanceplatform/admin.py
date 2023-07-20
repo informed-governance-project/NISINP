@@ -11,6 +11,7 @@ from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 from parler.models import TranslationDoesNotExist
 
+from .helpers import user_in_group
 from .models import (
     Company,
     CompanyAdministrator,
@@ -619,11 +620,3 @@ class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
     search_fields = ["type"]
     resource_class = OperatorTypeResource
-
-
-def user_in_group(user, group_name):
-    try:
-        group = Group.objects.get(name=group_name)
-        return user.groups.filter(id=group.id).exists()
-    except Group.DoesNotExist:
-        return False

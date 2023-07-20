@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import Group
 from django.utils.translation import gettext as _
+
+from .permissions import set_platform_admin_permissions
 
 
 class CustomUserManager(BaseUserManager):
@@ -20,20 +21,15 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_superuser", False)
         extra_fields.setdefault("is_active", True)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Superuser must have is_staff=True."))
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError(_("Superuser must have is_superuser=True."))
 
         # Create the superuser
         user = self.create_user(email, password, **extra_fields)
-
-        group_user, created = Group.objects.get_or_create(name="PlatformAdmin")
-
-        # Assign the superuser to the group
-        user.groups.add(group_user)
+        # Platform Admin permissions
+        set_platform_admin_permissions(user)
 
         return user

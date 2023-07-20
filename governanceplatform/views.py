@@ -7,6 +7,7 @@ from django_otp.decorators import otp_required
 
 from .decorators import company_permission_required
 from .forms import SelectCompany
+from .helpers import user_in_group
 from .models import Company
 
 
@@ -19,7 +20,7 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
-    if user.is_superuser:
+    if user_in_group(user, "PlatformAdmin"):
         return redirect("admin:index")
 
     company_cookie = request.session.get("company_in_use")
