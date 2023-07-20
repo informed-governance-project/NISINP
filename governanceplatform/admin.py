@@ -519,10 +519,8 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
 
-        # Exclude userCompanyInline for users in PlatformAdmin group
-        if user_in_group(request.user, "PlatformAdmin") or (
-            obj and obj == request.user
-        ):
+        # Exclude userCompanyInline for the logged-in user
+        if obj and obj == request.user:
             inline_instances = [
                 inline
                 for inline in inline_instances
