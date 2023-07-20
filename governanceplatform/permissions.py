@@ -1,80 +1,15 @@
 from django.contrib.auth.models import Group, Permission
 
 
-def set_regulator_admin_permissions(user):
-    is_staff = True
-    is_superuser = True
-    group_name = "RegulatorAdmin"
+def set_permissions_for_user(user, is_superuser, group_name, permissions):
+    group_permissions = permission_formatting(permissions)
+    group = add_group_permissions(group_name, group_permissions)
 
-    add_user_group(
-        user,
-        is_staff,
-        is_superuser,
-        Group.objects.get_or_create(name=group_name)[0],
-    )
+    add_user_group(user, is_superuser, group)
 
 
-def set_operator_admin_permissions(user):
-    is_staff = True
-    is_superuser = False
-    group_name = "OperatorAdmin"
-    models = {
-        "user": ["add", "change", "delete"],
-        "sectorcontact": ["add", "change", "delete"],
-        "companyadministrator": ["add", "change", "delete"],
-        "company": ["change"],
-    }
-    group_permissions = permission_formatting(models)
-
-    add_user_group(
-        user,
-        is_staff,
-        is_superuser,
-        add_group_permissions(group_name, group_permissions),
-    )
-
-
-def set_regulator_staff_permissions(user):
-    is_staff = True
-    is_superuser = False
-    group_name = "RegulatorStaff"
-    models = {
-        "user": ["add", "change", "delete", "import", "export"],
-        "sectorcontact": ["add", "change", "delete"],
-        "companyadministrator": ["add", "change", "delete"],
-        "company": ["change"],
-    }
-    group_permissions = permission_formatting(models)
-
-    add_user_group(
-        user,
-        is_staff,
-        is_superuser,
-        add_group_permissions(group_name, group_permissions),
-    )
-
-
-def set_platform_admin_permissions(user):
-    is_staff = True
-    is_superuser = False
-    group_name = "PlatformAdmin"
-    models = {
-        "user": ["add", "change", "delete"],
-        "companyadministrator": ["add", "change", "delete"],
-        "company": ["add", "change", "delete"],
-    }
-    group_permissions = permission_formatting(models)
-
-    add_user_group(
-        user,
-        is_staff,
-        is_superuser,
-        add_group_permissions(group_name, group_permissions),
-    )
-
-
-def add_user_group(user, is_staff=False, is_superuser=False, group=None):
-    user.is_staff = is_staff
+def add_user_group(user, is_superuser=False, group=None):
+    user.is_staff = True
     user.is_superuser = is_superuser
     if not group or user.groups.exists():
         user.groups.clear()
@@ -83,11 +18,11 @@ def add_user_group(user, is_staff=False, is_superuser=False, group=None):
     user.save()
 
 
-def permission_formatting(models):
+def permission_formatting(permissions):
     group_permissions = []
-    for model, permissions in models.items():
-        for permission in permissions:
-            group_permissions.append(permission + "_" + model)
+    for model, list_permissions in permissions.items():
+        for permission in list_permissions:
+            group_permissions.append(f"{permission}_{model}")
     return group_permissions
 
 
@@ -104,3 +39,53 @@ def add_group_permissions(group_name, group_permissions):
     group.permissions.add(*permissions_to_assign)
 
     return group
+
+
+def set_platform_admin_permissions(user):
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        group_name="PlatformAdmin",
+        permissions={
+            "user": ["add", "change", "delete"],
+            "companyadministrator": ["add", "change", "delete"],
+            "company": ["add", "change", "delete"],
+        },
+    )
+
+
+def set_regulator_admin_permissions(user):
+    set_permissions_for_user(
+        user,
+        is_superuser=True,
+        group_name="RegulatorAdmin",
+        permissions={},
+    )
+
+
+def set_regulator_staff_permissions(user):
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        group_name="RegulatorStaff",
+        permissions={
+            "user": ["add", "change", "delete", "import", "export"],
+            "sectorcontact": ["add", "change", "delete"],
+            "companyadministrator": ["add", "change", "delete"],
+            "company": ["change"],
+        },
+    )
+
+
+def set_operator_admin_permissions(user):
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        group_name="OperatorAdmin",
+        permissions={
+            "user": ["add", "change", "delete"],
+            "sectorcontact": ["add", "change", "delete"],
+            "companyadministrator": ["add", "change", "delete"],
+            "company": ["change"],
+        },
+    )
