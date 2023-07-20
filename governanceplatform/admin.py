@@ -210,8 +210,10 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
 
-        # Exclude companySectorInline for PlatformAdmin Group
-        if user_in_group(request.user, "PlatformAdmin"):
+        # Exclude companySectorInline for PlatformAdmin Group or if the user has a related company
+        if user_in_group(request.user, "PlatformAdmin") or (
+            obj and request.user.companies.filter(id=obj.id).exists()
+        ):
             inline_instances = [
                 inline
                 for inline in inline_instances
@@ -518,7 +520,9 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         inline_instances = super().get_inline_instances(request, obj)
 
         # Exclude userCompanyInline for users in PlatformAdmin group
-        if obj and user_in_group(obj, "PlatformAdmin"):
+        if user_in_group(request.user, "PlatformAdmin") or (
+            obj and obj == request.user
+        ):
             inline_instances = [
                 inline
                 for inline in inline_instances
@@ -526,7 +530,9 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             ]
 
         # Exclude userSectorInline for users in PlatformAdmin group
-        if user_in_group(request.user, "PlatformAdmin"):
+        if user_in_group(request.user, "PlatformAdmin") or (
+            obj and obj == request.user
+        ):
             inline_instances = [
                 inline
                 for inline in inline_instances
