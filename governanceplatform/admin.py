@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
@@ -551,9 +552,22 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        PlatformAdminGroupId = Group.objects.get(name="PlatformAdmin").id
-        RegulatorAdminGroupId = Group.objects.get(name="RegulatorAdmin").id
-        RegulatorStaffGroupId = Group.objects.get(name="RegulatorStaff").id
+
+        try:
+            PlatformAdminGroupId = Group.objects.get(name="PlatformAdmin").id
+        except ObjectDoesNotExist:
+            PlatformAdminGroupId = None
+
+        try:
+            RegulatorAdminGroupId = Group.objects.get(name="RegulatorAdmin").id
+        except ObjectDoesNotExist:
+            RegulatorAdminGroupId = None
+
+        try:
+            RegulatorStaffGroupId = Group.objects.get(name="RegulatorStaff").id
+        except ObjectDoesNotExist:
+            RegulatorStaffGroupId = None
+
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
