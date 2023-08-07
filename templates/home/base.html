@@ -10,6 +10,9 @@
     <meta name="description" content="{{ site_name }}" />
     <link rel="stylesheet" type="text/css" href="{% static 'npm_components/bootstrap-icons/font/bootstrap-icons.css' %}" />
 {% endblock %}
+{% block bootstrap5_extra_script %}
+    <script src='{% static "js/base.js" %}'></script>
+{% endblock %}
 
 {% block bootstrap5_before_content %}
     <header>
