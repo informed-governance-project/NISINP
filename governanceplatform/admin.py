@@ -493,6 +493,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "get_companies",
         "get_sectors",
         "is_staff",
+        "proxy_token",
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
