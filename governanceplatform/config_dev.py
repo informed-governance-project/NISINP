@@ -20,8 +20,10 @@ REGULATOR_CONTACT = {
 SITE_NAME = "governanceplatform"
 
 SECRET_KEY = "django-insecure-1*nt5exfgm+po13ngrz7fm5sitfvi24f!13t=z*l5zz*w9zic$"
-
 HASH_KEY = b"#StandWithtUkraineHP-TmGv-4z7h-1xaQp0RYuY20="
+
+SESSION_COOKIE_NAME = "sessionid_governance"
+FORCE_SCRIPT_NAME = ""
 
 DEBUG = True
 

@@ -40,6 +40,9 @@ try:
     REGULATOR_CONTACT = config.REGULATOR_CONTACT
     SITE_NAME = config.SITE_NAME
 
+    SESSION_COOKIE_NAME = config.SESSION_COOKIE_NAME
+    FORCE_SCRIPT_NAME = config.FORCE_SCRIPT_NAME
+
     EMAIL_HOST = config.EMAIL_HOST
     EMAIL_PORT = config.EMAIL_PORT
 except AttributeError as e:
