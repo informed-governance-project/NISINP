@@ -16,10 +16,7 @@ Including another URLconf
 """
 from django.urls import include, path
 from django.views.i18n import set_language
-from two_factor.urls import urlpatterns as tf_urls
-from two_factor.views import LoginView
 
-from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 from incidents import views
 
 from .views import (
@@ -53,6 +50,3 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     # path("api/v1/", include("incidents.api.urls")),
 ]
-
-if DEBUG:
-    urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))
