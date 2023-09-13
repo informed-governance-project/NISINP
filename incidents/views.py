@@ -33,19 +33,15 @@ from .models import (
 # TODO : put the correct decorator
 
 
+# @login_required
+# def index(request):
+#     """Returns the index page for authenticated users."""
+#     user = request.user
+#     if user.is_superuser:
+#         return redirect("admin:index")
+
+
 @login_required
-def index(request):
-    """Returns the index page for authenticated users."""
-    user = request.user
-    if user.is_superuser:
-        return redirect("admin:index")
-
-
-def logout_view(request):
-    logout(request)
-    return redirect("login")
-
-
 def notifications(request):
     """Returns the notifications page."""
     return render(request, "index.html", context={"site_name": SITE_NAME})

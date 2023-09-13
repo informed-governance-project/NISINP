@@ -31,7 +31,7 @@ from .views import (
 
 urlpatterns = [
     # Root
-    path("", views.notifications, name="index"),
+    path("", views.notifications, name="incidents"),
     path("set-language/", set_language, name="set_language"),
     # Notifications
     path("notifications/", views.notifications, name="notification"),
