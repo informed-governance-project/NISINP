@@ -1,0 +1,50 @@
+Security Model
+==============
+
+First, an overview of the security model.
+
+
+Security policy
+---------------
+
+Supported Versions
+``````````````````
+
+Last stable version this software always provides security updates.
+There will be no security patches for other releases (tagged or not).
+
+Reporting a Vulnerability
+`````````````````````````
+
+If you think you have found a potential security issue, do not open
+directly a public GitHub issue. Please email us. You can contact
+info@nc3.lu
+
+You can also specify how you would like to be credited for your finding
+(commit message or release notes for the new release). We will
+respect your privacy and will only publicize your involvement if you
+grant us permission.
+
+
+Source code
+-----------
+
+CodeQL is used to discover vulnerabilities across the **codebase of NISINP**.
+
+Tools such as *pyupgrade*, *pip-audit*, *GitHub Dependabot* and
+secret scanning are used to check for vulnerabilities in project
+**dependencies**. Each commit is checked on GitHub. The same kind of tests
+are performed locally thanks to `pre-commit <https://pre-commit.com/>`_.
+
+Code **quality** is verified with tools such as *black*, *flake8* and *mypy*.
+
+
+Audit on the source code
+------------------------
+
+
+
+Authentication
+--------------
+
+Two factor authentication and token based authentication.
