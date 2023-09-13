@@ -28,10 +28,6 @@ urlpatterns = [
     path("", views.index, name="index"),
     # Admin
     path("admin/", admin_site.urls),
-    # Regulator
-    path("regulator/", include("regulator.urls")),
-    # Operator
-    path("operateur/", include("operateur.urls")),
     # Accounts
     path("account/", include("django.contrib.auth.urls")),
     path("", include(tf_urls)),
@@ -43,6 +39,8 @@ urlpatterns = [
         ),
         name="login",
     ),
+    # Incident notification
+    path("incidents/", include("incidents.urls"), name="incidents"),
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service

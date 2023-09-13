@@ -1,0 +1,38 @@
+{% extends 'home/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="text-justify">
+    <h1>Incident list</h1>
+    {% if incidents %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">{% translate "Date" %}</th>
+                <th scope="col">{% translate "Contact" %}</th>
+                <th scope="col">{% translate "Regulation" %}</th>
+                <th scope="col">{% translate "Impacted Services" %}</th>
+                <th scope="col">{% translate "Final declaration" %}</th>
+            </tr>
+        </thead>
+        {% for incident in incidents %}
+        <tbody>
+            <tr>
+                <td scope="row">{{incident.preliminary_notification_date}}</td>
+                <td>{{incident.contact_lastname}}</td>
+                <td>{% for regulation in incident.regulations.all %}{{regulation.label}}<br> {% endfor %}</td>
+                <td>{% for service in incident.affected_services.all %}{{service.name}}<br> {% endfor %}</td>
+                {% if incident.final_notification_date is None %}
+                <td><a href="{% url 'final-notification' incident.id %}">{% translate "Make the final declaration" %}</a></td>
+                {% else %}
+                <td><a href="{% url 'final-notification' incident.id %}">{% translate "Update the final declaration" %}</a></td>
+                {% endif %}
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>{% translate "There are no incident" %}</p>
+    {% endif %}
+
+</div>
+{% endblock %}

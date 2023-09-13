@@ -1,6 +1,6 @@
 import os
 
-PUBLIC_URL = ""
+PUBLIC_URL = "http://serima.monarc.lu"
 ALLOWED_HOSTS = ["127.0.0.1", locals().get("PUBLIC_URL", "")]
 REGULATOR_CONTACT = {
     "name": "Organization Name",
@@ -19,23 +19,28 @@ REGULATOR_CONTACT = {
 # The generic site/tool name. Used to load specific config, templates, styles, logo.
 SITE_NAME = "governanceplatform"
 
-SECRET_KEY = "django-insecure-1*nt5exfgm+po13ngrz7fm5sitfvi24f!13t=z*l5zz*w9zic$"
-HASH_KEY = b"#StandWithtUkraineHP-TmGv-4z7h-1xaQp0RYuY20="
-
-SESSION_COOKIE_NAME = "sessionid_governance"
-FORCE_SCRIPT_NAME = ""
+SECRET_KEY = "django-Notinsecure-1*nt5exfgm+po13ngrz7fm5sitfvi24f!13t=z*l5zz*w9zic$"
+HASH_KEY = b"SHP-TmGv-4z7h-2xaQp0RYuY20="
 
 DEBUG = True
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
+        "NAME": "serima-governance",
+        "USER": "cedric",
         "PASSWORD": "password",
-        "HOST": "db",
+        "HOST": "localhost",
         "PORT": 5432,
-    }
+    },
+    "incidents": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "serima-incidents",
+        "USER": "cedric",
+        "PASSWORD": "password",
+        "HOST": "localhost",
+        "PORT": 5432,
+    },
 }
 
 CORS_ALLOWED_ORIGINS = []
@@ -47,6 +52,7 @@ CORS_ALLOW_METHODS = [
 
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
+EMAIL_SENDER = "no-reply@monarc.lu"
 
 # Logging mechanism
 LOG_DIRECTORY = "./logs"

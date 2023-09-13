@@ -1,0 +1,40 @@
+{% load django_bootstrap5 %}
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>{{ _('Company information')}}</h4>
+        {% bootstrap_field wizard.form.company_name show_label=False %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <h4>{{ _('Person in charge')}}</h4>
+        {% bootstrap_field wizard.form.contact_firstname show_label=False %}
+        {% bootstrap_field wizard.form.contact_lastname show_label=False %}
+        {% bootstrap_field wizard.form.contact_title show_label=False %}
+        {% bootstrap_field wizard.form.contact_email show_label=False %}
+        {% bootstrap_field wizard.form.contact_telephone show_label=False %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <h4>{{ _('Technical contact')}}</h4>
+        <div class="row">
+                {% bootstrap_label "Is the same person in charge?" label_for="id_0-is_technical_the_same" %}
+                {% bootstrap_field wizard.form.is_technical_the_same show_label=False %}
+        </div>
+
+        {% bootstrap_field wizard.form.technical_firstname show_label=False %}
+        {% bootstrap_field wizard.form.technical_lastname show_label=False %}
+        {% bootstrap_field wizard.form.technical_title show_label=False %}
+        {% bootstrap_field wizard.form.technical_email show_label=False %}
+        {% bootstrap_field wizard.form.technical_telephone show_label=False %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <h4>{{ _('References')}}</h4>
+        {% bootstrap_field wizard.form.incident_reference show_label=False %}
+        {% bootstrap_field wizard.form.complaint_reference show_label=False %}
+    </div>
+</div>

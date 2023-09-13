@@ -40,11 +40,10 @@ try:
     REGULATOR_CONTACT = config.REGULATOR_CONTACT
     SITE_NAME = config.SITE_NAME
 
-    SESSION_COOKIE_NAME = config.SESSION_COOKIE_NAME
-    FORCE_SCRIPT_NAME = config.FORCE_SCRIPT_NAME
-
     EMAIL_HOST = config.EMAIL_HOST
     EMAIL_PORT = config.EMAIL_PORT
+    EMAIL_SENDER = config.EMAIL_SENDER
+    DEFAULT_FROM_EMAIL = config.EMAIL_SENDER
 except AttributeError as e:
     print("Please check you configuration file for the missing configuration variable:")
     print(f"  {e}")
@@ -80,8 +79,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "governanceplatform",
-    "regulator",
-    "operateur",
+    "incidents",
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "corsheaders",
@@ -93,6 +91,18 @@ INSTALLED_APPS = [
     "import_export",
     "parler",
 ]
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
 
 context_processors = [
     "django.template.context_processors.request",
@@ -110,7 +120,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    "governanceplatform.middleware.proxyPortalMiddleware",
     "django_otp.middleware.OTPMiddleware",
 ]
 

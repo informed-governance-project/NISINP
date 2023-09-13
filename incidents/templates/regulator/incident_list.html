@@ -1,0 +1,57 @@
+{% extends 'home/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="text-justify">
+    <h1>Incident list</h1>
+    {% if incidents %}
+    <form action="" method="post">
+        <table class="table">
+            <tr>
+                <th scope="col">Incident ID</th>
+                <th scope="col">Significative impact</th>
+                <th scope="col">regulation</th>
+                <th scope="col">service</th>
+                <th scope="col">Preliminary notification date</th>
+                <th scope="col">final declaration date</th>
+            </tr>
+            {% for form in forms %}
+            <tr>
+                <td>{{ form.incident_id }}</td>
+                <td>{{form.is_significative_impact}}</td>
+                <td>{{form.regulations}}</td>
+                <td>{{form.affected_services}}</td>
+                <td>{{form.preliminary_notification_date}}</td>
+                <td>{% if form.final_notification_date.value is not None %}
+                        <a href="{% url 'final-notification' form.id %}">{{form.final_notification_date.value}}</a>
+                    {% else %}
+                        {{form.final_notification_date}}
+                    {% endif %}
+
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </form>
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% else %}
+        <p>There are no incident</p>
+    {% endif %}
+
+</div>
+{% endblock %}
