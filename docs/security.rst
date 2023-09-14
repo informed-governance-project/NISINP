@@ -1,8 +1,7 @@
 Security Model
 ==============
 
-First, an overview of the security model.
-
+First, an overview of the security policy.
 
 Security policy
 ---------------
@@ -18,7 +17,7 @@ Reporting a Vulnerability
 
 If you think you have found a potential security issue, do not open
 directly a public GitHub issue. Please email us. You can contact
-info@nc3.lu
+opensource@nc3.lu
 
 You can also specify how you would like to be credited for your finding
 (commit message or release notes for the new release). We will

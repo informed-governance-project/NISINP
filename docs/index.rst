@@ -39,6 +39,7 @@ Governance Platform
    :hidden:
 
    security
+   permissions
 
 
 Presentation
