@@ -58,6 +58,10 @@ def logout_view(request):
     return redirect("login")
 
 
+def about(request):
+    return render(request, "home/about.html")
+
+
 def terms(request):
     return render(request, "home/terms.html")
 

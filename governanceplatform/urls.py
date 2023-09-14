@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import include, path
+from django.views.generic.base import TemplateView
 from django.views.i18n import set_language
 from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
@@ -44,9 +45,29 @@ urlpatterns = [
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service
+    path("about/", views.about, name="about"),
+    # Terms of Service
     path("terms/", views.terms, name="terms"),
     # Privacy Policy
     path("privacy/", views.privacy, name="privacy"),
+    path(
+        "robots.txt",
+        TemplateView.as_view(
+            template_name="home/robots.txt", content_type="text/plain; charset=utf8"
+        ),
+    ),
+    path(
+        "humans.txt",
+        TemplateView.as_view(
+            template_name="home/humans.txt", content_type="text/plain; charset=utf8"
+        ),
+    ),
+    path(
+        ".well-known/security.txt",
+        TemplateView.as_view(
+            template_name="home/security.txt", content_type="text/plain; charset=utf8"
+        ),
+    ),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
 ]

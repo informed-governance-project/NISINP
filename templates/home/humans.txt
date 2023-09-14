@@ -1,0 +1,5 @@
+# Team
+
+Cédric Bonhomme <cedric@cedricbonhomme.org>
+Jérôme Lombardi <jerome.lombardi@nc3.lu>
+Juan Rocha <juan.rocha@nc3.lu>
