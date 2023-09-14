@@ -1,25 +1,28 @@
 Governance Platform
 ===================
 
-.. image:: https://img.shields.io/github/release/informed-governance-project/governance-platform.svg?style=flat-square
-    :target: https://github.com/informed-governance-project/governance-platform/releases/latest
-    :alt: Latest release
 
-.. image:: https://img.shields.io/github/license/informed-governance-project/governance-platform.svg?style=flat-square
-    :target: https://www.gnu.org/licenses/agpl-3.0.html
-    :alt: License
+.. only:: html
 
-.. image:: https://img.shields.io/github/stars/informed-governance-project/governance-platform.svg?style=flat-square
-    :target: https://github.com/informed-governance-project/governance-platform/stargazers
-    :alt: Stars
+    .. image:: https://img.shields.io/github/release/informed-governance-project/governance-platform.svg?style=flat-square
+        :target: https://github.com/informed-governance-project/governance-platform/releases/latest
+        :alt: Latest release
 
-.. image:: https://github.com/informed-governance-project/governance-platform/workflows/Python%20application%20tests/badge.svg?style=flat-square
-    :target: https://github.com/informed-governance-project/NISINP/actions?query=workflow%3A%22Python+application+tests%22
-    :alt: Workflow
+    .. image:: https://img.shields.io/github/license/informed-governance-project/governance-platform.svg?style=flat-square
+        :target: https://www.gnu.org/licenses/agpl-3.0.html
+        :alt: License
 
-.. image:: https://readthedocs.org/projects/governance-platform/badge/?version=latest
-    :target: https://governance-platform.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+    .. image:: https://img.shields.io/github/stars/informed-governance-project/governance-platform.svg?style=flat-square
+        :target: https://github.com/informed-governance-project/governance-platform/stargazers
+        :alt: Stars
+
+    .. image:: https://github.com/informed-governance-project/governance-platform/workflows/Python%20application%20tests/badge.svg?style=flat-square
+        :target: https://github.com/informed-governance-project/NISINP/actions?query=workflow%3A%22Python+application+tests%22
+        :alt: Workflow
+
+    .. image:: https://readthedocs.org/projects/governance-platform/badge/?version=latest
+        :target: https://governance-platform.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
 
 
 .. toctree::

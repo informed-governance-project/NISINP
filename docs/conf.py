@@ -86,3 +86,21 @@ html_theme_options = {
     # "extra_navbar": "<a href='https://google.com'>Test</a>",
     # "show_navbar_depth": 2,
 }
+
+
+# -- Options for LaTeX output --------------------------------------------------
+
+latex_engine = "pdflatex"
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title, author, documentclass [howto/manual]).
+latex_documents = [
+    ("index", "Stgan.tex", "Governance Platform", "NC3-LU", "howto"),
+]
+
+latex_show_urls = True
+latex_show_pagerefs = True
+
+ADDITIONAL_PREAMBLE = r"""
+\setcounter{tocdepth}{3}
+"""
