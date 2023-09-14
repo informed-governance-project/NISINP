@@ -1,12 +1,11 @@
 from datetime import date
 
-from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
@@ -31,14 +30,6 @@ from .models import (
 )
 
 # TODO : put the correct decorator
-
-
-# @login_required
-# def index(request):
-#     """Returns the index page for authenticated users."""
-#     user = request.user
-#     if user.is_superuser:
-#         return redirect("admin:index")
 
 
 @login_required

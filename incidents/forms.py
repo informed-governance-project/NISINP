@@ -33,10 +33,9 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
 class DropdownCheckboxSelectMultiple(ChoiceWidget):
     allow_multiple_selected = True
     input_type = "select"
-    checked_attribute = {"selected": True}
     template_name = "django/forms/widgets/dropdown_checkbox_select.html"
     option_template_name = "django/forms/widgets/dropdown_checkbox_option.html"
-    allow_multiple_selected = True
+    option_inherits_attrs = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
