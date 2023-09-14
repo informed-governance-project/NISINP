@@ -153,7 +153,7 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label"]
-    search_fields = ["label"]
+    search_fields = ["translations__label"]
     resource_class = ImpactResource
 
 

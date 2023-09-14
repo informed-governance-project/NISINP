@@ -12,6 +12,8 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
+from incidents.models import Impact
+
 from .helpers import user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
@@ -25,7 +27,7 @@ from .models import (
     User,
 )
 from .settings import SITE_NAME
-from .widgets import TranslatedNameM2MWidget
+from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -42,10 +44,7 @@ admin_site.register(Site)
 
 
 class SectorResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
 
     name = fields.Field(
         column_name="name",
@@ -55,7 +54,18 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
     parent = fields.Field(
         column_name="parent",
         attribute="parent",
-        widget=ForeignKeyWidget(Sector, field="name"),
+        widget=TranslatedNameWidget(Sector, field="name"),
+    )
+
+    accronym = fields.Field(
+        column_name="accronym",
+        attribute="accronym",
+    )
+
+    specific_impact = fields.Field(
+        column_name="specific_impact",
+        attribute="specific_impact",
+        widget=TranslatedNameM2MWidget(Impact, field="label", separator="\n"),
     )
 
     class Meta:
@@ -64,7 +74,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Sector, site=admin_site)
 class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "parent"]
+    list_display = ["name", "parent", "accronym"]
     search_fields = ["name"]
     resource_class = SectorResource
 
@@ -80,14 +90,19 @@ class ServicesResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="name",
     )
 
+    accronym = fields.Field(
+        column_name="accronym",
+        attribute="accronym",
+    )
+
     sector = fields.Field(
         column_name="sector",
         attribute="sector",
-        widget=ForeignKeyWidget(Sector, field="name"),
+        widget=TranslatedNameWidget(Sector, field="name"),
     )
 
     class Meta:
-        model = Sector
+        model = Services
 
 
 @admin.register(Services, site=admin_site)
