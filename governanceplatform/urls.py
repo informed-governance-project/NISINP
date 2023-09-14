@@ -42,6 +42,9 @@ urlpatterns = [
     ),
     # Incident notification
     path("incidents/", include("incidents.urls"), name="incidents"),
+    # API
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/v1/", include("api.urls")),
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service
