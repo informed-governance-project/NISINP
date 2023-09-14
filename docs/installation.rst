@@ -22,8 +22,8 @@ container
 
 .. code-block:: bash
 
-    lxc launch ubuntu:22.10 NISINP --storage your-storage
-    lxc exec NISINP -- /bin/bash
+    lxc launch ubuntu:22.10 SERIMA --storage your-storage
+    lxc exec SERIMA -- /bin/bash
 
 
 poetry
@@ -53,20 +53,20 @@ postgres
     # password
 
 
-NISINP
+SERIMA
 ``````
 
 
 .. code-block:: bash
 
-    git clone https://github.com/informed-governance-project/NISINP.git
-    cd NISINP
+    git clone https://github.com/informed-governance-project/governance-platform.git
+    cd governance-platform
     git submodule update --recursive
     poetry install
     poetry build
     poetry shell
-    poetry run python manage.py migrate
-    poetry run python manage.py manage.py createsuperuser
+    python manage.py migrate
+    python manage.py createsuperuser
 
 
 js
@@ -96,7 +96,7 @@ at the end of the `~/.bashrc`
 
 .. code-block:: bash
 
-    cd NISINP
+    cd governance-platform
     npm install
 
 

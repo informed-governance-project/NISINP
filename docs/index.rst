@@ -14,8 +14,9 @@ Software for the SERIMA Governance Platform.
    :hidden:
 
    installation
-   api-v1
    modules
+   architecture
+   api-v1
 
 
 .. toctree::
@@ -24,8 +25,6 @@ Software for the SERIMA Governance Platform.
    :hidden:
 
    security
-   architecture
-
 
 
 
