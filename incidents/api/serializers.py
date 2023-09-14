@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from incidents.models import User
+from governanceplatform.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -48,5 +48,5 @@ urlpatterns = [
     ),
     # API
     path("api-auth/", include("rest_framework.urls")),
-    # path("api/v1/", include("incidents.api.urls")),
+    path("api/v1/", include("incidents.api.urls")),
 ]
