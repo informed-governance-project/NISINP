@@ -5,7 +5,8 @@ SERIMA Governance Platform
 Presentation
 ------------
 
-Software for the NIS Incident Notification Platform.
+Software for the SERIMA Governance Platform.
+
 
 .. toctree::
    :caption: Technical considerations

@@ -1,10 +1,6 @@
 Architecture
 ============
 
-As a reminder the global architecture of the platform is
-available
-`here <https://github.com/informed-governance-project/architecture#overview>`_.
-
 
 High level architecture
 -----------------------
