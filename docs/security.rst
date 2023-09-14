@@ -29,7 +29,7 @@ grant us permission.
 Source code
 -----------
 
-CodeQL is used to discover vulnerabilities across the **codebase of NISINP**.
+CodeQL is used to discover vulnerabilities across the **codebase**.
 
 Tools such as *pyupgrade*, *pip-audit*, *GitHub Dependabot* and
 secret scanning are used to check for vulnerabilities in project

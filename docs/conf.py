@@ -25,7 +25,7 @@ django.setup()
 
 # -- Project information -----------------------------------------------------
 
-project = "SERIMA"
+project = "Governance Platform"
 copyright = "LHC <info@nc3.lu>"
 author = "NC3 Team <info@nc3.lu>"
 
@@ -66,7 +66,7 @@ html_theme = "sphinx_book_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_title = "SERIMA"
+html_title = "Governance Platform"
 html_theme_options = {
     "path_to_docs": "docs",
     "repository_url": "https://github.com/informed-governance-project/governance-platform",

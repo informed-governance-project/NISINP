@@ -22,12 +22,6 @@ SERIMA Governance Platform
     :alt: Documentation Status
 
 
-Presentation
-------------
-
-Software for the SERIMA Governance Platform.
-
-
 .. toctree::
    :caption: Technical considerations
    :maxdepth: 3
@@ -45,6 +39,12 @@ Software for the SERIMA Governance Platform.
    :hidden:
 
    security
+
+
+Presentation
+------------
+
+Software for the `NC3-LU <https://github.com/NC3-LU>`_ Governance Platform.
 
 
 Contact
