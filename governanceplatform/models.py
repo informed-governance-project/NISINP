@@ -36,6 +36,7 @@ class Sector(TranslatableModel):
 class Services(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(max_length=100))
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    accronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name
