@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
-from import_export import fields, resources, widgets
+from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin
-from parler.models import TranslationDoesNotExist
 
 from governanceplatform.admin import admin_site
-from governanceplatform.settings import LANGUAGES
+from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.models import (
     Email,
     Impact,
@@ -17,54 +17,6 @@ from incidents.models import (
     QuestionCategory,
     RegulationType,
 )
-
-from .mixins import TranslationUpdateMixin
-
-
-# Custom widget to handle translated M2M relationships
-class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
-    def clean(self, value, row=None, *args, **kwargs):
-        if not value:
-            return self.model.objects.none()
-
-        names = value.split(self.separator)
-        languages = [lang[0] for lang in LANGUAGES]
-
-        instances = []
-        for name in names:
-            for lang_code in languages:
-                try:
-                    instance = self.model._parler_meta.root_model.objects.get(
-                        **{self.field: name.strip()},
-                        language_code=lang_code,
-                    )
-                    instances.append(instance.master_id)
-                    break
-                except (self.model.DoesNotExist, TranslationDoesNotExist):
-                    pass
-
-        return instances
-
-
-# Custom widget to handle translated ForeignKey relationships
-class TranslatedNameWidget(widgets.ForeignKeyWidget):
-    def clean(self, value, row=None, *args, **kwargs):
-        if not value:
-            return self.model.objects.none()
-
-        languages = [lang[0] for lang in LANGUAGES]
-
-        for lang_code in languages:
-            try:
-                instance = self.model._parler_meta.root_model.objects.get(
-                    **{self.field: value.strip()},
-                    language_code=lang_code,
-                )
-                return instance.master
-            except (self.model.DoesNotExist, TranslationDoesNotExist):
-                pass
-
-        return
 
 
 # reset the 2FA we delete the TOTP devices

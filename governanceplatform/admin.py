@@ -7,13 +7,13 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
 from django_otp.decorators import otp_required
-from import_export import fields, resources, widgets
+from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
-from parler.models import TranslationDoesNotExist
 
 from .helpers import user_in_group
+from .mixins import TranslationUpdateMixin
 from .models import (
     Company,
     CompanyAdministrator,
@@ -24,7 +24,8 @@ from .models import (
     Services,
     User,
 )
-from .settings import LANGUAGES, SITE_NAME
+from .settings import SITE_NAME
+from .widgets import TranslatedNameM2MWidget
 
 
 class CustomAdminSite(admin.AdminSite):
@@ -40,7 +41,7 @@ admin_site = CustomAdminSite()
 admin_site.register(Site)
 
 
-class SectorResource(resources.ModelResource):
+class SectorResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -68,7 +69,7 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = SectorResource
 
 
-class ServicesResource(resources.ModelResource):
+class ServicesResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -268,31 +269,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return queryset.filter(companyadministrator__user=user)
 
         return queryset
-
-
-# Custom widget to handle translated M2M relationships
-class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
-    def clean(self, value, row=None, *args, **kwargs):
-        if not value:
-            return self.model.objects.none()
-
-        names = value.split(self.separator)
-        languages = [lang[0] for lang in LANGUAGES]
-
-        instances = []
-        for name in names:
-            for lang_code in languages:
-                try:
-                    instance = self.model._parler_meta.root_model.objects.get(
-                        name=name.strip(),
-                        language_code=lang_code,
-                    )
-                    instances.append(instance.master_id)
-                    break
-                except (self.model.DoesNotExist, TranslationDoesNotExist):
-                    pass
-
-        return instances
 
 
 class UserResource(resources.ModelResource):
@@ -594,7 +570,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         return queryset
 
 
-class FunctionalityResource(resources.ModelResource):
+class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -613,7 +589,7 @@ class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = FunctionalityResource
 
 
-class OperatorTypeResource(resources.ModelResource):
+class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
