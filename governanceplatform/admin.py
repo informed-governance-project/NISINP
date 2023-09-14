@@ -13,8 +13,6 @@ from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 from parler.models import TranslationDoesNotExist
 
-from incidents.models import Impact
-
 from .helpers import user_in_group
 from .models import (
     Company,
@@ -641,21 +639,3 @@ class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
     search_fields = ["type"]
     resource_class = OperatorTypeResource
-
-
-class ImpactResource(resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    class Meta:
-        model = Impact
-
-
-@admin.register(Impact, site=admin_site)
-class ImpactAdmin(admin.ModelAdmin):
-    list_display = [
-        "is_generic_impact",
-    ]
-    resource_class = ImpactResource
