@@ -13,10 +13,8 @@ node_modules/
 
 *.mo
 
-!docker/postgres/data/.gitkeep
-docker/postgres/data/*
-
 logs/
+sent_emails/
 
 governanceplatform/config_prod.py
 governanceplatform/config.py

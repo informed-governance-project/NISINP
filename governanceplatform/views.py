@@ -5,7 +5,6 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
-from .decorators import company_permission_required
 from .forms import SelectCompany
 from .helpers import user_in_group
 from .models import Company
@@ -32,7 +31,7 @@ def index(request):
         company_cookie = user.companies.first().id
 
     try:
-        user_company_selected = user.companies.get(id=company_cookie)
+        user.companies.get(id=company_cookie)
     except Company.DoesNotExist:
         messages.add_message(
             request,
@@ -43,12 +42,6 @@ def index(request):
         )
 
         return redirect("login")
-
-    if user.is_authenticated:
-        if user_company_selected.is_regulator:
-            return regulator_index(request)
-
-        return operateur_index(request)
 
     return redirect("login")
 
@@ -70,17 +63,17 @@ def privacy(request):
     return render(request, "home/privacy_policy.html")
 
 
-@company_permission_required(is_regulator=False)
-def operateur_index(request):
-    return render(
-        request,
-        "operateur/index.html",
-    )
+# @company_permission_required(is_regulator=False)
+# def operateur_index(request):
+#     return render(
+#         request,
+#         "operateur/index.html",
+#     )
 
 
-@company_permission_required(is_regulator=True)
-def regulator_index(request):
-    return render(request, "regulator/index.html")
+# @company_permission_required(is_regulator=True)
+# def regulator_index(request):
+#     return render(request, "regulator/index.html")
 
 
 def select_company(request):

@@ -28,16 +28,16 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "serima-governance",
-        "USER": "cedric",
-        "PASSWORD": "password",
+        "USER": "<user>",
+        "PASSWORD": "<password>",
         "HOST": "localhost",
         "PORT": 5432,
     },
     "incidents": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "serima-incidents",
-        "USER": "cedric",
-        "PASSWORD": "password",
+        "USER": "<user>",
+        "PASSWORD": "<password>",
         "HOST": "localhost",
         "PORT": 5432,
     },
@@ -53,6 +53,9 @@ CORS_ALLOW_METHODS = [
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
 EMAIL_SENDER = "no-reply@monarc.lu"
+
+# business configuration
+MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = 3
 
 # Logging mechanism
 LOG_DIRECTORY = "./logs"

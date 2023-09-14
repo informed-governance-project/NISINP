@@ -1,16 +1,18 @@
 [tool.poetry]
 name = "governanceplatform"
 version = "0.1.0"
-description = "SERIMA Governance Platform"
+description = "Governance Platform"
 authors = [
-    "NC3 Team <info@nc3.lu>",
+    "Cédric Bonhomme <cedric@cedricbonhomme.org>",
+    "Jérôme Lombardi <jerome.lombardi@nc3.lu>",
+    "Juan Rocha <juan.rocha@nc3.lu>",
 ]
 license = "AGPL-3.0-or-later"
 readme = "README.md"
 
 homepage = "https://github.com/informed-governance-project/governance-platform"
 repository = "https://github.com/informed-governance-project/governance-platform"
-documentation = "https://serima.readthedocs.io"
+documentation = "https://governance-platform.readthedocs.io"
 
 keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 
