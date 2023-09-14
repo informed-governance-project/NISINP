@@ -1,5 +1,5 @@
-SERIMA Governance Platform
-==========================
+Governance Platform
+===================
 
 .. image:: https://img.shields.io/github/release/informed-governance-project/governance-platform.svg?style=flat-square
     :target: https://github.com/informed-governance-project/governance-platform/releases/latest
