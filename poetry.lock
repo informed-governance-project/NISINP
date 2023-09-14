@@ -421,13 +421,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "cyclonedx-python-lib"
-version = "4.2.1"
+version = "4.2.2"
 description = "A library for producing CycloneDX SBOM (Software Bill of Materials) files."
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "cyclonedx_python_lib-4.2.1-py3-none-any.whl", hash = "sha256:b6b3818d48ed932545d3c5c819cbfe9a1fe452fba363388d2005ba9b054c81cb"},
-    {file = "cyclonedx_python_lib-4.2.1.tar.gz", hash = "sha256:adcb074d00e5171754fc2f04269987cdf11342d2dbce2b9eeee7ebb218b1ed94"},
+    {file = "cyclonedx_python_lib-4.2.2-py3-none-any.whl", hash = "sha256:fabc09bedc1e5aa2244d16bb72faaf88d2ff918c9a5f5c1a9026f75d1f896015"},
+    {file = "cyclonedx_python_lib-4.2.2.tar.gz", hash = "sha256:d8fd40a94ab9130e9d1292ecebd35bd081f8a2d589c5259eaf7ec5caa5e95a43"},
 ]
 
 [package.dependencies]
@@ -602,19 +602,19 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-import-export"
-version = "3.2.0"
+version = "3.3.1"
 description = "Django application and library for importing and exporting data with included admin integration."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "django-import-export-3.2.0.tar.gz", hash = "sha256:38fd7b9439b9e3aa1a4747421c1087a5bc194e915a28d795fb8429a5f8028f2d"},
-    {file = "django_import_export-3.2.0-py3-none-any.whl", hash = "sha256:1d3f2cb2ee3cca0386ed60651fa1623be989f130d9fbdf98a67f7dc3a94b8a37"},
+    {file = "django-import-export-3.3.1.tar.gz", hash = "sha256:d02e31908c965d512cc6f7ef6e72935177647b15d3846050d0f094177fca0d86"},
+    {file = "django_import_export-3.3.1-py3-none-any.whl", hash = "sha256:88ecaf06be06bd95d97cf34f3c911c56c012a7a81712a8956740e5bfc2465162"},
 ]
 
 [package.dependencies]
 diff-match-patch = "*"
 Django = ">=3.2"
-tablib = {version = ">=3.4.0", extras = ["html", "ods", "xls", "xlsx", "yaml"]}
+tablib = {version = "3.5.0", extras = ["html", "ods", "xls", "xlsx", "yaml"]}
 
 [[package]]
 name = "django-otp"
