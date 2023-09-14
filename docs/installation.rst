@@ -22,8 +22,8 @@ container
 
 .. code-block:: bash
 
-    lxc launch ubuntu:22.10 SERIMA --storage your-storage
-    lxc exec SERIMA -- /bin/bash
+    lxc launch ubuntu:22.10 governance-platform --storage your-storage
+    lxc exec governance-platform -- /bin/bash
 
 
 poetry
@@ -53,8 +53,8 @@ postgres
     # password
 
 
-SERIMA
-``````
+Governance Platform
+```````````````````
 
 
 .. code-block:: bash
@@ -69,9 +69,8 @@ SERIMA
     python manage.py createsuperuser
 
 
-js
-``
-
+JavaScript
+``````````
 
 .. code-block:: bash
 
@@ -100,8 +99,8 @@ at the end of the `~/.bashrc`
     npm install
 
 
-Launch django app
-`````````````````
+Launch the Django app
+`````````````````````
 
 .. code-block:: bash
 

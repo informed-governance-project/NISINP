@@ -1,4 +1,4 @@
-# SERIMA - Governance Platform
+# Governance Platform
 
 [![Latest release](https://img.shields.io/github/release/informed-governance-project/governance-platform.svg?style=flat-square)](https://github.com/informed-governance-project/governance-platform/releases/latest)
 [![License](https://img.shields.io/github/license/informed-governance-project/governance-platform.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0.html)
@@ -10,12 +10,12 @@
 
 ## Description
 
-Software for the SERIMA Governance Platform
+Software for the [NC3-LU](https://github.com/NC3-LU/) Governance Platform.
 
 
 ## Documentation
 
-A documentation is available [here](https://serima.readthedocs.io).
+A documentation is available [here](https://governance-platform.readthedocs.io).
 
 
 ## Contributing
