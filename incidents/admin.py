@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
-from django_otp import devices_for_user
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin
@@ -17,15 +15,6 @@ from incidents.models import (
     QuestionCategory,
     RegulationType,
 )
-
-
-# reset the 2FA we delete the TOTP devices
-@admin.action(description=_("Reset 2FA"))
-def reset_2FA(modeladmin, request, queryset):
-    for user in queryset:
-        devices = devices_for_user(user)
-        for device in devices:
-            device.delete()
 
 
 class PredifinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
