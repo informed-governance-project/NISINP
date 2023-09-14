@@ -9,12 +9,12 @@ available
 High level architecture
 -----------------------
 
-.. image:: _static/nisinp-global-architecture.png
+.. image:: _static/global-architecture.png
    :alt: High level Architecture
 
 
 Models
 ------
 
-.. image:: _static/nisinp_models.png
+.. image:: _static/models.png
    :alt: Models
