@@ -54,6 +54,9 @@ EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
 EMAIL_SENDER = "no-reply@monarc.lu"
 
+# business configuration
+MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = 3
+
 # Logging mechanism
 LOG_DIRECTORY = "./logs"
 LOG_FILE = "django.log"
