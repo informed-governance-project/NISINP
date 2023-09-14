@@ -4,6 +4,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
+from incidents.models import Impact
+
 from .helpers import generate_token
 from .managers import CustomUserManager
 
@@ -19,6 +21,8 @@ class Sector(TranslatableModel):
         default=None,
         verbose_name=_("parent"),
     )
+    specific_impact = models.ManyToManyField(Impact, default=None, blank=True)
+    accronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name
