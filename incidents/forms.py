@@ -381,7 +381,7 @@ class ImpactedServicesForm(forms.Form):
         except Exception:
             choices_serv = []
 
-    if "nisinp_regulationtype" in connection.introspection.table_names():
+    if "incidents_regulationtype" in connection.introspection.table_names():
         try:
             regulationTypes = RegulationType.objects.all()
 
