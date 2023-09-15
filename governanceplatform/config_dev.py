@@ -33,14 +33,6 @@ DATABASES = {
         "HOST": "localhost",
         "PORT": 5432,
     },
-    "incidents": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "serima-incidents",
-        "USER": "<user>",
-        "PASSWORD": "<password>",
-        "HOST": "localhost",
-        "PORT": 5432,
-    },
 }
 
 CORS_ALLOWED_ORIGINS = []

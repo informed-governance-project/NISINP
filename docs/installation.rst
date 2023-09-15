@@ -68,7 +68,6 @@ Governance Platform
     poetry build
     poetry shell
     python manage.py migrate
-    python manage.py migrate incidents
     python manage.py createsuperuser
     python manage.py collectstatic
 
