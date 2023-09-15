@@ -217,11 +217,7 @@ class QuestionForm(forms.Form):
             )
 
     def __init__(self, *args, **kwargs):
-        questions = Question.objects.all().order_by("position")
-        question = questions[1]
         position = -1
-        if "question" in kwargs:
-            question = kwargs.pop("question")
         if "position" in kwargs:
             position = kwargs.pop("position")
         if "incident" in kwargs:
@@ -235,7 +231,6 @@ class QuestionForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if position > -1:
-            question = questions[position]
             categories = (
                 QuestionCategory.objects.all()
                 .order_by("position")
