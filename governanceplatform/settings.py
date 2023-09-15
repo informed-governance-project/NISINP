@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "two_factor",
     "import_export",
     "parler",
+    "bootstrap_datepicker_plus",
 ]
 
 REST_FRAMEWORK = {
