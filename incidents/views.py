@@ -239,7 +239,7 @@ class FormWizardView(SessionWizardView):
         saveAnswers(2, data, incident)
 
         # Send Email
-        email = Email.objects.get(email_type="PRELI")
+        email = Email.objects.filter(email_type="PRELI").first()
         if email is not None:
             send_mail(
                 email.subject,
@@ -319,9 +319,9 @@ class FinalNotificationWizardView(SessionWizardView):
         # get the email type
         email = None
         if self.incident.final_notification_date is None:
-            email = Email.objects.get(email_type="FINAL")
+            email = Email.objects.filter(email_type="FINAL").first()
         else:
-            email = Email.objects.get(email_type="ADD")
+            email = Email.objects.filter(email_type="ADD").first()
 
         self.incident.final_notification_date = date.today()
         self.incident.save()
