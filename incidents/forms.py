@@ -372,7 +372,7 @@ class ImpactedServicesForm(forms.Form):
     choices_serv = []
     regulationTypes = []
 
-    if "nisinp_sector" in connection.introspection.table_names():
+    if "governanceplatform_sector" in connection.introspection.table_names():
         try:
             choices_serv = construct_services_array(
                 Sector.objects.all().filter(parent=None)
