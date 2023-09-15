@@ -61,12 +61,16 @@ Governance Platform
 
     git clone https://github.com/informed-governance-project/governance-platform.git
     cd governance-platform
-    git submodule update --recursive
+    git submodule update --init --recursive
+    # Copy the config and adjust the DB connection settings.
+    cp governanceplatform/config_dev.py governanceplatform/config.py
     poetry install
     poetry build
     poetry shell
     python manage.py migrate
+    python manage.py migrate incidents
     python manage.py createsuperuser
+    python manage.py collectstatic
 
 
 JavaScript
@@ -104,4 +108,4 @@ Launch the Django app
 
 .. code-block:: bash
 
-    poetry run python manage.py runserver 0.0.0.0:8000
+    poetry run python manage.py runserver 127.0.0.1:8000
