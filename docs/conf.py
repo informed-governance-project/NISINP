@@ -6,27 +6,17 @@
 
 # -- Path setup --------------------------------------------------------------
 
+import os
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
 
-import django
+sys.path.append(os.path.dirname(__file__))
 
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath("../"))
-
-os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
-# import governanceplatform.settings  # noqa: E402
-
-# removing useless stuff for the documentation generation
-# governanceplatform.settings.INSTALLED_APPS = []
-django.setup()
-
-# -- Project information -----------------------------------------------------
-
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 project = "Governance Platform"
 copyright = "LHC <info@nc3.lu>"
 author = "NC3 Team <info@nc3.lu>"
