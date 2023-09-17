@@ -7,12 +7,11 @@
 # -- Path setup --------------------------------------------------------------
 
 import os
-import sys
 
 import django
 
-sys.path.append(os.path.dirname(__file__))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+# sys.path.append(os.path.dirname(__file__))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs")
 settings = __import__(os.environ["DJANGO_SETTINGS_MODULE"])
 print(settings)
 django.setup(settings)
