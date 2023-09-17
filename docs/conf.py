@@ -12,11 +12,8 @@ import sys
 
 import django
 
-sys.path.append(os.path.abspath("../"))
-
-# Specify settings module
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
-
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
 django.setup()
 
 project = "Governance Platform"

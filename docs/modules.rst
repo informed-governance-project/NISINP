@@ -15,6 +15,8 @@ Governance
 Incident Notification
 ---------------------
 
+.. automodule:: incidents.views
+    :members:
 
 
 API
