@@ -12,10 +12,10 @@ import sys
 
 import django
 
-sys.path.append(os.path.abspath("../"))
+sys.path.append(os.path.abspath("../../"))
 
 # Specify settings module
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
 
 django.setup()
 
