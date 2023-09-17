@@ -15,12 +15,14 @@ import sys
 
 import django
 
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath("../"))
+
 os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
-import governanceplatform.settings  # noqa: E402
+# import governanceplatform.settings  # noqa: E402
 
 # removing useless stuff for the documentation generation
-governanceplatform.settings.INSTALLED_APPS = []
+# governanceplatform.settings.INSTALLED_APPS = []
 django.setup()
 
 # -- Project information -----------------------------------------------------
