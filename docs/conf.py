@@ -14,7 +14,6 @@ import django
 sys.path.append(os.path.dirname(__file__))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 settings = __import__(os.environ["DJANGO_SETTINGS_MODULE"])
-print(settings)
 django.setup(settings)
 
 project = "Governance Platform"
