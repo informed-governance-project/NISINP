@@ -14,9 +14,12 @@ import os
 #
 import sys
 
+import django
+
 sys.path.append(os.path.dirname(__file__))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+django.setup()
 project = "Governance Platform"
 copyright = "LHC <info@nc3.lu>"
 author = "NC3 Team <info@nc3.lu>"
