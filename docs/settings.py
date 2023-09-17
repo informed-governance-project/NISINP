@@ -25,4 +25,16 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "governanceplatform",
     "incidents",
+    "api",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",  # required for Django collectstatic discovery
+    "corsheaders",
+    "django_bootstrap5",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    "two_factor",
+    "import_export",
+    "parler",
+    "bootstrap_datepicker_plus",
 ]
