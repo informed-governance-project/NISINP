@@ -6,15 +6,16 @@
 
 # -- Path setup --------------------------------------------------------------
 
+
 import os
 import sys
 
 import django
 
-sys.path.insert(0, os.path.abspath("."))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs")
-settings = __import__(os.environ["DJANGO_SETTINGS_MODULE"])
-django.setup(settings)
+sys.path.append(os.path.abspath("../../"))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs.settings")
+django.setup()
+
 
 project = "Governance Platform"
 copyright = "LHC <info@nc3.lu>"
