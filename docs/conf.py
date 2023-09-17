@@ -12,10 +12,9 @@ import sys
 
 import django
 
-sys.path.append(os.path.abspath("../../"))
+sys.path.append(os.path.abspath("../"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs.settings")
 django.setup()
-
 
 project = "Governance Platform"
 copyright = "LHC <info@nc3.lu>"
