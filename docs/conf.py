@@ -12,8 +12,11 @@ import sys
 
 import django
 
-sys.path.append(os.path.abspath("../"))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs")
+sys.path.append(os.path.abspath("../../"))
+
+# Specify settings module
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs.settings")
+
 django.setup()
 
 project = "Governance Platform"
