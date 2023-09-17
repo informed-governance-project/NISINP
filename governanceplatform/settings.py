@@ -44,6 +44,10 @@ try:
     EMAIL_PORT = config.EMAIL_PORT
     EMAIL_SENDER = config.EMAIL_SENDER
     DEFAULT_FROM_EMAIL = config.EMAIL_SENDER
+
+    MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
+        config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
+    )
 except AttributeError as e:
     print("Please check you configuration file for the missing configuration variable:")
     print(f"  {e}")

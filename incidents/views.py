@@ -9,9 +9,12 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
-from governanceplatform.config import MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
 from governanceplatform.models import Services
-from governanceplatform.settings import EMAIL_SENDER, SITE_NAME
+from governanceplatform.settings import (
+    EMAIL_SENDER,
+    MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
+    SITE_NAME,
+)
 
 from .forms import (
     ContactForm,
