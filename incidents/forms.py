@@ -176,10 +176,12 @@ class QuestionForm(forms.Form):
                             initial_data, "%m/%d/%Y %H:%m:%s"
                         ).date()
             self.fields[str(question.id)] = forms.DateField(
-                widget=DatePickerInput(options={
-                    "format": "MM/DD/YYYY HH:mm:ss",
-                    'maxDate': datetime.today(),
-                }),
+                widget=DatePickerInput(
+                    options={
+                        "format": "MM/DD/YYYY HH:mm:ss",
+                        "maxDate": datetime.today(),
+                    }
+                ),
                 required=question.is_mandatory,
                 initial=initial_data,
             )
