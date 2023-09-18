@@ -17,33 +17,21 @@ Including another URLconf
 from django.urls import path
 from django.views.i18n import set_language
 
-from incidents import views
-
 from .views import (
     get_final_notification_list,
     get_form_list,
-    get_incident_list,
-    get_incident_list_for_regulator,
+    get_incidents,
+    get_incidents_for_regulator,
 )
 
 urlpatterns = [
     # Root
-    path("", views.notifications, name="notifications"),
+    path("", get_incidents, name="incidents"),
     path("set-language/", set_language, name="set_language"),
-    # Notifications
-    path("notifications/", views.notifications, name="notification"),
     # incident declaration
-    path("notifications/declaration", get_form_list, name="declaration"),
-    # incident list
-    path("notifications/incident_list", get_incident_list, name="incident_list"),
+    path("declaration", get_form_list, name="declaration"),
     # incident declaration
-    path(
-        r"notifications/final-notification/<str:pk>",
-        get_final_notification_list,
-        name="final-notification",
-    ),
+    path(r"final-notification/<str:pk>", get_final_notification_list, name="final-notification"),
     # incident list for regulator
-    path(
-        "regulator/incident_list", get_incident_list_for_regulator, name="incident_list"
-    ),
+    path("regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"),
 ]
