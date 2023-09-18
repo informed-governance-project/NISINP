@@ -196,7 +196,6 @@ class FormWizardView(SessionWizardView):
         company_for_ref = ""
         sector_for_ref = ""
         subsector_for_ref = ""
-        number_of_incident = "0001"
         if company is None:
             company_for_ref = data[0]["company_name"][:4]
 
@@ -358,19 +357,16 @@ def saveAnswers(index=0, data=None, incident=None):
                     Answer.objects.filter(question=question, incident=incident).delete()
                 if question.question_type == "FREETEXT":
                     answer = value
-                    predifinedAnswer = None
                 elif question.question_type == "DATE":
                     if value is not None:
                         answer = value.strftime("%m/%d/%Y")
                     else:
                         answer = None
-                    predifinedAnswer = None
                 elif question.question_type == "CL" or question.question_type == "RL":
                     answer = ""
                     for val in value:
                         answer += val + ","
                     answer = answer
-                    predifinedAnswer = None
                 else:  # MULTI
                     predifinedAnswers = []
                     for val in value:
