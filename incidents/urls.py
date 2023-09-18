@@ -17,8 +17,6 @@ Including another URLconf
 from django.urls import path
 from django.views.i18n import set_language
 
-from incidents import views
-
 from .views import (
     get_final_notification_list,
     get_form_list,
