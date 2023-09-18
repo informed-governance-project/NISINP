@@ -329,6 +329,8 @@ PARLER_LANGUAGES = {
     },
 }
 
+COUNTRIES_FIRST = ["LU", "BE", "FR", "DE", "NL", "GB"]
+COUNTRIES_FIRST_BREAK = "---------------------"
 
 # Import-export settings
 
