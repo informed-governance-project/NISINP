@@ -2,6 +2,9 @@
 {% load i18n %}
 {% block content %}
 <div class="text-justify">
+    <a href="{% url 'declaration' %}">Signaler un incident</a>
+</div>
+<div class="text-justify">
     <h1>Incident list</h1>
     {% if incidents %}
     <table class="table">

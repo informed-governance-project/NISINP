@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.forms import formset_factory
@@ -36,13 +37,25 @@ from .models import (
 
 
 @login_required
-def notifications(request):
-    """Returns the notifications page."""
-    return render(request, "index.html", context={"site_name": SITE_NAME})
+def get_incidents(request):
+    """Returns the list of incidents."""
+    user = request.user
+    incidents = (
+        Incident.objects.all()
+        .order_by("preliminary_notification_date")
+        .filter(contact_user=user)
+    )
+    return render(
+        request,
+        "incidents.html",
+        context={"site_name": SITE_NAME, "incidents": incidents},
+    )
 
 
 @login_required
 def get_form_list(request, form_list=None):
+    if is_incidents_report_limit_reached(request):
+        return HttpResponseRedirect("/incidents")
     """Initialize data for the preliminary notification."""
     if form_list is None:
         form_list = get_number_of_question()
@@ -64,23 +77,7 @@ def get_final_notification_list(request, form_list=None, pk=None):
 
 
 @login_required
-def get_incident_list(request):
-    """Returns the list of incidents."""
-    user = request.user
-    incidents = (
-        Incident.objects.all()
-        .order_by("preliminary_notification_date")
-        .filter(contact_user=user)
-    )
-    return render(
-        request,
-        "incident_list.html",
-        context={"site_name": SITE_NAME, "incidents": incidents},
-    )
-
-
-@login_required
-def get_incident_list_for_regulator(request):
+def get_incidents_for_regulator(request):
     """Returns the list of incident as regulator."""
     incidents = (
         Incident.objects.all()
@@ -98,11 +95,11 @@ def get_incident_list_for_regulator(request):
     paginator = Paginator(incidents, 10)  # Show 10 incident per page.
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
-    IncidentFormset = formset_factory(RegulatorIncidentForm, extra=0)
-    formset = IncidentFormset(initial=page_obj)
+    incident_formset = formset_factory(RegulatorIncidentForm, extra=0)
+    formset = incident_formset(initial=page_obj)
     return render(
         request,
-        "regulator/incident_list.html",
+        "regulator/incidents.html",
         context={
             "site_name": SITE_NAME,
             "incidents": incidents,
@@ -110,6 +107,21 @@ def get_incident_list_for_regulator(request):
             "page_obj": page_obj,
         },
     )
+
+
+def is_incidents_report_limit_reached(request):
+    if request.user.is_authenticated:
+        user = request.user
+        # if a user make too many declaration we prevent to save
+        number_preliminary_today = Incident.objects.filter(
+            contact_user=user, preliminary_notification_date=date.today()
+        ).count()
+        if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
+            messages.add_message(
+                request, messages.WARNING,
+                "The incidents reports per day have been reached. Try again tomorrow.")
+            return True
+    return False
 
 
 class FormWizardView(SessionWizardView):
@@ -153,21 +165,13 @@ class FormWizardView(SessionWizardView):
         return context
 
     def done(self, form_list, **kwargs):
+        if is_incidents_report_limit_reached(self.request):
+            return HttpResponseRedirect("/incidents")
+
         data = [form.cleaned_data for form in form_list]
-        user = None
+        user = self.request.user
         # TO DO : Take the company from the selection module
         company = None
-        if self.request.user.is_authenticated:
-            user = self.request.user
-            # if a user make too many declaration we prevent to save
-            number_preliminary_today = Incident.objects.filter(
-                contact_user=user, preliminary_notification_date=date.today()
-            ).count()
-            if (
-                number_preliminary_today
-                >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
-            ):
-                return HttpResponseRedirect("incident_list")
 
         incident = Incident.objects.create(
             contact_lastname=data[0]["contact_lastname"],
@@ -250,7 +254,7 @@ class FormWizardView(SessionWizardView):
                 [user.email],
                 fail_silently=True,
             )
-        return HttpResponseRedirect("incident_list")
+        return HttpResponseRedirect("/incidents")
 
 
 class FinalNotificationWizardView(SessionWizardView):
@@ -337,7 +341,7 @@ class FinalNotificationWizardView(SessionWizardView):
                 [self.incident.contact_user.email],
                 fail_silently=True,
             )
-        return HttpResponseRedirect("../incident_list")
+        return HttpResponseRedirect("/incidents")
 
 
 def saveAnswers(index=0, data=None, incident=None):
