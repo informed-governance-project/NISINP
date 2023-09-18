@@ -359,7 +359,7 @@ def saveAnswers(index=0, data=None, incident=None):
                     answer = value
                 elif question.question_type == "DATE":
                     if value is not None:
-                        answer = value.strftime("%m/%d/%Y")
+                        answer = value.strftime("%m/%d/%Y %H:%M:%S")
                     else:
                         answer = None
                 elif question.question_type == "CL" or question.question_type == "RL":
