@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.models import Sector, Service
+from governanceplatform.models import Company, Sector, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, Question, QuestionCategory, RegulationType
@@ -464,6 +464,7 @@ def get_number_of_question(is_preliminary=True):
     if is_preliminary is True:
         category_tree = [ContactForm]
         category_tree.append(ImpactedServicesForm)
+        category_tree.append(NotificationDispatchingForm)
     else:
         category_tree = [ImpactForFinalNotificationForm]
 
@@ -471,6 +472,27 @@ def get_number_of_question(is_preliminary=True):
         category_tree.append(QuestionForm)
 
     return category_tree
+
+
+class NotificationDispatchingForm(forms.Form):
+    # list of impact present in the incident table
+    initial_data = []
+    # generic impact definitions
+    authorities_list = forms.MultipleChoiceField(
+        required=False,
+        choices=[
+            (k.id, k.name)
+            for k in Company.objects.all().filter(
+                is_regulator=True,
+            )
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        label="Send notification to:",
+    )
+
+    other_authority = forms.CharField(
+        widget=forms.TextInput(), label="Send to an other authority :"
+    )
 
 
 class RegulatorIncidentForm(forms.ModelForm):
