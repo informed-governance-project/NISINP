@@ -1,0 +1,39 @@
+<h2 id="questions">{{ _('Impacted services') }}</h2>
+<ol>
+    <li>
+        <span class="bold">{{ _('Regulation') }}</span>
+        <ul>
+            {% for regulation_label in regulations %}
+                <li>{{ regulation_label }}</li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li>
+        <span class="bold">{{ _('Affected services') }}</span>
+        <ul>
+            {% for sector_name, services in services.items %}
+                <li><span class="bold">{{ sector_name }}</span>
+                    <ul>
+                        {% for service_label in services %}
+                            <li>{{ service_label }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li>
+        <span class="bold">{{ _('Answered questions') }}</span>
+        <ul>
+            {% for question_label, answers in questions_answers.items %}
+                <li><span class="bold">{{ question_label }}</span>
+                    <ul>
+                        {% for answer_label in answers %}
+                            <li>{{ answer_label }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
+</ol>

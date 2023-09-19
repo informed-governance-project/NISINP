@@ -9,10 +9,11 @@
             <tr>
                 <th scope="col">Incident ID</th>
                 <th scope="col">Significative impact</th>
-                <th scope="col">regulation</th>
-                <th scope="col">service</th>
+                <th scope="col">Regulation</th>
+                <th scope="col">Service</th>
                 <th scope="col">Preliminary notification date</th>
-                <th scope="col">final declaration date</th>
+                <th scope="col">Final declaration date</th>
+                <th scope="col">Download PDF</th>
             </tr>
             {% for form in forms %}
             <tr>
@@ -26,8 +27,8 @@
                     {% else %}
                         {{form.final_notification_date}}
                     {% endif %}
-
                 </td>
+                <td><a href="{% url 'download_incident_pdf' form.id %}">download</a></td>
             </tr>
             {% endfor %}
         </table>

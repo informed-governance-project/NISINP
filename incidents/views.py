@@ -5,16 +5,19 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.forms import formset_factory
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
+from urllib.parse import urlparse
 
 from governanceplatform.models import Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     SITE_NAME,
+    PUBLIC_URL,
 )
 
 from .forms import (
@@ -22,7 +25,7 @@ from .forms import (
     ImpactForFinalNotificationForm,
     QuestionForm,
     RegulatorIncidentForm,
-    get_number_of_question,
+    get_forms_list,
 )
 from .models import (
     Answer,
@@ -31,6 +34,9 @@ from .models import (
     PredifinedAnswer,
     Question,
     QuestionCategory,
+)
+from .pdf_generation import (
+    get_pdf_report,
 )
 
 # TODO : put the correct decorator
@@ -58,7 +64,7 @@ def get_form_list(request, form_list=None):
         return HttpResponseRedirect("/incidents")
     """Initialize data for the preliminary notification."""
     if form_list is None:
-        form_list = get_number_of_question()
+        form_list = get_forms_list()
     return FormWizardView.as_view(
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
@@ -66,11 +72,11 @@ def get_form_list(request, form_list=None):
 
 
 @login_required
-def get_final_notification_list(request, form_list=None, pk=None):
+def get_final_notification_list(request, form_list=None, incident_id=None):
     if form_list is None:
-        form_list = get_number_of_question(is_preliminary=False)
-    if pk is not None:
-        request.incident = pk
+        form_list = get_forms_list(is_preliminary=False)
+    if incident_id is not None:
+        request.incident = incident_id
     return FinalNotificationWizardView.as_view(
         form_list,
     )(request)
@@ -109,6 +115,26 @@ def get_incidents_for_regulator(request):
     )
 
 
+@login_required()
+def download_incident_pdf(request, incident_id: int):
+    target = request.META.get("HTTP_REFERER", "/")
+    if not can_redirect(target):
+        target = "/"
+
+    try:
+        pdf_report = get_pdf_report(incident_id, request)
+    except Exception as e:
+        messages.warning(request, "An error occurred when generating the report.")
+        return HttpResponseRedirect(target)
+
+    response = HttpResponse(pdf_report, content_type="application/pdf")
+    response["Content-Disposition"] = "attachment;filename=Incident_{}_{}.pdf".format(
+        incident_id, date.today()
+    )
+
+    return response
+
+
 def is_incidents_report_limit_reached(request):
     if request.user.is_authenticated:
         user = request.user
@@ -117,10 +143,9 @@ def is_incidents_report_limit_reached(request):
             contact_user=user, preliminary_notification_date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
-            messages.add_message(
+            messages.warning(
                 request,
-                messages.WARNING,
-                "The incidents reports per day have been reached. Try again tomorrow.",
+                "The incidents reports per day have been reached. Try again tomorrow."
             )
             return True
     return False
@@ -391,3 +416,11 @@ def saveAnswers(index=0, data=None, incident=None):
                     answer=answer,
                 )
                 answer_object.PredifinedAnswer.set(predifinedAnswers)
+
+
+def can_redirect(url: str) -> bool:
+    """
+    Check if a redirect is authorised.
+    """
+    o = urlparse(url)
+    return o.netloc in PUBLIC_URL

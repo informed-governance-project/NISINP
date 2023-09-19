@@ -454,7 +454,7 @@ class ImpactForFinalNotificationForm(forms.Form):
         self.fields["generic_impact"].initial = initial_data
 
 
-def get_number_of_question(is_preliminary=True):
+def get_forms_list(is_preliminary=True):
     categories = (
         QuestionCategory.objects.all()
         .filter(question__is_preliminary=is_preliminary)
