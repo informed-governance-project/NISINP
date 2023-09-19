@@ -93,6 +93,12 @@ class Company(models.Model):
     sectors = models.ManyToManyField(Sector)
     types = models.ManyToManyField(OperatorType)
     monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
+    email_for_notification = models.EmailField(
+        verbose_name=_("email address"),
+        default=None,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.name
