@@ -139,9 +139,9 @@ class FormWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         # when we have passed the fixed forms
-        if position > 1:
+        if position > 2:
             # create the form with the correct question/answers
-            form = QuestionForm(data, position=position - 2)
+            form = QuestionForm(data, position=position - 3)
 
             return form
         else:
@@ -157,7 +157,7 @@ class FormWizardView(SessionWizardView):
             .distinct()
         )
 
-        context["steps"] = [_("Contact"), _("Impacted Services")]
+        context["steps"] = [_("Contact"), _("Impacted Services"), _("Notification Dispatching")]
 
         for categorie in categories:
             context["steps"].append(categorie.label)
@@ -242,7 +242,7 @@ class FormWizardView(SessionWizardView):
         incident.save()
 
         # save questions
-        saveAnswers(2, data, incident)
+        saveAnswers(3, data, incident)
 
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
