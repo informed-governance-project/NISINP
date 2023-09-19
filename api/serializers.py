@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from governanceplatform.models import Company, User
-from incidents.models import Incident
+from governanceplatform.models import Company, Service, User
+from incidents.models import Incident, RegulationType
 
 
 #
@@ -59,9 +59,34 @@ class CompanySerializer(serializers.ModelSerializer):
 
 
 #
+# Model: Service
+#
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = [
+            "name",
+        ]
+
+
+#
+# Model: RegulationType
+#
+class RegulationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegulationType
+        fields = [
+            "label",
+        ]
+
+
+#
 # Model: Incident
 #
 class IncidentSerializer(serializers.ModelSerializer):
+    affected_services = ServiceSerializer(read_only=True, many=True)
+    regulations = RegulationTypeSerializer(read_only=True, many=True)
+
     class Meta:
         model = Incident
         fields = [
@@ -70,5 +95,6 @@ class IncidentSerializer(serializers.ModelSerializer):
             "final_notification_date",
             "company_name",
             "affected_services",
+            "regulations",
             "is_significative_impact",
         ]
