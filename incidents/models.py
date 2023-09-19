@@ -145,6 +145,8 @@ class Incident(models.Model):
         default=False, verbose_name=_("Significative impact")
     )
 
+    authorities = models.ManyToManyField("governanceplatform.Company", related_name='authorities') 
+
 
 # answers
 class Answer(models.Model):
