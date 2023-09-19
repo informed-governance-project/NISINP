@@ -23,7 +23,7 @@ from .models import (
     OperatorType,
     Sector,
     SectorContact,
-    Services,
+    Service,
     User,
 )
 from .settings import SITE_NAME
@@ -79,7 +79,7 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = SectorResource
 
 
-class ServicesResource(TranslationUpdateMixin, resources.ModelResource):
+class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -102,14 +102,14 @@ class ServicesResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     class Meta:
-        model = Services
+        model = Service
 
 
-@admin.register(Services, site=admin_site)
-class ServicesAdmin(ImportExportModelAdmin, TranslatableAdmin):
+@admin.register(Service, site=admin_site)
+class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "sector"]
     search_fields = ["name"]
-    resource_class = ServicesResource
+    resource_class = ServiceResource
 
 
 class CompanyResource(resources.ModelResource):

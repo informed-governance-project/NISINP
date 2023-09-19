@@ -137,7 +137,7 @@ class Incident(models.Model):
     incident_reference = models.CharField(max_length=255)
     complaint_reference = models.CharField(max_length=255)
 
-    affected_services = models.ManyToManyField("governanceplatform.Services")
+    affected_services = models.ManyToManyField("governanceplatform.Service")
     regulations = models.ManyToManyField(RegulationType)
     final_notification_date = models.DateField(null=True, blank=True)
     impacts = models.ManyToManyField(Impact, default=None)

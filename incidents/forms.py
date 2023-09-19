@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.models import Sector, Services
+from governanceplatform.models import Sector, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, Question, QuestionCategory, RegulationType
@@ -336,7 +336,7 @@ class ContactForm(forms.Form):
 # prepare an array of sector and services
 def construct_services_array(root_categories):
     categs = dict()
-    services = Services.objects.all()
+    services = Service.objects.all()
 
     final_categs = []
     for service in services:
@@ -359,7 +359,7 @@ def construct_services_array(root_categories):
     # for root_category in root_categories:
     #     #keep integer for the services to avoid to register a false services
     #     choices_serv.append(['service'+ str(root_category.id), root_category])
-    #     for service in Services.objects.all().filter(sector=root_category):
+    #     for service in Service.objects.all().filter(sector=root_category):
     #         choices_serv.append([service.id,service])
     #     if(len(Sector.objects.all().filter(parent=root_category))>0):
     #             choices_serv += construct_services_array(Sector.objects.all().filter(parent=root_category))

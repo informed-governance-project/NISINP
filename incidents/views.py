@@ -1,7 +1,7 @@
 from datetime import date
 
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.forms import formset_factory
@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
-from governanceplatform.models import Services
+from governanceplatform.models import Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
@@ -118,8 +118,10 @@ def is_incidents_report_limit_reached(request):
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.add_message(
-                request, messages.WARNING,
-                "The incidents reports per day have been reached. Try again tomorrow.")
+                request,
+                messages.WARNING,
+                "The incidents reports per day have been reached. Try again tomorrow.",
+            )
             return True
     return False
 
@@ -208,7 +210,7 @@ class FormWizardView(SessionWizardView):
                 service = int(service)
                 incident.affected_services.add(service)
                 if subsector_for_ref == "":
-                    service_entity = Services.objects.get(id=service)
+                    service_entity = Service.objects.get(id=service)
                     sector = service_entity.sector
                     subsector_for_ref = sector.accronym[:3]
                     if sector.parent is not None:
