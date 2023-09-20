@@ -8,6 +8,7 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 
 from .models import (
+    Answer,
     Incident,
 )
 
@@ -24,21 +25,22 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
             services[service.sector.name] = []
         services[service.sector.name].append(service.name)
 
-    questions_answers: Dict[str, List[str]] = {}
+    preliminary_questions_answers: Dict[str, str, List[str]] = {}
+    final_questions_answers: Dict[str, str, List[str]] = {}
     for answer in incident.answer_set.all():
-        if answer.question.label not in questions_answers:
-            questions_answers[answer.question.label] = []
-        for predefined_answer in answer.predefined_answers.all():
-            questions_answers[answer.question.label].append(predefined_answer.predefined_answer)
-        if not questions_answers[answer.question.label]:
-            questions_answers[answer.question.label].append(answer.answer)
+        populate_questions_answers(
+            answer,
+            preliminary_questions_answers if answer.question.is_preliminary else
+            final_questions_answers
+        )
 
     # Render the HTML file
     output_from_parsed_template = render_to_string(
         "report/template.html",
         {
             "incident": incident,
-            "questions_answers": questions_answers,
+            "preliminary_questions_answers": preliminary_questions_answers,
+            "final_questions_answers": final_questions_answers,
             "regulations": regulations,
             "services": services,
         },
@@ -55,3 +57,21 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
+
+
+def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
+    category_label = answer.question.category.label
+    if category_label not in preliminary_questions_answers:
+        preliminary_questions_answers[category_label] = {}
+    if answer.question.label not in preliminary_questions_answers[category_label]:
+        preliminary_questions_answers[category_label][
+            answer.question.label
+        ] = []
+    for predefined_answer in answer.predefined_answers.all():
+        preliminary_questions_answers[category_label][answer.question.label].append(
+            predefined_answer.predefined_answer
+        )
+    if not preliminary_questions_answers[category_label][answer.question.label]:
+        preliminary_questions_answers[category_label][answer.question.label].append(
+            answer.answer
+        )

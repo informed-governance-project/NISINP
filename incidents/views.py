@@ -97,6 +97,7 @@ def get_incidents_for_regulator(request):
             "preliminary_notification_date",
             "final_notification_date",
         )
+        .distinct()
     )
     paginator = Paginator(incidents, 10)  # Show 10 incident per page.
     page_number = request.GET.get("page")
