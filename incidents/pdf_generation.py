@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from .models import (
     Answer,
     Incident,
-    PredifinedAnswer,
+    PredefinedAnswer,
     Question,
     QuestionCategory,
 )
@@ -34,6 +34,7 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     for answer in incident.answer_set.all():
         if answer.question.label not in questions_answers:
             questions_answers[answer.question.label] = []
+        answer.predefined_answer
         questions_answers[answer.question.label].append(answer.answer)
 
     # Render the HTML file

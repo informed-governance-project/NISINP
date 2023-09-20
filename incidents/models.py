@@ -22,14 +22,14 @@ class Impact(TranslatableModel):
 
 
 # answers for the question
-class PredifinedAnswer(TranslatableModel):
-    translations = TranslatedFields(predifined_answer=models.TextField())
+class PredefinedAnswer(TranslatableModel):
+    translations = TranslatedFields(predefined_answer=models.TextField())
     allowed_additional_answer = models.BooleanField(
         default=False, verbose_name=_("Additional Answer")
     )
 
     def __str__(self):
-        return self.predifined_answer
+        return self.predefined_answer
 
 
 # category for the question (to order)
@@ -58,17 +58,17 @@ class Question(TranslatableModel):
         label=models.TextField(),
         tooltip=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
-    predifined_answers = models.ManyToManyField(PredifinedAnswer, blank=True)
+    predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
     position = models.IntegerField()
     category = models.ForeignKey(
         QuestionCategory, on_delete=models.SET_NULL, default=None, null=True, blank=True
     )
 
-    @admin.display(description="Predifined Answer")
-    def get_predifined_answers(self):
+    @admin.display(description="Predefined Answer")
+    def get_predefined_answers(self):
         return [
-            predifined_answer.predifined_answer
-            for predifined_answer in self.predifined_answers.all()
+            predefined_answer.predefined_answer
+            for predefined_answer in self.predefined_answers.all()
         ]
 
     def __str__(self):
@@ -157,7 +157,7 @@ class Answer(models.Model):
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
-    PredifinedAnswer = models.ManyToManyField(PredifinedAnswer, blank=True)
+    PredefinedAnswer = models.ManyToManyField(PredefinedAnswer, blank=True)
 
 
 # Email sent from regulator to operator

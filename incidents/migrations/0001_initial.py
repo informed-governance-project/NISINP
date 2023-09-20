@@ -187,8 +187,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "predifined_answers",
-                    models.ManyToManyField(blank=True, to="incidents.predifinedanswer"),
+                    "predefined_answers",
+                    models.ManyToManyField(blank=True, to="incidents.predefinedanswer"),
                 ),
             ],
             options={
@@ -318,8 +318,8 @@ class Migration(migrations.Migration):
                 ),
                 ("answer", models.TextField(blank=True, null=True)),
                 (
-                    "PredifinedAnswer",
-                    models.ManyToManyField(blank=True, to="incidents.predifinedanswer"),
+                    "PredefinedAnswer",
+                    models.ManyToManyField(blank=True, to="incidents.predefinedanswer"),
                 ),
                 (
                     "incident",
@@ -474,7 +474,7 @@ class Migration(migrations.Migration):
             bases=(parler.models.TranslatedFieldsModelMixin, models.Model),
         ),
         migrations.CreateModel(
-            name="PredifinedAnswerTranslation",
+            name="PredefinedAnswerTranslation",
             fields=[
                 (
                     "id",
@@ -491,7 +491,7 @@ class Migration(migrations.Migration):
                         db_index=True, max_length=15, verbose_name="Language"
                     ),
                 ),
-                ("predifined_answer", models.TextField()),
+                ("predefined_answer", models.TextField()),
                 (
                     "master",
                     parler.fields.TranslationsForeignKey(
@@ -499,13 +499,13 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="translations",
-                        to="incidents.predifinedanswer",
+                        to="incidents.predefinedanswer",
                     ),
                 ),
             ],
             options={
-                "verbose_name": "predifined answer Translation",
-                "db_table": "incidents_predifinedanswer_translation",
+                "verbose_name": "predefined answer Translation",
+                "db_table": "incidents_predefinedanswer_translation",
                 "db_tablespace": "",
                 "managed": True,
                 "default_permissions": (),

@@ -130,11 +130,11 @@ class QuestionForm(forms.Form):
                     filter(
                         partial(is_not, None),
                         Answer.objects.values_list(
-                            "PredifinedAnswer", flat=True
+                            "PredefinedAnswer", flat=True
                         ).filter(question=question, incident=incident),
                     )
                 )
-            for choice in question.predifined_answers.all():
+            for choice in question.predefined_answers.all():
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
                 required=question.is_mandatory,

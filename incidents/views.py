@@ -31,7 +31,7 @@ from .models import (
     Answer,
     Email,
     Incident,
-    PredifinedAnswer,
+    PredefinedAnswer,
     Question,
     QuestionCategory,
 )
@@ -123,7 +123,7 @@ def download_incident_pdf(request, incident_id: int):
 
     try:
         pdf_report = get_pdf_report(incident_id, request)
-    except Exception as e:
+    except Exception:
         messages.warning(request, "An error occurred when generating the report.")
         return HttpResponseRedirect(target)
 
@@ -279,7 +279,7 @@ class FormWizardView(SessionWizardView):
         incident.save()
 
         # save questions
-        saveAnswers(3, data, incident)
+        save_answers(3, data, incident)
 
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
@@ -369,7 +369,7 @@ class FinalNotificationWizardView(SessionWizardView):
         self.incident.final_notification_date = date.today()
         self.incident.save()
         # manage question
-        saveAnswers(1, data, self.incident)
+        save_answers(1, data, self.incident)
         if email is not None:
             send_mail(
                 email.subject,
@@ -381,9 +381,8 @@ class FinalNotificationWizardView(SessionWizardView):
         return HttpResponseRedirect("/incidents")
 
 
-def saveAnswers(index=0, data=None, incident=None):
+def save_answers(index=0, data=None, incident=None):
     """Save the answers."""
-    predifinedAnswers = []
     for d in range(index, len(data)):
         for key, value in data[d].items():
             question_id = None
@@ -392,6 +391,7 @@ def saveAnswers(index=0, data=None, incident=None):
             except Exception:
                 pass
             if question_id is not None:
+                predefined_answers = []
                 question = Question.objects.get(pk=key)
                 # we delete the previous answer in case we are doing an additional notification
                 if incident is not None:
@@ -409,10 +409,8 @@ def saveAnswers(index=0, data=None, incident=None):
                         answer += val + ","
                     answer = answer
                 else:  # MULTI
-                    predifinedAnswers = []
                     for val in value:
-                        predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
-                        predifinedAnswers.append(predifinedAnswer)
+                        predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
                     answer = None
                     if data[d].get(key + "_answer"):
                         answer = data[d][key + "_answer"]
@@ -421,7 +419,7 @@ def saveAnswers(index=0, data=None, incident=None):
                     question=question,
                     answer=answer,
                 )
-                answer_object.PredifinedAnswer.set(predifinedAnswers)
+                answer_object.PredefinedAnswer.set(predefined_answers)
 
 
 def can_redirect(url: str) -> bool:

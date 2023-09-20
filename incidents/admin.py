@@ -10,18 +10,18 @@ from incidents.models import (
     Email,
     Impact,
     Incident,
-    PredifinedAnswer,
+    PredefinedAnswer,
     Question,
     QuestionCategory,
     RegulationType,
 )
 
 
-class PredifinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
+class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
-    predifined_answer = fields.Field(
-        column_name="predifined_answer",
-        attribute="predifined_answer",
+    predefined_answer = fields.Field(
+        column_name="predefined_answer",
+        attribute="predefined_answer",
     )
     allowed_additional_answer = fields.Field(
         column_name="allowed_additional_answer",
@@ -29,14 +29,14 @@ class PredifinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     class Meta:
-        model = PredifinedAnswer
+        model = PredefinedAnswer
 
 
-@admin.register(PredifinedAnswer, site=admin_site)
-class PredifinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["predifined_answer", "allowed_additional_answer"]
-    search_fields = ["allowed_additional_answer, predifined_answer"]
-    resource_class = PredifinedAnswerResource
+@admin.register(PredefinedAnswer, site=admin_site)
+class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["predefined_answer", "allowed_additional_answer"]
+    search_fields = ["allowed_additional_answer, predefined_answer"]
+    resource_class = PredefinedAnswerResource
 
 
 class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
@@ -89,11 +89,11 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="is_preliminary",
     )
 
-    predifined_answers = fields.Field(
-        column_name="predifined_answers",
-        attribute="predifined_answers",
+    predefined_answers = fields.Field(
+        column_name="predefined_answers",
+        attribute="predefined_answers",
         widget=TranslatedNameM2MWidget(
-            PredifinedAnswer, field="predifined_answer", separator="\n"
+            PredefinedAnswer, field="predefined_answer", separator="\n"
         ),
     )
 
@@ -113,7 +113,7 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label", "category", "position", "get_predifined_answers"]
+    list_display = ["label", "category", "position", "get_predefined_answers"]
     search_fields = ["label"]
     resource_class = QuestionResource
 
