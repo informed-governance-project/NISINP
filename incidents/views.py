@@ -38,8 +38,7 @@ from .models import (
 from .pdf_generation import (
     get_pdf_report,
 )
-
-# TODO : put the correct decorator
+from .decorators import regulator_company_required
 
 
 @login_required
@@ -83,6 +82,7 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 
 
 @login_required
+@regulator_company_required
 def get_incidents_for_regulator(request):
     """Returns the list of incident as regulator."""
     incidents = (
@@ -117,6 +117,7 @@ def get_incidents_for_regulator(request):
 
 
 @login_required()
+@regulator_company_required
 def download_incident_pdf(request, incident_id: int):
     target = request.META.get("HTTP_REFERER", "/")
     if not can_redirect(target):
