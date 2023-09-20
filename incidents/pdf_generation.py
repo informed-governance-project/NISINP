@@ -34,8 +34,10 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     for answer in incident.answer_set.all():
         if answer.question.label not in questions_answers:
             questions_answers[answer.question.label] = []
-        answer.predefined_answer
-        questions_answers[answer.question.label].append(answer.answer)
+        for predefined_answer in answer.predefined_answers.all():
+            questions_answers[answer.question.label].append(predefined_answer.predefined_answer)
+        if not questions_answers[answer.question.label]:
+            questions_answers[answer.question.label].append(answer.answer)
 
     # Render the HTML file
     output_from_parsed_template = render_to_string(
