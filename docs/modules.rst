@@ -15,3 +15,5 @@ Incident Notification
 
 API
 ---
+
+See the section dedicated to the API (:ref:`OpenAPI`).

@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/v1/company/:
+    get:
+      operationId: company_retrieve
+      description: List all the companies.
+      tags:
+      - company
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/v1/incident/:
+    get:
+      operationId: incident_retrieve
+      description: List all the companies.
+      tags:
+      - incident
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Incident'
+          description: ''
+  /api/v1/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - en
+          - fr
+          - nl
+      tags:
+      - schema
+      security:
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/user/:
+    get:
+      operationId: user_retrieve
+      description: List all the users.
+      tags:
+      - user
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: user_create
+      description: Create a new user.
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/user/{id}:
+    put:
+      operationId: user_update
+      description: Update an existing user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 64
+        country:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          nullable: true
+          title: Email address
+          maxLength: 100
+        is_regulator:
+          type: boolean
+          title: Regulator
+        sectors:
+          type: array
+          items:
+            type: integer
+      required:
+      - country
+      - id
+      - name
+      - sectors
+    Incident:
+      type: object
+      properties:
+        incident_id:
+          type: string
+          title: Incident identifier
+          maxLength: 22
+        preliminary_notification_date:
+          type: string
+          format: date
+        final_notification_date:
+          type: string
+          format: date
+          nullable: true
+        company_name:
+          type: string
+          maxLength: 100
+        affected_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          readOnly: true
+        regulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulationType'
+          readOnly: true
+        is_significative_impact:
+          type: boolean
+          title: Significative impact
+      required:
+      - affected_services
+      - company_name
+      - incident_id
+      - regulations
+    RegulationType:
+      type: object
+      properties:
+        label:
+          type: string
+          readOnly: true
+      required:
+      - label
+    Service:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+      required:
+      - name
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        is_staff:
+          type: boolean
+          title: Administrator
+          description: Designates whether the user can log into this admin site.
+      required:
+      - email
+      - id
+    UserInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          maxLength: 200
+        password:
+          type: string
+          maxLength: 200
+        phone_number:
+          type: string
+          maxLength: 30
+        proxy_token:
+          type: string
+          maxLength: 255
+        is_staff:
+          type: boolean
+          default: false
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      - password
+      - phone_number
+      - proxy_token
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

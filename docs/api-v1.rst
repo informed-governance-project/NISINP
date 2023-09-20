@@ -1,11 +1,14 @@
 API v1
 ======
 
-Swagger will be used to document the API. The address shoud be:
+The OpenAPI specicification should be avaible with
+Swagger UI at the address:
 http://127.0.0.1:8000/api/v1/swagger-ui/
 
 
-Available endpoints are listed below.
+.. _OpenAPI:
 
-User
-----
+OpenAPI specicification
+-----------------------
+
+.. openapi:: _static/openapi.yml

@@ -100,7 +100,7 @@ class IncidentApiView(APIView):
     @extend_schema(request=None, responses=IncidentSerializer)
     def get(self, request, *args, **kwargs):
         """
-        List all the companies.
+        List all the incidents.
         """
         objects = Incident.objects.all()
         serializer = IncidentSerializer(objects, many=True)
