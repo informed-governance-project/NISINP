@@ -37,6 +37,9 @@ are performed locally thanks to `pre-commit <https://pre-commit.com/>`_.
 
 Code **quality** is verified with tools such as *black*, *flake8* and *mypy*.
 
+Public security issues are listed
+[here](https://github.com/informed-governance-project/governance-platform/issues?q=is%3Aissue+label%3Asecurity+)
+
 
 Audit on the source code
 ------------------------

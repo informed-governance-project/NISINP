@@ -9,14 +9,8 @@ Main components of the governance platform:
 Governance
 ----------
 
-.. automodule:: governanceplatform.views
-    :members:
-
 Incident Notification
 ---------------------
-
-.. automodule:: incidents.views
-    :members:
 
 
 API
