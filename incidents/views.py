@@ -270,6 +270,12 @@ class FormWizardView(SessionWizardView):
             + "_"
             + str(date.today().year)
         )
+
+        # notification dispatching
+        for authority in data[2]['authorities_list']:
+            authority = int(authority)
+            incident.authorities.add(authority)
+        incident.other_authority = data[2]['other_authority']
         incident.save()
 
         # save questions

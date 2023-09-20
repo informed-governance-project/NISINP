@@ -145,9 +145,11 @@ class Incident(models.Model):
         default=False, verbose_name=_("Significative impact")
     )
 
+    # notification dispatching
     authorities = models.ManyToManyField(
         "governanceplatform.Company", related_name="authorities"
     )
+    other_authority = models.TextField(null=True, blank=True)
 
 
 # answers
