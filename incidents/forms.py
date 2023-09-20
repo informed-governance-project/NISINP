@@ -130,7 +130,7 @@ class QuestionForm(forms.Form):
                     filter(
                         partial(is_not, None),
                         Answer.objects.values_list(
-                            "PredefinedAnswer", flat=True
+                            "predefined_answers", flat=True
                         ).filter(question=question, incident=incident),
                     )
                 )

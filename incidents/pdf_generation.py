@@ -4,17 +4,11 @@ from typing import List
 from weasyprint import CSS
 from weasyprint import HTML
 
-from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _
 
 from .models import (
-    Answer,
     Incident,
-    PredefinedAnswer,
-    Question,
-    QuestionCategory,
 )
 
 
@@ -61,6 +55,3 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
-
-
-
