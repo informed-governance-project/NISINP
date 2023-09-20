@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from typing import Dict
 from typing import List
 from weasyprint import CSS
@@ -59,5 +58,6 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
+
 
 
