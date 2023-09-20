@@ -12,5 +12,5 @@ High level architecture
 Models
 ------
 
-.. image:: _static/models.png
-   :alt: Models
+.. image:: _static/app-models.png
+   :alt: Apllication models

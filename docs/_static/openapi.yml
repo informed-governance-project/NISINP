@@ -22,7 +22,7 @@ paths:
   /api/v1/incident/:
     get:
       operationId: incident_retrieve
-      description: List all the companies.
+      description: List all the incidents.
       tags:
       - incident
       security:
