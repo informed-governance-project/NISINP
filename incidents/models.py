@@ -169,7 +169,7 @@ class Answer(models.Model):
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
-    PredefinedAnswer = models.ManyToManyField(PredefinedAnswer, blank=True)
+    predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
 
 
 # Email sent from regulator to operator

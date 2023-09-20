@@ -419,7 +419,7 @@ def save_answers(index=0, data=None, incident=None):
                     question=question,
                     answer=answer,
                 )
-                answer_object.PredefinedAnswer.set(predefined_answers)
+                answer_object.predefined_answers.set(predefined_answers)
 
 
 def can_redirect(url: str) -> bool:

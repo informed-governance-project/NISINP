@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
             bases=(parler.models.TranslatableModelMixin, models.Model),
         ),
         migrations.CreateModel(
-            name="PredifinedAnswer",
+            name="PredefinedAnswer",
             fields=[
                 (
                     "id",
