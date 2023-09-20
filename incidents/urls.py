@@ -18,11 +18,11 @@ from django.urls import path
 from django.views.i18n import set_language
 
 from .views import (
+    download_incident_pdf,
     get_final_notification_list,
     get_form_list,
     get_incidents,
     get_incidents_for_regulator,
-    download_incident_pdf,
 )
 
 urlpatterns = [
@@ -32,10 +32,18 @@ urlpatterns = [
     # incident declaration
     path("declaration", get_form_list, name="declaration"),
     # incident declaration
-    path(r"final-notification/<int:incident_id>", get_final_notification_list,
-         name="final-notification"),
+    path(
+        r"final-notification/<int:incident_id>",
+        get_final_notification_list,
+        name="final-notification",
+    ),
     # incident list for regulator
-    path("regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"),
-    path("regulator/download-pdf/<int:incident_id>", download_incident_pdf,
-         name="download_incident_pdf"),
+    path(
+        "regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"
+    ),
+    path(
+        "regulator/download-pdf/<int:incident_id>",
+        download_incident_pdf,
+        name="download_incident_pdf",
+    ),
 ]

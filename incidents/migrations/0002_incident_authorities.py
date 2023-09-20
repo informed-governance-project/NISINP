@@ -6,14 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('governanceplatform', '0004_company_email_for_notification'),
-        ('incidents', '0001_initial'),
+        ("governanceplatform", "0004_company_email_for_notification"),
+        ("incidents", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='incident',
-            name='authorities',
-            field=models.ManyToManyField(related_name='authorities', to='governanceplatform.company'),
+            model_name="incident",
+            name="authorities",
+            field=models.ManyToManyField(
+                related_name="authorities", to="governanceplatform.company"
+            ),
         ),
     ]

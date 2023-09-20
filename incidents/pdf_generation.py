@@ -1,16 +1,11 @@
 import os
-from typing import Dict
-from typing import List
-from weasyprint import CSS
-from weasyprint import HTML
+from typing import Dict, List
 
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from weasyprint import CSS, HTML
 
-from .models import (
-    Answer,
-    Incident,
-)
+from .models import Answer, Incident
 
 
 def get_pdf_report(incident_id: int, request: HttpRequest):
@@ -30,8 +25,9 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     for answer in incident.answer_set.all():
         populate_questions_answers(
             answer,
-            preliminary_questions_answers if answer.question.is_preliminary else
-            final_questions_answers
+            preliminary_questions_answers
+            if answer.question.is_preliminary
+            else final_questions_answers,
         )
 
     # Render the HTML file
@@ -51,9 +47,7 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     htmldoc = HTML(string=output_from_parsed_template, base_url=base_url)
 
     stylesheets = [
-        CSS(
-            os.path.join(base_url, "css/custom.css")
-        ),
+        CSS(os.path.join(base_url, "css/custom.css")),
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
@@ -64,9 +58,7 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
     if category_label not in preliminary_questions_answers:
         preliminary_questions_answers[category_label] = {}
     if answer.question.label not in preliminary_questions_answers[category_label]:
-        preliminary_questions_answers[category_label][
-            answer.question.label
-        ] = []
+        preliminary_questions_answers[category_label][answer.question.label] = []
     for predefined_answer in answer.predefined_answers.all():
         preliminary_questions_answers[category_label][answer.question.label].append(
             predefined_answer.predefined_answer

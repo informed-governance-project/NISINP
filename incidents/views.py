@@ -1,25 +1,25 @@
 from datetime import date
+from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.forms import formset_factory
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
-from urllib.parse import urlparse
 
 from governanceplatform.models import Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
-    SITE_NAME,
     PUBLIC_URL,
+    SITE_NAME,
 )
 
+from .decorators import regulator_company_required
 from .forms import (
     ContactForm,
     ImpactForFinalNotificationForm,
@@ -35,10 +35,7 @@ from .models import (
     Question,
     QuestionCategory,
 )
-from .pdf_generation import (
-    get_pdf_report,
-)
-from .decorators import regulator_company_required
+from .pdf_generation import get_pdf_report
 
 
 @login_required
@@ -119,7 +116,7 @@ def get_incidents_for_regulator(request):
 @login_required()
 @regulator_company_required
 def download_incident_pdf(request, incident_id: int):
-    target = request.META.get("HTTP_REFERER", "/")
+    target = request.headers.get("referer", "/")
     if not can_redirect(target):
         target = "/"
 
@@ -147,7 +144,7 @@ def is_incidents_report_limit_reached(request):
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.warning(
                 request,
-                "The incidents reports per day have been reached. Try again tomorrow."
+                "The incidents reports per day have been reached. Try again tomorrow.",
             )
             return True
     return False
@@ -274,10 +271,10 @@ class FormWizardView(SessionWizardView):
         )
 
         # notification dispatching
-        for authority in data[2]['authorities_list']:
+        for authority in data[2]["authorities_list"]:
             authority = int(authority)
             incident.authorities.add(authority)
-        incident.other_authority = data[2]['other_authority']
+        incident.other_authority = data[2]["other_authority"]
         incident.save()
 
         # save questions

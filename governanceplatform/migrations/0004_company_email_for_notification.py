@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('governanceplatform', '0003_services_accronym'),
+        ("governanceplatform", "0003_services_accronym"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='email_for_notification',
-            field=models.EmailField(blank=True, default=None, max_length=254, null=True, verbose_name='email address'),
+            model_name="company",
+            name="email_for_notification",
+            field=models.EmailField(
+                blank=True,
+                default=None,
+                max_length=254,
+                null=True,
+                verbose_name="email address",
+            ),
         ),
     ]

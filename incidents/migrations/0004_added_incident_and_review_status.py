@@ -5,23 +5,31 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('incidents', '0003_incident_other_authority'),
+        ("incidents", "0003_incident_other_authority"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='incident',
-            name='incident_status',
-            field=models.CharField(choices=[('CLOSE', 'Closed'), ('GOING', 'On-going')],
-                                   default='CLOSE', max_length=5),
+            model_name="incident",
+            name="incident_status",
+            field=models.CharField(
+                choices=[("CLOSE", "Closed"), ("GOING", "On-going")],
+                default="CLOSE",
+                max_length=5,
+            ),
         ),
         migrations.AddField(
-            model_name='incident',
-            name='review_status',
+            model_name="incident",
+            name="review_status",
             field=models.CharField(
-                choices=[('DELIV', 'Delivered but not yet reviewed'), ('PASS', 'Review passed'),
-                         ('FAIL', 'Review failed'),
-                         ('OUT', 'Final notification missing. due date exceeded')], default='DELIV',
-                max_length=5),
+                choices=[
+                    ("DELIV", "Delivered but not yet reviewed"),
+                    ("PASS", "Review passed"),
+                    ("FAIL", "Review failed"),
+                    ("OUT", "Final notification missing. due date exceeded"),
+                ],
+                default="DELIV",
+                max_length=5,
+            ),
         ),
     ]

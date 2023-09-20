@@ -178,7 +178,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "get_sectors",
-        "is_regulator"
+        "is_regulator",
     ]
     list_filter = [CompanySectorListFilter]
     search_fields = ["name"]
