@@ -33,12 +33,12 @@ CodeQL is used to discover vulnerabilities across the **codebase**.
 Tools such as *pyupgrade*, *pip-audit*, *GitHub Dependabot* and
 secret scanning are used to check for vulnerabilities in project
 **dependencies**. Each commit is checked on GitHub. The same kind of tests
-are performed locally thanks to `pre-commit <https://pre-commit.com/>`_.
+are performed locally thanks to `pre-commit <https://pre-commit.com>`_.
 
 Code **quality** is verified with tools such as *black*, *flake8* and *mypy*.
 
 Public security issues are listed
-[here](https://github.com/informed-governance-project/governance-platform/issues?q=is%3Aissue+label%3Asecurity+)
+`here <https://github.com/informed-governance-project/governance-platform/issues?q=is%3Aissue+label%3Asecurity+>`_.
 
 
 Audit on the source code
