@@ -55,6 +55,3 @@ def get_pdf_report(incident_id: int, request: HttpRequest):
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
-
-
-
