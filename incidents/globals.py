@@ -35,3 +35,15 @@ EMAIL_TYPES = [
 INCIDENT_EMAIL_VARIABLES = [
     ("#PRELIMINARY_NOTIFICATION_DATE#", "preliminary_notification_date"),
 ]
+
+INCIDENT_STATUS = [
+    ("CLOSE", "Closed"),
+    ("GOING", "On-going"),
+]
+
+REVIEW_STATUS = [
+    ("DELIV", "Delivered but not yet reviewed"),
+    ("PASS", "Review passed"),
+    ("FAIL", "Review failed"),
+    ("OUT", "Final notification missing. due date exceeded"),
+]

@@ -5,7 +5,12 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import EMAIL_TYPES, QUESTION_TYPES
+from .globals import (
+    EMAIL_TYPES, 
+    QUESTION_TYPES,
+    INCIDENT_STATUS,
+    REVIEW_STATUS,
+)
 
 
 # impacts of the incident, they are linked to sector
@@ -150,7 +155,14 @@ class Incident(models.Model):
         "governanceplatform.Company", related_name="authorities"
     )
     other_authority = models.TextField(null=True, blank=True)
-
+    
+    # status
+    review_status = models.CharField(
+        max_length=5, choices=REVIEW_STATUS, blank=False, default=REVIEW_STATUS[0][0]
+    )
+    incident_status = models.CharField(
+        max_length=5, choices=INCIDENT_STATUS, blank=False, default=INCIDENT_STATUS[0][0]
+    )
 
 # answers
 class Answer(models.Model):
