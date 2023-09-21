@@ -49,4 +49,4 @@ Audit on the source code
 Authentication
 --------------
 
-Two factor authentication and token based authentication.
+Two factor authentication is available and mandatory for the admin access.

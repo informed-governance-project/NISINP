@@ -1,5 +1,5 @@
-Module index
-============
+Modules
+=======
 
 Main components of the governance platform:
 
@@ -11,6 +11,8 @@ Governance
 
 Incident Notification
 ---------------------
+
+The Web interface used to report and track incidents.
 
 
 API
