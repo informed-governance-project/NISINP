@@ -17,7 +17,7 @@ Governance Platform
         :alt: Stars
 
     .. image:: https://github.com/informed-governance-project/governance-platform/workflows/Python%20application%20tests/badge.svg?style=flat-square
-        :target: https://github.com/informed-governance-project/NISINP/actions?query=workflow%3A%22Python+application+tests%22
+        :target: https://github.com/informed-governance-project/governance-platform/actions?query=workflow%3A%22Python+application+tests%22
         :alt: Workflow
 
     .. image:: https://readthedocs.org/projects/governance-platform/badge/?version=latest
