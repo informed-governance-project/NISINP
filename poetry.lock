@@ -1138,13 +1138,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsonschema"
-version = "4.19.0"
+version = "4.19.1"
 description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jsonschema-4.19.0-py3-none-any.whl", hash = "sha256:043dc26a3845ff09d20e4420d6012a9c91c9aa8999fa184e7efcfeccb41e32cb"},
-    {file = "jsonschema-4.19.0.tar.gz", hash = "sha256:6e1e7569ac13be8139b2dd2c21a55d350066ee3f80df06c608b398cdc6f30e8f"},
+    {file = "jsonschema-4.19.1-py3-none-any.whl", hash = "sha256:cd5f1f9ed9444e554b38ba003af06c0a8c2868131e56bfbef0550fb450c0330e"},
+    {file = "jsonschema-4.19.1.tar.gz", hash = "sha256:ec84cc37cfa703ef7cd4928db24f9cb31428a5d0fa77747b8b51a847458e0bbf"},
 ]
 
 [package.dependencies]
@@ -1543,13 +1543,13 @@ files = [
 
 [[package]]
 name = "phonenumbers"
-version = "8.13.20"
+version = "8.13.21"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 optional = false
 python-versions = "*"
 files = [
-    {file = "phonenumbers-8.13.20-py2.py3-none-any.whl", hash = "sha256:97f151fc904b0d6274dd92b02c82a7936e7dcaf9c7204f2f3e9c7ed0381f5098"},
-    {file = "phonenumbers-8.13.20.tar.gz", hash = "sha256:bf2b35a806d37979e5361109429da46d9a047e59d9af98639d733c834e7dab22"},
+    {file = "phonenumbers-8.13.21-py2.py3-none-any.whl", hash = "sha256:053adc72e6cbd8921c70eaef199c18b8ae8d58d3debc5e084a6801d095a84326"},
+    {file = "phonenumbers-8.13.21.tar.gz", hash = "sha256:c7cff118aeab60986aaddf81df5c39300dd62caed7a2d20747b60117b9659b38"},
 ]
 
 [[package]]
@@ -2954,4 +2954,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "6c5e241ef3e10af4db8d3773c4cf623f702326288e9eae42385e8eb9fb6c1bc2"
+content-hash = "c0bab304cd17ed8043251744c6d79143770350a0842b68c1c68bd98f270c6a18"

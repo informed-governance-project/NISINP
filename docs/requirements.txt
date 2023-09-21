@@ -2,4 +2,3 @@ sphinx
 sphinx_book_theme
 sphinx-autodoc-typehints
 sphinxcontrib-openapi
-django
