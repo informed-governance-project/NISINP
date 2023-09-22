@@ -3,7 +3,13 @@
 {% block content %}
 
 <div class="text-justify">
-    <h1>Reported incidents</h1>
+    <div class="d-flex flex-container py-2">
+        <div class="d-flex justify-content-left float-left w-75"><h2>{{ _('Reported incidents') }}</h2></div>
+        <div class="d-flex justify-content-right float-left w-25">
+            <input class="form-control" id="search-by-incident-id" placeholder="{{ _('Incident ID') }}" value="" autocomplete="off" />
+            <button class="btn btn-primary" onclick="searchByIncidentId()">{{ _('Search') }}</button>
+        </div>
+    </div>
     {% if incidents %}
     <table class="table">
         <tr>
@@ -63,4 +69,18 @@
     {% endif %}
 
 </div>
+
+<script type="text/javascript">
+    function searchByIncidentId() {
+        const incidentId = $('#search-by-incident-id').val();
+        listUrl = '/incidents/regulator/incidents';
+        if (incidentId !== '') {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('incidentId', incidentId)
+            listUrl += '?' + urlParams.toString();
+        }
+
+        window.location.href = listUrl;
+    }
+</script>
 {% endblock %}

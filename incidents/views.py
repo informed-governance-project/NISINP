@@ -81,7 +81,13 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 @regulator_company_required
 def get_incidents_for_regulator(request):
     """Returns incidents list for regulators."""
-    incidents = Incident.objects.all().order_by("preliminary_notification_date")
+    if request.GET.get("incidentId"):
+        incidents = Incident.objects.filter(
+            incident_id__contains=request.GET.get("incidentId")
+        ).order_by("-preliminary_notification_date")
+    else:
+        incidents = Incident.objects.all().order_by("-preliminary_notification_date")
+
     # Show 20 incidents per page.
     paginator = Paginator(incidents, 20)
     page_number = request.GET.get("page")
