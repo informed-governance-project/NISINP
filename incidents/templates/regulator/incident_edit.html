@@ -7,6 +7,12 @@
     <div class="col-md-4">
         <h4>{{ _('Edit incident data')}}</h4>
         <form action="{% url 'regulator_incident_edit' regulator_incident_form.id %}" method="post" class="form" id="regulator-incident-edit">
+            {% if regulator_incident_form.errors %}
+            <div class="alert alert-danger">
+                {{ regulator_incident_form.errors }}
+            </div>
+            {% endif %}
+
             {% csrf_token %}
 
             {% bootstrap_form regulator_incident_form %}

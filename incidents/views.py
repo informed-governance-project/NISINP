@@ -104,19 +104,36 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     incident = Incident.objects.get(pk=incident_id)
     regulator_incident_form = RegulatorIncidentEditForm(
-        instance = incident,
+        instance=incident,
         data=request.POST if request.method == "POST" else None
     )
 
     if request.method == "POST":
         if regulator_incident_form.is_valid():
             regulator_incident_form.save()
-        return HttpResponseRedirect('/incidents/regulator/incidents')
+            messages.success(
+                request,
+                'Incident {} has been successfully saved.'.format(incident.incident_id)
+            )
+            response = HttpResponseRedirect(
+                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
+            )
+            response.delete_cookie('return_page')
 
-    return render(request, "regulator/incident_edit.html", context={
+            return response
+
+    response = render(request, "regulator/incident_edit.html", context={
         "regulator_incident_form": regulator_incident_form,
         "incident": incident,
     })
+
+    if request.COOKIES.get("return_page") is None:
+        response.set_cookie(
+            'return_page',
+            request.headers.get("referer", "/incidents/regulator/incidents")
+        )
+
+    return response
 
 
 @login_required
