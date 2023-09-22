@@ -105,11 +105,13 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     incident = Incident.objects.get(pk=incident_id)
     regulator_incident_form = RegulatorIncidentEditForm(
-        incident,
+        instance = incident,
         data=request.POST if request.method == "POST" else None
     )
 
     if request.method == "POST":
+        if regulator_incident_form.is_valid():
+            regulator_incident_form.save()
         return HttpResponseRedirect('/incidents/regulator/incidents')
 
     return render(request, "regulator/incident_edit.html", context={

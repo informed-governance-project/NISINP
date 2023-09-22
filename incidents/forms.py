@@ -494,11 +494,9 @@ class NotificationDispatchingForm(forms.Form):
 
 
 class RegulatorIncidentEditForm(forms.ModelForm):
-    def __init__(self, incident: Incident, *args, **kwargs):
-        self.initial = incident
-        self.id = incident.id
-
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.id = self.instance.id
 
     class Meta:
         model = Incident
@@ -507,10 +505,3 @@ class RegulatorIncidentEditForm(forms.ModelForm):
             "incident_id",
             "is_significative_impact",
         ]
-
-    def done(self, form_list, **kwargs):
-        data = [form.cleaned_data for form in form_list]
-
-        self.initial.incident_id = data["incident_id"]
-        self.initial.is_significative_impact = data["is_significative_impact"]
-        self.initial.save()
