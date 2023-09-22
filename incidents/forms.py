@@ -462,9 +462,7 @@ def get_forms_list(is_preliminary=True):
     )
 
     if is_preliminary is True:
-        category_tree = [ContactForm]
-        category_tree.append(ImpactedServicesForm)
-        category_tree.append(NotificationDispatchingForm)
+        category_tree = [ContactForm, ImpactedServicesForm, NotificationDispatchingForm]
     else:
         category_tree = [ImpactForFinalNotificationForm]
 
@@ -491,32 +489,28 @@ class NotificationDispatchingForm(forms.Form):
     )
 
     other_authority = forms.CharField(
-        widget=forms.TextInput(), label="Send to an other authority :"
+        widget=forms.TextInput(), label="Send to another authority:"
     )
 
 
-class RegulatorIncidentForm(forms.ModelForm):
-    initial = None
-    id = 0
+class RegulatorIncidentEditForm(forms.ModelForm):
+    def __init__(self, incident: Incident, *args, **kwargs):
+        self.initial = incident
+        self.id = incident.id
 
-    def __init__(self, *args, **kwargs):
-        if "initial" in kwargs:
-            self.initial = kwargs["initial"]
-            self.id = self.initial["id"]
         super().__init__(*args, **kwargs)
-        self.fields["regulations"].widget.attrs["disabled"] = True
-        self.fields["affected_services"].widget.attrs["disabled"] = True
-        self.fields["preliminary_notification_date"].widget.attrs["disabled"] = True
-        self.fields["final_notification_date"].widget.attrs["disabled"] = True
 
     class Meta:
         model = Incident
         fields = [
             "id",
             "incident_id",
-            "regulations",
-            "affected_services",
             "is_significative_impact",
-            "preliminary_notification_date",
-            "final_notification_date",
         ]
+
+    def done(self, form_list, **kwargs):
+        data = [form.cleaned_data for form in form_list]
+
+        self.initial.incident_id = data["incident_id"]
+        self.initial.is_significative_impact = data["is_significative_impact"]
+        self.initial.save()

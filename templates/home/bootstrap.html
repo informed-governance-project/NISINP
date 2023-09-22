@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load django_bootstrap5 %}
+{% load static %}
 {% load i18n %}
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:'en_us' }}" class="h-100">
@@ -17,6 +18,8 @@
 
         <!-- Bootstrap CSS -->
         {% bootstrap_css %}
+
+        <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
 
         <!-- Bootstrap JavaScript if it is in head -->
         {% if 'javascript_in_head'|bootstrap_setting %}
