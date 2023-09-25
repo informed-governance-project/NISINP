@@ -48,6 +48,21 @@ class UserApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class UserElementApiView(APIView):
+    # add permission to check if user is authenticated
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    serializer_class = UserSerializer
+
+    def delete(self, request, id=None):
+        """
+        Delete a user.
+        """
+        user = User.objects.filter(id=id)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class UserApiElemView(GenericAPIView):
     # add permission to check if user is authenticated
     authentication_classes = [SessionAuthentication, BasicAuthentication]

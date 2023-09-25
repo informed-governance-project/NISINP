@@ -5,7 +5,13 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from .views import CompanyApiView, IncidentApiView, UserApiElemView, UserApiView
+from .views import (
+    CompanyApiView,
+    IncidentApiView,
+    UserApiElemView,
+    UserApiView,
+    UserElementApiView,
+)
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="api"),
@@ -16,6 +22,7 @@ urlpatterns = [
     ),
     path("redoc/", SpectacularRedocView.as_view(url_name="api"), name="redoc"),
     path("user/", UserApiView.as_view()),
+    path("user/<int:id>", UserElementApiView.as_view()),
     path("user/<int:id>", UserApiElemView.as_view()),
     path("company/", CompanyApiView.as_view()),
     path("incident/", IncidentApiView.as_view()),
