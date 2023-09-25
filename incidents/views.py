@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import gettext as _
@@ -24,7 +23,7 @@ from .forms import (
     ContactForm,
     ImpactForFinalNotificationForm,
     QuestionForm,
-    RegulatorIncidentForm,
+    RegulatorIncidentEditForm,
     get_forms_list,
 )
 from .models import (
@@ -81,40 +80,69 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 @login_required
 @regulator_company_required
 def get_incidents_for_regulator(request):
-    """Returns the list of incident as regulator."""
-    incidents = (
-        Incident.objects.all()
-        .order_by("preliminary_notification_date")
-        .values(
-            "id",
-            "regulations",
-            "incident_id",
-            "affected_services",
-            "is_significative_impact",
-            "preliminary_notification_date",
-            "final_notification_date",
-        )
-        .distinct()
-    )
-    paginator = Paginator(incidents, 10)  # Show 10 incident per page.
+    """Returns incidents list for regulators."""
+    if request.GET.get("incidentId"):
+        incidents = Incident.objects.filter(
+            incident_id__contains=request.GET.get("incidentId")
+        ).order_by("-preliminary_notification_date")
+    else:
+        incidents = Incident.objects.all().order_by("-preliminary_notification_date")
+
+    # Show 20 incidents per page.
+    paginator = Paginator(incidents, 20)
     page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    incident_formset = formset_factory(RegulatorIncidentForm, extra=0)
-    formset = incident_formset(initial=page_obj)
+    incidents_page = paginator.get_page(page_number)
+
     return render(
         request,
         "regulator/incidents.html",
         context={
             "site_name": SITE_NAME,
             "incidents": incidents,
-            "forms": formset,
-            "page_obj": page_obj,
+            "incidents_page": incidents_page,
         },
     )
 
 
-@login_required()
+@login_required
 @regulator_company_required
+def get_regulator_incident_edit_form(request, incident_id: int):
+    """Returns the list of incident as regulator."""
+    incident = Incident.objects.get(pk=incident_id)
+    regulator_incident_form = RegulatorIncidentEditForm(
+        instance=incident,
+        data=request.POST if request.method == "POST" else None
+    )
+
+    if request.method == "POST":
+        if regulator_incident_form.is_valid():
+            regulator_incident_form.save()
+            messages.success(
+                request,
+                'Incident {} has been successfully saved.'.format(incident.incident_id)
+            )
+            response = HttpResponseRedirect(
+                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
+            )
+            response.delete_cookie('return_page')
+
+            return response
+
+    response = render(request, "regulator/incident_edit.html", context={
+        "regulator_incident_form": regulator_incident_form,
+        "incident": incident,
+    })
+
+    if request.COOKIES.get("return_page") is None:
+        response.set_cookie(
+            'return_page',
+            request.headers.get("referer", "/incidents/regulator/incidents")
+        )
+
+    return response
+
+
+@login_required
 def download_incident_pdf(request, incident_id: int):
     target = request.headers.get("referer", "/")
     if not can_redirect(target):

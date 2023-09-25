@@ -43,7 +43,7 @@ def index(request):
 
         return redirect("login")
 
-    return redirect("notifications")
+    return redirect("incidents")
 
 
 def logout_view(request):

@@ -1,0 +1,10 @@
+a.changelink {
+    padding-left: 16px;
+    background: url(../admin/img/icon-changelink.svg) 0 1px no-repeat;
+    float: left;
+    margin-right: 12px
+}
+
+.bold {
+    font-weight:bold;
+}

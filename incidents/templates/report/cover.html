@@ -3,11 +3,11 @@
     <ul>
         <li>
             <span class="bold">{{ _('Incident notification datetime') }}</span>
-            : {{ incident.preliminary_notification_date|date:'m/d/Y' }}
+            : {{ incident.preliminary_notification_date|date:'d-m-Y' }}
         </li>
         <li>
             <span class="bold">{{ _('Final notification datetime') }}</span>
-            : {{ incident.final_notification_date|date:'m/d/Y' }}
+            : {{ incident.final_notification_date|date:'d-m-Y' }}
         </li>
         <li>
             <span class="bold">{{ _('Incident reference') }}</span>
