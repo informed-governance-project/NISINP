@@ -1,9 +1,0 @@
-{% extends "admin/base_site.html" %}
-{% load static %}
-{% load i18n %}
-{% block branding %}
-<a href="{% url 'admin:index' %}" style="margin-right: 10px">
-    <img src="{% static 'images/logo.png' %}" alt="Logo" width="100px" class="d-inline-block align-text-top">
-</a>
-<h1 id="site-name">{{ site_header|default:_('Django administration') }}</h1>
-{% endblock %}
