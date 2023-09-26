@@ -127,13 +127,16 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 del request.session["return_page"]
             except KeyError:
                 pass
-            print(response)
+            if not can_redirect(response.url):
+                response = HttpResponseRedirect("/incidents/regulator/incidents")
             return response
 
     if not request.session.get("return_page"):
         request.session["return_page"] = request.headers.get(
             "referer", "/incidents/regulator/incidents"
         )
+    if not can_redirect(request.session["return_page"]):
+        request.session["return_page"] = "/incidents/regulator/incidents"
 
     return render(
         request,
