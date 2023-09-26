@@ -125,11 +125,22 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             response = HttpResponseRedirect(
                 request.COOKIES.get("return_page", "/incidents/regulator/incidents")
             )
-            response.delete_cookie("return_page")
-
+            try:
+                del request.session["return_page"]
+            except KeyError:
+                pass
+            if not can_redirect(response.url):
+                response = HttpResponseRedirect("/incidents/regulator/incidents")
             return response
 
-    response = render(
+    if not request.session.get("return_page"):
+        request.session["return_page"] = request.headers.get(
+            "referer", "/incidents/regulator/incidents"
+        )
+    if not can_redirect(request.session["return_page"]):
+        request.session["return_page"] = "/incidents/regulator/incidents"
+
+    return render(
         request,
         "regulator/incident_edit.html",
         context={
