@@ -57,9 +57,9 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
         widget=TranslatedNameWidget(Sector, field="name"),
     )
 
-    accronym = fields.Field(
-        column_name="accronym",
-        attribute="accronym",
+    acronym = fields.Field(
+        column_name="acronym",
+        attribute="acronym",
     )
 
     specific_impact = fields.Field(
@@ -74,7 +74,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Sector, site=admin_site)
 class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "parent", "accronym"]
+    list_display = ["name", "parent", "acronym"]
     search_fields = ["name"]
     resource_class = SectorResource
 
@@ -90,9 +90,9 @@ class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="name",
     )
 
-    accronym = fields.Field(
-        column_name="accronym",
-        attribute="accronym",
+    acronym = fields.Field(
+        column_name="acronym",
+        attribute="acronym",
     )
 
     sector = fields.Field(
