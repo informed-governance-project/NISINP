@@ -15,3 +15,12 @@ def user_in_group(user, group_name):
         return user.groups.filter(id=group.id).exists()
     except Group.DoesNotExist:
         return False
+
+
+def get_company_session(request):
+    company_in_use = request.session.get(
+        "company_in_use", request.user.companies.first().id
+    )
+    if company_in_use:
+        return request.user.companies.get(id=company_in_use)
+    return False

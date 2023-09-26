@@ -5,12 +5,13 @@ from operator import is_not
 from bootstrap_datepicker_plus.widgets import DatePickerInput
 from django import forms
 from django.db import connection
+from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.models import Company, Sector, Service
+from governanceplatform.models import Company, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, Question, QuestionCategory, RegulationType
@@ -334,9 +335,11 @@ class ContactForm(forms.Form):
 
 
 # prepare an array of sector and services
-def construct_services_array(root_categories):
+def construct_services_array(root_sectors):
     categs = dict()
-    services = Service.objects.all()
+    services = Service.objects.filter(
+        Q(sector__in=root_sectors) | Q(sector__parent__in=root_sectors)
+    )
 
     final_categs = []
     for service in services:
@@ -350,36 +353,14 @@ def construct_services_array(root_categories):
         while sector.parent is not None:
             name = _(sector.parent.name) + " - " + _(name)
             sector = sector.parent
-        # [optgroup, [options]]
         final_categs.append([name, list_of_options])
 
     return final_categs
 
-    # choices_serv = []
-    # for root_category in root_categories:
-    #     #keep integer for the services to avoid to register a false services
-    #     choices_serv.append(['service'+ str(root_category.id), root_category])
-    #     for service in Service.objects.all().filter(sector=root_category):
-    #         choices_serv.append([service.id,service])
-    #     if(len(Sector.objects.all().filter(parent=root_category))>0):
-    #             choices_serv += construct_services_array(Sector.objects.all().filter(parent=root_category))
-
-    # return choices_serv
-
 
 # the affected services with services load from services table
 class ImpactedServicesForm(forms.Form):
-    choices_serv = []
     regulationTypes = []
-
-    if "governanceplatform_sector" in connection.introspection.table_names():
-        try:
-            choices_serv = construct_services_array(
-                Sector.objects.all().filter(parent=None)
-            )
-
-        except Exception:
-            choices_serv = []
 
     if "incidents_regulationtype" in connection.introspection.table_names():
         try:
@@ -399,11 +380,18 @@ class ImpactedServicesForm(forms.Form):
     )
     affected_services = forms.MultipleChoiceField(
         required=False,
-        choices=choices_serv,
         widget=ServicesListCheckboxSelectMultiple(
             attrs={"class": "multiple-selection"}
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        sectors = kwargs.pop("sectors", None)
+        super().__init__(*args, **kwargs)
+
+        self.fields["affected_services"].choices = construct_services_array(
+            sectors.all()
+        )
 
 
 class ImpactForFinalNotificationForm(forms.Form):
@@ -462,7 +450,11 @@ def get_forms_list(is_preliminary=True):
     )
 
     if is_preliminary is True:
-        category_tree = [ContactForm, ImpactedServicesForm, NotificationDispatchingForm]
+        category_tree = [
+            ContactForm,
+            ImpactedServicesForm,
+            NotificationDispatchingForm,
+        ]
     else:
         category_tree = [ImpactForFinalNotificationForm]
 

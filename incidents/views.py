@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
+from governanceplatform.helpers import get_company_session
 from governanceplatform.models import Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
@@ -21,6 +22,7 @@ from governanceplatform.settings import (
 from .decorators import regulator_company_required
 from .forms import (
     ContactForm,
+    ImpactedServicesForm,
     ImpactForFinalNotificationForm,
     QuestionForm,
     RegulatorIncidentEditForm,
@@ -121,21 +123,13 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 f"Incident {incident.incident_id} has been successfully saved.",
             )
             response = HttpResponseRedirect(
-                request.session.get("return_page", "/incidents/regulator/incidents")
+                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
             )
-            try:
-                del request.session["return_page"]
-            except KeyError:
-                pass
+            response.delete_cookie("return_page")
 
             return response
 
-    if not request.session.get("return_page"):
-        request.session["return_page"] = request.headers.get(
-            "referer", "/incidents/regulator/incidents"
-        )
-
-    return render(
+    response = render(
         request,
         "regulator/incident_edit.html",
         context={
@@ -143,6 +137,14 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             "incident": incident,
         },
     )
+
+    if request.COOKIES.get("return_page") is None:
+        response.set_cookie(
+            "return_page",
+            request.headers.get("referer", "/incidents/regulator/incidents"),
+        )
+
+    return response
 
 
 @login_required
@@ -192,10 +194,15 @@ class FormWizardView(SessionWizardView):
         return super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
+        company_in_use = get_company_session(self.request)
         if step is None:
             step = self.steps.current
         position = int(step)
         # when we have passed the fixed forms
+        if position == 1:
+            form = ImpactedServicesForm(data, sectors=company_in_use.sectors)
+
+            return form
         if position > 2:
             # create the form with the correct question/answers
             form = QuestionForm(data, position=position - 3)
@@ -271,9 +278,9 @@ class FormWizardView(SessionWizardView):
                 if subsector_for_ref == "":
                     service_entity = Service.objects.get(id=service)
                     sector = service_entity.sector
-                    subsector_for_ref = sector.acronym[:3]
+                    subsector_for_ref = sector.accronym[:3]
                     if sector.parent is not None:
-                        sector_for_ref = sector.parent.acronym[:3]
+                        sector_for_ref = sector.parent.accronym[:3]
             except Exception:
                 pass
 
