@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
@@ -372,8 +373,22 @@ class userCompanyInline(admin.TabularInline):
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_max_num(self, request, obj=None, **kwargs):
+        if user_in_group(request.user, "PlatformAdmin"):
+            return 1
+        else:
+            return super().get_max_num(request, obj, **kwargs)
+
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
+        if (
+            user_in_group(request.user, "PlatformAdmin")
+            and "is_company_administrator" in formset.form.base_fields
+        ):
+            formset.form.base_fields[
+                "is_company_administrator"
+            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_company_administrator"].initial = True
         formset.empty_permitted = False
         return formset
 
