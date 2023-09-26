@@ -823,6 +823,22 @@ files = [
 Django = ">=2.2"
 
 [[package]]
+name = "django-parler-rest"
+version = "2.2"
+description = "Multilingual support for django-rest-framework"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-parler-rest-2.2.tar.gz", hash = "sha256:58d0d7155964214dfbdb72783eff6a200c5e786e2d4f3cd74ea463d56cb10e9c"},
+    {file = "django_parler_rest-2.2-py2.py3-none-any.whl", hash = "sha256:3cba9a47ec64771394e99ca49f9bef6f7dd76c1e39634fd634d2c1050fb9630a"},
+]
+
+[package.dependencies]
+django = ">=2.2"
+django-parler = ">=1.9.2"
+djangorestframework = ">=3.5"
+
+[[package]]
 name = "django-phonenumber-field"
 version = "7.1.0"
 description = "An international phone number field for django models."
@@ -2947,4 +2963,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c0bab304cd17ed8043251744c6d79143770350a0842b68c1c68bd98f270c6a18"
+content-hash = "3f47770d7829d1b2232250aa3717c507fa085c062d12b984723a6e4af84d9e15"

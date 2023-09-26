@@ -37,7 +37,7 @@ urlpatterns = [
         LoginView.as_view(
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
-            redirect_field_name=None
+            redirect_field_name=None,
         ),
         name="login",
     ),

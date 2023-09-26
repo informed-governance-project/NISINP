@@ -132,14 +132,17 @@ def get_regulator_incident_edit_form(request, incident_id: int):
 
     if not request.session.get("return_page"):
         request.session["return_page"] = request.headers.get(
-            "referer",
-            "/incidents/regulator/incidents"
+            "referer", "/incidents/regulator/incidents"
         )
 
-    return render(request, "regulator/incident_edit.html", context={
-        "regulator_incident_form": regulator_incident_form,
-        "incident": incident,
-    })
+    return render(
+        request,
+        "regulator/incident_edit.html",
+        context={
+            "regulator_incident_form": regulator_incident_form,
+            "incident": incident,
+        },
+    )
 
 
 @login_required
@@ -268,9 +271,9 @@ class FormWizardView(SessionWizardView):
                 if subsector_for_ref == "":
                     service_entity = Service.objects.get(id=service)
                     sector = service_entity.sector
-                    subsector_for_ref = sector.accronym[:3]
+                    subsector_for_ref = sector.acronym[:3]
                     if sector.parent is not None:
-                        sector_for_ref = sector.parent.accronym[:3]
+                        sector_for_ref = sector.parent.acronym[:3]
             except Exception:
                 pass
 
