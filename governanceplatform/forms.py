@@ -1,5 +1,7 @@
 from django import forms
 from django_otp.forms import OTPAuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
+from governanceplatform.models import User as CustomUser
 
 
 class AuthenticationForm(OTPAuthenticationForm):
@@ -17,3 +19,9 @@ class SelectCompany(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields["select_company"].queryset = companies.order_by("name")
+
+class RegistrationForm(UserCreationForm):
+    class meta:
+        model = CustomUser
+        fields = CustomUser._meta
+

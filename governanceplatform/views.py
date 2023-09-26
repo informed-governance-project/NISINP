@@ -1,13 +1,15 @@
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
-from .forms import SelectCompany
+from .forms import SelectCompany, RegistrationForm
 from .helpers import user_in_group
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 @login_required
 def index(request):
@@ -54,6 +56,32 @@ def terms(request):
 def privacy(request):
     return render(request, "home/privacy_policy.html")
 
+def registration_view(request, *args, **kwargs):
+    context = {}
+    user = request.user
+    if user.is_authenticated:
+        return redirect("home")
+    elif (request.method == 'POST'):
+        print("hello")
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            email = form.cleaned_data.get('email').lower()
+            raw_password = form.cleaned_data.get('password1')
+            account = authenticate(email=email,password=raw_password)
+            login(request,account)
+            destination = kwargs.get("next")
+            if destination:
+                return redirect(destination)
+            else:
+                pass
+        else:
+            context['form'] = form
+
+    else:
+        form = RegistrationForm()
+        context['form'] = form
+    return render(request, 'registration/base.html',context)
 
 # @company_permission_required(is_regulator=False)
 # def operateur_index(request):

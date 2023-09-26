@@ -40,6 +40,11 @@
                             {% block login_content %}
                             {% endblock login_content %}
                         </div>
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <table>{{ form.as_table }}</table>
+                            <button class="btn btn-primary" type="submit">{% trans "Register" %}</button>
+                        </form>
                     </div>
                 </div>
             </div>
