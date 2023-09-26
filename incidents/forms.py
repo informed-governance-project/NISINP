@@ -504,4 +504,6 @@ class RegulatorIncidentEditForm(forms.ModelForm):
             "id",
             "incident_id",
             "is_significative_impact",
+            "review_status",
+            "incident_status",
         ]

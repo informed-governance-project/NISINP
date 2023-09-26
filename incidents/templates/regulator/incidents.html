@@ -15,7 +15,6 @@
         <tr>
             <th scope="col">{{ _('Incident ID') }}</th>
             <th scope="col">{{ _('Significant impact') }}</th>
-            <th scope="col">{{ _('Regulations') }}</th>
             <th scope="col">{{ _('Affected services') }}</th>
             <th scope="col">{{ _('Preliminary notification date') }}</th>
             <th scope="col">{{ _('Final declaration date') }}</th>
@@ -25,11 +24,6 @@
         <tr>
             <td>{{ incident.incident_id }}</td>
             <td>{{ incident.is_significative_impact }}</td>
-            <td><ul>
-            {% for regulation in incident.regulations.all %}
-                <li>{{ regulation.label }}</li>
-            {% endfor %}
-            </ul></td>
             <td><ul>
             {% for service in incident.affected_services.all %}
                 <li>{{ service.name }}</li>
