@@ -37,9 +37,12 @@
                     <div class="card shadow px-5 py-3 mb-5 rounded-1">
                         <div class="card-body text-center">
                             <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
-                            {% block login_content %}
-                            {% endblock login_content %}
                         </div>
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <table>{{ form.as_table }}</table>
+                            <button class="btn btn-primary" type="submit">{% trans "Register" %}</button>
+                        </form>
                     </div>
                 </div>
             </div>
