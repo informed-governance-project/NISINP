@@ -7,7 +7,6 @@ from django_otp.decorators import otp_required
 
 from .forms import SelectCompany
 from .helpers import user_in_group
-from .models import Company
 
 
 @login_required
@@ -22,26 +21,19 @@ def index(request):
     if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
         return redirect("admin:index")
 
-    company_cookie = request.session.get("company_in_use")
-
-    if user.companies.count() > 1 and not company_cookie:
-        return select_company(request)
-
-    if not company_cookie and user.companies.exists():
-        company_cookie = user.companies.first().id
-
-    try:
-        user.companies.get(id=company_cookie)
-    except Company.DoesNotExist:
-        messages.add_message(
+    if not user.companies.exists():
+        messages.error(
             request,
-            messages.ERROR,
-            _(
-                "There is no company associated with this account. Contact the administrator"
-            ),
+            _("There is no company associated with this account. Contact the administrator"),
         )
-
         return redirect("login")
+
+    company_cookie = request.session.get("company_in_use")
+    if not company_cookie:
+        if user.companies.count() > 1:
+            return select_company(request)
+
+        request.session["company_in_use"] = user.companies.first().id
 
     return redirect("incidents")
 

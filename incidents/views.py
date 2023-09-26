@@ -121,28 +121,25 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 f"Incident {incident.incident_id} has been successfully saved.",
             )
             response = HttpResponseRedirect(
-                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
+                request.session.get("return_page", "/incidents/regulator/incidents")
             )
-            response.delete_cookie("return_page")
+            try:
+                del request.session["return_page"]
+            except KeyError:
+                pass
 
             return response
 
-    response = render(
-        request,
-        "regulator/incident_edit.html",
-        context={
-            "regulator_incident_form": regulator_incident_form,
-            "incident": incident,
-        },
-    )
-
-    if request.COOKIES.get("return_page") is None:
-        response.set_cookie(
-            "return_page",
-            request.headers.get("referer", "/incidents/regulator/incidents"),
+    if not request.session.get("return_page"):
+        request.session["return_page"] = request.headers.get(
+            "referer",
+            "/incidents/regulator/incidents"
         )
 
-    return response
+    return render(request, "regulator/incident_edit.html", context={
+        "regulator_incident_form": regulator_incident_form,
+        "incident": incident,
+    })
 
 
 @login_required
