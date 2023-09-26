@@ -11,7 +11,7 @@ from .managers import CustomUserManager
 
 # sector
 class Sector(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(max_length=100))
+    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
     parent = models.ForeignKey(
         "self",
         null=True,
@@ -33,7 +33,7 @@ class Sector(TranslatableModel):
 
 # esssential services
 class Service(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(max_length=100))
+    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     accronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 

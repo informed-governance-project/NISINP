@@ -1,3 +1,5 @@
+from parler_rest.fields import TranslatedFieldsField
+from parler_rest.serializers import TranslatableModelSerializer
 from rest_framework import serializers
 
 from governanceplatform.models import Company, Service, User
@@ -59,22 +61,26 @@ class CompanySerializer(serializers.ModelSerializer):
 #
 # Model: Service
 #
-class ServiceSerializer(serializers.ModelSerializer):
+class ServiceSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Service)
+
     class Meta:
         model = Service
         fields = [
-            "name",
+            "translations",
         ]
 
 
 #
 # Model: RegulationType
 #
-class RegulationTypeSerializer(serializers.ModelSerializer):
+class RegulationTypeSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Service)
+
     class Meta:
         model = RegulationType
         fields = [
-            "label",
+            "translations",
         ]
 
 
