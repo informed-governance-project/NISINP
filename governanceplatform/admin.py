@@ -178,7 +178,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "get_sectors",
-        "is_regulator",
     ]
     list_filter = [CompanySectorListFilter]
     search_fields = ["name"]
@@ -196,15 +195,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
         (
-            _("Permissions"),
-            {
-                "classes": ["extrapretty"],
-                "fields": [
-                    "is_regulator",
-                ],
-            },
-        ),
-        (
             _("Configuration Information"),
             {
                 "classes": ["extrapretty"],
@@ -216,16 +206,13 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ),
     ]
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
+    def save_model(self, request, obj, form, change):
         user = request.user
+        obj.is_regulator = False
         # Only platform Administrator can create regulator companies
-        if not user_in_group(user, "PlatformAdmin"):
-            fieldsets = [
-                fieldset for fieldset in fieldsets if fieldset[0] != _("Permissions")
-            ]
-
-        return fieldsets
+        if user_in_group(user, "PlatformAdmin"):
+            obj.is_regulator = True
+        super().save_model(request, obj, form, change)
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
