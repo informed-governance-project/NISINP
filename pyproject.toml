@@ -36,6 +36,7 @@ django-bootstrap-datepicker-plus = "^5.0.4"
 django-countries = "^7.5.1"
 weasyprint = "^59.0"
 django-extensions = "^3.2.3"
+django-parler-rest = "^2.2"
 
 
 [tool.poetry.group.dev.dependencies]

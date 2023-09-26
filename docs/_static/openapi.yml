@@ -247,20 +247,20 @@ components:
       - regulations
     RegulationType:
       type: object
+      description: Serializer that saves :class:`TranslatedFieldsField` automatically.
       properties:
-        label:
+        translations:
           type: string
-          readOnly: true
       required:
-      - label
+      - translations
     Service:
       type: object
+      description: Serializer that saves :class:`TranslatedFieldsField` automatically.
       properties:
-        name:
+        translations:
           type: string
-          readOnly: true
       required:
-      - name
+      - translations
     User:
       type: object
       properties:
@@ -306,9 +306,6 @@ components:
         phone_number:
           type: string
           maxLength: 30
-        proxy_token:
-          type: string
-          maxLength: 255
         is_staff:
           type: boolean
           default: false
@@ -319,7 +316,6 @@ components:
       - last_name
       - password
       - phone_number
-      - proxy_token
   securitySchemes:
     basicAuth:
       type: http

@@ -6,13 +6,12 @@ from parler.models import TranslatableModel, TranslatedFields
 
 from incidents.models import Impact
 
-from .helpers import generate_token
 from .managers import CustomUserManager
 
 
 # sector
 class Sector(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(max_length=100))
+    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
     parent = models.ForeignKey(
         "self",
         null=True,
@@ -22,7 +21,7 @@ class Sector(TranslatableModel):
         verbose_name=_("parent"),
     )
     specific_impact = models.ManyToManyField(Impact, default=None, blank=True)
-    accronym = models.CharField(max_length=4, null=True, blank=True, default=None)
+    acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name
@@ -34,9 +33,9 @@ class Sector(TranslatableModel):
 
 # esssential services
 class Service(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(max_length=100))
+    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    accronym = models.CharField(max_length=4, null=True, blank=True, default=None)
+    acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name
@@ -125,7 +124,6 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
     companies = models.ManyToManyField(Company, through="CompanyAdministrator")
     sectors = models.ManyToManyField(Sector, through="SectorContact")
-    proxy_token = models.CharField(max_length=255, default=generate_token, unique=True)
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,

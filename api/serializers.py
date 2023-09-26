@@ -1,3 +1,5 @@
+from parler_rest.fields import TranslatedFieldsField
+from parler_rest.serializers import TranslatableModelSerializer
 from rest_framework import serializers
 
 from governanceplatform.models import Company, Service, User
@@ -25,7 +27,6 @@ class UserInputSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(max_length=150, required=True)
     password = serializers.CharField(max_length=200, required=True)
     phone_number = serializers.CharField(max_length=30)
-    proxy_token = serializers.CharField(max_length=255)
     is_staff = serializers.BooleanField(default=False)
 
     class Meta:
@@ -37,7 +38,6 @@ class UserInputSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "phone_number",
-            "proxy_token",
             "is_staff",
         ]
 
@@ -61,22 +61,26 @@ class CompanySerializer(serializers.ModelSerializer):
 #
 # Model: Service
 #
-class ServiceSerializer(serializers.ModelSerializer):
+class ServiceSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Service)
+
     class Meta:
         model = Service
         fields = [
-            "name",
+            "translations",
         ]
 
 
 #
 # Model: RegulationType
 #
-class RegulationTypeSerializer(serializers.ModelSerializer):
+class RegulationTypeSerializer(TranslatableModelSerializer):
+    translations = TranslatedFieldsField(shared_model=Service)
+
     class Meta:
         model = RegulationType
         fields = [
-            "label",
+            "translations",
         ]
 
 

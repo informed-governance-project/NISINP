@@ -110,8 +110,17 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "NC3-LU Governance Platform",
+    "DESCRIPTION": "API for the "
+    '<a href="https://github.com/informed-governance-project" rel="noopener noreferrer" target="_blank">'
+    "Governance Platform</a> by NC3-LU.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": True,
+}
+
 GRAPH_MODELS = {
-    #   'all_applications': True,
+    # "all_applications": True,
     "app_labels": ["governanceplatform", "incidents"],
     "group_models": True,
 }

@@ -76,11 +76,8 @@ class UserApiElemView(GenericAPIView):
         """
         user = User.objects.get(id=id)
         password = request.data.get("password", None)
-        proxy_token = request.data.get("proxy_token", None)
         if password:
             user.set_password(password)
-        if proxy_token:
-            user.proxy_token = proxy_token
         user.save()
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)

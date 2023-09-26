@@ -110,8 +110,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     incident = Incident.objects.get(pk=incident_id)
     regulator_incident_form = RegulatorIncidentEditForm(
-        instance=incident,
-        data=request.POST if request.method == "POST" else None
+        instance=incident, data=request.POST if request.method == "POST" else None
     )
 
     if request.method == "POST":
@@ -119,27 +118,31 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             regulator_incident_form.save()
             messages.success(
                 request,
-                'Incident {} has been successfully saved.'.format(incident.incident_id)
+                f"Incident {incident.incident_id} has been successfully saved.",
             )
             response = HttpResponseRedirect(
-                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
+                request.session.get("return_page", "/incidents/regulator/incidents")
             )
-            response.delete_cookie('return_page')
+            try:
+                del request.session["return_page"]
+            except KeyError:
+                pass
 
             return response
 
-    response = render(request, "regulator/incident_edit.html", context={
-        "regulator_incident_form": regulator_incident_form,
-        "incident": incident,
-    })
-
-    if request.COOKIES.get("return_page") is None:
-        response.set_cookie(
-            'return_page',
-            request.headers.get("referer", "/incidents/regulator/incidents")
+    if not request.session.get("return_page"):
+        request.session["return_page"] = request.headers.get(
+            "referer", "/incidents/regulator/incidents"
         )
 
-    return response
+    return render(
+        request,
+        "regulator/incident_edit.html",
+        context={
+            "regulator_incident_form": regulator_incident_form,
+            "incident": incident,
+        },
+    )
 
 
 @login_required
@@ -268,9 +271,9 @@ class FormWizardView(SessionWizardView):
                 if subsector_for_ref == "":
                     service_entity = Service.objects.get(id=service)
                     sector = service_entity.sector
-                    subsector_for_ref = sector.accronym[:3]
+                    subsector_for_ref = sector.acronym[:3]
                     if sector.parent is not None:
-                        sector_for_ref = sector.parent.accronym[:3]
+                        sector_for_ref = sector.parent.acronym[:3]
             except Exception:
                 pass
 
