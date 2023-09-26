@@ -7,8 +7,7 @@ from .settings import SITE_NAME
 
 def extra_content_for_all_templates(request):
     user = request.user
-    extra_data = {"site_name": SITE_NAME}
-    extra_data["only_admin"] = False
+    extra_data = {"site_name": SITE_NAME, "only_admin": False}
 
     if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
         extra_data["only_admin"] = True
