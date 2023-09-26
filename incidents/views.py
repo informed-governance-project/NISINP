@@ -110,8 +110,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     incident = Incident.objects.get(pk=incident_id)
     regulator_incident_form = RegulatorIncidentEditForm(
-        instance=incident,
-        data=request.POST if request.method == "POST" else None
+        instance=incident, data=request.POST if request.method == "POST" else None
     )
 
     if request.method == "POST":
@@ -119,24 +118,28 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             regulator_incident_form.save()
             messages.success(
                 request,
-                'Incident {} has been successfully saved.'.format(incident.incident_id)
+                f"Incident {incident.incident_id} has been successfully saved.",
             )
             response = HttpResponseRedirect(
                 request.COOKIES.get("return_page", "/incidents/regulator/incidents")
             )
-            response.delete_cookie('return_page')
+            response.delete_cookie("return_page")
 
             return response
 
-    response = render(request, "regulator/incident_edit.html", context={
-        "regulator_incident_form": regulator_incident_form,
-        "incident": incident,
-    })
+    response = render(
+        request,
+        "regulator/incident_edit.html",
+        context={
+            "regulator_incident_form": regulator_incident_form,
+            "incident": incident,
+        },
+    )
 
     if request.COOKIES.get("return_page") is None:
         response.set_cookie(
-            'return_page',
-            request.headers.get("referer", "/incidents/regulator/incidents")
+            "return_page",
+            request.headers.get("referer", "/incidents/regulator/incidents"),
         )
 
     return response

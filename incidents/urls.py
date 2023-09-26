@@ -39,9 +39,17 @@ urlpatterns = [
         name="final-notification",
     ),
     # incident list for regulator
-    path("regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"),
-    path("regulator/incident/<int:incident_id>", get_regulator_incident_edit_form,
-         name="regulator_incident_edit"),
-    path("regulator/download-pdf/<int:incident_id>", download_incident_pdf,
-         name="download_incident_pdf"),
+    path(
+        "regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"
+    ),
+    path(
+        "regulator/incident/<int:incident_id>",
+        get_regulator_incident_edit_form,
+        name="regulator_incident_edit",
+    ),
+    path(
+        "regulator/download-pdf/<int:incident_id>",
+        download_incident_pdf,
+        name="download_incident_pdf",
+    ),
 ]
