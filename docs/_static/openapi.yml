@@ -299,7 +299,8 @@ components:
           maxLength: 150
         email:
           type: string
-          maxLength: 200
+          format: email
+          description: Email of the user.
         password:
           type: string
           maxLength: 200

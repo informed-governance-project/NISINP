@@ -20,7 +20,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserInputSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=200, required=True)
+    email = serializers.EmailField(
+        required=True, help_text="Email of the user.", label="Email"
+    )
     first_name = serializers.CharField(max_length=150, required=True)
     last_name = serializers.CharField(max_length=150, required=True)
     password = serializers.CharField(max_length=200, required=True)

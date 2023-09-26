@@ -1,7 +1,6 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -54,21 +53,6 @@ class UserElementApiView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     serializer_class = UserSerializer
 
-    def delete(self, request, id=None):
-        """
-        Delete a user.
-        """
-        user = User.objects.filter(id=id)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class UserApiElemView(GenericAPIView):
-    # add permission to check if user is authenticated
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    serializer_class = UserSerializer
-
     @extend_schema(request=UserInputSerializer, responses=UserSerializer)
     def put(self, request, id=None):
         """
@@ -84,6 +68,14 @@ class UserApiElemView(GenericAPIView):
         user.save()
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, id=None):
+        """
+        Delete a user.
+        """
+        user = User.objects.filter(id=id)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 #
