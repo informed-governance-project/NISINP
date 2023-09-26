@@ -24,7 +24,9 @@ def index(request):
     if not user.companies.exists():
         messages.error(
             request,
-            _("There is no company associated with this account. Contact the administrator"),
+            _(
+                "There is no company associated with this account. Contact the administrator"
+            ),
         )
         return redirect("login")
 
