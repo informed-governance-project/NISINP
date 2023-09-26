@@ -6,7 +6,6 @@ from parler.models import TranslatableModel, TranslatedFields
 
 from incidents.models import Impact
 
-from .helpers import generate_token
 from .managers import CustomUserManager
 
 
@@ -125,7 +124,6 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
     companies = models.ManyToManyField(Company, through="CompanyAdministrator")
     sectors = models.ManyToManyField(Sector, through="SectorContact")
-    proxy_token = models.CharField(max_length=255, default=generate_token, unique=True)
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,

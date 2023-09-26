@@ -307,9 +307,6 @@ components:
         phone_number:
           type: string
           maxLength: 30
-        proxy_token:
-          type: string
-          maxLength: 255
         is_staff:
           type: boolean
           default: false
@@ -320,7 +317,6 @@ components:
       - last_name
       - password
       - phone_number
-      - proxy_token
   securitySchemes:
     basicAuth:
       type: http
