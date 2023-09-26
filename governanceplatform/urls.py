@@ -42,9 +42,9 @@ urlpatterns = [
         name="login",
     ),
     path(
-        'account/register/',
+        "account/register/",
         views.registration_view,
-        name='registration',
+        name="registration",
     ),
     # Incident notification
     path("incidents/", include("incidents.urls"), name="incidents"),

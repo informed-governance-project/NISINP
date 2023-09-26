@@ -20,6 +20,7 @@ class SelectCompany(forms.Form):
 
         self.fields["select_company"].queryset = companies.order_by("name")
 
+
 class RegistrationForm(UserCreationForm):
     email = forms.TextInput()
     class meta:
