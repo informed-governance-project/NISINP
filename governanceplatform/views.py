@@ -83,8 +83,9 @@ def registration_view(request, *args, **kwargs):
 
     else:
         form = RegistrationForm()
-        context['form'] = form
-    return render(request, 'registration/signup.html',context)
+        context["form"] = form
+    return render(request, "registration/signup.html", context)
+
 
 # @company_permission_required(is_regulator=False)
 # def operateur_index(request):

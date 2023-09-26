@@ -127,7 +127,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 del request.session["return_page"]
             except KeyError:
                 pass
-
+            print(response)
             return response
 
     if not request.session.get("return_page"):
