@@ -488,7 +488,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "phone_number",
         "get_companies",
         "get_sectors",
-        "is_staff",
+        "get_permissions_groups",
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
@@ -512,6 +512,10 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         ),
     ]
     actions = [reset_2FA]
+
+    @admin.display(description="Roles")
+    def get_permissions_groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
