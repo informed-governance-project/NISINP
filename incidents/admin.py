@@ -1,10 +1,14 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin
 
 from governanceplatform.admin import admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.models import Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.models import (
     Email,
@@ -150,11 +154,43 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
         model = Impact
 
 
+class ImpactSectorListFilter(SimpleListFilter):
+    title = _("Sectors")
+    parameter_name = "sectors"
+
+    def lookups(self, request, model_admin):
+        return [
+            (sector.id, sector.name)
+            for sector in Sector.objects.all().order_by("translations__name")
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(
+                Q(sector=self.value()) | Q(sector__parent=self.value())
+            )
+
+
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label"]
+    list_display = ["label", "get_sector_name", "get_subsector_name"]
     search_fields = ["translations__label"]
     resource_class = ImpactResource
+    list_filter = [ImpactSectorListFilter]
+
+    @admin.display(description="Sector")
+    def get_sector_name(self, obj):
+        for sector in obj.sector_set.all():
+            if not sector.parent:
+                return sector.name
+            return sector.parent
+
+    @admin.display(description="Sub-sector")
+    def get_subsector_name(self, obj):
+        for sector in obj.sector_set.all():
+            if sector.parent:
+                return sector.name
+            return
 
 
 class IncidentResource(resources.ModelResource):
