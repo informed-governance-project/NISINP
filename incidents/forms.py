@@ -463,17 +463,23 @@ def get_forms_list(is_preliminary=True):
 
 
 class NotificationDispatchingForm(forms.Form):
-    # list of impact present in the incident table
     initial_data = []
+
+    if "governanceplatform_Company" in connection.introspection.table_names():
+        try:
+            initial_data = [
+                (k.id, k.name + " " + k.full_name + " " + k.description)
+                for k in Company.objects.all().filter(
+                    is_regulator=True,
+                )
+            ]
+
+        except Exception:
+            initial_data = []
     # generic impact definitions
     authorities_list = forms.MultipleChoiceField(
         required=False,
-        choices=[
-            (k.id, k.name + " " + k.full_name + " " + k.description)
-            for k in Company.objects.all().filter(
-                is_regulator=True,
-            )
-        ],
+        choices=initial_data,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
         label="Send notification to:",
     )
