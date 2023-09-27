@@ -85,7 +85,7 @@ def get_incidents_for_regulator(request):
     """Returns incidents list for regulators."""
     if request.GET.get("incidentId"):
         incidents = Incident.objects.filter(
-            incident_id__contains=request.GET.get("incidentId")
+            incident_id__icontains=request.GET.get("incidentId")
         ).order_by("-preliminary_notification_date")
     else:
         incidents = Incident.objects.all().order_by("-preliminary_notification_date")
