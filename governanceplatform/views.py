@@ -63,7 +63,7 @@ def registration_view(request, *args, **kwargs):
     context = {}
     user = request.user
     if user.is_authenticated:
-        return redirect("home")
+        return redirect("index")
     elif request.method == "POST":
         print("hello")
         form = RegistrationForm(request.POST)
