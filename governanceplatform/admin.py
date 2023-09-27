@@ -474,8 +474,21 @@ class UserSectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(companies=value)
+            return queryset.filter(sectors=value)
         return queryset
+
+
+class UserPermissionsGroupListFilter(SimpleListFilter):
+    title = _("Roles")
+    parameter_name = "roles"
+
+    def lookups(self, request, model_admin):
+
+        return [(group.id, group.name) for group in Group.objects.all()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(groups=self.value())
 
 
 @admin.register(User, site=admin_site)
@@ -494,7 +507,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     list_filter = [
         UserCompaniesListFilter,
         UserSectorListFilter,
-        "is_staff",
+        UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = [userCompanyInline, userSectorInline]
