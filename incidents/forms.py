@@ -471,7 +471,7 @@ class NotificationDispatchingForm(forms.Form):
     authorities_list = forms.MultipleChoiceField(
         required=False,
         choices=[
-            (k.id, k.name)
+            (k.id, k.name +' '+ k.full_name  +' '+ k.description)
             for k in Company.objects.all().filter(
                 is_regulator=True,
             )

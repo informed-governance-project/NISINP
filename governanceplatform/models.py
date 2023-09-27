@@ -99,10 +99,10 @@ class Company(models.Model):
         null=True,
     )
     full_name = models.TextField(
-        blank=True, default=None, null=True, verbose_name=_("full name")
+        blank=True, default='', null=True, verbose_name=_("full name")
     )
     description = models.TextField(
-        blank=True, default=None, null=True, verbose_name=_("description")
+        blank=True, default='', null=True, verbose_name=_("description")
     )
 
     def __str__(self):
