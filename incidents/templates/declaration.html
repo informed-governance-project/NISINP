@@ -1,7 +1,5 @@
 {% extends 'home/base.html' %}
 {% load django_bootstrap5 %}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
 {% load custom_filters %}
 
 {% block content %}
@@ -34,22 +32,23 @@
       {% csrf_token %}
       {{ wizard.management_form }}
       {% if wizard.form.forms %}
-      {{ wizard.form.management_form }}
-      {% for form in wizard.form.forms %}
-      {% bootstrap_form_errors form %}
-      {% bootstrap_form form %}
-      {% endfor %}
+        {{ wizard.form.management_form }}
+        {% for form in wizard.form.forms %}
+          {% bootstrap_form_errors form %}
+          {% bootstrap_form form %}
+        {% endfor %}
       {% else %}
-      {% with form_class_name=wizard.form|get_class_name %}
-      {% if form_class_name == 'ContactForm' %}
-      {% include "contact_form.html" %}
-      {% else %}
-      {{ wizard.form.media }}
-      <div class="col-md-6">
-        {% bootstrap_form wizard.form %}
-      </div>
-      {% endif %}
-      {% endwith %}
+        {% with form_class_name=wizard.form|get_class_name %}
+        {% if form_class_name == 'ContactForm' %}
+          {% include "contact_form.html" %}
+        {% else %}
+          {{ wizard.form.media }}
+          <div class="col-md-6">
+            {% bootstrap_form_errors wizard.form %}
+            {% bootstrap_form wizard.form %}
+          </div>
+        {% endif %}
+        {% endwith %}
       {% endif %}
       {% bootstrap_button button_type="submit" content="Save" %}
     </form>

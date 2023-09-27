@@ -380,9 +380,7 @@ class ImpactedServicesForm(forms.Form):
     )
     affected_services = forms.MultipleChoiceField(
         required=False,
-        widget=ServicesListCheckboxSelectMultiple(
-            attrs={"class": "multiple-selection"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -471,7 +469,7 @@ class NotificationDispatchingForm(forms.Form):
     authorities_list = forms.MultipleChoiceField(
         required=False,
         choices=[
-            (k.id, k.name +' '+ k.full_name  +' '+ k.description)
+            (k.id, k.name + " " + k.full_name + " " + k.description)
             for k in Company.objects.all().filter(
                 is_regulator=True,
             )
