@@ -366,7 +366,7 @@ class userCompanyInline(admin.TabularInline):
             if user_in_group(user, "RegulatorStaff"):
                 kwargs["queryset"] = Company.objects.filter(
                     sectors__in=user.sectors.all(),
-                )
+                ).distinct()
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
                 kwargs["queryset"] = user.companies.all()
