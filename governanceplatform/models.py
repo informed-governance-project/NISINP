@@ -98,6 +98,12 @@ class Company(models.Model):
         blank=True,
         null=True,
     )
+    full_name = models.TextField(
+        blank=True, default=None, null=True, verbose_name=_("full name")
+    )
+    description = models.TextField(
+        blank=True, default=None, null=True, verbose_name=_("description")
+    )
 
     def __str__(self):
         return self.name
