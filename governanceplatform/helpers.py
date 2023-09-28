@@ -10,7 +10,7 @@ def generate_token():
 
 def user_in_group(user, group_name) -> bool:
     """Check user group"""
-    return any(user_group.name == group_name for user_group in user.groups.all())
+    return User.objects.filter(email=user.email, groups__name=group_name).exists()
 
 
 def is_user_regulator(user: User) -> bool:
