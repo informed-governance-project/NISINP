@@ -1,7 +1,5 @@
 import secrets
 
-from django.contrib.auth.models import Group
-
 from .models import User
 
 
@@ -12,11 +10,13 @@ def generate_token():
 
 def user_in_group(user, group_name) -> bool:
     """Check user group"""
-    return any(user_group.name == group_name for user_group in user.groups)
+    return any(user_group.name == group_name for user_group in user.groups.all())
 
 
 def is_user_regulator(user: User) -> bool:
-    return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorStaff")
+    return user_in_group(user, "RegulatorAdmin") or user_in_group(
+        user, "RegulatorStaff"
+    )
 
 
 def get_company_session(request):
