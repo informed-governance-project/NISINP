@@ -2,19 +2,21 @@ import secrets
 
 from django.contrib.auth.models import Group
 
+from .models import User
+
 
 def generate_token():
     """Generates a random token-safe text string."""
     return secrets.token_urlsafe(32)[:32]
 
 
-def user_in_group(user, group_name):
+def user_in_group(user, group_name) -> bool:
     """Check user group"""
-    try:
-        group = Group.objects.get(name=group_name)
-        return user.groups.filter(id=group.id).exists()
-    except Group.DoesNotExist:
-        return False
+    return any(user_group.name == group_name for user_group in user.groups)
+
+
+def is_user_regulator(user: User) -> bool:
+    return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorStaff")
 
 
 def get_company_session(request):
