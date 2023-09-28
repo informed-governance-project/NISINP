@@ -154,10 +154,10 @@ class CompanySectorListFilter(SimpleListFilter):
         if user_in_group(user, "RegulatorAdmin"):
             sectors = Sector.objects.all()
         # Regulator Staff
-        if user_in_group(user, "RegulatorStaff"):
+        elif user_in_group(user, "RegulatorStaff"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
         # Operator Admin
-        if user_in_group(user, "OperatorAdmin"):
+        elif user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
 
         return [(sector.id, sector.name) for sector in sectors]
