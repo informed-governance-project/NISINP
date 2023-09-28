@@ -67,7 +67,7 @@ Governance Platform
     poetry install
     poetry build
     poetry shell
-    python manage.py migrate --skip-checks
+    python manage.py migrate
     python manage.py createsuperuser
     python manage.py collectstatic
 
