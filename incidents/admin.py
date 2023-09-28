@@ -38,9 +38,19 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(PredefinedAnswer, site=admin_site)
 class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["predefined_answer", "allowed_additional_answer"]
+    list_display = [
+        "get_question_label",
+        "predefined_answer",
+        "allowed_additional_answer",
+    ]
+    list_display_links = ["get_question_label", "predefined_answer"]
     search_fields = ["allowed_additional_answer, predefined_answer"]
     resource_class = PredefinedAnswerResource
+
+    @admin.display(description="Question")
+    def get_question_label(self, obj):
+        for question in obj.question_set.all():
+            return question.label
 
 
 class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
@@ -60,9 +70,10 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label", "position"]
+    list_display = ["position", "label"]
     search_fields = ["label"]
     resource_class = QuestionCategoryResource
+    ordering = ["position"]
 
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
@@ -117,9 +128,18 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label", "category", "position", "get_predefined_answers"]
+    list_display = ["position", "category", "label", "get_predefined_answers"]
+    list_display_links = ["position", "category", "label"]
     search_fields = ["label"]
     resource_class = QuestionResource
+    fields = [
+        ("position", "is_mandatory", "is_preliminary"),
+        "question_type",
+        "category",
+        "label",
+        "predefined_answers",
+    ]
+    filter_horizontal = ["predefined_answers"]
 
 
 class RegulationTypeResource(TranslationUpdateMixin, resources.ModelResource):
@@ -173,24 +193,26 @@ class ImpactSectorListFilter(SimpleListFilter):
 
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label", "get_sector_name", "get_subsector_name"]
+    list_display = [
+        "label",
+        "get_sector_name",
+        "get_subsector_name",
+        "is_generic_impact",
+    ]
     search_fields = ["translations__label"]
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter]
+    ordering = ["-is_generic_impact", "sector"]
 
     @admin.display(description="Sector")
     def get_sector_name(self, obj):
         for sector in obj.sector_set.all():
-            if not sector.parent:
-                return sector.name
-            return sector.parent
+            return sector.name if not sector.parent else sector.parent
 
     @admin.display(description="Sub-sector")
     def get_subsector_name(self, obj):
         for sector in obj.sector_set.all():
-            if sector.parent:
-                return sector.name
-            return
+            return sector.name if sector.parent else None
 
 
 class IncidentResource(resources.ModelResource):

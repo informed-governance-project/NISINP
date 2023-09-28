@@ -71,13 +71,18 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Sector
+        export_order = ["id", "parent"]
 
 
 @admin.register(Sector, site=admin_site)
 class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "parent", "acronym"]
+    list_display = ["acronym", "name", "parent"]
+    list_display_links = ["acronym", "name"]
     search_fields = ["name"]
     resource_class = SectorResource
+    fields = ("name", "parent", "acronym", "specific_impact")
+    ordering = ["id", "parent"]
+    filter_horizontal = ["specific_impact"]
 
 
 class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
@@ -104,13 +109,25 @@ class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Service
+        export_order = ["sector"]
 
 
 @admin.register(Service, site=admin_site)
 class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "sector"]
+    list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
+    list_display_links = ["acronym", "name"]
     search_fields = ["name"]
     resource_class = ServiceResource
+    fields = ("name", "acronym", "sector")
+    ordering = ["sector"]
+
+    @admin.display(description="Sector")
+    def get_sector_name(self, obj):
+        return obj.sector.name if not obj.sector.parent else obj.sector.parent
+
+    @admin.display(description="Sub-sector")
+    def get_subsector_name(self, obj):
+        return obj.sector.name if obj.sector.parent else None
 
 
 class CompanyResource(resources.ModelResource):
@@ -483,7 +500,6 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
     parameter_name = "roles"
 
     def lookups(self, request, model_admin):
-
         return [(group.id, group.name) for group in Group.objects.all()]
 
     def queryset(self, request, queryset):
@@ -511,7 +527,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = [userCompanyInline, userSectorInline]
-    filter_horizontal = ("groups",)
     fieldsets = [
         (
             _("Contact Information"),
@@ -649,3 +664,5 @@ class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
     search_fields = ["type"]
     resource_class = OperatorTypeResource
+    fields = ("type", "functionalities")
+    filter_horizontal = ["functionalities"]
