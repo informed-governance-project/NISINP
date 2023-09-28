@@ -242,10 +242,14 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, "theme/locale"),
 ]
 
-# Email
 
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+# Email
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -345,9 +349,36 @@ PARLER_LANGUAGES = {
     },
 }
 
-COUNTRIES_FIRST = ["LU", "BE", "FR", "DE", "NL", "GB", "AT", "BG", "HR", "CY", "CZ", "DK", "EE",
-                   "FI", "GR", "HU", "IE", "IT", "LV", "LT", "MT", "PL", "PT", "RO", "SK", "SI",
-                   "ES", "SE"]
+COUNTRIES_FIRST = [
+    "LU",
+    "BE",
+    "FR",
+    "DE",
+    "NL",
+    "GB",
+    "AT",
+    "BG",
+    "HR",
+    "CY",
+    "CZ",
+    "DK",
+    "EE",
+    "FI",
+    "GR",
+    "HU",
+    "IE",
+    "IT",
+    "LV",
+    "LT",
+    "MT",
+    "PL",
+    "PT",
+    "RO",
+    "SK",
+    "SI",
+    "ES",
+    "SE",
+]
 COUNTRIES_FIRST_BREAK = "---------------------"
 
 # Import-export settings
