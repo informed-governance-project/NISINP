@@ -4,7 +4,6 @@ from operator import is_not
 
 from bootstrap_datepicker_plus.widgets import DatePickerInput
 from django import forms
-from django.db import connection
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.translation import gettext as _
