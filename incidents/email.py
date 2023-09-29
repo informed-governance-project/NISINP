@@ -4,7 +4,6 @@ from governanceplatform.config import PUBLIC_URL
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
 
-
 # replace the variables in globals.py by the right value
 def replace_email_variables(content, incident):
     # find the incidents which don't have final notification.
@@ -19,5 +18,3 @@ def replace_email_variables(content, incident):
                 var_txt = getattr(incident, variable[1]).strftime("%m/%d/%Y")
         modify_content = modify_content.replace(variable[0], var_txt)
     return modify_content
-
-

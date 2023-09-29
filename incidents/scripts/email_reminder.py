@@ -2,8 +2,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 from django.core.mail import send_mail
-from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
-from incidents.globals import INCIDENT_EMAIL_VARIABLES
+from governanceplatform.config import EMAIL_SENDER
 from incidents.models import Email, Incident
 from incidents.email import replace_email_variables
 
