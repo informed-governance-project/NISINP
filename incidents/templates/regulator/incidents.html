@@ -30,8 +30,8 @@
             {% endfor %}
             </ul>
             </td>
-            <td>{{ incident.preliminary_notification_date|date:'d-m-Y' }}</td>
-            <td>{{ incident.final_notification_date|date:'d-m-Y' }}</td>
+            <td>{{ incident.preliminary_notification_date|date:'Y-m-d' }}</td>
+            <td>{{ incident.final_notification_date|date:'Y-m-d' }}</td>
             <td style="white-space: nowrap;">
                 <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
                 <a href="{% url 'download_incident_pdf' incident.id %}">

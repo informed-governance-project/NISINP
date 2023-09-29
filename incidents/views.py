@@ -11,11 +11,11 @@ from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
 from governanceplatform.helpers import (
-    get_company_session,
+    get_active_company_from_session,
     is_user_regulator,
     user_in_group
 )
-from governanceplatform.models import Service
+from governanceplatform.models import Service, Sector
 from governanceplatform.settings import (
     EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
@@ -47,21 +47,24 @@ from .email import (replace_email_variables)
 @login_required
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
-    company_in_use = request.session.get("company_in_use")
     incidents = Incident.objects.order_by("-preliminary_notification_date")
 
-    # RegulatorAdmin can see all the incidents reported by operators.
-    if not user_in_group(request.user, "RegulatorAdmin"):
+    if user_in_group(request.user, "RegulatorStaff"):
         # RegulatorUser has access to all incidents linked by sectors.
-        if user_in_group(request.user, "RegulatorStaff"):
-            incidents = incidents.filter(affected_services__sector__in=request.user.sectors.all())
-        else:
-            incidents = incidents.filter(
-                company__id=company_in_use
-            ) if company_in_use else incidents.filter(contact_user=request.user)
+        incidents = incidents.filter(affected_services__sector__in=request.user.sectors.all())
+    elif user_in_group(request.user, "OperatorAdmin"):
+        # OperatorAdmin can see all the reports of the selected company.
+        incidents = incidents.filter(company__id=request.session.get("company_in_use"))
+    # RegulatorAdmin can see all the incidents reported by operators.
+    elif not user_in_group(request.user, "RegulatorAdmin"):
+        # OperatorStaff and IncidentUser can see only their reports.
+        incidents.filter(contact_user=request.user)
 
     if request.GET.get("incidentId"):
-        incidents = incidents.filter(incident_id__icontains=request.GET.get("incidentId"))
+        # Search by incident id
+        incidents = incidents.filter(
+            incident_id__icontains=request.GET.get("incidentId")
+        ).distinct()
 
     # Show 20 incidents per page.
     paginator = Paginator(incidents, 20)
@@ -108,11 +111,21 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 @regulator_role_required
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
+    # RegulatorStaff can access only incidents from accessible sectors.
+    if (
+        user_in_group(request.user, "RegulatorStaff")
+        and not Incident.objects.filter(
+            pk=incident_id,
+            affected_services__sector__in=request.user.sectors.all()
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+
     incident = Incident.objects.get(pk=incident_id)
+
     regulator_incident_form = RegulatorIncidentEditForm(
         instance=incident, data=request.POST if request.method == "POST" else None
     )
-
     if request.method == "POST":
         if regulator_incident_form.is_valid():
             regulator_incident_form.save()
@@ -147,10 +160,36 @@ def download_incident_pdf(request, incident_id: int):
     if not can_redirect(target):
         target = "/"
 
-    # TODO: check for the permissions depending on the user type. RegulatorsUser by sector
-    # OperatorUser or OperatorAdmin check company.
+    # RegulatorStaff can access only incidents from accessible sectors.
+    if (
+        user_in_group(request.user, "RegulatorStaff")
+        and not Incident.objects.filter(
+            pk=incident_id,
+            affected_services__sector__in=request.user.sectors.all()
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+    # OperatorAdmin can access only incidents related to selected company.
+    if (
+        user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(
+            pk=incident_id,
+            company__id=request.session.get("company_in_use")
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+    # OperatorStaff and IncidentUser can access only their reports.
+    if (
+        not is_user_regulator(request.user)
+        and not user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(pk=incident_id, contact_user=request.user).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+
+    incident = Incident.objects.get(pk=incident_id)
+
     try:
-        pdf_report = get_pdf_report(incident_id, request)
+        pdf_report = get_pdf_report(incident, request)
     except Exception:
         messages.warning(request, "An error occurred when generating the report.")
         return HttpResponseRedirect(target)
@@ -165,10 +204,9 @@ def download_incident_pdf(request, incident_id: int):
 
 def is_incidents_report_limit_reached(request):
     if request.user.is_authenticated:
-        user = request.user
         # if a user make too many declaration we prevent to save
         number_preliminary_today = Incident.objects.filter(
-            contact_user=user, preliminary_notification_date=date.today()
+            contact_user=request.user, preliminary_notification_date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.warning(
@@ -190,13 +228,16 @@ class FormWizardView(SessionWizardView):
         return super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
-        company_in_use = get_company_session(self.request)
+        active_company = get_active_company_from_session(self.request)
         if step is None:
             step = self.steps.current
         position = int(step)
         # when we have passed the fixed forms
         if position == 1:
-            form = ImpactedServicesForm(data, sectors=company_in_use.sectors)
+            form = ImpactedServicesForm(
+                data,
+                sectors=active_company.sectors if active_company else Sector.objects.all()
+            )
 
             return form
         if position > 2:
@@ -213,8 +254,8 @@ class FormWizardView(SessionWizardView):
 
         categories = (
             QuestionCategory.objects.filter(question__is_preliminary=True)
-            .order_by("position")
-            .distinct()
+                .order_by("position")
+                .distinct()
         )
 
         context["steps"] = [
@@ -234,8 +275,7 @@ class FormWizardView(SessionWizardView):
 
         data = [form.cleaned_data for form in form_list]
         user = self.request.user
-        # TO DO : Take the company from the selection module
-        company = None
+        company = get_active_company_from_session(self.request)
 
         incident = Incident.objects.create(
             contact_lastname=data[0]["contact_lastname"],
@@ -253,9 +293,7 @@ class FormWizardView(SessionWizardView):
             complaint_reference=data[0]["complaint_reference"],
             contact_user=user,
             company=company,
-            company_name=company.name
-            if company is not None
-            else data[0]["company_name"],
+            company_name=company.name if company else data[0]["company_name"],
         )
         for regulation in data[1]["regulation"]:
             incident.regulations.add(regulation)
@@ -293,15 +331,15 @@ class FormWizardView(SessionWizardView):
             int_id = int_id + 1
         number_of_incident = f"{int_id:04}"
         incident.incident_id = (
-            company_for_ref
-            + "_"
-            + sector_for_ref
-            + "_"
-            + subsector_for_ref
-            + "_"
-            + number_of_incident
-            + "_"
-            + str(date.today().year)
+                company_for_ref
+                + "_"
+                + sector_for_ref
+                + "_"
+                + subsector_for_ref
+                + "_"
+                + number_of_incident
+                + "_"
+                + str(date.today().year)
         )
 
         # notification dispatching
@@ -367,8 +405,8 @@ class FinalNotificationWizardView(SessionWizardView):
 
         categories = (
             QuestionCategory.objects.filter(question__is_preliminary=False)
-            .order_by("position")
-            .distinct()
+                .order_by("position")
+                .distinct()
         )
 
         context["steps"] = [_("Impacts")]
@@ -433,7 +471,7 @@ def save_answers(index=0, data=None, incident=None):
                     answer = value
                 elif question.question_type == "DATE":
                     if value is not None:
-                        answer = value.strftime("%m/%d/%Y %H:%M:%S")
+                        answer = value.strftime("%Y-%m-%d %H:%M:%S")
                     else:
                         answer = None
                 elif question.question_type == "CL" or question.question_type == "RL":

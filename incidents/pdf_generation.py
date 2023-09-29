@@ -8,9 +8,7 @@ from weasyprint import CSS, HTML
 from .models import Answer, Incident
 
 
-def get_pdf_report(incident_id: int, request: HttpRequest):
-    incident = Incident.objects.get(pk=incident_id)
-
+def get_pdf_report(incident: Incident, request: HttpRequest):
     regulations = []
     services: Dict[str, List[str]] = {}
     for regulation in incident.regulations.all():

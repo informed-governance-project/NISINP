@@ -173,13 +173,13 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
                         initial_data = datetime.strptime(
-                            initial_data, "%m/%d/%Y %H:%m:%s"
+                            initial_data, "%Y-%m-%d %H:%m:%s"
                         ).date()
             self.fields[str(question.id)] = forms.DateField(
                 widget=DatePickerInput(
                     options={
-                        "format": "MM/DD/YYYY HH:mm:ss",
-                        "maxDate": datetime.today().strftime("%m/%d/%Y 23:59:59"),
+                        "format": "YYYY-MM-DD HH:mm:ss",
+                        "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     }
                 ),
                 required=question.is_mandatory,

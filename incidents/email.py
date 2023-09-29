@@ -15,6 +15,6 @@ def replace_email_variables(content, incident):
 
             var_txt = getattr(incident, variable[1])
             if isinstance(var_txt, date):
-                var_txt = getattr(incident, variable[1]).strftime("%m/%d/%Y")
+                var_txt = getattr(incident, variable[1]).strftime("%Y-%m-%d")
         modify_content = modify_content.replace(variable[0], var_txt)
     return modify_content

@@ -1,6 +1,7 @@
 import secrets
+from typing import Optional
 
-from .models import User
+from .models import User, Company
 
 
 def generate_token():
@@ -16,14 +17,10 @@ def user_in_group(user, group_name) -> bool:
 
 
 def is_user_regulator(user: User) -> bool:
-    return user_in_group(user, "RegulatorAdmin")\
+    return user_in_group(user, "RegulatorAdmin") \
            or user_in_group(user, "RegulatorStaff")
 
 
-def get_company_session(request):
-    company_in_use = request.session.get(
-        "company_in_use", request.user.companies.first().id
-    )
-    if company_in_use:
-        return request.user.companies.get(id=company_in_use)
-    return False
+def get_active_company_from_session(request) -> Optional[Company]:
+    company_in_use = request.session.get("company_in_use")
+    return request.user.companies.get(id=company_in_use) if company_in_use else None
