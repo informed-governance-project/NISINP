@@ -10,7 +10,11 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
 
-from governanceplatform.helpers import get_company_session
+from governanceplatform.helpers import (
+    get_company_session,
+    is_user_regulator,
+    user_in_group
+)
 from governanceplatform.models import Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
@@ -19,7 +23,7 @@ from governanceplatform.settings import (
     SITE_NAME,
 )
 
-from .decorators import regulator_company_required
+from .decorators import regulator_role_required
 from .forms import (
     ContactForm,
     ImpactedServicesForm,
@@ -42,17 +46,37 @@ from .email import (replace_email_variables)
 
 @login_required
 def get_incidents(request):
-    """Returns the list of incidents."""
-    user = request.user
-    incidents = (
-        Incident.objects.all()
-        .order_by("preliminary_notification_date")
-        .filter(contact_user=user)
-    )
+    """Returns the list of incidents depending on the account type."""
+    company_in_use = request.session.get("company_in_use")
+    incidents = Incident.objects.order_by("-preliminary_notification_date")
+
+    # RegulatorAdmin can see all the incidents reported by operators.
+    if not user_in_group(request.user, "RegulatorAdmin"):
+        # RegulatorUser has access to all incidents linked by sectors.
+        if user_in_group(request.user, "RegulatorStaff"):
+            incidents = incidents.filter(affected_services__sector__in=request.user.sectors.all())
+        else:
+            incidents = incidents.filter(
+                company__id=company_in_use
+            ) if company_in_use else incidents.filter(contact_user=request.user)
+
+    if request.GET.get("incidentId"):
+        incidents = incidents.filter(incident_id__icontains=request.GET.get("incidentId"))
+
+    # Show 20 incidents per page.
+    paginator = Paginator(incidents, 20)
+    page_number = request.GET.get("page")
+    incidents_page = paginator.get_page(page_number)
+
+    # add paggination to the regular incidents view.
     return render(
         request,
-        "incidents.html",
-        context={"site_name": SITE_NAME, "incidents": incidents},
+        "regulator/incidents.html" if is_user_regulator(request.user) else "incidents.html",
+        context={
+            "site_name": SITE_NAME,
+            "incidents": incidents,
+            "incidents_page": incidents_page,
+        },
     )
 
 
@@ -81,34 +105,7 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 
 
 @login_required
-@regulator_company_required
-def get_incidents_for_regulator(request):
-    """Returns incidents list for regulators."""
-    if request.GET.get("incidentId"):
-        incidents = Incident.objects.filter(
-            incident_id__icontains=request.GET.get("incidentId")
-        ).order_by("-preliminary_notification_date")
-    else:
-        incidents = Incident.objects.all().order_by("-preliminary_notification_date")
-
-    # Show 20 incidents per page.
-    paginator = Paginator(incidents, 20)
-    page_number = request.GET.get("page")
-    incidents_page = paginator.get_page(page_number)
-
-    return render(
-        request,
-        "regulator/incidents.html",
-        context={
-            "site_name": SITE_NAME,
-            "incidents": incidents,
-            "incidents_page": incidents_page,
-        },
-    )
-
-
-@login_required
-@regulator_company_required
+@regulator_role_required
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     incident = Incident.objects.get(pk=incident_id)
@@ -123,23 +120,16 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 request,
                 f"Incident {incident.incident_id} has been successfully saved.",
             )
-            response = HttpResponseRedirect(
-                request.COOKIES.get("return_page", "/incidents/regulator/incidents")
-            )
+            response = HttpResponseRedirect(request.session.get("return_page", "/incidents"))
             try:
                 del request.session["return_page"]
             except KeyError:
                 pass
-            if not can_redirect(response.url):
-                response = HttpResponseRedirect("/incidents/regulator/incidents")
+
             return response
 
     if not request.session.get("return_page"):
-        request.session["return_page"] = request.headers.get(
-            "referer", "/incidents/regulator/incidents"
-        )
-    if not can_redirect(request.session["return_page"]):
-        request.session["return_page"] = "/incidents/regulator/incidents"
+        request.session["return_page"] = request.headers.get("referer", "/incidents")
 
     return render(
         request,
@@ -150,14 +140,6 @@ def get_regulator_incident_edit_form(request, incident_id: int):
         },
     )
 
-    if request.COOKIES.get("return_page") is None:
-        response.set_cookie(
-            "return_page",
-            request.headers.get("referer", "/incidents/regulator/incidents"),
-        )
-
-    return response
-
 
 @login_required
 def download_incident_pdf(request, incident_id: int):
@@ -165,6 +147,8 @@ def download_incident_pdf(request, incident_id: int):
     if not can_redirect(target):
         target = "/"
 
+    # TODO: check for the permissions depending on the user type. RegulatorsUser by sector
+    # OperatorUser or OperatorAdmin check company.
     try:
         pdf_report = get_pdf_report(incident_id, request)
     except Exception:

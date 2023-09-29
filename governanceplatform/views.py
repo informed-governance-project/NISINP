@@ -20,9 +20,10 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
-    if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
+    if user_in_group(user, "PlatformAdmin"):
         return redirect("admin:index")
 
+    # TODO: allow to bypass it for an IncidentUser
     if not user.companies.exists():
         messages.error(
             request,
@@ -32,14 +33,15 @@ def index(request):
         )
         return redirect("login")
 
-    company_cookie = request.session.get("company_in_use")
-    if not company_cookie:
+    if not request.session.get("company_in_use"):
         if user.companies.count() > 1:
             return select_company(request)
 
         request.session["company_in_use"] = user.companies.first().id
 
-    return redirect("incidents")
+    return redirect("admin:index") if user_in_group(user, "RegulatorAdmin") else redirect(
+        "incidents"
+    )
 
 
 def logout_view(request):
@@ -87,28 +89,18 @@ def registration_view(request, *args, **kwargs):
     return render(request, "registration/signup.html", context)
 
 
-# @company_permission_required(is_regulator=False)
-# def operateur_index(request):
-#     return render(
-#         request,
-#         "operateur/index.html",
-#     )
-
-
-# @company_permission_required(is_regulator=True)
-# def regulator_index(request):
-#     return render(request, "regulator/index.html")
-
-
 def select_company(request):
     if request.method == "POST":
         form = SelectCompany(request.POST, companies=request.user.companies)
 
         if form.is_valid() and request.user.is_authenticated:
-            company_selected = form.cleaned_data["select_company"].id
-            request.session["company_in_use"] = company_selected
+            user_company = request.user.companies.get(id=form.cleaned_data["select_company"].id)
+            if user_company:
+                request.session["company_in_use"] = user_company.id
+                return index(request)
 
-            return index(request)
+            messages.warning(request, "The select company is not linked to the account.")
     else:
         form = SelectCompany(companies=request.user.companies)
+
     return render(request, "registration/select_company.html", {"form": form})

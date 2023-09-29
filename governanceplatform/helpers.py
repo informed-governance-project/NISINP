@@ -10,14 +10,14 @@ def generate_token():
 
 def user_in_group(user, group_name) -> bool:
     """Check user group"""
-    if  user.is_authenticated:
-        return User.objects.filter(email=user.email, groups__name=group_name).exists()
+    if not user.is_authenticated:
+        return False
+    return any(user_group.name == group_name for user_group in user.groups.all())
 
 
 def is_user_regulator(user: User) -> bool:
-    return user_in_group(user, "RegulatorAdmin") or user_in_group(
-        user, "RegulatorStaff"
-    )
+    return user_in_group(user, "RegulatorAdmin")\
+           or user_in_group(user, "RegulatorStaff")
 
 
 def get_company_session(request):

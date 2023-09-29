@@ -22,7 +22,6 @@ from .views import (
     get_final_notification_list,
     get_form_list,
     get_incidents,
-    get_incidents_for_regulator,
     get_regulator_incident_edit_form,
 )
 
@@ -38,17 +37,13 @@ urlpatterns = [
         get_final_notification_list,
         name="final-notification",
     ),
-    # incident list for regulator
     path(
-        "regulator/incidents", get_incidents_for_regulator, name="regulator_incidents"
-    ),
-    path(
-        "regulator/incident/<int:incident_id>",
+        "incident/<int:incident_id>",
         get_regulator_incident_edit_form,
         name="regulator_incident_edit",
     ),
     path(
-        "regulator/download-pdf/<int:incident_id>",
+        "download-pdf/<int:incident_id>",
         download_incident_pdf,
         name="download_incident_pdf",
     ),
