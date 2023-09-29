@@ -27,10 +27,6 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="predefined_answer",
         attribute="predefined_answer",
     )
-    allowed_additional_answer = fields.Field(
-        column_name="allowed_additional_answer",
-        attribute="allowed_additional_answer",
-    )
 
     class Meta:
         model = PredefinedAnswer
@@ -41,10 +37,9 @@ class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
         "get_question_label",
         "predefined_answer",
-        "allowed_additional_answer",
     ]
     list_display_links = ["get_question_label", "predefined_answer"]
-    search_fields = ["allowed_additional_answer, predefined_answer"]
+    search_fields = ["predefined_answer"]
     resource_class = PredefinedAnswerResource
 
     @admin.display(description="Question")

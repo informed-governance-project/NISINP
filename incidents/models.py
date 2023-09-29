@@ -24,9 +24,6 @@ class Impact(TranslatableModel):
 # answers for the question
 class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(predefined_answer=models.TextField())
-    allowed_additional_answer = models.BooleanField(
-        default=False, verbose_name=_("Additional Answer")
-    )
 
     def __str__(self):
         return self.predefined_answer
