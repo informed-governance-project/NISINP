@@ -37,6 +37,7 @@ from .models import (
     QuestionCategory,
 )
 from .pdf_generation import get_pdf_report
+from .email import (replace_email_variables)
 
 
 @login_required
@@ -333,8 +334,8 @@ class FormWizardView(SessionWizardView):
         email = Email.objects.filter(email_type="PRELI").first()
         if email is not None:
             send_mail(
-                email.subject,
-                email.content,
+                replace_email_variables(email.subject, incident),
+                replace_email_variables(email.content, incident),
                 EMAIL_SENDER,
                 [user.email],
                 fail_silently=True,
@@ -420,8 +421,8 @@ class FinalNotificationWizardView(SessionWizardView):
         save_answers(1, data, self.incident)
         if email is not None:
             send_mail(
-                email.subject,
-                email.content,
+                replace_email_variables(email.subject, self.incident),
+                replace_email_variables(email.content, self.incident),
                 EMAIL_SENDER,
                 [self.incident.contact_user.email],
                 fail_silently=True,

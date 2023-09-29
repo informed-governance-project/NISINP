@@ -34,6 +34,8 @@ EMAIL_TYPES = [
 # The variables to use in the email template in the admin interface, and the corresponding attribute
 INCIDENT_EMAIL_VARIABLES = [
     ("#PRELIMINARY_NOTIFICATION_DATE#", "preliminary_notification_date"),
+    ("#INCIDENT_FINAL_NOTIFICATION_URL#", "pk"),
+    ("#INCIDENT_ID#", "incident_id"),
 ]
 
 INCIDENT_STATUS = [
