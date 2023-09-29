@@ -67,7 +67,7 @@
 <script type="text/javascript">
     function searchByIncidentId() {
         const incidentId = $('#search-by-incident-id').val();
-        listUrl = '/incidents/regulator/incidents';
+        listUrl = '/incidents';
         if (incidentId !== '') {
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('incidentId', incidentId)

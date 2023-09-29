@@ -360,14 +360,7 @@ def construct_services_array(root_sectors):
 
 # the affected services with services load from services table
 class ImpactedServicesForm(forms.Form):
-    regulationTypes = []
-
-    if "incidents_regulationtype" in connection.introspection.table_names():
-        try:
-            regulationTypes = RegulationType.objects.all()
-
-        except Exception:
-            regulationTypes = []
+    regulationTypes = RegulationType.objects.all()
 
     choices_rt = []
     for choice in regulationTypes:
@@ -463,19 +456,13 @@ def get_forms_list(is_preliminary=True):
 
 
 class NotificationDispatchingForm(forms.Form):
-    initial_data = []
+    initial_data = [
+        (k.id, k.name + " " + k.full_name + " " + k.description)
+        for k in Company.objects.all().filter(
+            is_regulator=True,
+        )
+    ]
 
-    if "governanceplatform_Company" in connection.introspection.table_names():
-        try:
-            initial_data = [
-                (k.id, k.name + " " + k.full_name + " " + k.description)
-                for k in Company.objects.all().filter(
-                    is_regulator=True,
-                )
-            ]
-
-        except Exception:
-            initial_data = []
     # generic impact definitions
     authorities_list = forms.MultipleChoiceField(
         required=False,

@@ -3,23 +3,20 @@ import functools
 from django.contrib import messages
 from django.shortcuts import redirect
 
+from governanceplatform.helpers import is_user_regulator
 
-def regulator_company_required(view_func, redirect_url="/"):
+
+def regulator_role_required(view_func, redirect_url="/"):
     """
-    This decorator ensures that a user is linked to a company that is a regulator.
+    This decorator ensures that a logged in user has a regulator role.
     """
 
     @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        for company in request.user.companies.all():
-            if company.is_regulator:
-                return view_func(request, *args, **kwargs)
+        if is_user_regulator(request.user):
+            return view_func(request, *args, **kwargs)
 
-        messages.info(
-            request,
-            "Only users that belong to a regulator's companies are allowed to access the page.",
-        )
-
+        messages.info(request, "User must be have a regulator role to access the page.")
         return redirect(redirect_url)
 
     return wrapper
