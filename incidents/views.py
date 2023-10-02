@@ -331,9 +331,7 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
-        incidents_per_company = 0
-        if company is not None:
-            incidents_per_company = company.incident_set.count() + 1
+        incidents_per_company = company.incident_set.count() + 1 if company else 0
         number_of_incident = f"{incidents_per_company:04}"
         incident.incident_id = (
             company_for_ref
