@@ -2,10 +2,7 @@
 {% load i18n %}
 {% block content %}
 <div class="text-justify">
-    <a href="{% url 'declaration' %}">Signaler un incident</a>
-</div>
-<div class="text-justify">
-    <h1>Incident list</h1>
+    <h1>{% translate "Incident list" %}</h1>
     {% if incidents %}
     <table class="table">
         <thead>
@@ -36,17 +33,17 @@
     <div class="pagination">
         <span class="step-links">
             {% if incidents_page.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ incidents_page.previous_page_number }}">previous</a>
+                <a href="?page=1">&laquo; {% translate "first" %}</a>
+                <a href="?page={{ incidents_page.previous_page_number }}">{% translate "previous" %}</a>
             {% endif %}
 
             <span class="current">
-                Page {{ incidents_page.number }} of {{ incidents_page.paginator.num_pages }}.
+                {% translate "Page" %} {{ incidents_page.number }} {% translate "of" %} {{ incidents_page.paginator.num_pages }}.
             </span>
 
             {% if incidents_page.has_next %}
-                <a href="?page={{ incidents_page.next_page_number }}">next</a>
-                <a href="?page={{ incidents_page.paginator.num_pages }}">last &raquo;</a>
+                <a href="?page={{ incidents_page.next_page_number }}">{%translate "next" %}</a>
+                <a href="?page={{ incidents_page.paginator.num_pages }}">{%translate "last" %} &raquo;</a>
             {% endif %}
         </span>
     </div>
@@ -54,5 +51,10 @@
     <p>{% translate "There are no incident" %}</p>
     {% endif %}
 
+</div>
+<div class="d-grid col-2 mx-auto">
+    <a role="button" class="btn btn-primary" href="{% url 'declaration' %}">
+        {% translate "Signaler un incident" %}
+    </a>
 </div>
 {% endblock %}
