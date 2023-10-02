@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
@@ -118,7 +118,7 @@ class Company(models.Model):
 
 
 # define an abstract class which make  the difference between operator and regulator
-class User(AbstractUser):
+class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(
         verbose_name=_("email address"),

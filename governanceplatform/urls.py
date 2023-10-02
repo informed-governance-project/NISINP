@@ -42,7 +42,7 @@ urlpatterns = [
         name="login",
     ),
     path(
-        "account/register/",
+        "account/signup/",
         views.registration_view,
         name="registration",
     ),
