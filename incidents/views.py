@@ -60,7 +60,7 @@ def get_incidents(request):
     # RegulatorAdmin can see all the incidents reported by operators.
     elif not user_in_group(request.user, "RegulatorAdmin"):
         # OperatorStaff and IncidentUser can see only their reports.
-        incidents.filter(contact_user=request.user)
+        incidents = incidents.filter(contact_user=request.user)
 
     if request.GET.get("incidentId"):
         # Search by incident id
