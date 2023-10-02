@@ -331,18 +331,10 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
-        # TO DO : improve with proy and company
-        if company is None:
-            int_id = 0
-            ids = Incident.objects.filter(
-                incident_id__icontains=company_for_ref
-            ).values_list("incident_id", flat=True)
-            for id in ids:
-                id = int(id[-9:-5])
-                if id > int_id:
-                    int_id = id
-            int_id = int_id + 1
-        number_of_incident = f"{int_id:04}"
+        incidents_per_company = 0
+        if company is not None:
+            incidents_per_company = company.incident_set.count() + 1
+        number_of_incident = f"{incidents_per_company:04}"
         incident.incident_id = (
             company_for_ref
             + "_"
