@@ -10,7 +10,7 @@ def replace_email_variables(content, incident):
     modify_content = content
     for variable in INCIDENT_EMAIL_VARIABLES:
         if variable[0] == "#INCIDENT_FINAL_NOTIFICATION_URL#":
-            var_txt = PUBLIC_URL+'/incidents/final-notification/'+str(incident.pk)
+            var_txt = PUBLIC_URL + "/incidents/final-notification/" + str(incident.pk)
         else:
 
             var_txt = getattr(incident, variable[1])

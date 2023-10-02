@@ -39,8 +39,10 @@ def index(request):
 
         request.session["company_in_use"] = user.companies.first().id
 
-    return redirect("admin:index") if user_in_group(user, "RegulatorAdmin") else redirect(
-        "incidents"
+    return (
+        redirect("admin:index")
+        if user_in_group(user, "RegulatorAdmin")
+        else redirect("incidents")
     )
 
 
@@ -94,12 +96,16 @@ def select_company(request):
         form = SelectCompany(request.POST, companies=request.user.companies)
 
         if form.is_valid() and request.user.is_authenticated:
-            user_company = request.user.companies.get(id=form.cleaned_data["select_company"].id)
+            user_company = request.user.companies.get(
+                id=form.cleaned_data["select_company"].id
+            )
             if user_company:
                 request.session["company_in_use"] = user_company.id
                 return index(request)
 
-            messages.warning(request, "The select company is not linked to the account.")
+            messages.warning(
+                request, "The select company is not linked to the account."
+            )
     else:
         form = SelectCompany(companies=request.user.companies)
 

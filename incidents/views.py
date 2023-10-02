@@ -13,9 +13,9 @@ from formtools.wizard.views import SessionWizardView
 from governanceplatform.helpers import (
     get_active_company_from_session,
     is_user_regulator,
-    user_in_group
+    user_in_group,
 )
-from governanceplatform.models import Service, Sector
+from governanceplatform.models import Sector, Service
 from governanceplatform.settings import (
     EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
@@ -24,6 +24,7 @@ from governanceplatform.settings import (
 )
 
 from .decorators import regulator_role_required
+from .email import replace_email_variables
 from .forms import (
     ContactForm,
     ImpactedServicesForm,
@@ -41,7 +42,6 @@ from .models import (
     QuestionCategory,
 )
 from .pdf_generation import get_pdf_report
-from .email import (replace_email_variables)
 
 
 @login_required
@@ -51,7 +51,9 @@ def get_incidents(request):
 
     if user_in_group(request.user, "RegulatorStaff"):
         # RegulatorUser has access to all incidents linked by sectors.
-        incidents = incidents.filter(affected_services__sector__in=request.user.sectors.all())
+        incidents = incidents.filter(
+            affected_services__sector__in=request.user.sectors.all()
+        )
     elif user_in_group(request.user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
@@ -74,7 +76,9 @@ def get_incidents(request):
     # add paggination to the regular incidents view.
     return render(
         request,
-        "regulator/incidents.html" if is_user_regulator(request.user) else "incidents.html",
+        "regulator/incidents.html"
+        if is_user_regulator(request.user)
+        else "incidents.html",
         context={
             "site_name": SITE_NAME,
             "incidents": incidents,
@@ -115,8 +119,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     if (
         user_in_group(request.user, "RegulatorStaff")
         and not Incident.objects.filter(
-            pk=incident_id,
-            affected_services__sector__in=request.user.sectors.all()
+            pk=incident_id, affected_services__sector__in=request.user.sectors.all()
         ).exists()
     ):
         return HttpResponseRedirect("/incidents")
@@ -133,7 +136,9 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 request,
                 f"Incident {incident.incident_id} has been successfully saved.",
             )
-            response = HttpResponseRedirect(request.session.get("return_page", "/incidents"))
+            response = HttpResponseRedirect(
+                request.session.get("return_page", "/incidents")
+            )
             try:
                 del request.session["return_page"]
             except KeyError:
@@ -164,8 +169,7 @@ def download_incident_pdf(request, incident_id: int):
     if (
         user_in_group(request.user, "RegulatorStaff")
         and not Incident.objects.filter(
-            pk=incident_id,
-            affected_services__sector__in=request.user.sectors.all()
+            pk=incident_id, affected_services__sector__in=request.user.sectors.all()
         ).exists()
     ):
         return HttpResponseRedirect("/incidents")
@@ -173,8 +177,7 @@ def download_incident_pdf(request, incident_id: int):
     if (
         user_in_group(request.user, "OperatorAdmin")
         and not Incident.objects.filter(
-            pk=incident_id,
-            company__id=request.session.get("company_in_use")
+            pk=incident_id, company__id=request.session.get("company_in_use")
         ).exists()
     ):
         return HttpResponseRedirect("/incidents")
@@ -182,7 +185,9 @@ def download_incident_pdf(request, incident_id: int):
     if (
         not is_user_regulator(request.user)
         and not user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(pk=incident_id, contact_user=request.user).exists()
+        and not Incident.objects.filter(
+            pk=incident_id, contact_user=request.user
+        ).exists()
     ):
         return HttpResponseRedirect("/incidents")
 
@@ -236,7 +241,9 @@ class FormWizardView(SessionWizardView):
         if position == 1:
             form = ImpactedServicesForm(
                 data,
-                sectors=active_company.sectors if active_company else Sector.objects.all()
+                sectors=active_company.sectors
+                if active_company
+                else Sector.objects.all(),
             )
 
             return form
@@ -254,8 +261,8 @@ class FormWizardView(SessionWizardView):
 
         categories = (
             QuestionCategory.objects.filter(question__is_preliminary=True)
-                .order_by("position")
-                .distinct()
+            .order_by("position")
+            .distinct()
         )
 
         context["steps"] = [
@@ -331,15 +338,15 @@ class FormWizardView(SessionWizardView):
             int_id = int_id + 1
         number_of_incident = f"{int_id:04}"
         incident.incident_id = (
-                company_for_ref
-                + "_"
-                + sector_for_ref
-                + "_"
-                + subsector_for_ref
-                + "_"
-                + number_of_incident
-                + "_"
-                + str(date.today().year)
+            company_for_ref
+            + "_"
+            + sector_for_ref
+            + "_"
+            + subsector_for_ref
+            + "_"
+            + number_of_incident
+            + "_"
+            + str(date.today().year)
         )
 
         # notification dispatching
@@ -405,8 +412,8 @@ class FinalNotificationWizardView(SessionWizardView):
 
         categories = (
             QuestionCategory.objects.filter(question__is_preliminary=False)
-                .order_by("position")
-                .distinct()
+            .order_by("position")
+            .distinct()
         )
 
         context["steps"] = [_("Impacts")]
