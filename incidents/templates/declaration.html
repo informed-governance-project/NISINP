@@ -50,11 +50,13 @@
         {% endif %}
         {% endwith %}
       {% endif %}
-      {% if wizard.steps.last == wizard.steps.current %}
-      {% bootstrap_button button_type="submit" content="Notify" %}
-      {% else %}
-      {% bootstrap_button button_type="submit" content="Next" %}
-      {% endif %}
+      {% with notify_text_button="Notify"|translate next_text_button="Next"|translate %}
+        {% if wizard.steps.last == wizard.steps.current %}
+          {% bootstrap_button button_type="submit" content=notify_text_button %}
+        {% else %}
+          {% bootstrap_button button_type="submit" content=next_text_button %}
+        {% endif %}
+      {% endwith %}
     </form>
   </div>
 </div>
