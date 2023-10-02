@@ -149,6 +149,10 @@ class User(AbstractUser):
     def get_companies(self):
         return [company.name for company in self.companies.all()]
 
+    def save(self, *args, **kwargs):
+        self.email = self.email.lower()
+        super().save(*args, **kwargs)
+
     class Meta:
         permissions = (
             ("import_user", "Can import user"),
