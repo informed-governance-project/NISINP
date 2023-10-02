@@ -8,3 +8,11 @@ a.changelink {
 .bold {
     font-weight:bold;
 }
+
+
+.required-field > label::after {
+    content: " * ";
+    color: red;
+    font-weight: bold;
+    padding-right: 2px;
+}

@@ -44,7 +44,6 @@
         {% else %}
           {{ wizard.form.media }}
           <div class="col-md-6">
-            {% bootstrap_form_errors wizard.form %}
             {% bootstrap_form wizard.form %}
           </div>
         {% endif %}
