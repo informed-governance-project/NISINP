@@ -50,7 +50,11 @@
         {% endif %}
         {% endwith %}
       {% endif %}
-      {% bootstrap_button button_type="submit" content="Save" %}
+      {% if wizard.steps.last == wizard.steps.current %}
+      {% bootstrap_button button_type="submit" content="Notify" %}
+      {% else %}
+      {% bootstrap_button button_type="submit" content="Next" %}
+      {% endif %}
     </form>
   </div>
 </div>
