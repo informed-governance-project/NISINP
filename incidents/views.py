@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
+from django_otp.decorators import otp_required
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from formtools.wizard.views import SessionWizardView
@@ -45,6 +46,7 @@ from .pdf_generation import get_pdf_report
 
 
 @login_required
+@otp_required
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     incidents = Incident.objects.order_by("-preliminary_notification_date")
@@ -88,6 +90,7 @@ def get_incidents(request):
 
 
 @login_required
+@otp_required
 def get_form_list(request, form_list=None):
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
@@ -101,6 +104,7 @@ def get_form_list(request, form_list=None):
 
 
 @login_required
+@otp_required
 def get_final_notification_list(request, form_list=None, incident_id=None):
     if form_list is None:
         form_list = get_forms_list(is_preliminary=False)
@@ -112,6 +116,7 @@ def get_final_notification_list(request, form_list=None, incident_id=None):
 
 
 @login_required
+@otp_required
 @regulator_role_required
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
@@ -160,6 +165,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
 
 
 @login_required
+@otp_required
 def download_incident_pdf(request, incident_id: int):
     target = request.headers.get("referer", "/")
     if not can_redirect(target):
