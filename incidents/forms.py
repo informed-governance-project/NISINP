@@ -197,7 +197,7 @@ class QuestionForm(forms.Form):
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
             self.fields[str(question.id)] = forms.CharField(
                 required=question.is_mandatory,
-                widget=forms.TextInput(attrs={"value": str(initial_data)}),
+                widget=forms.Textarea(attrs={"value": str(initial_data)}),
                 label=question.label,
             )
         elif question.question_type == "CL" or question.question_type == "RL":
@@ -270,7 +270,7 @@ class ContactForm(forms.Form):
     )
     contact_email = forms.CharField(
         max_length=100,
-        widget=forms.TextInput(attrs={"class": "contact_email"}),
+        widget=forms.EmailInput(attrs={"class": "contact_email"}),
     )
     contact_telephone = forms.CharField(
         max_length=100,
@@ -311,7 +311,7 @@ class ContactForm(forms.Form):
     )
     technical_email = forms.CharField(
         max_length=100,
-        widget=forms.TextInput(attrs={"class": "technical_email"}),
+        widget=forms.EmailInput(attrs={"class": "technical_email"}),
     )
     technical_telephone = forms.CharField(
         max_length=100,
@@ -464,14 +464,16 @@ class NotificationDispatchingForm(forms.Form):
 
     # generic impact definitions
     authorities_list = forms.MultipleChoiceField(
-        required=False,
+        required=True,
         choices=initial_data,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
         label="Send notification to:",
     )
 
     other_authority = forms.CharField(
-        widget=forms.TextInput(), label="Send to another authority:"
+        required=False,
+        widget=forms.EmailInput(attrs={"placeholder": "other_authority@exemple.com"}),
+        label="Send to another authority:",
     )
 
 
