@@ -35,7 +35,10 @@
 </div>
 <div class="row">
     <div class="col-md-6">
-        <h4>{{ _('References')}}</h4>
+        <div class="d-flex align-items-center">
+            <h4 class="">{{ _('References') }}</h4>
+            <small class="text-muted ps-2">({{ _('Optional') }})</small>
+        </div>
         {% bootstrap_field wizard.form.incident_reference show_label=False %}
         {% bootstrap_field wizard.form.complaint_reference show_label=False %}
     </div>
