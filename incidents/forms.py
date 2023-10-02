@@ -141,7 +141,10 @@ class QuestionForm(forms.Form):
                 choices=choices,
                 widget=OtherCheckboxSelectMultiple(
                     input_type=input_type,
-                    # attrs={"class": "multiple-selection"}
+                    attrs={
+                        "title": question.tooltip,
+                        "data-bs-toggle": "tooltip",
+                    },
                 ),
                 label=question.label,
                 initial=initial_data,
@@ -154,11 +157,13 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
                 self.fields[str(question.id) + "_answer"] = forms.CharField(
-                    required=False,
+                    required=True,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
                             "value": str(initial_answer),
+                            "title": question.tooltip,
+                            "data-bs-toggle": "tooltip",
                         }
                     ),
                     label="Add precision",
@@ -180,7 +185,11 @@ class QuestionForm(forms.Form):
                     options={
                         "format": "YYYY-MM-DD HH:mm:ss",
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-                    }
+                    },
+                    attrs={
+                        "title": question.tooltip,
+                        "data-bs-toggle": "tooltip",
+                    },
                 ),
                 required=question.is_mandatory,
                 initial=initial_data,
@@ -197,7 +206,13 @@ class QuestionForm(forms.Form):
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
             self.fields[str(question.id)] = forms.CharField(
                 required=question.is_mandatory,
-                widget=forms.Textarea(attrs={"value": str(initial_data)}),
+                widget=forms.Textarea(
+                    attrs={
+                        "value": str(initial_data),
+                        "title": question.tooltip,
+                        "data-bs-toggle": "tooltip",
+                    }
+                ),
                 label=question.label,
             )
         elif question.question_type == "CL" or question.question_type == "RL":
@@ -254,25 +269,30 @@ class QuestionForm(forms.Form):
 
 # the first question for preliminary notification
 class ContactForm(forms.Form):
-    company_name = forms.CharField(label="Company name", max_length=100)
+    company_name = forms.CharField(required=True, label="Company name", max_length=100)
 
     contact_lastname = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "contact_lastname"}),
     )
     contact_firstname = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "contact_firstname"}),
     )
     contact_title = forms.CharField(
+        required=False,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "contact_title"}),
     )
     contact_email = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.EmailInput(attrs={"class": "contact_email"}),
     )
     contact_telephone = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "contact_telephone"}),
     )
@@ -298,28 +318,53 @@ class ContactForm(forms.Form):
         initial=False,
     )
     technical_lastname = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "technical_lastname"}),
     )
     technical_firstname = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "technical_firstname"}),
     )
     technical_title = forms.CharField(
+        required=False,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "technical_title"}),
     )
     technical_email = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.EmailInput(attrs={"class": "technical_email"}),
     )
     technical_telephone = forms.CharField(
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={"class": "technical_telephone"}),
     )
 
-    incident_reference = forms.CharField(max_length=255, required=False)
-    complaint_reference = forms.CharField(max_length=255, required=False)
+    incident_reference = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "title": _(
+                    "Insert a reference to find and track easily your incident (internal reference, CERT reference, etc.)"
+                ),
+                "data-bs-toggle": "tooltip",
+            }
+        ),
+    )
+    complaint_reference = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "title": _("Insert any complaint has been filed with the police"),
+                "data-bs-toggle": "tooltip",
+            }
+        ),
+    )
 
     def prepare_initial_value(**kwargs):
         request = kwargs.pop("request")
@@ -366,12 +411,21 @@ class ImpactedServicesForm(forms.Form):
         choices_rt.append([choice.id, choice])
 
     regulation = forms.MultipleChoiceField(
-        required=False,
+        required=True,
         choices=choices_rt,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=forms.CheckboxSelectMultiple(
+            attrs={
+                "class": "multiple-selection",
+                "title": _(
+                    "Select one or more regulation(s) affected by your incident"
+                ),
+                "data-bs-toggle": "tooltip",
+            }
+        ),
     )
+
     affected_services = forms.MultipleChoiceField(
-        required=False,
+        required=True,
         widget=DropdownCheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
 
