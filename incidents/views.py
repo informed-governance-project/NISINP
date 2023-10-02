@@ -196,7 +196,7 @@ def download_incident_pdf(request, incident_id: int):
     try:
         pdf_report = get_pdf_report(incident, request)
     except Exception:
-        messages.warning(request, "An error occurred when generating the report.")
+        messages.warning(request, _("An error occurred when generating the report."))
         return HttpResponseRedirect(target)
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -216,7 +216,9 @@ def is_incidents_report_limit_reached(request):
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.warning(
                 request,
-                "The incidents reports per day have been reached. Try again tomorrow.",
+                _(
+                    "The incidents reports per day have been reached. Try again tomorrow."
+                ),
             )
             return True
     return False
