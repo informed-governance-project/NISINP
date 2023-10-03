@@ -5,7 +5,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
-from .forms import RegistrationForm, SelectCompany
+from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
 from .helpers import user_in_group
 
 User = get_user_model()
@@ -49,6 +49,21 @@ def index(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
+
+
+def edit_account(request):
+    user = request.user
+    if request.method == "POST":
+        form = CustomUserChangeForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                _("Account has been successfully saved."),
+            )
+    else:
+        form = CustomUserChangeForm(instance=user)
+    return render(request, "account/edit.html", {"form": form})
 
 
 def about(request):

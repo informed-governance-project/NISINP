@@ -46,6 +46,11 @@ urlpatterns = [
         views.registration_view,
         name="registration",
     ),
+    path(
+        "account/edit/",
+        views.edit_account,
+        name="edit_account",
+    ),
     # Incident notification
     path("incidents/", include("incidents.urls"), name="incidents"),
     # API
