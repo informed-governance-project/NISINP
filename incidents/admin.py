@@ -132,6 +132,7 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "question_type",
         "category",
         "label",
+        "tooltip",
         "predefined_answers",
     ]
     filter_horizontal = ["predefined_answers"]

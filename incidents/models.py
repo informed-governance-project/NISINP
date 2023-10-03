@@ -53,7 +53,7 @@ class Question(TranslatableModel):
     is_preliminary = models.BooleanField(default=False, verbose_name=_("Preliminary"))
     translations = TranslatedFields(
         label=models.TextField(),
-        tooltip=models.CharField(max_length=255, blank=True, default=None, null=True),
+        tooltip=models.TextField(blank=True, null=True),
     )
     predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
     position = models.IntegerField()
@@ -146,7 +146,7 @@ class Incident(models.Model):
     authorities = models.ManyToManyField(
         "governanceplatform.Company", related_name="authorities"
     )
-    other_authority = models.TextField(null=True, blank=True)
+    other_authority = models.EmailField(null=True, blank=True)
 
     # status
     review_status = models.CharField(
