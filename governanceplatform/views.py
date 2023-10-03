@@ -49,6 +49,7 @@ def logout_view(request):
     return redirect("login")
 
 
+@login_required
 def edit_account(request):
     user = request.user
     if request.method == "POST":
