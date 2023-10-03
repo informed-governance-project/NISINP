@@ -38,6 +38,7 @@ weasyprint = "^59.0"
 django-extensions = "^3.2.3"
 django-parler-rest = "^2.2"
 python-dateutil = "^2.8.2"
+django-phonenumber-field = "^7.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

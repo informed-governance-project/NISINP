@@ -1,11 +1,8 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import gettext as _
 from django_otp.forms import OTPAuthenticationForm
-
-# from governanceplatform.models import User
-from django.contrib.auth import get_user_model
-
 
 User = get_user_model()
 
@@ -25,6 +22,7 @@ class CustomUserChangeForm(UserChangeForm):
         required=True,
         widget=forms.TextInput(attrs={"readonly": "readonly"}),
     )
+
     role = forms.CharField(
         label=_("Role"),
         disabled=True,
@@ -92,8 +90,18 @@ class SelectCompany(forms.Form):
 
 class RegistrationForm(UserCreationForm):
     email = forms.TextInput()
-    field_order = ('email', "last_name", "first_name", 'password1', 'password2',)
+    field_order = (
+        "email",
+        "last_name",
+        "first_name",
+        "password1",
+        "password2",
+    )
 
     class meta:
         model = User
-        fields = ("email", "last_name", "first_name",)
+        fields = (
+            "email",
+            "last_name",
+            "first_name",
+        )

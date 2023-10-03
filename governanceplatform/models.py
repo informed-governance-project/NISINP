@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
+from phonenumber_field.modelfields import PhoneNumberField
 
 from incidents.models import Impact
 
@@ -82,13 +83,7 @@ class Company(models.Model):
         default=None,
         verbose_name=_("email address"),
     )
-    phone_number = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        default=None,
-        verbose_name=_("phone number"),
-    )
+    phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
     sectors = models.ManyToManyField(Sector)
     types = models.ManyToManyField(OperatorType)
     monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
@@ -127,7 +122,7 @@ class User(AbstractUser, PermissionsMixin):
             "unique": _("A user is already registered with this email address"),
         },
     )
-    phone_number = models.CharField(max_length=30, blank=True, default=None, null=True)
+    phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
     companies = models.ManyToManyField(Company, through="CompanyAdministrator")
     sectors = models.ManyToManyField(Sector, through="SectorContact")
     is_staff = models.BooleanField(
