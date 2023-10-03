@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
@@ -7,8 +7,6 @@ from django_otp.decorators import otp_required
 
 from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
 from .helpers import user_in_group
-
-User = get_user_model()
 
 
 @login_required
@@ -84,7 +82,6 @@ def registration_view(request, *args, **kwargs):
     if user.is_authenticated:
         return redirect("index")
     elif request.method == "POST":
-        print("hello")
         form = RegistrationForm(request.POST)
         if form.is_valid():
             form.save()
