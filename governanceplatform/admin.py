@@ -6,7 +6,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
-from django_otp import devices_for_user
+from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
@@ -518,6 +518,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "get_companies",
         "get_sectors",
         "get_permissions_groups",
+        "get_2FA_activation",
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
@@ -540,6 +541,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         ),
     ]
     actions = [reset_2FA]
+
+    @admin.display(boolean=True)
+    @admin.display(description="2FA")
+    def get_2FA_activation(self, obj):
+        return bool(user_has_device(obj))
 
     @admin.display(description="Roles")
     def get_permissions_groups(self, obj):
