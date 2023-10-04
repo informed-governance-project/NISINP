@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
-from django_otp.decorators import otp_required
 from django.shortcuts import render
 from django.utils.translation import gettext as _
+from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
 
 from governanceplatform.helpers import (
