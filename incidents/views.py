@@ -319,6 +319,8 @@ class FormWizardView(SessionWizardView):
         subsector_for_ref = ""
         if company is None:
             company_for_ref = data[0]["company_name"][:4]
+        else:
+            company_for_ref = company.identifier
 
         for service in data[1]["affected_services"]:
             try:

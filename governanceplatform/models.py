@@ -71,7 +71,7 @@ class OperatorType(TranslatableModel):
 class Company(models.Model):
     is_regulator = models.BooleanField(default=False, verbose_name=_("Regulator"))
     identifier = models.CharField(
-        max_length=64, verbose_name=_("Identifier")
+        max_length=4, verbose_name=_("Identifier")
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(max_length=64, verbose_name=_("country"))
