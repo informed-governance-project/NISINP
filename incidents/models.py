@@ -24,6 +24,7 @@ class Impact(TranslatableModel):
 # answers for the question
 class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(predefined_answer=models.TextField())
+    position = models.IntegerField(blank=True, default=0, null=True)
 
     def __str__(self):
         return self.predefined_answer
@@ -158,6 +159,12 @@ class Incident(models.Model):
         blank=False,
         default=INCIDENT_STATUS[0][0],
     )
+
+    def get_review_status(self):
+        return dict(REVIEW_STATUS).get(self.review_status)
+    
+    def get_incident_status(self):
+        return dict(INCIDENT_STATUS).get(self.incident_status)
 
 
 # answers

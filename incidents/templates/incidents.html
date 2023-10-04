@@ -12,6 +12,7 @@
                 <th scope="col">{% translate "Regulation" %}</th>
                 <th scope="col">{% translate "Impacted Services" %}</th>
                 <th scope="col">{% translate "Final declaration" %}</th>
+                <th scope="col">{% translate "Review status" %}</th>
             </tr>
         </thead>
         {% for incident in incidents %}
@@ -26,6 +27,7 @@
                 {% else %}
                 <td><a href="{% url 'final-notification' incident.id %}">{% translate "Update the final declaration" %}</a></td>
                 {% endif %}
+                <td scope="row">{{incident.get_review_status}}</td>
             </tr>
         </tbody>
         {% endfor %}
