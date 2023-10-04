@@ -131,10 +131,11 @@ class QuestionForm(forms.Form):
                         partial(is_not, None),
                         Answer.objects.values_list(
                             "predefined_answers", flat=True
-                        ).filter(question=question, incident=incident),
+                        ).filter(question=question, incident=incident
+                                 ).order_by("position"),
                     )
                 )
-            for choice in question.predefined_answers.all():
+            for choice in question.predefined_answers.all().order_by("position"):
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
                 required=question.is_mandatory,

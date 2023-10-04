@@ -24,6 +24,7 @@ class Impact(TranslatableModel):
 # answers for the question
 class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(predefined_answer=models.TextField())
+    position = models.IntegerField(blank=True, default=0, null=True)
 
     def __str__(self):
         return self.predefined_answer
