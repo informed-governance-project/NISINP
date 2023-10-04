@@ -162,7 +162,7 @@ class Incident(models.Model):
 
     def get_review_status(self):
         return dict(REVIEW_STATUS).get(self.review_status)
-    
+
     def get_incident_status(self):
         return dict(INCIDENT_STATUS).get(self.incident_status)
 
