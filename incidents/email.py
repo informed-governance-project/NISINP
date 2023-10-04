@@ -11,14 +11,19 @@ from incidents.globals import INCIDENT_EMAIL_VARIABLES
 def replace_email_variables(content, incident):
     # find the incidents which don't have final notification.
     modify_content = content
-    for variable in INCIDENT_EMAIL_VARIABLES:
-        if variable[0] == "#INCIDENT_FINAL_NOTIFICATION_URL#":
-            var_txt = PUBLIC_URL + "/incidents/final-notification/" + str(incident.pk)
+    modify_content = modify_content.replace("#PUBLIC_URL#", PUBLIC_URL)
+    for _i, (variable, key) in enumerate(INCIDENT_EMAIL_VARIABLES):
+        if variable == "#INCIDENT_FINAL_NOTIFICATION_URL#":
+            var_txt = (
+                PUBLIC_URL
+                + "/incidents/final-notification/"
+                + str(getattr(incident, key))
+            )
         else:
-            var_txt = getattr(incident, variable[1])
+            var_txt = getattr(incident, key)
             if isinstance(var_txt, date):
-                var_txt = getattr(incident, variable[1]).strftime("%Y-%m-%d")
-        modify_content = modify_content.replace(variable[0], var_txt)
+                var_txt = getattr(incident, key).strftime("%Y-%m-%d")
+        modify_content = modify_content.replace(variable, var_txt)
     return modify_content
 
 
@@ -34,6 +39,7 @@ def send_email(email, incident):
         "email.html",
         {
             "content": replace_email_variables(email.content, incident),
+            "url_site": PUBLIC_URL,
             "company_name": incident.company_name,
             "incident_contact_title": incident.contact_title,
             "incident_contact_firstname": incident.contact_firstname,
