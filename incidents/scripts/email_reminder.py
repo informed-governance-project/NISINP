@@ -1,10 +1,8 @@
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from django.core.mail import send_mail
 
-from governanceplatform.config import EMAIL_SENDER
-from incidents.email import replace_email_variables
+from incidents.email import send_email
 from incidents.models import Email, Incident
 
 
@@ -16,10 +14,4 @@ def run():
             if incident.preliminary_notification_date == date.today() - relativedelta(
                 days=email.days_before_send
             ):
-                send_mail(
-                    replace_email_variables(email.subject, incident),
-                    replace_email_variables(email.content, incident),
-                    EMAIL_SENDER,
-                    [incident.contact_user.email],
-                    fail_silently=True,
-                )
+                send_email(email, incident)

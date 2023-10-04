@@ -3,12 +3,11 @@ from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
-from django_otp.decorators import otp_required
 from django.shortcuts import render
 from django.utils.translation import gettext as _
+from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
 
 from governanceplatform.helpers import (
@@ -18,14 +17,13 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import Sector, Service
 from governanceplatform.settings import (
-    EMAIL_SENDER,
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
     SITE_NAME,
 )
 
 from .decorators import regulator_role_required
-from .email import replace_email_variables
+from .email import send_email
 from .forms import (
     ContactForm,
     ImpactedServicesForm,
@@ -360,13 +358,7 @@ class FormWizardView(SessionWizardView):
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
         if email is not None:
-            send_mail(
-                replace_email_variables(email.subject, incident),
-                replace_email_variables(email.content, incident),
-                EMAIL_SENDER,
-                [user.email],
-                fail_silently=True,
-            )
+            send_email(email, incident)
         return HttpResponseRedirect("/incidents")
 
 
@@ -447,13 +439,7 @@ class FinalNotificationWizardView(SessionWizardView):
         # manage question
         save_answers(1, data, self.incident)
         if email is not None:
-            send_mail(
-                replace_email_variables(email.subject, self.incident),
-                replace_email_variables(email.content, self.incident),
-                EMAIL_SENDER,
-                [self.incident.contact_user.email],
-                fail_silently=True,
-            )
+            send_email(email, self.incident)
         return HttpResponseRedirect("/incidents")
 
 

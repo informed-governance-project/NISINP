@@ -20,7 +20,7 @@ class CustomUserChangeForm(UserChangeForm):
     email = forms.CharField(
         disabled=True,
         required=True,
-        widget=forms.TextInput(attrs={"readonly": "readonly"}),
+        widget=forms.EmailInput(attrs={"readonly": "readonly"}),
     )
 
     role = forms.CharField(
