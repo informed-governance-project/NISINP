@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('incidents', '0003_alter_incident_other_authority_and_more'),
+        ("incidents", "0003_alter_incident_other_authority_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='predefinedanswer',
-            name='position',
+            model_name="predefinedanswer",
+            name="position",
             field=models.IntegerField(blank=True, default=0, null=True),
         ),
     ]
