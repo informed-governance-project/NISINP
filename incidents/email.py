@@ -2,6 +2,7 @@ from datetime import date
 
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from django.urls import reverse
 
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
@@ -14,11 +15,12 @@ def replace_email_variables(content, incident):
     modify_content = modify_content.replace("#PUBLIC_URL#", PUBLIC_URL)
     for _i, (variable, key) in enumerate(INCIDENT_EMAIL_VARIABLES):
         if variable == "#INCIDENT_FINAL_NOTIFICATION_URL#":
-            var_txt = (
-                PUBLIC_URL
-                + "/incidents/final-notification/"
-                + str(getattr(incident, key))
+            incident_id = getattr(incident, key)
+            final_notification_url = PUBLIC_URL + reverse(
+                "final-notification", args=[incident_id]
             )
+            var_txt = f'<a href="{final_notification_url}">{final_notification_url}</a>'
+
         else:
             var_txt = getattr(incident, key)
             if isinstance(var_txt, date):
