@@ -129,10 +129,9 @@ class QuestionForm(forms.Form):
                 initial_data = list(
                     filter(
                         partial(is_not, None),
-                        Answer.objects.values_list(
-                            "predefined_answers", flat=True
-                        ).filter(question=question, incident=incident
-                                 ).order_by("position"),
+                        Answer.objects.values_list("predefined_answers", flat=True)
+                        .filter(question=question, incident=incident)
+                        .order_by("position"),
                     )
                 )
             for choice in question.predefined_answers.all().order_by("position"):

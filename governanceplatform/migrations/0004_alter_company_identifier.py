@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('governanceplatform', '0003_alter_company_phone_number_alter_user_phone_number'),
+        (
+            "governanceplatform",
+            "0003_alter_company_phone_number_alter_user_phone_number",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='company',
-            name='identifier',
-            field=models.CharField(max_length=4, verbose_name='Identifier'),
+            model_name="company",
+            name="identifier",
+            field=models.CharField(max_length=4, verbose_name="Identifier"),
         ),
     ]
