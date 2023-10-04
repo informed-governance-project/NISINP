@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
+from django.template import loader
 
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
@@ -22,27 +22,27 @@ def replace_email_variables(content, incident):
     return modify_content
 
 
-def send_html_email(subject, content, recipient_list):
-    email = EmailMessage(subject, content, EMAIL_SENDER, recipient_list)
+def send_html_email(subject, context, recipient_list):
+    template = loader.get_template("email.html")
+    html_content = template.render(context)
+    email = EmailMessage(subject, html_content, EMAIL_SENDER, recipient_list)
     email.content_subtype = "html"
     email.send(fail_silently=True)
 
 
 def send_email(email, incident):
     subject = replace_email_variables(email.subject, incident)
-    html_content = render_to_string(
-        "email.html",
-        {
-            "content": replace_email_variables(email.content, incident),
-            "company_name": incident.company_name,
-            "incident_contact_title": incident.contact_title,
-            "incident_contact_firstname": incident.contact_firstname,
-            "incident_contact_lastname": incident.contact_lastname,
-            "technical_contact_title": incident.technical_title,
-            "technical_contact_firstname": incident.technical_firstname,
-            "technical_contact_lastname": incident.technical_lastname,
-        },
-    )
+    context = {
+        "content": replace_email_variables(email.content, incident),
+        "company_name": incident.company_name,
+        "incident_contact_title": incident.contact_title,
+        "incident_contact_firstname": incident.contact_firstname,
+        "incident_contact_lastname": incident.contact_lastname,
+        "technical_contact_title": incident.technical_title,
+        "technical_contact_firstname": incident.technical_firstname,
+        "technical_contact_lastname": incident.technical_lastname,
+    }
+
     recipient_list = [incident.contact_user.email]
 
-    send_html_email(subject, html_content, recipient_list)
+    send_html_email(subject, context, recipient_list)
