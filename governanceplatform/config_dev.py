@@ -76,3 +76,6 @@ LOGGING = {
         },
     },
 }
+
+# TIMEOUT
+SESSION_COOKIE_AGE = 15 * 60 # 15 Minutes
