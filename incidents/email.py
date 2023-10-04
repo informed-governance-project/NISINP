@@ -12,7 +12,6 @@ def replace_email_variables(content, incident):
         if variable[0] == "#INCIDENT_FINAL_NOTIFICATION_URL#":
             var_txt = PUBLIC_URL + "/incidents/final-notification/" + str(incident.pk)
         else:
-
             var_txt = getattr(incident, variable[1])
             if isinstance(var_txt, date):
                 var_txt = getattr(incident, variable[1]).strftime("%Y-%m-%d")
