@@ -98,7 +98,7 @@ class RegistrationForm(UserCreationForm):
         "password2",
     )
 
-    class meta:
+    class Meta:
         model = User
         fields = (
             "email",

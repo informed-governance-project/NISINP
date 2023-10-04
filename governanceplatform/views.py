@@ -22,16 +22,16 @@ def index(request):
         return redirect("admin:index")
 
     # TODO: allow to bypass it for an IncidentUser
-    if not user.companies.exists():
-        messages.error(
-            request,
-            _(
-                "There is no company associated with this account. Contact the administrator"
-            ),
-        )
-        return redirect("login")
+    # if not user.companies.exists():
+    #     messages.error(
+    #         request,
+    #         _(
+    #             "There is no company associated with this account. Contact the administrator"
+    #         ),
+    #     )
+    #     return redirect("login")
 
-    if not request.session.get("company_in_use"):
+    if not request.session.get("company_in_use") and user.companies.exists():
         if user.companies.count() > 1:
             return select_company(request)
 
