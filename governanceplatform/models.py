@@ -215,3 +215,14 @@ class CompanyAdministrator(models.Model):
 
     def __str__(self):
         return ""
+
+
+# Different regulation like NIS etc.
+class Regulation(TranslatableModel):
+    translations = TranslatedFields(
+        label=models.CharField(max_length=255, blank=True, default=None, null=True)
+    )
+    regulators = models.ManyToManyField(Regulator, default=None, blank=True)
+
+    def __str__(self):
+        return self.label

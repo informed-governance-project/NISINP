@@ -73,14 +73,48 @@ class Question(TranslatableModel):
         return self.label
 
 
-# Different regulation like NIS etc.
-class Regulation(TranslatableModel):
+# Workflow for each reglementatiion, N workflow for 1 reglementation, 1 Workflow for N recommendation ?
+class Workflow(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True)
+        name=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
+    questions = models.ManyToManyField(Question)
 
     def __str__(self):
-        return self.label
+        return self.name
+
+
+# link between a regulation and a regulator,
+# a regulator can only create a reglementation for the regulation the admin platform has designated him
+class Reglementation(TranslatableModel):
+    translations = TranslatedFields(
+        # for exemple NIS for enery sector
+        name=models.CharField(max_length=255, blank=True, default=None, null=True)
+    )
+    regulation = models.ForeignKey(
+        "governanceplatform.Regulation", on_delete=models.CASCADE
+    )
+    regulator = models.ForeignKey(
+        "governanceplatform.Regulator", on_delete=models.CASCADE
+    )
+    workflows = models.ManyToManyField(Workflow, through="ReglementationWorkflows")
+
+    sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True)
+    impacts = models.ManyToManyField(Impact, default=None, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+# link between reglementation and workflows
+class ReglementationWorkflows(models.Model):
+    reglementation = models.ForeignKey(
+        Reglementation, on_delete=models.CASCADE
+    )
+    workflow = models.ForeignKey(
+        Workflow, on_delete=models.CASCADE
+    )
+    position = models.IntegerField(blank=True, default=0, null=True)
 
 
 # incident
@@ -136,8 +170,13 @@ class Incident(models.Model):
     complaint_reference = models.CharField(max_length=255)
 
     affected_services = models.ManyToManyField("governanceplatform.Service")
-    regulations = models.ManyToManyField(Regulation)
-    impacts = models.ManyToManyField(Impact, default=None)
+    Reglementation = models.ForeignKey(
+        Reglementation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,)
+    impacts = models.ManyToManyField(Impact, default=None, )
     is_significative_impact = models.BooleanField(
         default=False, verbose_name=_("Significative impact")
     )

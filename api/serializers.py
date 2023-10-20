@@ -2,8 +2,8 @@ from parler_rest.fields import TranslatedFieldsField
 from parler_rest.serializers import TranslatableModelSerializer
 from rest_framework import serializers
 
-from governanceplatform.models import Company, Service, User
-from incidents.models import Incident, Regulation
+from governanceplatform.models import Company, Service, User, Regulation
+from incidents.models import Incident
 
 
 #
