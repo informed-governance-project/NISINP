@@ -17,7 +17,6 @@ from incidents.models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
-    RegulationType,
 )
 
 
@@ -136,23 +135,6 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "predefined_answers",
     ]
     filter_horizontal = ["predefined_answers"]
-
-
-class RegulationTypeResource(TranslationUpdateMixin, resources.ModelResource):
-    label = fields.Field(
-        column_name="label",
-        attribute="label",
-    )
-
-    class Meta:
-        model = RegulationType
-
-
-@admin.register(RegulationType, site=admin_site)
-class RegulationTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label"]
-    search_fields = ["label"]
-    resource_class = RegulationTypeResource
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):

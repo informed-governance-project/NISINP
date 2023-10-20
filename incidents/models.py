@@ -73,8 +73,8 @@ class Question(TranslatableModel):
         return self.label
 
 
-# type of regulation
-class RegulationType(TranslatableModel):
+# Different regulation like NIS etc.
+class Regulation(TranslatableModel):
     translations = TranslatedFields(
         label=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
@@ -136,7 +136,7 @@ class Incident(models.Model):
     complaint_reference = models.CharField(max_length=255)
 
     affected_services = models.ManyToManyField("governanceplatform.Service")
-    regulations = models.ManyToManyField(RegulationType)
+    regulations = models.ManyToManyField(Regulation)
     final_notification_date = models.DateField(null=True, blank=True)
     impacts = models.ManyToManyField(Impact, default=None)
     is_significative_impact = models.BooleanField(

@@ -13,7 +13,7 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.models import Company, Service
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Impact, Incident, Question, QuestionCategory, RegulationType
+from .models import Answer, Impact, Incident, Question, QuestionCategory
 
 
 # TO DO: change the templates to custom one
@@ -404,25 +404,6 @@ def construct_services_array(root_sectors):
 
 # the affected services with services load from services table
 class ImpactedServicesForm(forms.Form):
-    regulationTypes = RegulationType.objects.all()
-
-    choices_rt = []
-    for choice in regulationTypes:
-        choices_rt.append([choice.id, choice])
-
-    regulation = forms.MultipleChoiceField(
-        required=True,
-        choices=choices_rt,
-        widget=forms.CheckboxSelectMultiple(
-            attrs={
-                "class": "multiple-selection",
-                "title": _(
-                    "Select one or more regulation(s) affected by your incident"
-                ),
-                "data-bs-toggle": "tooltip",
-            }
-        ),
-    )
 
     affected_services = forms.MultipleChoiceField(
         required=True,

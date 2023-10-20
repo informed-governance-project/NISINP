@@ -3,7 +3,7 @@ from parler_rest.serializers import TranslatableModelSerializer
 from rest_framework import serializers
 
 from governanceplatform.models import Company, Service, User
-from incidents.models import Incident, RegulationType
+from incidents.models import Incident, Regulation
 
 
 #
@@ -72,13 +72,13 @@ class ServiceSerializer(TranslatableModelSerializer):
 
 
 #
-# Model: RegulationType
+# Model: Regulation
 #
-class RegulationTypeSerializer(TranslatableModelSerializer):
+class RegulationSerializer(TranslatableModelSerializer):
     translations = TranslatedFieldsField(shared_model=Service)
 
     class Meta:
-        model = RegulationType
+        model = Regulation
         fields = [
             "translations",
         ]
@@ -89,7 +89,7 @@ class RegulationTypeSerializer(TranslatableModelSerializer):
 #
 class IncidentSerializer(serializers.ModelSerializer):
     affected_services = ServiceSerializer(read_only=True, many=True)
-    regulations = RegulationTypeSerializer(read_only=True, many=True)
+    regulations = RegulationSerializer(read_only=True, many=True)
 
     class Meta:
         model = Incident
