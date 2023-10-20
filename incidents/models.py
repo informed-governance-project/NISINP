@@ -87,7 +87,7 @@ class Regulation(TranslatableModel):
 class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
     incident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
-    preliminary_notification_date = models.DateField(default=date.today)
+    incident_notification_date = models.DateField(default=date.today)
     company_name = models.CharField(max_length=100, verbose_name=_("Company name"))
     company = models.ForeignKey(
         "governanceplatform.Company",
@@ -137,7 +137,6 @@ class Incident(models.Model):
 
     affected_services = models.ManyToManyField("governanceplatform.Service")
     regulations = models.ManyToManyField(Regulation)
-    final_notification_date = models.DateField(null=True, blank=True)
     impacts = models.ManyToManyField(Impact, default=None)
     is_significative_impact = models.BooleanField(
         default=False, verbose_name=_("Significative impact")
@@ -145,9 +144,8 @@ class Incident(models.Model):
 
     # notification dispatching
     authorities = models.ManyToManyField(
-        "governanceplatform.Company", related_name="authorities"
+        "governanceplatform.Regulator", related_name="authorities"
     )
-    other_authority = models.EmailField(null=True, blank=True)
 
     # status
     review_status = models.CharField(

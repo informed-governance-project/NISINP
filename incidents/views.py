@@ -47,7 +47,7 @@ from .pdf_generation import get_pdf_report
 @otp_required
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
-    incidents = Incident.objects.order_by("-preliminary_notification_date")
+    incidents = Incident.objects.order_by("-incident_notification_date")
 
     if user_in_group(request.user, "RegulatorStaff"):
         # RegulatorUser has access to all incidents linked by sectors.
@@ -215,7 +215,7 @@ def is_incidents_report_limit_reached(request):
     if request.user.is_authenticated:
         # if a user make too many declaration we prevent to save
         number_preliminary_today = Incident.objects.filter(
-            contact_user=request.user, preliminary_notification_date=date.today()
+            contact_user=request.user, incident_notification_date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.warning(
