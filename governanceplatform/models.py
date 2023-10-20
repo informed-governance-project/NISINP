@@ -67,7 +67,7 @@ class OperatorType(TranslatableModel):
         return self.type
 
 
-# regulator and operator are companies
+# operator are companies
 class Company(models.Model):
     is_regulator = models.BooleanField(default=False, verbose_name=_("Regulator"))
     identifier = models.CharField(
@@ -87,6 +87,25 @@ class Company(models.Model):
     sectors = models.ManyToManyField(Sector)
     types = models.ManyToManyField(OperatorType)
     monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
+
+    def __str__(self):
+        return self.name
+
+    @admin.display(description="sectors")
+    def get_sectors(self):
+        return [sector.name for sector in self.sectors.all()]
+
+    class Meta:
+        verbose_name = _("Company")
+        verbose_name_plural = _("Companies")
+
+
+# Regulator
+class Regulator(models.Model):
+    name = models.CharField(max_length=64, verbose_name=_("name"))
+    country = models.CharField(max_length=64, verbose_name=_("country"))
+    address = models.CharField(max_length=255, verbose_name=_("address"))
+    monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
     email_for_notification = models.EmailField(
         verbose_name=_("email address"),
         default=None,
@@ -99,6 +118,7 @@ class Company(models.Model):
     description = models.TextField(
         blank=True, default="", null=True, verbose_name=_("description")
     )
+    is_receiving_all_incident = models.BooleanField(default=False, verbose_name=_("Receive all incident"))
 
     def __str__(self):
         return self.name
@@ -108,8 +128,8 @@ class Company(models.Model):
         return [sector.name for sector in self.sectors.all()]
 
     class Meta:
-        verbose_name = _("Company")
-        verbose_name_plural = _("Companies")
+        verbose_name = _("Regulator")
+        verbose_name_plural = _("Regulators")
 
 
 # define an abstract class which make  the difference between operator and regulator

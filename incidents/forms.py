@@ -510,7 +510,7 @@ def get_forms_list(is_preliminary=True):
 
 class NotificationDispatchingForm(forms.Form):
     initial_data = [
-        (k.id, k.name + " " + k.full_name + " " + k.description)
+        (k.id, k.name)
         for k in Company.objects.all().filter(
             is_regulator=True,
         )
