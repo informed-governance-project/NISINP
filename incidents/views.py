@@ -26,7 +26,6 @@ from .decorators import regulator_role_required
 from .email import send_email
 from .forms import (
     ContactForm,
-    ImpactForFinalNotificationForm,
     QuestionForm,
     RegulatorIncidentEditForm,
     get_forms_list,
@@ -318,10 +317,9 @@ class FormWizardView(SessionWizardView):
             company=company,
             company_name=company.name if company else data[0]["company_name"],
         )
-        for regulation in data[1]["regulation"]:
-            incident.regulations.add(regulation)
+        # TO DO: define the reglementation(s) and create incident(s)
 
-        # incident reference
+        # TO DO : adapt incident reference
         company_for_ref = ""
         sector_for_ref = ""
         subsector_for_ref = ""
@@ -357,16 +355,6 @@ class FormWizardView(SessionWizardView):
             + str(date.today().year)
         )
 
-        # notification dispatching
-        for authority in data[2]["authorities_list"]:
-            authority = int(authority)
-            incident.authorities.add(authority)
-        incident.other_authority = data[2]["other_authority"]
-        incident.save()
-
-        # save questions
-        save_answers(3, data, incident)
-
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
         if email is not None:
@@ -390,14 +378,8 @@ class FinalNotificationWizardView(SessionWizardView):
         if step is None:
             step = self.steps.current
         position = int(step)
-        # when we have passed the fixed forms
-        if position == 0:
-            # create the form with the correct question/answers
-            form = ImpactForFinalNotificationForm(data, incident=self.incident)
 
-            return form
-
-        elif position > 0:
+        if position > 0:
             form = QuestionForm(
                 data,
                 position=position - 1,

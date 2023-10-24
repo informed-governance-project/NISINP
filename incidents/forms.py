@@ -13,7 +13,7 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.models import Regulator, Service, Regulation
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Impact, Incident, Question, QuestionCategory
+from .models import Answer, Incident, Question, QuestionCategory
 
 
 # TO DO: change the templates to custom one
@@ -402,71 +402,6 @@ def construct_services_array(root_sectors):
     return final_categs
 
 
-# the affected services with services load from services table
-class ImpactedServicesForm(forms.Form):
-
-    affected_services = forms.MultipleChoiceField(
-        required=True,
-        widget=DropdownCheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
-    )
-
-    def __init__(self, *args, **kwargs):
-        sectors = kwargs.pop("sectors", None)
-        super().__init__(*args, **kwargs)
-
-        self.fields["affected_services"].choices = construct_services_array(
-            sectors.all()
-        )
-
-
-class ImpactForFinalNotificationForm(forms.Form):
-    # list of impact present in the incident table
-    initial_data = []
-    # generic impact definitions
-    generic_impact = forms.MultipleChoiceField(
-        required=False,
-        choices=[],
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
-        label="Generic impacts",
-    )
-
-    # create the questions for the impacted sectors
-    def create_questions(self, affected_services, initial_data=None):
-        if not initial_data:
-            initial_data = []
-        sectors = []
-        for service in affected_services:
-            sectors.append(service.sector)
-            for sector in sectors:
-                choices = [(k.id, k.label) for k in sector.specific_impact.all()]
-                self.fields[str(sector.id)] = forms.MultipleChoiceField(
-                    required=False,
-                    choices=choices,
-                    widget=forms.CheckboxSelectMultiple(
-                        attrs={"class": "multiple-selection"}
-                    ),
-                    label=sector.name,
-                    initial=initial_data,
-                )
-
-    def __init__(self, *args, **kwargs):
-        if "incident" in kwargs:
-            incident = kwargs.pop("incident")
-            # get initial data if there are existing
-            if incident is not None:
-                initial_data = list(incident.impacts.values_list("id", flat=True))
-            affected_services = incident.affected_services.all()
-            super().__init__(*args, **kwargs)
-            self.create_questions(affected_services, initial_data)
-        else:
-            super().__init__(*args, **kwargs)
-        # init the generic choices
-        self.fields["generic_impact"].choices = [
-            (k.id, k.label) for k in Impact.objects.all().filter(is_generic_impact=True)
-        ]
-        self.fields["generic_impact"].initial = initial_data
-
-
 class RegulationForm(forms.Form):
     regulations = forms.MultipleChoiceField(
         required=True,
@@ -552,8 +487,6 @@ def get_forms_list(is_preliminary=True):
             RegulationForm,
             SectorForm,
         ]
-    else:
-        category_tree = [ImpactForFinalNotificationForm]
 
     for _category in categories:
         category_tree.append(QuestionForm)
