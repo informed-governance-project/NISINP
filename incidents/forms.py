@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.models import Company, Service
+from governanceplatform.models import Regulator, Service, Regulation
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, Question, QuestionCategory
@@ -467,6 +467,77 @@ class ImpactForFinalNotificationForm(forms.Form):
         self.fields["generic_impact"].initial = initial_data
 
 
+class RegulationForm(forms.Form):
+    regulations = forms.MultipleChoiceField(
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        regulators = kwargs['initial']['regulators']
+        super().__init__(*args, **kwargs)
+
+        self.fields["regulations"].choices = construct_regulation_array(
+            regulators.all()
+        )
+
+
+# prepare an array of regulations
+def construct_regulation_array(regulators):
+    regulations_to_select = []
+    regulations = Regulation.objects.all()
+
+    for regulation in regulations:
+        for regulator in regulators:
+            if regulator in regulation.regulators.all():
+                regulations_to_select.append([regulation.id, regulation.label])
+
+    return regulations_to_select
+
+
+class RegulatorForm(forms.Form):
+    initial_data = [
+        (k.id, k.name)
+        for k in Regulator.objects.all()
+    ]
+
+    # generic impact definitions
+    regulators = forms.MultipleChoiceField(
+        required=True,
+        choices=initial_data,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        label="Send notification to:",
+    )
+
+
+class SectorForm(forms.Form):
+    sectors = forms.MultipleChoiceField(
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        regulations = kwargs['initial']['regulations']
+        super().__init__(*args, **kwargs)
+
+        self.fields["sectors"].choices = construct_sectors_array(
+            regulations.all()
+        )
+
+
+# prepare an array of sectors
+def construct_sectors_array(regulators):
+    regulations_to_select = []
+    regulations = Regulation.objects.all()
+
+    for regulation in regulations:
+        for regulator in regulators:
+            if regulator in regulation.regulators.all():
+                regulations_to_select.append([regulation.id, regulation.label])
+
+    return regulations_to_select
+
+
 def get_forms_list(is_preliminary=True):
     categories = (
         QuestionCategory.objects.all()
@@ -477,8 +548,9 @@ def get_forms_list(is_preliminary=True):
     if is_preliminary is True:
         category_tree = [
             ContactForm,
-            ImpactedServicesForm,
-            NotificationDispatchingForm,
+            RegulatorForm,
+            RegulationForm,
+            SectorForm,
         ]
     else:
         category_tree = [ImpactForFinalNotificationForm]
@@ -487,29 +559,6 @@ def get_forms_list(is_preliminary=True):
         category_tree.append(QuestionForm)
 
     return category_tree
-
-
-class NotificationDispatchingForm(forms.Form):
-    initial_data = [
-        # (k.id, k.name)
-        # for k in Company.objects.all().filter(
-        #     is_regulator=True,
-        # )
-    ]
-
-    # generic impact definitions
-    authorities_list = forms.MultipleChoiceField(
-        required=True,
-        choices=initial_data,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
-        label="Send notification to:",
-    )
-
-    other_authority = forms.CharField(
-        required=False,
-        widget=forms.EmailInput(attrs={"placeholder": "other_authority@exemple.com"}),
-        label="Send to another authority:",
-    )
 
 
 class RegulatorIncidentEditForm(forms.ModelForm):

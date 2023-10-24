@@ -15,7 +15,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Sector, Service
+from governanceplatform.models import Regulator, Service, Regulation
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -26,7 +26,6 @@ from .decorators import regulator_role_required
 from .email import send_email
 from .forms import (
     ContactForm,
-    ImpactedServicesForm,
     ImpactForFinalNotificationForm,
     QuestionForm,
     RegulatorIncidentEditForm,
@@ -239,48 +238,59 @@ class FormWizardView(SessionWizardView):
         return super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
-        active_company = get_active_company_from_session(self.request)
+        # active_company = get_active_company_from_session(self.request)
         if step is None:
             step = self.steps.current
-        position = int(step)
+        # position = int(step)
         # when we have passed the fixed forms
-        if position == 1:
-            form = ImpactedServicesForm(
-                data,
-                sectors=active_company.sectors
-                if active_company
-                else Sector.objects.all(),
-            )
+        # if position == 2:
+        #     form = RegulationForm(
+        #         data,
+        #         regulators=active_company.sectors
+        #         if active_company
+        #         else Sector.objects.all(),
+        #     )
 
-            return form
-        if position > 2:
-            # create the form with the correct question/answers
-            form = QuestionForm(data, position=position - 3)
-
-            return form
-        else:
-            form = super().get_form(step, data, files)
+        #     return form
+        # else:
+        form = super().get_form(step, data, files)
         return form
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
 
-        categories = (
-            QuestionCategory.objects.filter(question__is_preliminary=True)
-            .order_by("position")
-            .distinct()
-        )
+        # categories = (
+        #     QuestionCategory.objects.filter(question__is_preliminary=True)
+        #     .order_by("position")
+        #     .distinct()
+        # )
 
         context["steps"] = [
             _("Contact"),
-            _("Impacted Services"),
-            _("Notification Dispatching"),
+            _("Regulators"),
+            _("Regulations"),
+            _("Sectors"),
         ]
 
-        for categorie in categories:
-            context["steps"].append(categorie.label)
+        # for categorie in categories:
+        #     context["steps"].append(categorie.label)
 
         return context
+
+    def get_form_initial(self, step):
+        if step == '2':
+            step1data = self.get_cleaned_data_for_step('1')
+            if step1data:
+                ids = step1data.get('regulators', '')
+                regulators = Regulator.objects.filter(id__in=ids)
+                return self.initial_dict.get(step, {'regulators': regulators})
+        if step == '3':
+            step2data = self.get_cleaned_data_for_step('2')
+            if step2data:
+                ids = step2data.get('regulations', '')
+                regulations = Regulation.objects.filter(id__in=ids)
+                return self.initial_dict.get(step, {'regulations': regulations})
+        return self.initial_dict.get(step, {})
 
     def done(self, form_list, **kwargs):
         if is_incidents_report_limit_reached(self.request):
