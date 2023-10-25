@@ -15,7 +15,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Regulator, Service, Regulation
+from governanceplatform.models import Regulator, Regulation
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -37,6 +37,7 @@ from .models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
+    Reglementation,
 )
 from .pdf_generation import get_pdf_report
 
@@ -302,61 +303,66 @@ class FormWizardView(SessionWizardView):
         user = self.request.user
         company = get_active_company_from_session(self.request)
 
-        incident = Incident.objects.create(
-            contact_lastname=data[0]["contact_lastname"],
-            contact_firstname=data[0]["contact_firstname"],
-            contact_title=data[0]["contact_title"],
-            contact_email=data[0]["contact_email"],
-            contact_telephone=data[0]["contact_telephone"],
-            # technical contact
-            technical_lastname=data[0]["technical_lastname"],
-            technical_firstname=data[0]["technical_firstname"],
-            technical_title=data[0]["technical_title"],
-            technical_email=data[0]["technical_email"],
-            technical_telephone=data[0]["technical_telephone"],
-            incident_reference=data[0]["incident_reference"],
-            complaint_reference=data[0]["complaint_reference"],
-            contact_user=user,
-            company=company,
-            company_name=company.name if company else data[0]["company_name"],
-        )
-        # TO DO: define the reglementation(s) and create incident(s)
-
-        # TO DO : adapt incident reference
-        company_for_ref = ""
-        sector_for_ref = ""
-        subsector_for_ref = ""
-        if company is None:
-            company_for_ref = data[0]["company_name"][:4]
-        else:
-            company_for_ref = company.identifier
-
-        for service in data[1]["affected_services"]:
+        sectors_id = []
+        for sector_data in data[3]["sectors"]:
             try:
-                service = int(service)
-                incident.affected_services.add(service)
-                if subsector_for_ref == "":
-                    service_entity = Service.objects.get(id=service)
-                    sector = service_entity.sector
-                    subsector_for_ref = sector.acronym[:3]
-                    if sector.parent is not None:
-                        sector_for_ref = sector.parent.acronym[:3]
+                sector_id = int(sector_data)
+                sectors_id.append(sector_id)
             except Exception:
                 pass
 
-        incidents_per_company = company.incident_set.count() + 1 if company else 0
-        number_of_incident = f"{incidents_per_company:04}"
-        incident.incident_id = (
-            company_for_ref
-            + "_"
-            + sector_for_ref
-            + "_"
-            + subsector_for_ref
-            + "_"
-            + number_of_incident
-            + "_"
-            + str(date.today().year)
+        reglementations = Reglementation.objects.all().filter(
+            sectors__in=sectors_id
         )
+        for reglementation in reglementations:
+            incident = Incident.objects.create(
+                contact_lastname=data[0]["contact_lastname"],
+                contact_firstname=data[0]["contact_firstname"],
+                contact_title=data[0]["contact_title"],
+                contact_email=data[0]["contact_email"],
+                contact_telephone=data[0]["contact_telephone"],
+                # technical contact
+                technical_lastname=data[0]["technical_lastname"],
+                technical_firstname=data[0]["technical_firstname"],
+                technical_title=data[0]["technical_title"],
+                technical_email=data[0]["technical_email"],
+                technical_telephone=data[0]["technical_telephone"],
+                incident_reference=data[0]["incident_reference"],
+                complaint_reference=data[0]["complaint_reference"],
+                contact_user=user,
+                company=company,
+                company_name=company.name if company else data[0]["company_name"],
+            )
+
+            # incident reference
+            company_for_ref = ""
+            sector_for_ref = ""
+            subsector_for_ref = ""
+            if company is None:
+                company_for_ref = data[0]["company_name"][:4]
+            else:
+                company_for_ref = company.identifier
+
+            for sector in reglementation.sectors.all():
+                if sector.id in sectors_id:
+                    if subsector_for_ref == "":
+                        subsector_for_ref = sector.acronym[:3]
+                        if sector.parent is not None:
+                            sector_for_ref = sector.parent.acronym[:3]
+
+            incidents_per_company = company.incident_set.count() + 1 if company else 0
+            number_of_incident = f"{incidents_per_company:04}"
+            incident.incident_id = (
+                company_for_ref
+                + "_"
+                + sector_for_ref
+                + "_"
+                + subsector_for_ref
+                + "_"
+                + number_of_incident
+                + "_"
+                + str(date.today().year)
+            )
 
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
