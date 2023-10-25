@@ -425,7 +425,8 @@ def construct_regulation_array(regulators):
     for regulation in regulations:
         for regulator in regulators:
             if regulator in regulation.regulators.all():
-                regulations_to_select.append([regulation.id, regulation.label])
+                if [regulation.id, regulation.label] not in regulations_to_select:
+                    regulations_to_select.append([regulation.id, regulation.label])
 
     return regulations_to_select
 
@@ -471,7 +472,8 @@ def construct_sectors_array(regulations, regulators):
 
     for reglementation in reglementations:
         for sector in reglementation.sectors.all():
-            sectors_to_select.append([sector.id, sector.name])
+            if [sector.id, sector.name] not in sectors_to_select:
+                sectors_to_select.append([sector.id, sector.name])
 
     return sectors_to_select
 
