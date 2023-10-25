@@ -350,6 +350,7 @@ class FormWizardView(SessionWizardView):
                 contact_user=user,
                 company=company,
                 company_name=company.name if company else data[0]["company_name"],
+                reglementation=reglementation,
             )
 
             # incident reference

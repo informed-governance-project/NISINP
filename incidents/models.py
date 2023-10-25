@@ -170,7 +170,7 @@ class Incident(models.Model):
     complaint_reference = models.CharField(max_length=255)
 
     affected_services = models.ManyToManyField("governanceplatform.Service")
-    Reglementation = models.ForeignKey(
+    reglementation = models.ForeignKey(
         Reglementation,
         on_delete=models.SET_NULL,
         null=True,
