@@ -285,10 +285,13 @@ class FormWizardView(SessionWizardView):
                 return self.initial_dict.get(step, {'regulators': regulators})
         if step == '3':
             step2data = self.get_cleaned_data_for_step('2')
+            step1data = self.get_cleaned_data_for_step('1')
             if step2data:
                 ids = step2data.get('regulations', '')
                 regulations = Regulation.objects.filter(id__in=ids)
-                return self.initial_dict.get(step, {'regulations': regulations})
+                ids = step1data.get('regulators', '')
+                regulators = Regulator.objects.filter(id__in=ids)
+                return self.initial_dict.get(step, {'regulations': regulations, 'regulators': regulators})
         return self.initial_dict.get(step, {})
 
     def done(self, form_list, **kwargs):

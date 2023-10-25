@@ -13,7 +13,7 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.models import Regulator, Service, Regulation
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Incident, Question, QuestionCategory
+from .models import Answer, Incident, Question, QuestionCategory, Reglementation
 
 
 # TO DO: change the templates to custom one
@@ -453,24 +453,27 @@ class SectorForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         regulations = kwargs['initial']['regulations']
+        regulators = kwargs['initial']['regulators']
         super().__init__(*args, **kwargs)
 
         self.fields["sectors"].choices = construct_sectors_array(
-            regulations.all()
+            regulations.all(), regulators.all()
         )
 
 
 # prepare an array of sectors
-def construct_sectors_array(regulators):
-    regulations_to_select = []
-    regulations = Regulation.objects.all()
+def construct_sectors_array(regulations, regulators):
+    sectors_to_select = []
+    reglementations = Reglementation.objects.all().filter(
+        regulation__in=regulations,
+        regulator__in=regulators
+    )
 
-    for regulation in regulations:
-        for regulator in regulators:
-            if regulator in regulation.regulators.all():
-                regulations_to_select.append([regulation.id, regulation.label])
+    for reglementation in reglementations:
+        for sector in reglementation.sectors.all():
+            sectors_to_select.append([sector.id, sector.name])
 
-    return regulations_to_select
+    return sectors_to_select
 
 
 def get_forms_list(is_preliminary=True):
