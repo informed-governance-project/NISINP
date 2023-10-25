@@ -311,8 +311,26 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
+        regulations_id = []
+        for regulations_data in data[2]["regulations"]:
+            try:
+                regulation_id = int(regulations_data)
+                regulations_id.append(regulation_id)
+            except Exception:
+                pass
+
+        regulators_id = []
+        for regulators_data in data[1]["regulators"]:
+            try:
+                regulator_id = int(regulators_data)
+                regulators_id.append(regulator_id)
+            except Exception:
+                pass
+
         reglementations = Reglementation.objects.all().filter(
-            sectors__in=sectors_id
+            sectors__in=sectors_id,
+            regulator__in=regulators_id,
+            regulation__in=regulations_id
         )
         for reglementation in reglementations:
             incident = Incident.objects.create(
@@ -363,6 +381,7 @@ class FormWizardView(SessionWizardView):
                 + "_"
                 + str(date.today().year)
             )
+            incident.save()
 
         # Send Email
         email = Email.objects.filter(email_type="PRELI").first()
