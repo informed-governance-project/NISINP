@@ -26,6 +26,7 @@ from .models import (
     SectorContact,
     Service,
     User,
+    Regulator,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -672,3 +673,29 @@ class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = OperatorTypeResource
     fields = ("type", "functionalities")
     filter_horizontal = ["functionalities"]
+
+
+class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    class Meta:
+        model = Regulator
+
+
+@admin.register(Regulator, site=admin_site)
+class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
+    search_fields = ["name"]
+    resource_class = RegulatorResource
+    fields = (
+        "name",
+        "full_name",
+        "description",
+        "country",
+        "address",
+        "is_receiving_all_incident",
+        "monarc_path",
+    )
