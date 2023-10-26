@@ -12,6 +12,7 @@
                 <th scope="col">{% translate "Regulator" %}</th>
                 <th scope="col">{% translate "Regulation" %}</th>
                 <th scope="col">{% translate "Next step" %}</th>
+                <th scope="col">{% translate "Action" %}</th>
                 <th scope="col">{% translate "Review status" %}</th>
             </tr>
         </thead>
@@ -22,11 +23,8 @@
                 <td>{{incident.contact_lastname}}</td>
                 <td>{{incident.reglementation.regulator}}</td>
                 <td>{{incident.reglementation.regulation}}</td>
-                {% if incident.final_notification_date is None %}
-                <td><a href="{% url 'final-notification' incident.id %}">{% translate "Make the final declaration" %}</a></td>
-                {% else %}
-                <td><a href="{% url 'final-notification' incident.id %}">{% translate "Update the final declaration" %}</a></td>
-                {% endif %}
+                <td><a href="{% url 'final-notification' incident.id %}">{{incident.get_next_step}}</a></td>
+                <td scope="col">{% translate "Actions" %}</td>
                 <td scope="row">{{incident.get_review_status}}</td>
             </tr>
         </tbody>

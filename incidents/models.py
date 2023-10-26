@@ -3,9 +3,10 @@ from datetime import date
 from django.contrib import admin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS
+from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS
 
 
 # impacts of the incident, they are linked to sector
@@ -97,7 +98,7 @@ class Reglementation(TranslatableModel):
     regulator = models.ForeignKey(
         "governanceplatform.Regulator", on_delete=models.CASCADE
     )
-    workflows = models.ManyToManyField(Workflow, through="ReglementationWorkflows")
+    workflows = models.ManyToManyField(Workflow, through="ReglementationWorkflow")
 
     sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True)
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
@@ -107,7 +108,7 @@ class Reglementation(TranslatableModel):
 
 
 # link between reglementation and workflows
-class ReglementationWorkflows(models.Model):
+class ReglementationWorkflow(models.Model):
     reglementation = models.ForeignKey(
         Reglementation, on_delete=models.CASCADE
     )
@@ -176,6 +177,7 @@ class Incident(models.Model):
         null=True,
         blank=True,
         default=None,)
+    workflows = models.ManyToManyField(Workflow, through='IncidentWorkflow')
     impacts = models.ManyToManyField(Impact, default=None, )
     is_significative_impact = models.BooleanField(
         default=False, verbose_name=_("Significative impact")
@@ -202,6 +204,26 @@ class Incident(models.Model):
 
     def get_incident_status(self):
         return dict(INCIDENT_STATUS).get(self.incident_status)
+
+    def get_next_step(self):
+        current_workflow = IncidentWorkflow.objects.all().filter(
+            incident=self,
+        ).values_list('workflow')
+        regl = ReglementationWorkflow.objects.all().filter(
+            reglementation=self.reglementation,
+        ).exclude(workflow__in=current_workflow).order_by("position")
+        return regl[0].workflow
+
+
+# link between incident and workflow
+class IncidentWorkflow(models.Model):
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    workflow = models.ForeignKey(Workflow, on_delete=models.SET_NULL, null=True)
+    # for versionning
+    timestamp = models.DateTimeField(default=timezone.now)
+    review_status = models.CharField(
+        max_length=5, choices=REVIEW_STATUS, blank=False, default=WORKFLOW_REVIEW_STATUS[0][0]
+    )
 
 
 # answers

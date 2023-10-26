@@ -49,3 +49,10 @@ REVIEW_STATUS = [
     ("FAIL", "Review failed"),
     ("OUT", "Final notification missing. due date exceeded"),
 ]
+
+WORKFLOW_REVIEW_STATUS = [
+    ("DELIV", "Delivered but not yet reviewed"),
+    ("PASS", "Review passed"),
+    ("FAIL", "Review failed"),
+    ("OUT", "Final notification missing. due date exceeded"),
+]
