@@ -21,8 +21,8 @@
             <tr>
                 <td scope="row">{{incident.preliminary_notification_date}}</td>
                 <td>{{incident.contact_lastname}}</td>
-                <td>{{incident.reglementation.regulator}}</td>
-                <td>{{incident.reglementation.regulation}}</td>
+                <td>{{incident.sector_regulation.regulator}}</td>
+                <td>{{incident.sector_regulation.regulation}}</td>
                 <td><a href="{% url 'final-notification' incident.id %}">{{incident.get_next_step}}</a></td>
                 <td scope="col">{% translate "Actions" %}</td>
                 <td scope="row">{{incident.get_review_status}}</td>

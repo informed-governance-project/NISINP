@@ -37,7 +37,7 @@ from .models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
-    Reglementation,
+    SectorRegulation,
 )
 from .pdf_generation import get_pdf_report
 
@@ -327,12 +327,12 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
-        reglementations = Reglementation.objects.all().filter(
+        sector_regulations = SectorRegulation.objects.all().filter(
             sectors__in=sectors_id,
             regulator__in=regulators_id,
             regulation__in=regulations_id
         )
-        for reglementation in reglementations:
+        for sector_regulation in sector_regulations:
             incident = Incident.objects.create(
                 contact_lastname=data[0]["contact_lastname"],
                 contact_firstname=data[0]["contact_firstname"],
@@ -350,7 +350,7 @@ class FormWizardView(SessionWizardView):
                 contact_user=user,
                 company=company,
                 company_name=company.name if company else data[0]["company_name"],
-                reglementation=reglementation,
+                sector_regulation=sector_regulation,
             )
 
             # incident reference
@@ -362,7 +362,7 @@ class FormWizardView(SessionWizardView):
             else:
                 company_for_ref = company.identifier
 
-            for sector in reglementation.sectors.all():
+            for sector in sector_regulation.sectors.all():
                 if sector.id in sectors_id:
                     if subsector_for_ref == "":
                         subsector_for_ref = sector.acronym[:3]

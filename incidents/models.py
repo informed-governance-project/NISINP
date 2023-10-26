@@ -74,7 +74,8 @@ class Question(TranslatableModel):
         return self.label
 
 
-# Workflow for each reglementatiion, N workflow for 1 reglementation, 1 Workflow for N recommendation ?
+# Workflow for each sector_regulation, N workflow for 1 reglementation,
+# 1 Workflow for N recommendation ?
 class Workflow(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255, blank=True, default=None, null=True)
@@ -86,8 +87,9 @@ class Workflow(TranslatableModel):
 
 
 # link between a regulation and a regulator,
-# a regulator can only create a reglementation for the regulation the admin platform has designated him
-class Reglementation(TranslatableModel):
+# a regulator can only create a sector_regulation for the regulation the
+# admin platform has designated him
+class SectorRegulation(TranslatableModel):
     translations = TranslatedFields(
         # for exemple NIS for enery sector
         name=models.CharField(max_length=255, blank=True, default=None, null=True)
@@ -98,7 +100,7 @@ class Reglementation(TranslatableModel):
     regulator = models.ForeignKey(
         "governanceplatform.Regulator", on_delete=models.CASCADE
     )
-    workflows = models.ManyToManyField(Workflow, through="ReglementationWorkflow")
+    workflows = models.ManyToManyField(Workflow, through="SectorRegulationWorkflow")
 
     sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True)
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
@@ -107,10 +109,10 @@ class Reglementation(TranslatableModel):
         return self.name
 
 
-# link between reglementation and workflows
-class ReglementationWorkflow(models.Model):
-    reglementation = models.ForeignKey(
-        Reglementation, on_delete=models.CASCADE
+# link between sector regulation and workflows
+class SectorRegulationWorkflow(models.Model):
+    sector_regulation = models.ForeignKey(
+        SectorRegulation, on_delete=models.CASCADE
     )
     workflow = models.ForeignKey(
         Workflow, on_delete=models.CASCADE
@@ -171,8 +173,8 @@ class Incident(models.Model):
     complaint_reference = models.CharField(max_length=255)
 
     affected_services = models.ManyToManyField("governanceplatform.Service")
-    reglementation = models.ForeignKey(
-        Reglementation,
+    sector_regulation = models.ForeignKey(
+        SectorRegulation,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -209,10 +211,10 @@ class Incident(models.Model):
         current_workflow = IncidentWorkflow.objects.all().filter(
             incident=self,
         ).values_list('workflow')
-        regl = ReglementationWorkflow.objects.all().filter(
-            reglementation=self.reglementation,
+        regulation = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.sector_regulation,
         ).exclude(workflow__in=current_workflow).order_by("position")
-        return regl[0].workflow
+        return regulation[0].workflow
 
 
 # link between incident and workflow
