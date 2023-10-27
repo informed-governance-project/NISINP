@@ -49,6 +49,7 @@ def set_platform_admin_permissions(user):
         permissions={
             "user": ["add", "change", "delete"],
             "regulator": ["add", "change", "delete"],
+            "regulation": ["add", "change", "delete"],
         },
     )
 
