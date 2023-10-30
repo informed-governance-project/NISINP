@@ -1,10 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required

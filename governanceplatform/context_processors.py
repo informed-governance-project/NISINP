@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
 from .helpers import user_in_group, is_user_regulator
-from .models import Company
 from .settings import SITE_NAME
 
 
