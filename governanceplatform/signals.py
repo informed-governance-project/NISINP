@@ -40,21 +40,10 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     user.is_superuser = False
 
     # Regulator Administrator permissions
-    some_company_is_regulator = user.companyuser_set.filter(
-        company__is_regulator=True
-    )
-    if (
-        some_company_is_regulator.exists()
-        and some_company_is_regulator.filter(is_company_administrator=True).exists()
-    ):
+    if instance.is_regulator_administrator:
         set_regulator_admin_permissions(user)
         return
-
-    # Regulator Staff permission
-    if (
-        some_company_is_regulator.exists()
-        and some_company_is_regulator.filter(is_company_administrator=False).exists()
-    ):
+    else:
         set_regulator_staff_permissions(user)
         return
 

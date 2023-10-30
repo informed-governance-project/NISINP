@@ -47,9 +47,9 @@ def set_platform_admin_permissions(user):
         is_superuser=False,
         group_name="PlatformAdmin",
         permissions={
-            "regulator": ["add", "change", "delete"],
-            "regulation": ["add", "change", "delete"],
+            "user": ["add", "change", "delete"],
             "regulatoruser": ["add", "change", "delete"],
+            "regulator": ["add", "change", "delete"],
         },
     )
 
