@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import CompanyAdministrator
+from .models import CompanyUser, RegulatorUser
 from .permissions import (
     set_operator_admin_permissions,
     set_regulator_admin_permissions,
@@ -11,23 +11,38 @@ from .permissions import (
 )
 
 
-@receiver(post_save, sender=CompanyAdministrator)
+@receiver(post_save, sender=CompanyUser)
 def update_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
 
-    some_company_is_regulator = user.companyadministrator_set.filter(
-        company__is_regulator=True
-    )
-    some_company_is_administrator = user.companyadministrator_set.filter(
+    some_company_is_administrator = user.companyuser_set.filter(
         is_company_administrator=True
     )
 
-    # Platform Administrator permission
-    # They are defined in the managers.py file
+    # Operator Administrator permission
+    if (
+        some_company_is_administrator.exists()
+        and some_company_is_administrator.filter(company__is_regulator=False).exists()
+    ):
+        set_operator_admin_permissions(user)
+        return
+
+    user.groups.clear()
+    user.save()
+
+
+@receiver(post_save, sender=RegulatorUser)
+def update_regulator_user_groups(sender, instance, created, **kwargs):
+    user = instance.user
+    user.is_staff = False
+    user.is_superuser = False
 
     # Regulator Administrator permissions
+    some_company_is_regulator = user.companyuser_set.filter(
+        company__is_regulator=True
+    )
     if (
         some_company_is_regulator.exists()
         and some_company_is_regulator.filter(is_company_administrator=True).exists()
@@ -43,19 +58,12 @@ def update_user_groups(sender, instance, created, **kwargs):
         set_regulator_staff_permissions(user)
         return
 
-    # Operator Administrator permission
-    if (
-        some_company_is_administrator.exists()
-        and some_company_is_administrator.filter(company__is_regulator=False).exists()
-    ):
-        set_operator_admin_permissions(user)
-        return
-
     user.groups.clear()
     user.save()
 
 
-@receiver(post_delete, sender=CompanyAdministrator)
+@receiver(post_delete, sender=CompanyUser)
+@receiver(post_delete, sender=RegulatorUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
     group_names = ["PlatformAdmin", "RegulatorAdmin", "RegulatorStaff", "OperatorAdmin"]
@@ -69,7 +77,7 @@ def delete_user_groups(sender, instance, **kwargs):
         if group and user.groups.filter(name=group_name).exists():
             user.groups.remove(group)
 
-    if not user.companyadministrator_set.exists():
+    if not user.companyuser_set.exists():
         user.is_staff = False
         user.is_superuser = False
 

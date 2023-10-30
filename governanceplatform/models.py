@@ -143,7 +143,8 @@ class User(AbstractUser, PermissionsMixin):
         },
     )
     phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
-    companies = models.ManyToManyField(Company, through="CompanyAdministrator")
+    companies = models.ManyToManyField(Company, through="CompanyUser")
+    regulators = models.ManyToManyField(Regulator, through="RegulatorUser")
     sectors = models.ManyToManyField(Sector, through="SectorContact")
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
@@ -163,6 +164,10 @@ class User(AbstractUser, PermissionsMixin):
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all()]
+
+    @admin.display(description="regulators")
+    def get_regulators(self):
+        return [regulator.name for regulator in self.regulators.all()]
 
     def save(self, *args, **kwargs):
         self.email = self.email.lower()
@@ -197,21 +202,42 @@ class SectorContact(models.Model):
 
 
 # link between the admin users and the companies
-class CompanyAdministrator(models.Model):
+class CompanyUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_company_administrator = models.BooleanField(
-        default=False, verbose_name=_("Administrator")
+        default=False, verbose_name=_("is administrator")
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "company"], name="unique_CompanyAdministrator"
+                fields=["user", "company"], name="unique_CompanyUser"
             ),
         ]
-        verbose_name = _("Company administrator")
-        verbose_name_plural = _("Company administrator")
+        verbose_name = _("Company user")
+        verbose_name_plural = _("Company user")
+
+    def __str__(self):
+        return ""
+
+
+# link between the admin regulator users and the regulators.
+class RegulatorUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    regulator = models.ForeignKey(Regulator, on_delete=models.CASCADE)
+    is_regulator_administrator = models.BooleanField(
+        default=False, verbose_name=_("is administrator")
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "regulator"], name="unique_RegulatorUser"
+            ),
+        ]
+        verbose_name = _("Regulator user")
+        verbose_name_plural = _("Regulator users")
 
     def __str__(self):
         return ""

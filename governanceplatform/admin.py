@@ -19,7 +19,7 @@ from .helpers import user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
     Company,
-    CompanyAdministrator,
+    CompanyUser,
     Functionality,
     OperatorType,
     Sector,
@@ -28,6 +28,7 @@ from .models import (
     User,
     Regulator,
     Regulation,
+    RegulatorUser,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -289,7 +290,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             ).distinct()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(companyadministrator__user=user)
+            return queryset.filter(companyuser__user=user)
 
         return queryset
 
@@ -302,6 +303,11 @@ class UserResource(resources.ModelResource):
     companies = fields.Field(
         column_name="companies",
         attribute="companies",
+        widget=ManyToManyWidget(Company, field="name", separator=","),
+    )
+    regulators = fields.Field(
+        column_name="regulators",
+        attribute="regulators",
         widget=ManyToManyWidget(Company, field="name", separator=","),
     )
     sectors = fields.Field(
@@ -319,6 +325,7 @@ class UserResource(resources.ModelResource):
             "last_name",
             "email",
             "phone_number",
+            "regulators",
             "companies",
             "sectors",
         ]
@@ -365,8 +372,58 @@ class userSectorInline(admin.TabularInline):
         return super().has_delete_permission(request, obj)
 
 
+class userRegulatorInline(admin.TabularInline):
+    model = RegulatorUser
+    verbose_name = _("regulator")
+    verbose_name_plural = _("regulators")
+    extra = 0
+    min_num = 1
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "regulator":
+            user = request.user
+            # Platform Admin
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = Regulator.objects.all()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        return 1 if user_in_group(request.user, "PlatformAdmin") else 0
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if (
+            user_in_group(request.user, "PlatformAdmin")
+            and "is_regulator_administrator" in formset.form.base_fields
+        ):
+            formset.form.base_fields[
+                "is_regulator_administrator"
+            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_regulator_administrator"].initial = True
+        formset.empty_permitted = False
+
+        return formset
+
+    # Revoke the permissions of the logged user
+    def has_add_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_add_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
 class userCompanyInline(admin.TabularInline):
-    model = CompanyAdministrator
+    model = CompanyUser
     verbose_name = _("company")
     verbose_name_plural = _("companies")
     extra = 0
@@ -375,9 +432,6 @@ class userCompanyInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "company":
             user = request.user
-            # Platform Admin
-            if user_in_group(user, "PlatformAdmin"):
-                kwargs["queryset"] = Company.objects.filter(is_regulator=True)
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = Company.objects.filter(id__in=user.companies.all())
@@ -446,7 +500,7 @@ class UserCompaniesListFilter(SimpleListFilter):
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
-            companies = Company.objects.filter(is_regulator=True)
+            companies = Regulator.objects.filter()
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             companies = Company.objects.filter(id__in=user.companies.all())
@@ -517,6 +571,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "last_name",
         "email",
         "phone_number",
+        "get_regulators",
         "get_companies",
         "get_sectors",
         "get_permissions_groups",
@@ -529,7 +584,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
-    inlines = [userCompanyInline, userSectorInline]
+    inlines = [userCompanyInline, userRegulatorInline, userSectorInline]
     fieldsets = [
         (
             _("Contact Information"),

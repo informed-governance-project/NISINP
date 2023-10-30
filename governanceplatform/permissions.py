@@ -47,9 +47,9 @@ def set_platform_admin_permissions(user):
         is_superuser=False,
         group_name="PlatformAdmin",
         permissions={
-            "user": ["add", "change", "delete"],
             "regulator": ["add", "change", "delete"],
             "regulation": ["add", "change", "delete"],
+            "regulatoruser": ["add", "change", "delete"],
         },
     )
 
@@ -71,7 +71,7 @@ def set_regulator_staff_permissions(user):
         permissions={
             "user": ["add", "change", "delete", "import", "export"],
             "sectorcontact": ["add", "change", "delete"],
-            "companyadministrator": ["add", "change", "delete"],
+            "companyuser": ["add", "change", "delete"],
             "company": ["change"],
         },
     )
@@ -85,7 +85,7 @@ def set_operator_admin_permissions(user):
         permissions={
             "user": ["add", "change", "delete"],
             "sectorcontact": ["add", "change", "delete"],
-            "companyadministrator": ["add", "change", "delete"],
+            "companyuser": ["add", "change", "delete"],
             "company": ["change"],
         },
     )
