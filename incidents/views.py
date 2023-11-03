@@ -421,15 +421,6 @@ class WorkflowWizardView(SessionWizardView):
         if self.incident is None:
             self.incident = Incident.objects.get(pk=self.request.incident)
 
-        # manage impacts
-        self.incident.is_significative_impact = False
-        self.incident.impacts.set([])
-        for _key, values in data[0].items():
-            for v in values:
-                # if we go there some values have been ticked so the impact is significative
-                self.incident.is_significative_impact = True
-                self.incident.impacts.add(int(v))
-
         # get the email type
         email = None
         if self.incident.final_notification_date is None:
