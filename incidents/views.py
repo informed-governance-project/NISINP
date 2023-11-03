@@ -114,6 +114,20 @@ def get_next_workflow(request, form_list=None, incident_id=None):
     )(request)
 
 
+# TO DO : fix
+@login_required
+@otp_required
+def edit_workflow(request, form_list=None, incident_workflow_id=None):
+    if form_list is None and incident_workflow_id is not None:
+        incident_workflow = IncidentWorkflow.objects.get(id=incident_workflow_id)
+        form_list = get_forms_list(incident=incident_workflow.incident)
+    if incident_workflow_id is not None:
+        request.incident = incident_workflow.incident.id
+    return WorkflowWizardView.as_view(
+        form_list,
+    )(request)
+
+
 @login_required
 @otp_required
 @regulator_role_required

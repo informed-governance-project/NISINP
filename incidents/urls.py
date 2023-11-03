@@ -20,6 +20,7 @@ from django.views.i18n import set_language
 from .views import (
     download_incident_pdf,
     get_next_workflow,
+    edit_workflow,
     get_form_list,
     get_incidents,
     get_regulator_incident_edit_form,
@@ -36,6 +37,11 @@ urlpatterns = [
         r"next_workflow/<int:incident_id>",
         get_next_workflow,
         name="next_workflow",
+    ),
+    path(
+        r"edit_workflow/<int:incident_workflow_id>",
+        edit_workflow,
+        name="edit_workflow",
     ),
     path(
         "incident/<int:incident_id>",
