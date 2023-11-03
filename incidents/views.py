@@ -38,6 +38,7 @@ from .models import (
     Question,
     QuestionCategory,
     SectorRegulation,
+    IncidentWorkflow,
 )
 from .pdf_generation import get_pdf_report
 
@@ -421,24 +422,25 @@ class WorkflowWizardView(SessionWizardView):
         if self.incident is None:
             self.incident = Incident.objects.get(pk=self.request.incident)
 
-        # get the email type
+        # TO DO : send the email
         email = None
-        if self.incident.final_notification_date is None:
-            email = Email.objects.filter(email_type="FINAL").first()
-        else:
-            email = Email.objects.filter(email_type="ADD").first()
 
-        self.incident.final_notification_date = date.today()
         self.incident.save()
         # manage question
-        save_answers(1, data, self.incident)
+        save_answers(0, data, self.incident, self.workflow)
         if email is not None:
             send_email(email, self.incident)
         return HttpResponseRedirect("/incidents")
 
 
-def save_answers(index=0, data=None, incident=None):
+def save_answers(index=0, data=None, incident=None, workflow=None):
     """Save the answers."""
+
+    # We create a new incident workflow in all the case (history)
+    incident_workflow = IncidentWorkflow.objects.create(
+        incident=incident,
+        workflow=workflow
+    )
     for d in range(index, len(data)):
         for key, value in data[d].items():
             question_id = None
@@ -449,9 +451,6 @@ def save_answers(index=0, data=None, incident=None):
             if question_id is not None:
                 predefined_answers = []
                 question = Question.objects.get(pk=key)
-                # we delete the previous answer in case we are doing an additional notification
-                if incident is not None:
-                    Answer.objects.filter(question=question, incident=incident).delete()
                 if question.question_type == "FREETEXT":
                     answer = value
                 elif question.question_type == "DATE":
@@ -471,7 +470,7 @@ def save_answers(index=0, data=None, incident=None):
                     if data[d].get(key + "_answer"):
                         answer = data[d][key + "_answer"]
                 answer_object = Answer.objects.create(
-                    incident=incident,
+                    incident_workflow=incident_workflow,
                     question=question,
                     answer=answer,
                 )
