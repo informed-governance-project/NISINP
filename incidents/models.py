@@ -215,6 +215,12 @@ class Incident(models.Model):
         ).exclude(workflow__in=current_workflow).order_by("position")
         return regulation[0].workflow
 
+    def get_completed_workflows(self):
+        current_workflow = IncidentWorkflow.objects.all().filter(
+            incident=self,
+        )
+        return current_workflow
+
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
