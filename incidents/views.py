@@ -102,12 +102,13 @@ def get_form_list(request, form_list=None):
 
 @login_required
 @otp_required
-def get_final_notification_list(request, form_list=None, incident_id=None):
-    if form_list is None:
-        form_list = get_forms_list(is_preliminary=False)
+def get_next_workflow(request, form_list=None, incident_id=None):
+    if form_list is None and incident_id is not None:
+        incident = Incident.objects.get(id=incident_id)
+        form_list = get_forms_list(incident=incident)
     if incident_id is not None:
         request.incident = incident_id
-    return FinalNotificationWizardView.as_view(
+    return WorkflowWizardView.as_view(
         form_list,
     )(request)
 
@@ -241,29 +242,12 @@ class FormWizardView(SessionWizardView):
         # active_company = get_active_company_from_session(self.request)
         if step is None:
             step = self.steps.current
-        # position = int(step)
-        # when we have passed the fixed forms
-        # if position == 2:
-        #     form = RegulationForm(
-        #         data,
-        #         regulators=active_company.sectors
-        #         if active_company
-        #         else Sector.objects.all(),
-        #     )
 
-        #     return form
-        # else:
         form = super().get_form(step, data, files)
         return form
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
-
-        # categories = (
-        #     QuestionCategory.objects.filter(question__is_preliminary=True)
-        #     .order_by("position")
-        #     .distinct()
-        # )
 
         context["steps"] = [
             _("Contact"),
@@ -271,9 +255,6 @@ class FormWizardView(SessionWizardView):
             _("Regulations"),
             _("Sectors"),
         ]
-
-        # for categorie in categories:
-        #     context["steps"].append(categorie.label)
 
         return context
 
@@ -391,11 +372,12 @@ class FormWizardView(SessionWizardView):
         return HttpResponseRedirect("/incidents")
 
 
-class FinalNotificationWizardView(SessionWizardView):
+class WorkflowWizardView(SessionWizardView):
     """Wizard to manage the final notification form."""
 
     template_name = "declaration.html"
     incident = None
+    workflow = None
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
@@ -404,32 +386,30 @@ class FinalNotificationWizardView(SessionWizardView):
     def get_form(self, step=None, data=None, files=None):
         if self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
+            self.workflow = self.incident.get_next_step()
         if step is None:
             step = self.steps.current
         position = int(step)
 
-        if position > 0:
-            form = QuestionForm(
-                data,
-                position=position - 1,
-                is_preliminary=False,
-                incident=self.incident,
-            )
+        form = QuestionForm(
+            data,
+            position=position,
+            workflow=self.workflow,
+        )
 
-        else:
-            form = super().get_form(step, data, files)
         return form
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
 
+        # TO DO : put the correct categories
         categories = (
-            QuestionCategory.objects.filter(question__is_preliminary=False)
+            QuestionCategory.objects.all()
             .order_by("position")
             .distinct()
         )
 
-        context["steps"] = [_("Impacts")]
+        context["steps"] = []
 
         for categorie in categories:
             context["steps"].append(categorie.label)

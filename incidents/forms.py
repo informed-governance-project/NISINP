@@ -13,7 +13,7 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.models import Regulator, Service, Regulation
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Incident, Question, QuestionCategory, SectorRegulation
+from .models import Answer, Incident, Question, SectorRegulation, IncidentWorkflow
 
 
 # TO DO: change the templates to custom one
@@ -112,7 +112,7 @@ class QuestionForm(forms.Form):
     label = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     # for dynamicly add question to forms
-    def create_question(self, question, incident=None):
+    def create_question(self, question, incident_workflow=None):
         initial_data = []
         if (
             question.question_type == "MULTI"
@@ -125,12 +125,12 @@ class QuestionForm(forms.Form):
             choices = []
             if question.question_type == "SO" or question.question_type == "ST":
                 input_type = "radio"
-            if incident is not None:
+            if incident_workflow is not None:
                 initial_data = list(
                     filter(
                         partial(is_not, None),
                         Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(question=question, incident=incident)
+                        .filter(question=question, incident_workflow=incident_workflow)
                         .order_by("position"),
                     )
                 )
@@ -151,7 +151,7 @@ class QuestionForm(forms.Form):
             )
             if question.question_type == "MT" or question.question_type == "ST":
                 answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident=incident
+                    question=question, incident_workflow=incident_workflow
                 )
                 if len(answer) > 0:
                     if answer[0] != "":
@@ -170,9 +170,9 @@ class QuestionForm(forms.Form):
                 )
         elif question.question_type == "DATE":
             initial_data = ""
-            if incident is not None:
+            if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident=incident
+                    question=question, incident_workflow=incident_workflow
                 )
                 if answer.count() > 0:
                     if answer[0] != "":
@@ -197,9 +197,9 @@ class QuestionForm(forms.Form):
             self.fields[str(question.id)].label = question.label
         elif question.question_type == "FREETEXT":
             initial_data = ""
-            if incident is not None:
+            if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident=incident
+                    question=question, incident_workflow=incident_workflow
                 )
                 if len(answer) > 0:
                     if answer[0] != "":
@@ -217,9 +217,9 @@ class QuestionForm(forms.Form):
             )
         elif question.question_type == "CL" or question.question_type == "RL":
             initial_data = ""
-            if incident is not None:
+            if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident=incident
+                    question=question, incident_workflow=incident_workflow
                 )
                 if len(answer) > 0:
                     if answer[0] != "":
@@ -238,33 +238,38 @@ class QuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         position = -1
+        incident = workflow = None
         if "position" in kwargs:
             position = kwargs.pop("position")
         if "incident" in kwargs:
             incident = kwargs.pop("incident")
-        else:
-            incident = None
-        if "is_preliminary" in kwargs:
-            is_preliminary = kwargs.pop("is_preliminary")
-        else:
-            is_preliminary = True
+        if "workflow" in kwargs:
+            workflow = kwargs.pop("workflow")
+        if "incident_workflow" in kwargs:
+            incident_workflow = kwargs.pop("incident_workflow")
         super().__init__(*args, **kwargs)
 
-        if position > -1:
-            categories = (
-                QuestionCategory.objects.all()
-                .order_by("position")
-                .filter(question__is_preliminary=is_preliminary)
-                .distinct()
+        questions = workflow.questions.all()
+        categories = []
+        # TO DO : filter by category position
+        for question in questions:
+            categories.append(question.category)
+        category = categories[position]
+
+        subquestion = (
+            Question.objects.all()
+            .filter(category=category)
+            .order_by("position")
+        )
+
+        incident_workflow = None
+        if incident is not None and workflow is not None:
+            incident_workflow = IncidentWorkflow.objects.get(
+                incident=incident,
+                workflow=workflow
             )
-            category = categories[position]
-            questions = (
-                Question.objects.all()
-                .filter(category=category, is_preliminary=is_preliminary)
-                .order_by("position")
-            )
-            for question in questions:
-                self.create_question(question, incident)
+        for question in subquestion:
+            self.create_question(question, incident_workflow)
 
 
 # the first question for preliminary notification
@@ -478,24 +483,25 @@ def construct_sectors_array(regulations, regulators):
     return sectors_to_select
 
 
-def get_forms_list(is_preliminary=True):
-    categories = (
-        QuestionCategory.objects.all()
-        .filter(question__is_preliminary=is_preliminary)
-        .distinct()
-    )
+def get_forms_list(incident=None, workflow_id=None):
 
     category_tree = []
-    if is_preliminary is True:
+    if incident is None:
         category_tree = [
             ContactForm,
             RegulatorForm,
             RegulationForm,
             SectorForm,
         ]
+    else:
+        if workflow_id is None:
+            workflow = incident.get_next_step()
+            categories = []
+            for question in workflow.questions.all():
+                categories.append(question.category)
 
-    for _category in categories:
-        category_tree.append(QuestionForm)
+        for _category in categories:
+            category_tree.append(QuestionForm)
 
     return category_tree
 

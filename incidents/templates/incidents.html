@@ -12,6 +12,7 @@
                 <th scope="col">{% translate "Regulator" %}</th>
                 <th scope="col">{% translate "Regulation" %}</th>
                 <th scope="col">{% translate "Next step" %}</th>
+                <th scope="col">{% translate "See or edit workflow" %}</th>
                 <th scope="col">{% translate "Action" %}</th>
                 <th scope="col">{% translate "Review status" %}</th>
             </tr>
@@ -23,7 +24,8 @@
                 <td>{{incident.contact_lastname}}</td>
                 <td>{{incident.sector_regulation.regulator}}</td>
                 <td>{{incident.sector_regulation.regulation}}</td>
-                <td><a href="{% url 'final-notification' incident.id %}">{{incident.get_next_step}}</a></td>
+                <td><a href="{% url 'next_workflow' incident.id %}">{{incident.get_next_step}}</a></td>
+                <td></td>
                 <td scope="col">{% translate "Actions" %}</td>
                 <td scope="row">{{incident.get_review_status}}</td>
             </tr>

@@ -52,7 +52,6 @@ class Question(TranslatableModel):
         max_length=10, choices=QUESTION_TYPES, blank=False, default=QUESTION_TYPES[0][0]
     )  # MULTI, FREETEXT, DATE,
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
-    is_preliminary = models.BooleanField(default=False, verbose_name=_("Preliminary"))
     translations = TranslatedFields(
         label=models.TextField(),
         tooltip=models.TextField(blank=True, null=True),
@@ -230,7 +229,7 @@ class IncidentWorkflow(models.Model):
 
 # answers
 class Answer(models.Model):
-    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    incident_workflow = models.ForeignKey(IncidentWorkflow, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
     predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
