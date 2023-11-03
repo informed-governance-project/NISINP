@@ -256,6 +256,7 @@ class QuestionForm(forms.Form):
             categories.append(question.category)
         category = categories[position]
 
+        # TO DO : filter subquestion in questions array above
         subquestion = (
             Question.objects.all()
             .filter(category=category)

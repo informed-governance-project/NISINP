@@ -95,11 +95,6 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="is_mandatory",
     )
 
-    is_preliminary = fields.Field(
-        column_name="is_preliminary",
-        attribute="is_preliminary",
-    )
-
     predefined_answers = fields.Field(
         column_name="predefined_answers",
         attribute="predefined_answers",
@@ -129,7 +124,7 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["label"]
     resource_class = QuestionResource
     fields = [
-        ("position", "is_mandatory", "is_preliminary"),
+        ("position", "is_mandatory"),
         "question_type",
         "category",
         "label",
