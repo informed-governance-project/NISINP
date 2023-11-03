@@ -17,6 +17,8 @@ from incidents.models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
+    Workflow,
+    SectorRegulation,
 )
 
 
@@ -230,3 +232,31 @@ class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["email_type", "subject", "content"]
     search_fields = ["subject", "content"]
     resource_class = EmailResource
+
+
+class WorkflowResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+
+    class Meta:
+        model = Workflow
+
+
+@admin.register(Workflow, site=admin_site)
+class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+    resource_class = WorkflowResource
+
+
+class SectorRegulationResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+
+    class Meta:
+        model = SectorRegulation
+
+
+@admin.register(SectorRegulation, site=admin_site)
+class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+    resource_class = SectorRegulationResource
