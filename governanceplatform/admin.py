@@ -266,7 +266,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         user = request.user
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.filter(id__in=user.companies.all())
+            return queryset
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
             return queryset.filter(

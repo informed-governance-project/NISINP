@@ -95,11 +95,6 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="is_mandatory",
     )
 
-    is_preliminary = fields.Field(
-        column_name="is_preliminary",
-        attribute="is_preliminary",
-    )
-
     predefined_answers = fields.Field(
         column_name="predefined_answers",
         attribute="predefined_answers",
@@ -129,7 +124,7 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["label"]
     resource_class = QuestionResource
     fields = [
-        ("position", "is_mandatory", "is_preliminary"),
+        ("position", "is_mandatory"),
         "question_type",
         "category",
         "label",
@@ -241,11 +236,19 @@ class WorkflowResource(resources.ModelResource):
         model = Workflow
 
 
+class SectorRegulationInline(admin.TabularInline):
+    model = SectorRegulation.workflows.through
+    verbose_name = _("sector regulation")
+    verbose_name_plural = _("sectors regulations")
+    extra = 0
+
+
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name"]
     search_fields = ["name"]
     resource_class = WorkflowResource
+    inlines = (SectorRegulationInline,)
 
 
 class SectorRegulationResource(resources.ModelResource):

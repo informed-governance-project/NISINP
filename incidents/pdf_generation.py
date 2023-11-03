@@ -23,9 +23,10 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
     for answer in incident.answer_set.all():
         populate_questions_answers(
             answer,
-            preliminary_questions_answers
-            if answer.question.is_preliminary
-            else final_questions_answers,
+            final_questions_answers,
+            # preliminary_questions_answers
+            # if answer.question.is_preliminary
+            # else final_questions_answers,
         )
 
     # Render the HTML file

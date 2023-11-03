@@ -19,7 +19,7 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
 
 # answers for the question
@@ -39,7 +39,7 @@ class QuestionCategory(TranslatableModel):
     position = models.IntegerField()
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
     class Meta:
         verbose_name = _("Question Category")
@@ -70,7 +70,7 @@ class Question(TranslatableModel):
         ]
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -82,7 +82,7 @@ class Workflow(TranslatableModel):
     questions = models.ManyToManyField(Question)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
 
 # link between a regulation and a regulator,
@@ -105,7 +105,7 @@ class SectorRegulation(TranslatableModel):
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
 
 # link between sector regulation and workflows
