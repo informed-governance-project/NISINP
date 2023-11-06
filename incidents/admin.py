@@ -17,6 +17,8 @@ from incidents.models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
+    Workflow,
+    SectorRegulation,
 )
 
 
@@ -93,11 +95,6 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="is_mandatory",
     )
 
-    is_preliminary = fields.Field(
-        column_name="is_preliminary",
-        attribute="is_preliminary",
-    )
-
     predefined_answers = fields.Field(
         column_name="predefined_answers",
         attribute="predefined_answers",
@@ -127,7 +124,7 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["label"]
     resource_class = QuestionResource
     fields = [
-        ("position", "is_mandatory", "is_preliminary"),
+        ("position", "is_mandatory"),
         "question_type",
         "category",
         "label",
@@ -230,3 +227,47 @@ class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["email_type", "subject", "content"]
     search_fields = ["subject", "content"]
     resource_class = EmailResource
+
+
+class WorkflowResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+
+    class Meta:
+        model = Workflow
+
+
+class WorkflowInline(admin.TabularInline):
+    model = Workflow.sectorregulation_set.through
+    verbose_name = _("sector regulation")
+    verbose_name_plural = _("sectors regulations")
+    extra = 0
+
+
+@admin.register(Workflow, site=admin_site)
+class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+    resource_class = WorkflowResource
+    inlines = (WorkflowInline,)
+
+
+class SectorRegulationResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+
+    class Meta:
+        model = SectorRegulation
+
+
+class SectorRegulationInline(admin.TabularInline):
+    model = SectorRegulation.workflows.through
+    verbose_name = _("sector regulation")
+    verbose_name_plural = _("sectors regulations")
+    extra = 0
+
+
+@admin.register(SectorRegulation, site=admin_site)
+class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
+    resource_class = SectorRegulationResource
+    inlines = (SectorRegulationInline,)

@@ -114,4 +114,8 @@ class Migration(migrations.Migration):
                 to="governanceplatform.regulator",
             ),
         ),
+        migrations.RemoveField(
+            model_name="company",
+            name="is_regulator",
+        ),
     ]

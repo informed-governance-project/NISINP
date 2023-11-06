@@ -1,10 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
@@ -141,7 +139,6 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    is_regulator = fields.Field(column_name="is_regulator", attribute="is_regulator")
     monarc_path = fields.Field(column_name="monarc_path", attribute="monarc_path")
     sectors = fields.Field(
         column_name="sectors",
@@ -227,14 +224,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         ),
     ]
 
-    def save_model(self, request, obj, form, change):
-        user = request.user
-        obj.is_regulator = False
-        # Only platform Administrator can create regulator companies
-        if user_in_group(user, "PlatformAdmin"):
-            obj.is_regulator = True
-        super().save_model(request, obj, form, change)
-
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
 
@@ -275,14 +264,9 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        # Platform Admin
-        if user_in_group(user, "PlatformAdmin"):
-            return queryset.filter(is_regulator=True)
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.filter(
-                Q(is_regulator=False) | Q(id__in=user.companies.all())
-            )
+            return queryset
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
             return queryset.filter(
@@ -391,20 +375,6 @@ class userRegulatorInline(admin.TabularInline):
     def get_max_num(self, request, obj=None, **kwargs):
         return 1 if user_in_group(request.user, "PlatformAdmin") else 0
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        if (
-            user_in_group(request.user, "PlatformAdmin")
-            and "is_regulator_administrator" in formset.form.base_fields
-        ):
-            formset.form.base_fields[
-                "is_regulator_administrator"
-            ].widget = forms.HiddenInput()
-            formset.form.base_fields["is_regulator_administrator"].initial = True
-        formset.empty_permitted = False
-
-        return formset
-
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
         if obj == request.user:
@@ -432,9 +402,6 @@ class userCompanyInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "company":
             user = request.user
-            # Regulator Admin
-            if user_in_group(user, "RegulatorAdmin"):
-                kwargs["queryset"] = Company.objects.filter(id__in=user.companies.all())
             # Regulator Staff
             if user_in_group(user, "RegulatorStaff"):
                 kwargs["queryset"] = Company.objects.filter(
@@ -446,23 +413,10 @@ class userCompanyInline(admin.TabularInline):
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-    def get_max_num(self, request, obj=None, **kwargs):
-        if user_in_group(request.user, "PlatformAdmin"):
-            return 1
-        else:
-            return super().get_max_num(request, obj, **kwargs)
-
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        if (
-            user_in_group(request.user, "PlatformAdmin")
-            and "is_company_administrator" in formset.form.base_fields
-        ):
-            formset.form.base_fields[
-                "is_company_administrator"
-            ].widget = forms.HiddenInput()
-            formset.form.base_fields["is_company_administrator"].initial = True
         formset.empty_permitted = False
+
         return formset
 
     # Revoke the permissions of the logged user

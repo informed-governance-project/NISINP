@@ -25,7 +25,7 @@ class Sector(TranslatableModel):
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
     class Meta:
         verbose_name = _("Sector")
@@ -39,7 +39,7 @@ class Service(TranslatableModel):
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
     class Meta:
         verbose_name = _("Service")
@@ -51,7 +51,7 @@ class Functionality(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(max_length=100))
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
     class Meta:
         verbose_name = _("Functionality")
@@ -64,12 +64,11 @@ class OperatorType(TranslatableModel):
     functionalities = models.ManyToManyField(Functionality)
 
     def __str__(self):
-        return self.type
+        return self.type if self.type is not None else ""
 
 
 # operator are companies
 class Company(models.Model):
-    is_regulator = models.BooleanField(default=False, verbose_name=_("Regulator"))
     identifier = models.CharField(
         max_length=4, verbose_name=_("Identifier")
     )  # requirement from business concat(name_country_regulator)
@@ -251,4 +250,4 @@ class Regulation(TranslatableModel):
     regulators = models.ManyToManyField(Regulator, default=None, blank=True)
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""

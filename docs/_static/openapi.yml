@@ -198,9 +198,6 @@ components:
           nullable: true
           title: Email address
           maxLength: 100
-        is_regulator:
-          type: boolean
-          title: Regulator
         sectors:
           type: array
           items:

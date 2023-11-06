@@ -22,15 +22,11 @@ def update_user_groups(sender, instance, created, **kwargs):
     )
 
     # Operator Administrator permission
-    if (
-        some_company_is_administrator.exists()
-        and some_company_is_administrator.filter(company__is_regulator=False).exists()
-    ):
+    if some_company_is_administrator.exists():
         set_operator_admin_permissions(user)
-        return
-
-    user.groups.clear()
-    user.save()
+    else:
+        user.groups.clear()
+        user.save()
 
 
 @receiver(post_save, sender=RegulatorUser)
@@ -46,9 +42,6 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     else:
         set_regulator_staff_permissions(user)
         return
-
-    user.groups.clear()
-    user.save()
 
 
 @receiver(post_delete, sender=CompanyUser)

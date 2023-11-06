@@ -19,7 +19,7 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
 
 # answers for the question
@@ -39,7 +39,7 @@ class QuestionCategory(TranslatableModel):
     position = models.IntegerField()
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
     class Meta:
         verbose_name = _("Question Category")
@@ -52,7 +52,6 @@ class Question(TranslatableModel):
         max_length=10, choices=QUESTION_TYPES, blank=False, default=QUESTION_TYPES[0][0]
     )  # MULTI, FREETEXT, DATE,
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
-    is_preliminary = models.BooleanField(default=False, verbose_name=_("Preliminary"))
     translations = TranslatedFields(
         label=models.TextField(),
         tooltip=models.TextField(blank=True, null=True),
@@ -71,7 +70,7 @@ class Question(TranslatableModel):
         ]
 
     def __str__(self):
-        return self.label
+        return self.label if self.label is not None else ""
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -83,7 +82,7 @@ class Workflow(TranslatableModel):
     questions = models.ManyToManyField(Question)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
 
 # link between a regulation and a regulator,
@@ -106,7 +105,7 @@ class SectorRegulation(TranslatableModel):
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.name if self.name is not None else ""
 
 
 # link between sector regulation and workflows
@@ -216,6 +215,12 @@ class Incident(models.Model):
         ).exclude(workflow__in=current_workflow).order_by("position")
         return regulation[0].workflow
 
+    def get_completed_workflows(self):
+        current_workflow = IncidentWorkflow.objects.all().filter(
+            incident=self,
+        )
+        return current_workflow
+
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
@@ -230,7 +235,7 @@ class IncidentWorkflow(models.Model):
 
 # answers
 class Answer(models.Model):
-    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    incident_workflow = models.ForeignKey(IncidentWorkflow, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
     predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)

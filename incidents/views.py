@@ -38,6 +38,7 @@ from .models import (
     Question,
     QuestionCategory,
     SectorRegulation,
+    IncidentWorkflow,
 )
 from .pdf_generation import get_pdf_report
 
@@ -102,12 +103,27 @@ def get_form_list(request, form_list=None):
 
 @login_required
 @otp_required
-def get_final_notification_list(request, form_list=None, incident_id=None):
-    if form_list is None:
-        form_list = get_forms_list(is_preliminary=False)
+def get_next_workflow(request, form_list=None, incident_id=None):
+    if form_list is None and incident_id is not None:
+        incident = Incident.objects.get(id=incident_id)
+        form_list = get_forms_list(incident=incident)
     if incident_id is not None:
         request.incident = incident_id
-    return FinalNotificationWizardView.as_view(
+    return WorkflowWizardView.as_view(
+        form_list,
+    )(request)
+
+
+# TO DO : fix
+@login_required
+@otp_required
+def edit_workflow(request, form_list=None, incident_workflow_id=None):
+    if form_list is None and incident_workflow_id is not None:
+        incident_workflow = IncidentWorkflow.objects.get(id=incident_workflow_id)
+        form_list = get_forms_list(incident=incident_workflow.incident)
+    if incident_workflow_id is not None:
+        request.incident = incident_workflow.incident.id
+    return WorkflowWizardView.as_view(
         form_list,
     )(request)
 
@@ -241,29 +257,12 @@ class FormWizardView(SessionWizardView):
         # active_company = get_active_company_from_session(self.request)
         if step is None:
             step = self.steps.current
-        # position = int(step)
-        # when we have passed the fixed forms
-        # if position == 2:
-        #     form = RegulationForm(
-        #         data,
-        #         regulators=active_company.sectors
-        #         if active_company
-        #         else Sector.objects.all(),
-        #     )
 
-        #     return form
-        # else:
         form = super().get_form(step, data, files)
         return form
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
-
-        # categories = (
-        #     QuestionCategory.objects.filter(question__is_preliminary=True)
-        #     .order_by("position")
-        #     .distinct()
-        # )
 
         context["steps"] = [
             _("Contact"),
@@ -271,9 +270,6 @@ class FormWizardView(SessionWizardView):
             _("Regulations"),
             _("Sectors"),
         ]
-
-        # for categorie in categories:
-        #     context["steps"].append(categorie.label)
 
         return context
 
@@ -391,11 +387,12 @@ class FormWizardView(SessionWizardView):
         return HttpResponseRedirect("/incidents")
 
 
-class FinalNotificationWizardView(SessionWizardView):
+class WorkflowWizardView(SessionWizardView):
     """Wizard to manage the final notification form."""
 
     template_name = "declaration.html"
     incident = None
+    workflow = None
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
@@ -404,32 +401,30 @@ class FinalNotificationWizardView(SessionWizardView):
     def get_form(self, step=None, data=None, files=None):
         if self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
+            self.workflow = self.incident.get_next_step()
         if step is None:
             step = self.steps.current
         position = int(step)
 
-        if position > 0:
-            form = QuestionForm(
-                data,
-                position=position - 1,
-                is_preliminary=False,
-                incident=self.incident,
-            )
+        form = QuestionForm(
+            data,
+            position=position,
+            workflow=self.workflow,
+        )
 
-        else:
-            form = super().get_form(step, data, files)
         return form
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
 
+        # TO DO : put the correct categories
         categories = (
-            QuestionCategory.objects.filter(question__is_preliminary=False)
+            QuestionCategory.objects.all()
             .order_by("position")
             .distinct()
         )
 
-        context["steps"] = [_("Impacts")]
+        context["steps"] = []
 
         for categorie in categories:
             context["steps"].append(categorie.label)
@@ -441,33 +436,25 @@ class FinalNotificationWizardView(SessionWizardView):
         if self.incident is None:
             self.incident = Incident.objects.get(pk=self.request.incident)
 
-        # manage impacts
-        self.incident.is_significative_impact = False
-        self.incident.impacts.set([])
-        for _key, values in data[0].items():
-            for v in values:
-                # if we go there some values have been ticked so the impact is significative
-                self.incident.is_significative_impact = True
-                self.incident.impacts.add(int(v))
-
-        # get the email type
+        # TO DO : send the email
         email = None
-        if self.incident.final_notification_date is None:
-            email = Email.objects.filter(email_type="FINAL").first()
-        else:
-            email = Email.objects.filter(email_type="ADD").first()
 
-        self.incident.final_notification_date = date.today()
         self.incident.save()
         # manage question
-        save_answers(1, data, self.incident)
+        save_answers(0, data, self.incident, self.workflow)
         if email is not None:
             send_email(email, self.incident)
         return HttpResponseRedirect("/incidents")
 
 
-def save_answers(index=0, data=None, incident=None):
+def save_answers(index=0, data=None, incident=None, workflow=None):
     """Save the answers."""
+
+    # We create a new incident workflow in all the case (history)
+    incident_workflow = IncidentWorkflow.objects.create(
+        incident=incident,
+        workflow=workflow
+    )
     for d in range(index, len(data)):
         for key, value in data[d].items():
             question_id = None
@@ -478,9 +465,6 @@ def save_answers(index=0, data=None, incident=None):
             if question_id is not None:
                 predefined_answers = []
                 question = Question.objects.get(pk=key)
-                # we delete the previous answer in case we are doing an additional notification
-                if incident is not None:
-                    Answer.objects.filter(question=question, incident=incident).delete()
                 if question.question_type == "FREETEXT":
                     answer = value
                 elif question.question_type == "DATE":
@@ -500,7 +484,7 @@ def save_answers(index=0, data=None, incident=None):
                     if data[d].get(key + "_answer"):
                         answer = data[d][key + "_answer"]
                 answer_object = Answer.objects.create(
-                    incident=incident,
+                    incident_workflow=incident_workflow,
                     question=question,
                     answer=answer,
                 )
