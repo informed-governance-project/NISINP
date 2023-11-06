@@ -22,13 +22,13 @@ from .models import (
     CompanyUser,
     Functionality,
     OperatorType,
+    Regulation,
+    Regulator,
+    RegulatorUser,
     Sector,
     SectorContact,
     Service,
     User,
-    Regulator,
-    Regulation,
-    RegulatorUser,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -599,8 +599,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     ]
     actions = [reset_2FA]
 
-    @admin.display(boolean=True)
-    @admin.display(description="2FA")
+    @admin.display(description="2FA", boolean=True)
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
