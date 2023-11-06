@@ -13,7 +13,7 @@ from parler.admin import TranslatableAdmin
 
 from incidents.models import Impact
 
-from .helpers import user_in_group
+from .helpers import user_in_group, is_user_regulator
 from .mixins import TranslationUpdateMixin
 from .models import (
     Company,
@@ -269,6 +269,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             return queryset
         # Regulator Staff
         if user_in_group(user, "RegulatorStaff"):
+            # TODO: clarify is this is only user.sectors or user.companies.sectors ???
             return queryset.filter(
                 sectors__in=user.sectors.all(),
             ).distinct()
@@ -367,13 +368,15 @@ class userRegulatorInline(admin.TabularInline):
         if db_field.name == "regulator":
             user = request.user
             # Platform Admin
-            if user_in_group(user, "PlatformAdmin"):
+            if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = Regulator.objects.all()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_max_num(self, request, obj=None, **kwargs):
-        return 1 if user_in_group(request.user, "PlatformAdmin") else 0
+        return 1 if (
+            user_in_group(request.user, "PlatformAdmin") or is_user_regulator(request.user)
+        ) else 0
 
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
@@ -581,6 +584,26 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 inline
                 for inline in inline_instances
                 if not isinstance(inline, userSectorInline)
+            ]
+
+        # Exclude userCompanyInline for users in RegulatorAdmin group
+        if user_in_group(request.user, "RegulatorAdmin") or (
+            obj and obj == request.user
+        ):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userCompanyInline)
+            ]
+
+        # Exclude userRegulatorInline for users in RegulatorStaff group
+        if user_in_group(request.user, "RegulatorStaff") or (
+            obj and obj == request.user
+        ):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userRegulatorInline)
             ]
 
         return inline_instances

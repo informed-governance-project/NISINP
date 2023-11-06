@@ -117,7 +117,10 @@ class Regulator(models.Model):
     description = models.TextField(
         blank=True, default="", null=True, verbose_name=_("description")
     )
-    is_receiving_all_incident = models.BooleanField(default=False, verbose_name=_("Receive all incident"))
+    is_receiving_all_incident = models.BooleanField(
+        default=False,
+        verbose_name=_("Receive all incident")
+    )
 
     def __str__(self):
         return self.name

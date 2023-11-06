@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
-from .helpers import user_in_group
+from .helpers import user_in_group, is_user_regulator
 
 
 @login_required
@@ -21,27 +21,13 @@ def index(request):
     if user_in_group(user, "PlatformAdmin"):
         return redirect("admin:index")
 
-    # TODO: allow to bypass it for an IncidentUser
-    # if not user.companies.exists():
-    #     messages.error(
-    #         request,
-    #         _(
-    #             "There is no company associated with this account. Contact the administrator"
-    #         ),
-    #     )
-    #     return redirect("login")
-
     if not request.session.get("company_in_use") and user.companies.exists():
         if user.companies.count() > 1:
             return select_company(request)
 
         request.session["company_in_use"] = user.companies.first().id
 
-    return (
-        redirect("admin:index")
-        if user_in_group(user, "RegulatorAdmin")
-        else redirect("incidents")
-    )
+    return redirect("admin:index") if is_user_regulator(user) else redirect("incidents")
 
 
 def logout_view(request):
