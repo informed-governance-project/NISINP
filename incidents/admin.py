@@ -236,8 +236,8 @@ class WorkflowResource(resources.ModelResource):
         model = Workflow
 
 
-class SectorRegulationInline(admin.TabularInline):
-    model = SectorRegulation.workflows.through
+class WorkflowInline(admin.TabularInline):
+    model = Workflow.sectorregulation_set.through
     verbose_name = _("sector regulation")
     verbose_name_plural = _("sectors regulations")
     extra = 0
@@ -248,7 +248,7 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name"]
     search_fields = ["name"]
     resource_class = WorkflowResource
-    inlines = (SectorRegulationInline,)
+    inlines = (WorkflowInline,)
 
 
 class SectorRegulationResource(resources.ModelResource):
@@ -258,8 +258,16 @@ class SectorRegulationResource(resources.ModelResource):
         model = SectorRegulation
 
 
+class SectorRegulationInline(admin.TabularInline):
+    model = SectorRegulation.workflows.through
+    verbose_name = _("sector regulation")
+    verbose_name_plural = _("sectors regulations")
+    extra = 0
+
+
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name"]
     search_fields = ["name"]
     resource_class = SectorRegulationResource
+    inlines = (SectorRegulationInline,)
