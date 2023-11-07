@@ -109,6 +109,7 @@ def get_next_workflow(request, form_list=None, incident_id=None):
         form_list = get_forms_list(incident=incident)
     if incident_id is not None:
         request.incident = incident_id
+        request.incident_workflow = None
     return WorkflowWizardView.as_view(
         form_list,
     )(request)
@@ -120,9 +121,11 @@ def get_next_workflow(request, form_list=None, incident_id=None):
 def edit_workflow(request, form_list=None, incident_workflow_id=None):
     if form_list is None and incident_workflow_id is not None:
         incident_workflow = IncidentWorkflow.objects.get(id=incident_workflow_id)
-        form_list = get_forms_list(incident=incident_workflow.incident)
+        form_list = get_forms_list(incident=incident_workflow.incident, workflow=incident_workflow.workflow)
     if incident_workflow_id is not None:
         request.incident = incident_workflow.incident.id
+        request.incident_workflow = incident_workflow.id
+
     return WorkflowWizardView.as_view(
         form_list,
     )(request)
@@ -393,24 +396,33 @@ class WorkflowWizardView(SessionWizardView):
     template_name = "declaration.html"
     incident = None
     workflow = None
+    incident_workflow = None
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
         return super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
-        if self.request.incident:
-            self.incident = Incident.objects.get(pk=self.request.incident)
-            self.workflow = self.incident.get_next_step()
         if step is None:
             step = self.steps.current
         position = int(step)
-
-        form = QuestionForm(
-            data,
-            position=position,
-            workflow=self.workflow,
-        )
+        if self.request.incident_workflow:
+            self.incident_workflow = IncidentWorkflow.objects.get(pk=self.request.incident_workflow)
+            self.incident = self.incident_workflow.incident
+            self.workflow = self.incident_workflow.workflow
+            form = QuestionForm(
+                data,
+                position=position,
+                incident_workflow=self.incident_workflow,
+            )
+        elif self.request.incident:
+            self.incident = Incident.objects.get(pk=self.request.incident)
+            self.workflow = self.incident.get_next_step()
+            form = QuestionForm(
+                data,
+                position=position,
+                workflow=self.workflow,
+            )
 
         return form
 

@@ -13,7 +13,7 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.models import Regulator, Service, Regulation
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Incident, Question, SectorRegulation, IncidentWorkflow
+from .models import Answer, Incident, Question, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -238,18 +238,19 @@ class QuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         position = -1
-        incident = workflow = None
+        workflow = incident_workflow = None
         if "position" in kwargs:
             position = kwargs.pop("position")
-        if "incident" in kwargs:
-            incident = kwargs.pop("incident")
         if "workflow" in kwargs:
             workflow = kwargs.pop("workflow")
         if "incident_workflow" in kwargs:
             incident_workflow = kwargs.pop("incident_workflow")
         super().__init__(*args, **kwargs)
 
-        questions = workflow.questions.all()
+        if workflow is not None:
+            questions = workflow.questions.all()
+        if incident_workflow is not None:
+            questions = incident_workflow.workflow.questions.all()
         categories = []
         # TO DO : filter by category position
         for question in questions:
@@ -262,12 +263,6 @@ class QuestionForm(forms.Form):
             .order_by("position")
         )
 
-        incident_workflow = None
-        if incident is not None and workflow is not None:
-            incident_workflow = IncidentWorkflow.objects.get(
-                incident=incident,
-                workflow=workflow
-            )
         for question in subquestion:
             self.create_question(question, incident_workflow)
 
@@ -483,7 +478,7 @@ def construct_sectors_array(regulations, regulators):
     return sectors_to_select
 
 
-def get_forms_list(incident=None, workflow_id=None):
+def get_forms_list(incident=None, workflow=None):
 
     category_tree = []
     if incident is None:
@@ -494,8 +489,12 @@ def get_forms_list(incident=None, workflow_id=None):
             SectorForm,
         ]
     else:
-        if workflow_id is None:
+        if workflow is None:
             workflow = incident.get_next_step()
+            categories = []
+            for question in workflow.questions.all():
+                categories.append(question.category)
+        else:
             categories = []
             for question in workflow.questions.all():
                 categories.append(question.category)
