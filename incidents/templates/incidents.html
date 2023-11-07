@@ -28,7 +28,7 @@
                     <a href="{% url 'next_workflow' incident.id %}">{{incident.get_next_step}}</a>
                     {% endif %}
                 </td>
-                <td>{% for completed_workflow in incident.get_completed_workflows %}
+                <td>{% for completed_workflow in incident.get_latest_workflows %}
                     <a href="{% url 'edit_workflow' completed_workflow.id %}">{{completed_workflow.workflow}}</a> <br/>
                 {% endfor %}</td>
                 <td scope="col">{% translate "Actions" %}</td>

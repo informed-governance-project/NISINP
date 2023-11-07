@@ -225,6 +225,12 @@ class Incident(models.Model):
         )
         return current_workflow
 
+    def get_latest_workflows(self):
+        current_workflow = IncidentWorkflow.objects.all().filter(
+            incident=self,
+        ).order_by('workflow', '-timestamp').distinct('workflow')
+        return current_workflow
+
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
