@@ -22,16 +22,6 @@ class Impact(TranslatableModel):
         return self.label if self.label is not None else ""
 
 
-# answers for the question
-class PredefinedAnswer(TranslatableModel):
-    translations = TranslatedFields(predefined_answer=models.TextField())
-    # TODO: move the position to the relation table.
-    position = models.IntegerField(blank=True, default=0, null=True)
-
-    def __str__(self):
-        return self.predefined_answer if self.predefined_answer is not None else ""
-
-
 # category for the question (to order)
 class QuestionCategory(TranslatableModel):
     translations = TranslatedFields(
@@ -57,21 +47,30 @@ class Question(TranslatableModel):
         label=models.TextField(),
         tooltip=models.TextField(blank=True, null=True),
     )
-    predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
     position = models.IntegerField()
     category = models.ForeignKey(
         QuestionCategory, on_delete=models.SET_NULL, default=None, null=True, blank=True
     )
 
-    @admin.display(description="Predefined Answer")
+    @admin.display(description="Predefined Answers")
     def get_predefined_answers(self):
         return [
             predefined_answer.predefined_answer
-            for predefined_answer in self.predefined_answers.all()
+            for predefined_answer in self.predefinedanswer_set.all()
         ]
 
     def __str__(self):
         return self.label if self.label is not None else ""
+
+
+# answers for the question
+class PredefinedAnswer(TranslatableModel):
+    translations = TranslatedFields(predefined_answer=models.TextField())
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, default=None, null=True)
+    position = models.IntegerField(blank=True, default=0, null=True)
+
+    def __str__(self):
+        return self.predefined_answer if self.predefined_answer is not None else ""
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,

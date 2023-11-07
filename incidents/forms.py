@@ -134,7 +134,7 @@ class QuestionForm(forms.Form):
                         # .order_by("position"),
                     )
                 )
-            for choice in question.predefined_answers.all().order_by("position"):
+            for choice in question.predefinedanswer_set.all().order_by("position"):
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
                 required=question.is_mandatory,

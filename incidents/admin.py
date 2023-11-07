@@ -9,7 +9,7 @@ from parler.admin import TranslatableAdmin
 from governanceplatform.admin import admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Sector
-from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
+from governanceplatform.widgets import TranslatedNameWidget
 from incidents.models import (
     Email,
     Impact,
@@ -36,17 +36,13 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(PredefinedAnswer, site=admin_site)
 class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
-        "get_question_label",
+        "question",
         "predefined_answer",
+        "position",
     ]
-    list_display_links = ["get_question_label", "predefined_answer"]
+    list_display_links = ["question", "predefined_answer"]
     search_fields = ["predefined_answer"]
     resource_class = PredefinedAnswerResource
-
-    @admin.display(description="Question")
-    def get_question_label(self, obj):
-        for question in obj.question_set.all():
-            return question.label
 
 
 class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
@@ -74,35 +70,22 @@ class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
-
     label = fields.Field(
         column_name="label",
         attribute="label",
     )
-
     tooltip = fields.Field(
         column_name="tooltip",
         attribute="tooltip",
     )
-
     question_type = fields.Field(
         column_name="question_type",
         attribute="question_type",
     )
-
     is_mandatory = fields.Field(
         column_name="is_mandatory",
         attribute="is_mandatory",
     )
-
-    predefined_answers = fields.Field(
-        column_name="predefined_answers",
-        attribute="predefined_answers",
-        widget=TranslatedNameM2MWidget(
-            PredefinedAnswer, field="predefined_answer", separator="\n"
-        ),
-    )
-
     position = fields.Field(
         column_name="position",
         attribute="position",
@@ -117,6 +100,13 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         model = Question
 
 
+class PredefinedAnswerInline(admin.TabularInline):
+    model = PredefinedAnswer
+    verbose_name = _("predefined answer")
+    verbose_name_plural = _("predefined answers")
+    extra = 0
+
+
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
@@ -129,9 +119,8 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "category",
         "label",
         "tooltip",
-        "predefined_answers",
     ]
-    filter_horizontal = ["predefined_answers"]
+    inlines = (PredefinedAnswerInline,)
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):

@@ -125,10 +125,6 @@ class Regulator(models.Model):
     def __str__(self):
         return self.name
 
-    @admin.display(description="sectors")
-    def get_sectors(self):
-        return [sector.name for sector in self.sectors.all()]
-
     class Meta:
         verbose_name = _("Regulator")
         verbose_name_plural = _("Regulators")
