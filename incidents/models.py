@@ -214,7 +214,10 @@ class Incident(models.Model):
         regulation = SectorRegulationWorkflow.objects.all().filter(
             sector_regulation=self.sector_regulation,
         ).exclude(workflow__in=current_workflow).order_by("position")
-        return regulation[0].workflow
+        if len(regulation) > 0:
+            return regulation[0].workflow
+        else:
+            return None
 
     def get_completed_workflows(self):
         current_workflow = IncidentWorkflow.objects.all().filter(
