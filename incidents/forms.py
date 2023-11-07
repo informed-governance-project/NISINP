@@ -131,7 +131,7 @@ class QuestionForm(forms.Form):
                         partial(is_not, None),
                         Answer.objects.values_list("predefined_answers", flat=True)
                         .filter(question=question, incident_workflow=incident_workflow)
-                        .order_by("position"),
+                        # .order_by("position"),
                     )
                 )
             for choice in question.predefined_answers.all().order_by("position"):
@@ -491,13 +491,13 @@ def get_forms_list(incident=None, workflow=None):
     else:
         if workflow is None:
             workflow = incident.get_next_step()
-            categories = []
+            categories = set()
             for question in workflow.questions.all():
-                categories.append(question.category)
+                categories.add(question.category)
         else:
-            categories = []
+            categories = set()
             for question in workflow.questions.all():
-                categories.append(question.category)
+                categories.add(question.category)
 
         for _category in categories:
             category_tree.append(QuestionForm)
