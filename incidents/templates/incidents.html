@@ -20,7 +20,7 @@
         {% for incident in incidents %}
         <tbody>
             <tr>
-                <td scope="row">{{incident.preliminary_notification_date}}</td>
+                <td scope="row">{{incident.incident_notification_date}}</td>
                 <td>{{incident.contact_lastname}}</td>
                 <td>{{incident.sector_regulation.regulator}}</td>
                 <td>{{incident.sector_regulation.regulation}}</td>
@@ -31,7 +31,7 @@
                 <td>{% for completed_workflow in incident.get_latest_workflows %}
                     <a href="{% url 'edit_workflow' completed_workflow.id %}">{{completed_workflow.workflow}}</a> <br/>
                 {% endfor %}</td>
-                <td scope="col">{% translate "Actions" %}</td>
+                <td scope="col"></td>
                 <td scope="row">{{incident.get_review_status}}</td>
             </tr>
         </tbody>
