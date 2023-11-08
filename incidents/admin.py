@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
-from parler.admin import TranslatableAdmin
+from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
@@ -100,7 +100,7 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         model = Question
 
 
-class PredefinedAnswerInline(admin.TabularInline):
+class PredefinedAnswerInline(TranslatableTabularInline):
     model = PredefinedAnswer
     verbose_name = _("predefined answer")
     verbose_name_plural = _("predefined answers")
