@@ -519,3 +519,30 @@ class RegulatorIncidentEditForm(forms.ModelForm):
             "review_status",
             "incident_status",
         ]
+
+
+class ImpactForm(forms.Form):
+    impacts = forms.MultipleChoiceField(
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+    )
+    incident = None
+
+    def __init__(self, *args, **kwargs):
+        if "incident" in kwargs:
+            self.incident = kwargs.pop("incident")
+        super().__init__(*args, **kwargs)
+
+        self.fields["impacts"].choices = construct_impact_array(
+            self.incident
+        )
+
+
+# prepare an array of impacts from incident
+def construct_impact_array(incident):
+
+    impacts = incident.sector_regulation.impacts.all()
+    impacts_array = []
+    for impact in impacts:
+        impacts_array.append([impact.id, impact.label])
+    return impacts_array

@@ -1,0 +1,28 @@
+{% extends 'home/base.html' %}
+{% load django_bootstrap5 %}
+{% load i18n %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <h4>{{ _('Edit impacts')}}</h4>
+        <form action="{% url 'edit_impacts' incident.id %}" method="post" class="form" id="edit-impacts">
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                {{ form.errors }}
+            </div>
+            {% endif %}
+
+            {% csrf_token %}
+
+            {% bootstrap_form form %}
+
+            <div class="form-group py-4">
+                <div class="d-flex flex-row justify-content-center">
+                    <input class="btn btn-primary" type="submit" value="{{ _('Save') }}">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

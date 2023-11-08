@@ -29,6 +29,7 @@ from .forms import (
     QuestionForm,
     RegulatorIncidentEditForm,
     get_forms_list,
+    ImpactForm,
 )
 from .models import (
     Answer,
@@ -115,7 +116,6 @@ def get_next_workflow(request, form_list=None, incident_id=None):
     )(request)
 
 
-# TO DO : fix
 @login_required
 @otp_required
 def edit_workflow(request, form_list=None, incident_workflow_id=None):
@@ -129,6 +129,26 @@ def edit_workflow(request, form_list=None, incident_workflow_id=None):
     return WorkflowWizardView.as_view(
         form_list,
     )(request)
+
+
+@login_required
+@otp_required
+def edit_impacts(request, form=None, incident_id=None):
+    if incident_id is not None:
+        incident = Incident.objects.get(id=incident_id)
+        form = ImpactForm(incident=incident)
+    if incident_id is not None:
+        request.incident = incident.id
+
+    if request.method == "POST":
+        form = ImpactForm(request.POST)
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect("/incidents")
+
+    return render(request, "edit_impacts.html", {"form": form, "incident": incident})
 
 
 @login_required
@@ -391,7 +411,7 @@ class FormWizardView(SessionWizardView):
 
 
 class WorkflowWizardView(SessionWizardView):
-    """Wizard to manage the final notification form."""
+    """Wizard to manage the different workflows."""
 
     template_name = "declaration.html"
     incident = None

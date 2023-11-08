@@ -31,7 +31,7 @@
                 <td>{% for completed_workflow in incident.get_latest_workflows %}
                     <a href="{% url 'edit_workflow' completed_workflow.id %}">{{completed_workflow.workflow}}</a> <br/>
                 {% endfor %}</td>
-                <td scope="col"></td>
+                <td scope="col"><a href="{% url 'edit_impacts' incident.id %}">{% translate "See or edit impacts" %}</a></td>
                 <td scope="row">{{incident.get_review_status}}</td>
             </tr>
         </tbody>
