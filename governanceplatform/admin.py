@@ -64,12 +64,6 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="acronym",
     )
 
-    specific_impact = fields.Field(
-        column_name="specific_impact",
-        attribute="specific_impact",
-        widget=TranslatedNameM2MWidget(Impact, field="label", separator="\n"),
-    )
-
     class Meta:
         model = Sector
         export_order = ["id", "parent"]
@@ -81,9 +75,8 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display_links = ["acronym", "name"]
     search_fields = ["name"]
     resource_class = SectorResource
-    fields = ("name", "parent", "acronym", "specific_impact")
+    fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
-    filter_horizontal = ["specific_impact"]
 
 
 class ServiceResource(TranslationUpdateMixin, resources.ModelResource):

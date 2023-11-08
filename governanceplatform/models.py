@@ -21,7 +21,6 @@ class Sector(TranslatableModel):
         default=None,
         verbose_name=_("parent"),
     )
-    specific_impact = models.ManyToManyField(Impact, default=None, blank=True)
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):

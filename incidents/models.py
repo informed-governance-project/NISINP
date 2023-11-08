@@ -12,7 +12,6 @@ from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS
 # impacts of the incident, they are linked to sector
 class Impact(TranslatableModel):
     """Defines an impact."""
-
     translations = TranslatedFields(label=models.TextField())
     is_generic_impact = models.BooleanField(
         default=False, verbose_name=_("Generic Impact")

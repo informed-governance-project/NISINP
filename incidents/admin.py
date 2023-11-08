@@ -159,24 +159,12 @@ class ImpactSectorListFilter(SimpleListFilter):
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
         "label",
-        "get_sector_name",
-        "get_subsector_name",
         "is_generic_impact",
     ]
     search_fields = ["translations__label"]
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter]
-    ordering = ["-is_generic_impact", "sector"]
-
-    @admin.display(description="Sector")
-    def get_sector_name(self, obj):
-        for sector in obj.sector_set.all():
-            return sector.name if not sector.parent else sector.parent
-
-    @admin.display(description="Sub-sector")
-    def get_subsector_name(self, obj):
-        for sector in obj.sector_set.all():
-            return sector.name if sector.parent else None
+    ordering = ["-is_generic_impact"]
 
 
 class IncidentResource(resources.ModelResource):
