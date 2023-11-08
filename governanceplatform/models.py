@@ -5,8 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
-from incidents.models import Impact
-
 from .managers import CustomUserManager
 
 

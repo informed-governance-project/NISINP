@@ -11,8 +11,6 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from incidents.models import Impact
-
 from .helpers import user_in_group, is_user_regulator
 from .mixins import TranslationUpdateMixin
 from .models import (
