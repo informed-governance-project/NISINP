@@ -133,15 +133,15 @@ def edit_workflow(request, form_list=None, incident_workflow_id=None):
 
 @login_required
 @otp_required
-def edit_impacts(request, form=None, incident_id=None):
+def edit_impacts(request, incident_id=None):
     if incident_id is not None:
         incident = Incident.objects.get(id=incident_id)
-        form = ImpactForm(incident=incident)
-    if incident_id is not None:
-        request.incident = incident.id
+
+    form = ImpactForm(
+        incident=incident, data=request.POST if request.method == "POST" else None
+    )
 
     if request.method == "POST":
-        form = ImpactForm(request.POST)
         if form.is_valid():
             # process the data in form.cleaned_data as required
             # ...
