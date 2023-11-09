@@ -134,6 +134,24 @@ def edit_workflow(request, form_list=None, incident_workflow_id=None):
 @login_required
 @otp_required
 def edit_impacts(request, incident_id=None):
+    # OperatorAdmin can access only incidents related to selected company.
+    if (
+        user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(
+            pk=incident_id, company__id=request.session.get("company_in_use")
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+    # OperatorStaff and IncidentUser can access only their incidents.
+    if (
+        not is_user_regulator(request.user)
+        and not user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(
+            pk=incident_id, contact_user=request.user
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+
     if incident_id is not None:
         incident = Incident.objects.get(id=incident_id)
 
@@ -143,9 +161,12 @@ def edit_impacts(request, incident_id=None):
 
     if request.method == "POST":
         if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
+            incident.impacts.set(form.cleaned_data['impacts'])
+            if len(form.cleaned_data['impacts']) > 0:
+                incident.is_significative_impact = True
+            else:
+                incident.is_significative_impact = False
+            incident.save()
             return HttpResponseRedirect("/incidents")
 
     return render(request, "edit_impacts.html", {"form": form, "incident": incident})

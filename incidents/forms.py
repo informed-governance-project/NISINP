@@ -523,7 +523,7 @@ class RegulatorIncidentEditForm(forms.ModelForm):
 
 class ImpactForm(forms.Form):
     impacts = forms.MultipleChoiceField(
-        required=True,
+        required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
     incident = None
@@ -536,6 +536,9 @@ class ImpactForm(forms.Form):
         self.fields["impacts"].choices = construct_impact_array(
             self.incident
         )
+
+        if self.incident is not None:
+            self.fields["impacts"].initial = [i.id for i in self.incident.impacts.all()]
 
 
 # prepare an array of impacts from incident
