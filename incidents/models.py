@@ -177,6 +177,8 @@ class Incident(models.Model):
         null=True,
         blank=True,
         default=None,)
+    # keep a trace of selected sectors
+    affected_sectors = models.ManyToManyField("governanceplatform.Sector")
     workflows = models.ManyToManyField(Workflow, through='IncidentWorkflow')
     impacts = models.ManyToManyField(Impact, default=None, )
     is_significative_impact = models.BooleanField(

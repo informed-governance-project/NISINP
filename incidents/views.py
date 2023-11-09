@@ -15,7 +15,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Regulator, Regulation
+from governanceplatform.models import Regulator, Regulation, Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -392,7 +392,8 @@ class FormWizardView(SessionWizardView):
                 company_name=company.name if company else data[0]["company_name"],
                 sector_regulation=sector_regulation,
             )
-
+            affected_sectors = Sector.objects.filter(id__in=sectors_id)
+            incident.affected_sectors.set(affected_sectors)
             # incident reference
             company_for_ref = ""
             sector_for_ref = ""

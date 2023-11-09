@@ -15,9 +15,9 @@
         <tr>
             <th scope="col">{{ _('Incident ID') }}</th>
             <th scope="col">{{ _('Significant impact') }}</th>
-            <th scope="col">{{ _('Affected services') }}</th>
-            <th scope="col">{{ _('Preliminary notification date') }}</th>
-            <th scope="col">{{ _('Final declaration date') }}</th>
+            <th scope="col">{{ _('Sectors') }}</th>
+            <th scope="col">{{ _('Incident notification date') }}</th>
+            <th scope="col">{{ _('Impacts') }}</th>
             <th scope="col">{{ _('Actions') }}</th>
         </tr>
         {% for incident in incidents_page.object_list %}
@@ -25,13 +25,17 @@
             <td>{{ incident.incident_id }}</td>
             <td>{{ incident.is_significative_impact }}</td>
             <td><ul>
-            {% for service in incident.affected_services.all %}
-                <li>{{ service.name }}</li>
+            {% for sector in incident.affected_sectors.all %}
+                <li>{{ sector.name }}</li>
             {% endfor %}
             </ul>
             </td>
-            <td>{{ incident.preliminary_notification_date|date:'Y-m-d' }}</td>
-            <td>{{ incident.final_notification_date|date:'Y-m-d' }}</td>
+            <td>{{ incident.incident_notification_date|date:'Y-m-d' }}</td>
+            <td><ul>
+                {% for impact in incident.impacts.all %}
+                    <li>{{ impact.label }}</li>
+                {% endfor %}
+                </ul></td>
             <td style="white-space: nowrap;">
                 <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
                 <a href="{% url 'download_incident_pdf' incident.id %}">
