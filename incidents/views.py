@@ -30,6 +30,8 @@ from .forms import (
     RegulatorIncidentEditForm,
     get_forms_list,
     ImpactForm,
+    RegulatorForm,
+    RegulationForm,
 )
 from .models import (
     Answer,
@@ -99,6 +101,7 @@ def get_form_list(request, form_list=None):
     return FormWizardView.as_view(
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
+        condition_dict={'3': show_sector_form_condition},
     )(request)
 
 
@@ -287,6 +290,59 @@ def is_incidents_report_limit_reached(request):
     return False
 
 
+# remove a prefix on a multivaluedict object
+def get_temporary_cleaned_data(MultivalueDict, prefix):
+    for d in list(MultivalueDict):
+        if d.startswith(prefix):
+            MultivalueDict.setlist(d[2:], MultivalueDict.getlist(d))
+            del MultivalueDict[d]
+    return MultivalueDict
+
+
+# if there are no sectors don't show sectors, condition dict for wizard
+def show_sector_form_condition(wizard):
+    data1 = wizard.storage.get_step_data('1')
+    if data1 is not None:
+        data1 = get_temporary_cleaned_data(data1, '1-')
+    data2 = wizard.storage.get_step_data('2')
+    if data2 is not None:
+        data2 = get_temporary_cleaned_data(data2, '2-')
+    temp_regulator_form = RegulatorForm(
+        data=data1,
+    )
+    regulators = None
+    if data1 is not None and data1["regulators"] is not None:
+        regulators = Regulator.objects.all().filter(id__in=data1["regulators"])
+    temp_regulation_form = RegulationForm(
+        data=data2,
+        initial={"regulators": regulators}
+    )
+    data_regulation = data_regulator = None
+
+    if temp_regulation_form.is_valid() and temp_regulator_form.is_valid():
+        data_regulation = temp_regulation_form.cleaned_data
+        data_regulator = temp_regulator_form.cleaned_data
+
+    has_sector = False
+    if data_regulator is not None and data_regulation is not None:
+        print("on check")
+        ids = data_regulation.get('regulations', '')
+        regulations = Regulation.objects.filter(id__in=ids)
+        ids = data_regulator.get('regulators', '')
+        regulators = Regulator.objects.filter(id__in=ids)
+        sector_regulations = SectorRegulation.objects.all().filter(
+            regulation__in=regulations,
+            regulator__in=regulators
+        )
+
+        for sector_regulation in sector_regulations:
+            for sector in sector_regulation.sectors.all():
+                has_sector = True
+        print("has_sectors")
+        print(has_sector)
+    return has_sector
+
+
 class FormWizardView(SessionWizardView):
     """Wizard to manage the preliminary form."""
 
@@ -344,12 +400,13 @@ class FormWizardView(SessionWizardView):
         company = get_active_company_from_session(self.request)
 
         sectors_id = []
-        for sector_data in data[3]["sectors"]:
-            try:
-                sector_id = int(sector_data)
-                sectors_id.append(sector_id)
-            except Exception:
-                pass
+        if len(data) > 3:
+            for sector_data in data[3]["sectors"]:
+                try:
+                    sector_id = int(sector_data)
+                    sectors_id.append(sector_id)
+                except Exception:
+                    pass
 
         regulations_id = []
         for regulations_data in data[2]["regulations"]:
@@ -367,11 +424,18 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
-        sector_regulations = SectorRegulation.objects.all().filter(
-            sectors__in=sectors_id,
-            regulator__in=regulators_id,
-            regulation__in=regulations_id
-        )
+        # TO DO : better filter on sector get sector regulation with sectors and one without sectors
+        if len(sectors_id) > 0:
+            sector_regulations = SectorRegulation.objects.all().filter(
+                sectors__in=sectors_id,
+                regulator__in=regulators_id,
+                regulation__in=regulations_id
+            )
+        else:
+            sector_regulations = SectorRegulation.objects.all().filter(
+                regulator__in=regulators_id,
+                regulation__in=regulations_id
+            )
         for sector_regulation in sector_regulations:
             incident = Incident.objects.create(
                 contact_lastname=data[0]["contact_lastname"],

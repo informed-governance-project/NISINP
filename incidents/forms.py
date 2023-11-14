@@ -412,9 +412,10 @@ class RegulationForm(forms.Form):
         regulators = kwargs['initial']['regulators']
         super().__init__(*args, **kwargs)
 
-        self.fields["regulations"].choices = construct_regulation_array(
-            regulators.all()
-        )
+        if regulators is not None:
+            self.fields["regulations"].choices = construct_regulation_array(
+                regulators.all()
+            )
 
 
 # prepare an array of regulations
@@ -445,6 +446,12 @@ class RegulatorForm(forms.Form):
         label="Send notification to:",
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_selected_data(self):
+        return self.fields["regulators"].initial
+
 
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
@@ -460,6 +467,9 @@ class SectorForm(forms.Form):
         self.fields["sectors"].choices = construct_sectors_array(
             regulations.all(), regulators.all()
         )
+
+        if len(self.fields["sectors"].choices) == 0:
+            self.fields["sectors"].required = False
 
 
 # prepare an array of sectors
