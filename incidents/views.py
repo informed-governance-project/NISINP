@@ -325,7 +325,6 @@ def show_sector_form_condition(wizard):
 
     has_sector = False
     if data_regulator is not None and data_regulation is not None:
-        print("on check")
         ids = data_regulation.get('regulations', '')
         regulations = Regulation.objects.filter(id__in=ids)
         ids = data_regulator.get('regulators', '')
@@ -338,8 +337,6 @@ def show_sector_form_condition(wizard):
         for sector_regulation in sector_regulations:
             for sector in sector_regulation.sectors.all():
                 has_sector = True
-        print("has_sectors")
-        print(has_sector)
     return has_sector
 
 
