@@ -101,7 +101,9 @@ class Regulator(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(max_length=64, verbose_name=_("country"))
     address = models.CharField(max_length=255, verbose_name=_("address"))
-    monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL", blank=True)
+    monarc_path = models.CharField(
+        max_length=200, verbose_name="MONARC URL", blank=True
+    )
     email_for_notification = models.EmailField(
         verbose_name=_("email address"),
         default=None,
@@ -115,8 +117,7 @@ class Regulator(models.Model):
         blank=True, default="", null=True, verbose_name=_("description")
     )
     is_receiving_all_incident = models.BooleanField(
-        default=False,
-        verbose_name=_("Receive all incident")
+        default=False, verbose_name=_("Receive all incident")
     )
 
     def __str__(self):
@@ -163,6 +164,10 @@ class User(AbstractUser, PermissionsMixin):
     @admin.display(description="regulators")
     def get_regulators(self):
         return [regulator.name for regulator in self.regulators.all()]
+
+    @admin.display(description="Roles")
+    def get_permissions_groups(self):
+        return ", ".join([group.name for group in self.groups.all()])
 
     def save(self, *args, **kwargs):
         self.email = self.email.lower()

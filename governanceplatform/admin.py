@@ -572,10 +572,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
-    @admin.display(description="Roles")
-    def get_permissions_groups(self, obj):
-        return ", ".join([group.name for group in obj.groups.all()])
-
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
 

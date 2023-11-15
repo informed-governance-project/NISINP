@@ -1,5 +1,6 @@
 {% extends "admin/base.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block extrastyle %}
     <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
@@ -7,4 +8,7 @@
 {% endblock %}
 
 {% block usertools %}
+    {% block welcome-msg %}
+    {{ request.user.get_username }} [ {{ request.user.get_permissions_groups }} ]
+    {% endblock %}
 {% endblock %}
