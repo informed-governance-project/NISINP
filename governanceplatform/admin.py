@@ -621,6 +621,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         if user_in_group(request.user, "PlatformAdmin"):
             list_display = [field for field in list_display if field != "get_sectors"]
 
+        if user_in_group(request.user, "RegulatorUser"):
+            list_display = [
+                field for field in list_display if field != "get_regulators"
+            ]
+
         return list_display
 
     def get_queryset(self, request):
