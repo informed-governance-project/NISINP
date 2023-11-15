@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
@@ -391,6 +392,19 @@ class userRegulatorInline(admin.TabularInline):
         if obj == request.user:
             return False
         return super().has_delete_permission(request, obj)
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if (
+            user_in_group(request.user, "PlatformAdmin")
+            and "is_regulator_administrator" in formset.form.base_fields
+        ):
+            formset.form.base_fields[
+                "is_regulator_administrator"
+            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_regulator_administrator"].initial = True
+        formset.empty_permitted = False
+        return formset
 
 
 class userCompanyInline(admin.TabularInline):
