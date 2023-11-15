@@ -355,15 +355,18 @@ class userRegulatorInline(admin.TabularInline):
     verbose_name_plural = _("regulators")
     extra = 0
     min_num = 1
+    can_delete = False
+    show_change_link = True
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
             user = request.user
             # Platform Admin
-            if user_in_group(user, "PlatformAdmin") or user_in_group(
-                user, "RegulatorAdmin"
-            ):
+            if user_in_group(user, "PlatformAdmin"):
                 kwargs["queryset"] = Regulator.objects.all()
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = user.regulators.all()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -638,11 +641,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         except ObjectDoesNotExist:
             RegulatorAdminGroupId = None
 
-        try:
-            RegulatorUserGroupId = Group.objects.get(name="RegulatorUser").id
-        except ObjectDoesNotExist:
-            RegulatorUserGroupId = None
-
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
@@ -650,9 +648,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.filter(
-                groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId]
-            )
+            return queryset.exclude(groups__in=[PlatformAdminGroupId])
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.filter(
@@ -739,6 +735,24 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "is_receiving_all_incident",
         "monarc_path",
     )
+
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin"):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin") and obj != user.regulators.first():
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin") and obj != user.regulators.first():
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
