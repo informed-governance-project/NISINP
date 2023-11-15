@@ -648,7 +648,9 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.exclude(groups__in=[PlatformAdminGroupId])
+            return queryset.exclude(groups__in=[PlatformAdminGroupId]).filter(
+                regulators=user.regulators.first()
+            )
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.filter(
