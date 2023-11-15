@@ -147,6 +147,19 @@ class companySectorInline(admin.TabularInline):
     verbose_name = _("sector")
     verbose_name_plural = _("sectors")
     extra = 0
+    min_num = 1
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "sector":
+            user = request.user
+            # Regulator User
+            if user_in_group(user, "RegulatorUser"):
+                kwargs["queryset"] = user.sectors.all()
+            # Operator Admin
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = user.sectors.all()
+
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class CompanySectorListFilter(SimpleListFilter):
@@ -215,21 +228,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
     ]
-
-    def get_inline_instances(self, request, obj=None):
-        inline_instances = super().get_inline_instances(request, obj)
-
-        # Exclude companySectorInline for PlatformAdmin Group or if the user has a related company
-        if user_in_group(request.user, "PlatformAdmin") or (
-            obj and request.user.companies.filter(id=obj.id).exists()
-        ):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, companySectorInline)
-            ]
-
-        return inline_instances
 
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
@@ -355,8 +353,6 @@ class userRegulatorInline(admin.TabularInline):
     verbose_name_plural = _("regulators")
     extra = 0
     min_num = 1
-    can_delete = False
-    show_change_link = True
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
