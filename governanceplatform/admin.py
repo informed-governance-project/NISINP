@@ -162,7 +162,7 @@ class CompanySectorListFilter(SimpleListFilter):
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             sectors = Sector.objects.all()
-        # Regulator Staff
+        # Regulator User
         elif user_in_group(user, "RegulatorUser"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
         # Operator Admin
@@ -241,7 +241,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         return list_display
 
     def get_readonly_fields(self, request, obj=None):
-        # Platform Admin, Regulator Admin and Regulator Staff
+        # Platform Admin, Regulator Admin and Regulator User
         readonly_fields = super().get_readonly_fields(request, obj)
         user = request.user
         # Operator Admin
@@ -259,7 +259,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             return queryset
-        # Regulator Staff
+        # Regulator User
         if user_in_group(user, "RegulatorUser"):
             # TODO: clarify is this is only user.sectors or user.companies.sectors ???
             return queryset.filter(
@@ -323,7 +323,7 @@ class userSectorInline(admin.TabularInline):
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = Sector.objects.all()
-            # Regulator Staff
+            # Regulator User
             if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = user.sectors.all()
             # Operator Admin
@@ -417,7 +417,7 @@ class userCompanyInline(admin.TabularInline):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "company":
             user = request.user
-            # Regulator Staff
+            # Regulator User
             if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = Company.objects.filter(
                     sectors__in=user.sectors.all(),
@@ -473,7 +473,7 @@ class UserCompaniesListFilter(SimpleListFilter):
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             companies = Company.objects.filter(id__in=user.companies.all())
-        # Regulator Staff
+        # Regulator User
         if user_in_group(user, "RegulatorUser"):
             companies = Company.objects.filter(
                 sectors__in=user.sectors.all(),
@@ -504,7 +504,7 @@ class UserSectorListFilter(SimpleListFilter):
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             sectors = Sector.objects.all()
-        # Regulator Staff
+        # Regulator User
         if user_in_group(user, "RegulatorUser"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
         # Operator Admin
@@ -653,7 +653,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             return queryset.filter(
                 groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId]
             )
-        # Regulator Staff
+        # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.filter(
                 sectors__in=request.user.sectors.all(),
