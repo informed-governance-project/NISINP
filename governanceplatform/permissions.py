@@ -72,7 +72,8 @@ def set_regulator_staff_permissions(user):
             "user": ["add", "change", "delete", "import", "export"],
             "sectorcontact": ["add", "change", "delete"],
             "companyuser": ["add", "change", "delete"],
-            "company": ["change"],
+            "company": ["add", "change", "delete"],
+            "sector": ["change", "view"],
         },
     )
 
