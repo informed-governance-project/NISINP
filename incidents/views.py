@@ -425,6 +425,7 @@ class FormWizardView(SessionWizardView):
 
         # get sector_regulations where the sectors is specified
         temps_ids = []
+        sector_regulations = SectorRegulation.objects.none()
         if len(sectors_id) > 0:
             sector_regulations = SectorRegulation.objects.all().filter(
                 sectors__in=sectors_id,
