@@ -312,7 +312,7 @@ def show_sector_form_condition(wizard):
     )
     regulators = None
     if data1 is not None and data1["regulators"] is not None:
-        regulators = Regulator.objects.all().filter(id__in=data1["regulators"])
+        regulators = Regulator.objects.all().filter(pk__in=data1.getlist('regulators'))
     temp_regulation_form = RegulationForm(
         data=data2,
         initial={"regulators": regulators}
@@ -421,18 +421,24 @@ class FormWizardView(SessionWizardView):
             except Exception:
                 pass
 
-        # TO DO : better filter on sector get sector regulation with sectors and one without sectors
+        # get sector_regulations where the sectors is specified
+        temps_ids = []
         if len(sectors_id) > 0:
             sector_regulations = SectorRegulation.objects.all().filter(
                 sectors__in=sectors_id,
                 regulator__in=regulators_id,
                 regulation__in=regulations_id
             )
-        else:
-            sector_regulations = SectorRegulation.objects.all().filter(
-                regulator__in=regulators_id,
-                regulation__in=regulations_id
-            )
+            temps_ids = sector_regulations.values_list("id", flat=True)
+
+        # add regulation without sector excluding the previous one
+        sector_regulations2 = SectorRegulation.objects.all().filter(
+            regulator__in=regulators_id,
+            regulation__in=regulations_id
+        ).exclude(id__in=temps_ids)
+
+        sector_regulations = sector_regulations | sector_regulations2
+
         for sector_regulation in sector_regulations:
             incident = Incident.objects.create(
                 contact_lastname=data[0]["contact_lastname"],
