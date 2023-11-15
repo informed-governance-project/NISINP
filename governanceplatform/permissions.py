@@ -67,7 +67,7 @@ def set_regulator_staff_permissions(user):
     set_permissions_for_user(
         user,
         is_superuser=False,
-        group_name="RegulatorStaff",
+        group_name="RegulatorUser",
         permissions={
             "user": ["add", "change", "delete", "import", "export"],
             "sectorcontact": ["add", "change", "delete"],

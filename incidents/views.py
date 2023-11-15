@@ -15,7 +15,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Regulator, Regulation, Sector
+from governanceplatform.models import Regulation, Regulator, Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -26,22 +26,22 @@ from .decorators import regulator_role_required
 from .email import send_email
 from .forms import (
     ContactForm,
+    ImpactForm,
     QuestionForm,
+    RegulationForm,
+    RegulatorForm,
     RegulatorIncidentEditForm,
     get_forms_list,
-    ImpactForm,
-    RegulatorForm,
-    RegulationForm,
 )
 from .models import (
     Answer,
     Email,
     Incident,
+    IncidentWorkflow,
     PredefinedAnswer,
     Question,
     QuestionCategory,
     SectorRegulation,
-    IncidentWorkflow,
 )
 from .pdf_generation import get_pdf_report
 
@@ -52,7 +52,7 @@ def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     incidents = Incident.objects.order_by("-incident_notification_date")
 
-    if user_in_group(request.user, "RegulatorStaff"):
+    if user_in_group(request.user, "RegulatorUser"):
         # RegulatorUser has access to all incidents linked by sectors.
         incidents = incidents.filter(
             affected_services__sector__in=request.user.sectors.all()
@@ -101,7 +101,7 @@ def get_form_list(request, form_list=None):
     return FormWizardView.as_view(
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
-        condition_dict={'3': show_sector_form_condition},
+        condition_dict={"3": show_sector_form_condition},
     )(request)
 
 
@@ -124,7 +124,9 @@ def get_next_workflow(request, form_list=None, incident_id=None):
 def edit_workflow(request, form_list=None, incident_workflow_id=None):
     if form_list is None and incident_workflow_id is not None:
         incident_workflow = IncidentWorkflow.objects.get(id=incident_workflow_id)
-        form_list = get_forms_list(incident=incident_workflow.incident, workflow=incident_workflow.workflow)
+        form_list = get_forms_list(
+            incident=incident_workflow.incident, workflow=incident_workflow.workflow
+        )
     if incident_workflow_id is not None:
         request.incident = incident_workflow.incident.id
         request.incident_workflow = incident_workflow.id
@@ -164,8 +166,8 @@ def edit_impacts(request, incident_id=None):
 
     if request.method == "POST":
         if form.is_valid():
-            incident.impacts.set(form.cleaned_data['impacts'])
-            if len(form.cleaned_data['impacts']) > 0:
+            incident.impacts.set(form.cleaned_data["impacts"])
+            if len(form.cleaned_data["impacts"]) > 0:
                 incident.is_significative_impact = True
             else:
                 incident.is_significative_impact = False
@@ -180,9 +182,9 @@ def edit_impacts(request, incident_id=None):
 @regulator_role_required
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
-    # RegulatorStaff can access only incidents from accessible sectors.
+    # RegulatorUser can access only incidents from accessible sectors.
     if (
-        user_in_group(request.user, "RegulatorStaff")
+        user_in_group(request.user, "RegulatorUser")
         and not Incident.objects.filter(
             pk=incident_id, affected_services__sector__in=request.user.sectors.all()
         ).exists()
@@ -231,9 +233,9 @@ def download_incident_pdf(request, incident_id: int):
     if not can_redirect(target):
         target = "/"
 
-    # RegulatorStaff can access only incidents from accessible sectors.
+    # RegulatorUser can access only incidents from accessible sectors.
     if (
-        user_in_group(request.user, "RegulatorStaff")
+        user_in_group(request.user, "RegulatorUser")
         and not Incident.objects.filter(
             pk=incident_id, affected_services__sector__in=request.user.sectors.all()
         ).exists()
@@ -301,12 +303,12 @@ def get_temporary_cleaned_data(MultivalueDict, prefix):
 
 # if there are no sectors don't show sectors, condition dict for wizard
 def show_sector_form_condition(wizard):
-    data1 = wizard.storage.get_step_data('1')
+    data1 = wizard.storage.get_step_data("1")
     if data1 is not None:
-        data1 = get_temporary_cleaned_data(data1, '1-')
-    data2 = wizard.storage.get_step_data('2')
+        data1 = get_temporary_cleaned_data(data1, "1-")
+    data2 = wizard.storage.get_step_data("2")
     if data2 is not None:
-        data2 = get_temporary_cleaned_data(data2, '2-')
+        data2 = get_temporary_cleaned_data(data2, "2-")
     temp_regulator_form = RegulatorForm(
         data=data1,
     )
@@ -314,8 +316,7 @@ def show_sector_form_condition(wizard):
     if data1 is not None and data1["regulators"] is not None:
         regulators = Regulator.objects.all().filter(id__in=data1["regulators"])
     temp_regulation_form = RegulationForm(
-        data=data2,
-        initial={"regulators": regulators}
+        data=data2, initial={"regulators": regulators}
     )
     data_regulation = data_regulator = None
 
@@ -325,17 +326,16 @@ def show_sector_form_condition(wizard):
 
     has_sector = False
     if data_regulator is not None and data_regulation is not None:
-        ids = data_regulation.get('regulations', '')
+        ids = data_regulation.get("regulations", "")
         regulations = Regulation.objects.filter(id__in=ids)
-        ids = data_regulator.get('regulators', '')
+        ids = data_regulator.get("regulators", "")
         regulators = Regulator.objects.filter(id__in=ids)
         sector_regulations = SectorRegulation.objects.all().filter(
-            regulation__in=regulations,
-            regulator__in=regulators
+            regulation__in=regulations, regulator__in=regulators
         )
 
         for sector_regulation in sector_regulations:
-            for sector in sector_regulation.sectors.all():
+            for __sector in sector_regulation.sectors.all():
                 has_sector = True
     return has_sector
 
@@ -371,21 +371,23 @@ class FormWizardView(SessionWizardView):
         return context
 
     def get_form_initial(self, step):
-        if step == '2':
-            step1data = self.get_cleaned_data_for_step('1')
+        if step == "2":
+            step1data = self.get_cleaned_data_for_step("1")
             if step1data:
-                ids = step1data.get('regulators', '')
+                ids = step1data.get("regulators", "")
                 regulators = Regulator.objects.filter(id__in=ids)
-                return self.initial_dict.get(step, {'regulators': regulators})
-        if step == '3':
-            step2data = self.get_cleaned_data_for_step('2')
-            step1data = self.get_cleaned_data_for_step('1')
+                return self.initial_dict.get(step, {"regulators": regulators})
+        if step == "3":
+            step2data = self.get_cleaned_data_for_step("2")
+            step1data = self.get_cleaned_data_for_step("1")
             if step2data:
-                ids = step2data.get('regulations', '')
+                ids = step2data.get("regulations", "")
                 regulations = Regulation.objects.filter(id__in=ids)
-                ids = step1data.get('regulators', '')
+                ids = step1data.get("regulators", "")
                 regulators = Regulator.objects.filter(id__in=ids)
-                return self.initial_dict.get(step, {'regulations': regulations, 'regulators': regulators})
+                return self.initial_dict.get(
+                    step, {"regulations": regulations, "regulators": regulators}
+                )
         return self.initial_dict.get(step, {})
 
     def done(self, form_list, **kwargs):
@@ -426,12 +428,11 @@ class FormWizardView(SessionWizardView):
             sector_regulations = SectorRegulation.objects.all().filter(
                 sectors__in=sectors_id,
                 regulator__in=regulators_id,
-                regulation__in=regulations_id
+                regulation__in=regulations_id,
             )
         else:
             sector_regulations = SectorRegulation.objects.all().filter(
-                regulator__in=regulators_id,
-                regulation__in=regulations_id
+                regulator__in=regulators_id, regulation__in=regulations_id
             )
         for sector_regulation in sector_regulations:
             incident = Incident.objects.create(
@@ -510,7 +511,9 @@ class WorkflowWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         if self.request.incident_workflow:
-            self.incident_workflow = IncidentWorkflow.objects.get(pk=self.request.incident_workflow)
+            self.incident_workflow = IncidentWorkflow.objects.get(
+                pk=self.request.incident_workflow
+            )
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             form = QuestionForm(
@@ -533,11 +536,7 @@ class WorkflowWizardView(SessionWizardView):
         context = super().get_context_data(form=form, **kwargs)
 
         # TO DO : put the correct categories
-        categories = (
-            QuestionCategory.objects.all()
-            .order_by("position")
-            .distinct()
-        )
+        categories = QuestionCategory.objects.all().order_by("position").distinct()
 
         context["steps"] = []
 
@@ -567,8 +566,7 @@ def save_answers(index=0, data=None, incident=None, workflow=None):
 
     # We create a new incident workflow in all the case (history)
     incident_workflow = IncidentWorkflow.objects.create(
-        incident=incident,
-        workflow=workflow
+        incident=incident, workflow=workflow
     )
     for d in range(index, len(data)):
         for key, value in data[d].items():

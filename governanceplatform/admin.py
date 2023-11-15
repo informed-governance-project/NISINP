@@ -11,7 +11,7 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from .helpers import user_in_group, is_user_regulator
+from .helpers import is_user_regulator, user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
     Company,
@@ -162,7 +162,7 @@ class CompanySectorListFilter(SimpleListFilter):
         if user_in_group(user, "RegulatorAdmin"):
             sectors = Sector.objects.all()
         # Regulator Staff
-        elif user_in_group(user, "RegulatorStaff"):
+        elif user_in_group(user, "RegulatorUser"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
         # Operator Admin
         elif user_in_group(user, "OperatorAdmin"):
@@ -259,7 +259,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         if user_in_group(user, "RegulatorAdmin"):
             return queryset
         # Regulator Staff
-        if user_in_group(user, "RegulatorStaff"):
+        if user_in_group(user, "RegulatorUser"):
             # TODO: clarify is this is only user.sectors or user.companies.sectors ???
             return queryset.filter(
                 sectors__in=user.sectors.all(),
@@ -323,7 +323,7 @@ class userSectorInline(admin.TabularInline):
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = Sector.objects.all()
             # Regulator Staff
-            if user_in_group(user, "RegulatorStaff"):
+            if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = user.sectors.all()
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
@@ -359,15 +359,22 @@ class userRegulatorInline(admin.TabularInline):
         if db_field.name == "regulator":
             user = request.user
             # Platform Admin
-            if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
+            if user_in_group(user, "PlatformAdmin") or user_in_group(
+                user, "RegulatorAdmin"
+            ):
                 kwargs["queryset"] = Regulator.objects.all()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_max_num(self, request, obj=None, **kwargs):
-        return 1 if (
-            user_in_group(request.user, "PlatformAdmin") or is_user_regulator(request.user)
-        ) else 0
+        return (
+            1
+            if (
+                user_in_group(request.user, "PlatformAdmin")
+                or is_user_regulator(request.user)
+            )
+            else 0
+        )
 
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
@@ -397,7 +404,7 @@ class userCompanyInline(admin.TabularInline):
         if db_field.name == "company":
             user = request.user
             # Regulator Staff
-            if user_in_group(user, "RegulatorStaff"):
+            if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = Company.objects.filter(
                     sectors__in=user.sectors.all(),
                 ).distinct()
@@ -453,7 +460,7 @@ class UserCompaniesListFilter(SimpleListFilter):
         if user_in_group(user, "RegulatorAdmin"):
             companies = Company.objects.filter(id__in=user.companies.all())
         # Regulator Staff
-        if user_in_group(user, "RegulatorStaff"):
+        if user_in_group(user, "RegulatorUser"):
             companies = Company.objects.filter(
                 sectors__in=user.sectors.all(),
             )
@@ -484,7 +491,7 @@ class UserSectorListFilter(SimpleListFilter):
         if user_in_group(user, "RegulatorAdmin"):
             sectors = Sector.objects.all()
         # Regulator Staff
-        if user_in_group(user, "RegulatorStaff"):
+        if user_in_group(user, "RegulatorUser"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -586,8 +593,8 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 if not isinstance(inline, userCompanyInline)
             ]
 
-        # Exclude userRegulatorInline for users in RegulatorStaff group
-        if user_in_group(request.user, "RegulatorStaff") or (
+        # Exclude userRegulatorInline for users in RegulatorUser group
+        if user_in_group(request.user, "RegulatorUser") or (
             obj and obj == request.user
         ):
             inline_instances = [
@@ -622,9 +629,9 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             RegulatorAdminGroupId = None
 
         try:
-            RegulatorStaffGroupId = Group.objects.get(name="RegulatorStaff").id
+            RegulatorUserGroupId = Group.objects.get(name="RegulatorUser").id
         except ObjectDoesNotExist:
-            RegulatorStaffGroupId = None
+            RegulatorUserGroupId = None
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -634,10 +641,10 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             return queryset.filter(
-                groups__in=[RegulatorAdminGroupId, RegulatorStaffGroupId]
+                groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId]
             )
         # Regulator Staff
-        if user_in_group(user, "RegulatorStaff"):
+        if user_in_group(user, "RegulatorUser"):
             return queryset.filter(
                 sectors__in=request.user.sectors.all(),
             ).distinct()

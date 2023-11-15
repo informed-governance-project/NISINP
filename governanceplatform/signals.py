@@ -48,7 +48,7 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=RegulatorUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
-    group_names = ["PlatformAdmin", "RegulatorAdmin", "RegulatorStaff", "OperatorAdmin"]
+    group_names = ["PlatformAdmin", "RegulatorAdmin", "RegulatorUser", "OperatorAdmin"]
 
     for group_name in group_names:
         try:

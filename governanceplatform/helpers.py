@@ -17,9 +17,7 @@ def user_in_group(user, group_name) -> bool:
 
 
 def is_user_regulator(user: User) -> bool:
-    return user_in_group(user, "RegulatorAdmin") or user_in_group(
-        user, "RegulatorStaff"
-    )
+    return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorUser")
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
