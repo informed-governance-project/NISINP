@@ -65,7 +65,6 @@ Governance Platform
     # Copy the config and adjust the DB connection settings.
     cp governanceplatform/config_dev.py governanceplatform/config.py
     poetry install
-    poetry build
     poetry shell
     python manage.py migrate
     python manage.py createsuperuser
