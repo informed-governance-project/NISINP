@@ -167,8 +167,6 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description="Roles")
     def get_permissions_groups(self):
-        if not self.groups.all():
-            return "OperatorUser"
         return ", ".join([group.name for group in self.groups.all()])
 
     def save(self, *args, **kwargs):
