@@ -152,7 +152,6 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    monarc_path = fields.Field(column_name="monarc_path", attribute="monarc_path")
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
@@ -235,7 +234,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "identifier",
-                    "monarc_path",
                 ],
             },
         ),
@@ -258,7 +256,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         if user_in_group(user, "OperatorAdmin"):
             readonly_fields += (
                 "identifier",
-                "monarc_path",
             )
 
         return readonly_fields
@@ -755,7 +752,6 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "country",
         "address",
         "is_receiving_all_incident",
-        "monarc_path",
     )
 
     def has_add_permission(self, request, obj=None):

@@ -82,7 +82,6 @@ class Company(models.Model):
     phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
     sectors = models.ManyToManyField(Sector)
     types = models.ManyToManyField(OperatorType)
-    monarc_path = models.CharField(max_length=200, verbose_name="MONARC URL")
 
     def __str__(self):
         return self.name
@@ -101,9 +100,6 @@ class Regulator(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(max_length=64, verbose_name=_("country"))
     address = models.CharField(max_length=255, verbose_name=_("address"))
-    monarc_path = models.CharField(
-        max_length=200, verbose_name="MONARC URL", blank=True
-    )
     email_for_notification = models.EmailField(
         verbose_name=_("email address"),
         default=None,
