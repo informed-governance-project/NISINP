@@ -569,6 +569,14 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 )
             ]
 
+        # Exclude userRegulatorInline for PlatformAdmin group
+        if obj and user_in_group(obj, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userRegulatorInline)
+            ]
+
         # Exclude userRegulatorInline or userCompanyInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorAdmin"):
             if obj and not user_in_group(obj, "RegulatorUser"):
