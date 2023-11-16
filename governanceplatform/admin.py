@@ -453,6 +453,25 @@ def reset_2FA(modeladmin, request, queryset):
             device.delete()
 
 
+class UserRegulatorsListFilter(SimpleListFilter):
+    title = _("Regulators")
+    parameter_name = "regulators"
+
+    def lookups(self, request, model_admin):
+        regulators = Regulator.objects.none()
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            regulators = Regulator.objects.all()
+        return [(regulator.id, regulator.name) for regulator in regulators]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(regulators=value)
+        return queryset
+
+
 class UserCompaniesListFilter(SimpleListFilter):
     title = _("Companies")
     parameter_name = "companies"
@@ -460,6 +479,9 @@ class UserCompaniesListFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         companies = Company.objects.all()
         user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             companies = user.companies.all()
@@ -480,6 +502,9 @@ class UserSectorListFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         sectors = Sector.objects.all()
         user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            sectors = Sector.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
@@ -508,7 +533,7 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             groups = groups.exclude(name__in=["PlatformAdmin", "RegulatorAdmin"])
 
         if user_in_group(user, "OperatorAdmin"):
-            groups = Group.objects.filter(id__in=user.groups.all())
+            groups = groups.filter(name__in=["OperatorAdmin", "OperatorUser"])
         return [(group.id, group.name) for group in groups]
 
     def queryset(self, request, queryset):
@@ -532,6 +557,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     ]
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
+        UserRegulatorsListFilter,
         UserCompaniesListFilter,
         UserSectorListFilter,
         UserPermissionsGroupListFilter,
@@ -599,9 +625,16 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
-            list_display = [field for field in list_display if field != "get_sectors"]
+            fields_to_exclude = ["get_sectors", "get_companies"]
+            list_display = [
+                field for field in list_display if field not in fields_to_exclude
+            ]
 
         if user_in_group(request.user, "RegulatorUser"):
+            list_display = [
+                field for field in list_display if field != "get_regulators"
+            ]
+        if user_in_group(request.user, "OperatorAdmin"):
             list_display = [
                 field for field in list_display if field != "get_regulators"
             ]
