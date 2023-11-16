@@ -7,8 +7,9 @@ from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
+from governanceplatform.helpers import user_in_group
 from governanceplatform.mixins import TranslationUpdateMixin
-from governanceplatform.models import Sector
+from governanceplatform.models import Regulation, Sector
 from governanceplatform.widgets import TranslatedNameWidget
 from incidents.models import (
     Email,
@@ -17,8 +18,8 @@ from incidents.models import (
     PredefinedAnswer,
     Question,
     QuestionCategory,
-    Workflow,
     SectorRegulation,
+    Workflow,
 )
 
 
@@ -226,6 +227,10 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["name"]
     resource_class = WorkflowResource
     inlines = (WorkflowInline,)
+    fields = ("name", "questions")
+    filter_horizontal = [
+        "questions",
+    ]
 
 
 class SectorRegulationResource(resources.ModelResource):
@@ -244,7 +249,29 @@ class SectorRegulationInline(admin.TabularInline):
 
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name"]
+    list_display = ["name", "regulation", "regulator"]
     search_fields = ["name"]
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
+
+    fields = ("name", "regulation", "regulator", "sectors", "impacts")
+    filter_horizontal = [
+        "sectors",
+        "impacts",
+    ]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        user = request.user
+        if db_field.name == "regulation":
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = Regulation.objects.filter(
+                    regulators__in=user.regulators.all()
+                )
+
+        if db_field.name == "regulator":
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = user.regulators.all()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

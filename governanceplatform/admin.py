@@ -4,6 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
@@ -254,15 +255,6 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        # Regulator Admin
-        if user_in_group(user, "RegulatorAdmin"):
-            return queryset
-        # Regulator User
-        if user_in_group(user, "RegulatorUser"):
-            # TODO: clarify is this is only user.sectors or user.companies.sectors ???
-            return queryset.filter(
-                sectors__in=user.sectors.all(),
-            ).distinct()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(companyuser__user=user)
@@ -650,19 +642,25 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
             return queryset.exclude(groups__in=[PlatformAdminGroupId]).filter(
-                regulators=user.regulators.first()
+                Q(regulators=user.regulators.first()) | Q(regulators=None)
             )
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
-            return queryset.filter(
-                sectors__in=request.user.sectors.all(),
-            ).distinct()
+            return queryset.exclude(
+                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId]
+            )
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
                 companies__in=request.user.companies.all(),
             )
         return queryset
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorUser") and obj == user:
+            return True
+        return super().has_change_permission(request, obj)
 
 
 class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
@@ -770,10 +768,31 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["label"]
+    list_display = ["label", "get_regulators"]
     search_fields = ["label", "regulators"]
     resource_class = RegulationResource
     fields = (
         "label",
         "regulators",
     )
+    filter_horizontal = [
+        "regulators",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin"):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin"):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin"):
+            return False
+        return super().has_delete_permission(request, obj)

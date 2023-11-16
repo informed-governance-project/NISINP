@@ -167,6 +167,8 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description="Roles")
     def get_permissions_groups(self):
+        if not self.groups.all():
+            return "OperatorUser"
         return ", ".join([group.name for group in self.groups.all()])
 
     def save(self, *args, **kwargs):
@@ -249,6 +251,10 @@ class Regulation(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
     regulators = models.ManyToManyField(Regulator, default=None, blank=True)
+
+    @admin.display(description="regulators")
+    def get_regulators(self):
+        return [regulator.name for regulator in self.regulators.all()]
 
     def __str__(self):
         return self.label if self.label is not None else ""
