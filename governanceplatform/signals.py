@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from .models import CompanyUser, RegulatorUser
 from .permissions import (
     set_operator_admin_permissions,
+    set_operator_user_permissions,
     set_regulator_admin_permissions,
     set_regulator_staff_permissions,
 )
@@ -25,8 +26,8 @@ def update_user_groups(sender, instance, created, **kwargs):
     if some_company_is_administrator.exists():
         set_operator_admin_permissions(user)
     else:
-        user.groups.clear()
-        user.save()
+        set_operator_user_permissions(user)
+        return
 
 
 @receiver(post_save, sender=RegulatorUser)
@@ -48,7 +49,13 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=RegulatorUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
-    group_names = ["PlatformAdmin", "RegulatorAdmin", "RegulatorUser", "OperatorAdmin"]
+    group_names = [
+        "PlatformAdmin",
+        "RegulatorAdmin",
+        "RegulatorUser",
+        "OperatorAdmin",
+        "OperatorUser",
+    ]
 
     for group_name in group_names:
         try:
