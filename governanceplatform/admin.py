@@ -42,7 +42,15 @@ class CustomAdminSite(admin.AdminSite):
 
 
 admin_site = CustomAdminSite()
-admin_site.register(Site)
+
+
+@admin.register(Site, site=admin_site)
+class SiteAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        user = request.user
+        if not user_in_group(user, "PlatformAdmin"):
+            return False
+        return super().has_module_permission(request)
 
 
 class SectorResource(TranslationUpdateMixin, resources.ModelResource):
