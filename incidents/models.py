@@ -231,6 +231,9 @@ class Incident(models.Model):
         ).order_by('workflow', '-timestamp').distinct('workflow')
         return current_workflow
 
+    def are_impacts_present(self):
+        return self.sector_regulation.impacts.count() > 0
+
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
