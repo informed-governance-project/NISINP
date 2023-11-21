@@ -249,12 +249,12 @@ class SectorRegulationInline(admin.TabularInline):
 
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "regulation", "regulator"]
+    list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["name"]
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
 
-    fields = ("name", "regulation", "regulator", "sectors", "impacts")
+    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "impacts")
     filter_horizontal = [
         "sectors",
         "impacts",
