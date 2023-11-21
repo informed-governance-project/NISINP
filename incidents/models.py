@@ -72,6 +72,19 @@ class PredefinedAnswer(TranslatableModel):
         return self.predefined_answer if self.predefined_answer is not None else ""
 
 
+# Email sent from regulator to operator
+class Email(TranslatableModel):
+    email_type = models.CharField(
+        max_length=10, choices=EMAIL_TYPES, blank=False, default=EMAIL_TYPES[0][0]
+    )
+    translations = TranslatedFields(
+        subject=models.CharField(max_length=255, blank=True, default=None, null=True),
+        content=models.TextField(),
+    )
+    # for the reminder at day 12 and 16
+    days_before_send = models.IntegerField(blank=True, null=True, default=0)
+
+
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
 # 1 Workflow for N recommendation ?
 class Workflow(TranslatableModel):
@@ -119,6 +132,7 @@ class SectorRegulationWorkflow(models.Model):
         Workflow, on_delete=models.CASCADE
     )
     position = models.IntegerField(blank=True, default=0, null=True)
+    emails = models.ManyToManyField(Email)
 
 
 # incident
@@ -257,16 +271,3 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
     predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
-
-
-# Email sent from regulator to operator
-class Email(TranslatableModel):
-    email_type = models.CharField(
-        max_length=10, choices=EMAIL_TYPES, blank=False, default=EMAIL_TYPES[0][0]
-    )
-    translations = TranslatedFields(
-        subject=models.CharField(max_length=255, blank=True, default=None, null=True),
-        content=models.TextField(),
-    )
-    # for the reminder at day 12 and 16
-    days_before_send = models.IntegerField(blank=True, null=True, default=0)

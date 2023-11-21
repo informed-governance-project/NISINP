@@ -25,10 +25,10 @@ REGIONAL_AREA = [
 ]
 
 EMAIL_TYPES = [
-    ("PRELI", "Preliminary notification"),
-    ("FINAL", "Final notification"),
-    ("ADD", "Additional notification"),
-    ("REMIND", "Reminder : final notification not done"),
+    ("CLOSE", "Incident Closing"),
+    ("OPEN", "Incident Openning"),
+    ("WDONE", "Workflow done"),
+    ("REMIND", "Workflow reminder"),
 ]
 
 # The variables to use in the email template in the admin interface, and the corresponding attribute
