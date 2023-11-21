@@ -89,7 +89,7 @@ class Workflow(TranslatableModel):
 # admin platform has designated him
 class SectorRegulation(TranslatableModel):
     translations = TranslatedFields(
-        # for exemple NIS for enery sector
+        # for exemple NIS for energy sector
         name=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
     regulation = models.ForeignKey(
@@ -102,6 +102,9 @@ class SectorRegulation(TranslatableModel):
 
     sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True)
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
+    is_detection_date_needed = models.BooleanField(
+        default=False, verbose_name=_("Detection date needed")
+    )
 
     def __str__(self):
         return self.name if self.name is not None else ""
@@ -123,6 +126,8 @@ class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
     incident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
     incident_notification_date = models.DateField(default=date.today)
+    incident_detection_date = models.DateField(blank=True, null=True)
+    incident_starting_date = models.DateField(blank=True, null=True)
     company_name = models.CharField(max_length=100, verbose_name=_("Company name"))
     company = models.ForeignKey(
         "governanceplatform.Company",
