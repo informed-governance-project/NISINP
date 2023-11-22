@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS
+from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS, INCIDENT_EMAIL_TRIGGER_EVENT
 
 
 # impacts of the incident, they are linked to sector
@@ -132,7 +132,23 @@ class SectorRegulationWorkflow(models.Model):
         Workflow, on_delete=models.CASCADE
     )
     position = models.IntegerField(blank=True, default=0, null=True)
-    emails = models.ManyToManyField(Email)
+    emails = models.ManyToManyField(Email, through="SectorRegulationWorkflowEmail")
+
+
+# for emailing during each workflow
+class SectorRegulationWorkflowEmail(models.Model):
+    sector_regulation_workflow = models.ForeignKey(
+        SectorRegulationWorkflow, on_delete=models.CASCADE
+    )
+    email = models.ForeignKey(
+        Email, on_delete=models.CASCADE
+    )
+    # the trigger event which send the email
+    trigger_event = models.CharField(
+        max_length=15, choices=INCIDENT_EMAIL_TRIGGER_EVENT, blank=False, default=INCIDENT_EMAIL_TRIGGER_EVENT[0][0]
+    )
+    # the delay after the trigger event
+    delay_in_hours = models.IntegerField(default=0)
 
 
 # incident
