@@ -20,6 +20,7 @@ from incidents.models import (
     QuestionCategory,
     SectorRegulation,
     Workflow,
+    SectorRegulationWorkflowEmail,
 )
 
 
@@ -181,11 +182,6 @@ class IncidentAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
 
 class EmailResource(TranslationUpdateMixin, resources.ModelResource):
-    email_type = fields.Field(
-        column_name="email_type",
-        attribute="email_type",
-    )
-
     subject = fields.Field(
         column_name="subject",
         attribute="subject",
@@ -202,7 +198,7 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["email_type", "subject", "content"]
+    list_display = ["subject", "content"]
     search_fields = ["subject", "content"]
     resource_class = EmailResource
 
@@ -275,3 +271,18 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
                 kwargs["queryset"] = user.regulators.all()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class SectorRegulationWorkflowEmailResource(resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+
+    class Meta:
+        model = SectorRegulationWorkflowEmail
+
+
+@admin.register(SectorRegulationWorkflowEmail, site=admin_site)
+class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin):
+    list_display = ["sector_regulation_workflow", "trigger_event"]
+    search_fields = ["sector_regulation_workflow"]
+    resource_class = SectorRegulationWorkflowEmailResource
+    fields = ("sector_regulation_workflow", "email", "trigger_event", "delay_in_hours")

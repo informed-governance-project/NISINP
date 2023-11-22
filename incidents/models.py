@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import EMAIL_TYPES, INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS, INCIDENT_EMAIL_TRIGGER_EVENT
+from .globals import INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS, INCIDENT_EMAIL_TRIGGER_EVENT
 
 
 # impacts of the incident, they are linked to sector
@@ -74,15 +74,10 @@ class PredefinedAnswer(TranslatableModel):
 
 # Email sent from regulator to operator
 class Email(TranslatableModel):
-    email_type = models.CharField(
-        max_length=10, choices=EMAIL_TYPES, blank=False, default=EMAIL_TYPES[0][0]
-    )
     translations = TranslatedFields(
         subject=models.CharField(max_length=255, blank=True, default=None, null=True),
         content=models.TextField(),
     )
-    # for the reminder at day 12 and 16
-    days_before_send = models.IntegerField(blank=True, null=True, default=0)
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -133,6 +128,9 @@ class SectorRegulationWorkflow(models.Model):
     )
     position = models.IntegerField(blank=True, default=0, null=True)
     emails = models.ManyToManyField(Email, through="SectorRegulationWorkflowEmail")
+
+    def __str__(self):
+        return self.workflow.name if self.workflow is not None else ""
 
 
 # for emailing during each workflow

@@ -24,12 +24,6 @@ REGIONAL_AREA = [
     ("LU_WI", "Wiltz"),
 ]
 
-EMAIL_TYPES = [
-    ("CLOSE", "Incident Closing"),
-    ("OPEN", "Incident Openning"),
-    ("WDONE", "Workflow done"),
-    ("REMIND", "Workflow reminder"),
-]
 
 # The variables to use in the email template in the admin interface, and the corresponding attribute
 INCIDENT_EMAIL_VARIABLES = [
