@@ -113,6 +113,23 @@ class SectorRegulation(TranslatableModel):
     is_detection_date_needed = models.BooleanField(
         default=False, verbose_name=_("Detection date needed")
     )
+    # email
+    opening_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="opening_email"
+    )
+    closing_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="closing_email"
+    )
 
     def __str__(self):
         return self.name if self.name is not None else ""
@@ -277,6 +294,22 @@ class IncidentWorkflow(models.Model):
     review_status = models.CharField(
         max_length=5, choices=REVIEW_STATUS, blank=False, default=WORKFLOW_REVIEW_STATUS[0][0]
     )
+
+    def get_previous_workflow(self):
+        current = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.workflow.sector_regulation,
+            workflow=self.workflow
+        ).first()
+
+        self.workflow.sector_regulation
+        previous = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.workflow.sector_regulation,
+            position__lt=current.position
+        ).order_by("-position").first()
+
+        if previous is not None:
+            return previous
+        return False
 
 
 # answers
