@@ -10,7 +10,8 @@ from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.models import Regulator, Service, Regulation
+from governanceplatform.helpers import get_active_company_from_session
+from governanceplatform.models import Regulation, Regulator, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, Question, SectorRegulation
@@ -129,8 +130,9 @@ class QuestionForm(forms.Form):
                 initial_data = list(
                     filter(
                         partial(is_not, None),
-                        Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(question=question, incident_workflow=incident_workflow)
+                        Answer.objects.values_list(
+                            "predefined_answers", flat=True
+                        ).filter(question=question, incident_workflow=incident_workflow)
                         # .order_by("position"),
                     )
                 )
@@ -259,7 +261,7 @@ class QuestionForm(forms.Form):
 
         subquestion = (
             Question.objects.all()
-            .filter(category=category, id__in=questions.values('id'))
+            .filter(category=category, id__in=questions.values("id"))
             .order_by("position")
         )
 
@@ -269,7 +271,12 @@ class QuestionForm(forms.Form):
 
 # the first question for preliminary notification
 class ContactForm(forms.Form):
-    company_name = forms.CharField(required=True, label="Company name", max_length=100)
+    company_name = forms.CharField(
+        required=True,
+        label="Company name",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "company_name"}),
+    )
 
     contact_lastname = forms.CharField(
         required=True,
@@ -370,6 +377,7 @@ class ContactForm(forms.Form):
         request = kwargs.pop("request")
         if request.user.is_authenticated:
             return {
+                "company_name": get_active_company_from_session(request),
                 "contact_lastname": request.user.last_name,
                 "contact_firstname": request.user.first_name,
                 "contact_email": request.user.email,
@@ -409,7 +417,7 @@ class RegulationForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        regulators = kwargs['initial']['regulators']
+        regulators = kwargs["initial"]["regulators"]
         super().__init__(*args, **kwargs)
 
         if regulators is not None:
@@ -433,10 +441,7 @@ def construct_regulation_array(regulators):
 
 
 class RegulatorForm(forms.Form):
-    initial_data = [
-        (k.id, k.name)
-        for k in Regulator.objects.all()
-    ]
+    initial_data = [(k.id, k.name) for k in Regulator.objects.all()]
 
     # generic impact definitions
     regulators = forms.MultipleChoiceField(
@@ -460,8 +465,8 @@ class SectorForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        regulations = kwargs['initial']['regulations']
-        regulators = kwargs['initial']['regulators']
+        regulations = kwargs["initial"]["regulations"]
+        regulators = kwargs["initial"]["regulators"]
         super().__init__(*args, **kwargs)
 
         self.fields["sectors"].choices = construct_sectors_array(
@@ -476,8 +481,7 @@ class SectorForm(forms.Form):
 def construct_sectors_array(regulations, regulators):
     sectors_to_select = []
     sector_regulations = SectorRegulation.objects.all().filter(
-        regulation__in=regulations,
-        regulator__in=regulators
+        regulation__in=regulations, regulator__in=regulators
     )
 
     for sector_regulation in sector_regulations:
@@ -489,7 +493,6 @@ def construct_sectors_array(regulations, regulators):
 
 
 def get_forms_list(incident=None, workflow=None):
-
     category_tree = []
     if incident is None:
         category_tree = [
@@ -543,9 +546,7 @@ class ImpactForm(forms.Form):
             self.incident = kwargs.pop("incident")
         super().__init__(*args, **kwargs)
 
-        self.fields["impacts"].choices = construct_impact_array(
-            self.incident
-        )
+        self.fields["impacts"].choices = construct_impact_array(self.incident)
 
         if self.incident is not None:
             self.fields["impacts"].initial = [i.id for i in self.incident.impacts.all()]
@@ -553,7 +554,6 @@ class ImpactForm(forms.Form):
 
 # prepare an array of impacts from incident
 def construct_impact_array(incident):
-
     impacts = incident.sector_regulation.impacts.all()
     impacts_array = []
     for impact in impacts:
