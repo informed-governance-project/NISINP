@@ -210,11 +210,11 @@ class QuestionForm(forms.Form):
                 required=question.is_mandatory,
                 widget=forms.Textarea(
                     attrs={
-                        "value": str(initial_data),
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
                     }
                 ),
+                initial=str(initial_data),
                 label=question.label,
             )
         elif question.question_type == "CL" or question.question_type == "RL":
