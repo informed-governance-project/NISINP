@@ -80,6 +80,9 @@ class Email(TranslatableModel, models.Model):
     )
     name = models.CharField(max_length=255, blank=True, default=None, null=True)
 
+    def __str__(self):
+        return self.name if self.name is not None else ""
+
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
 # 1 Workflow for N recommendation ?

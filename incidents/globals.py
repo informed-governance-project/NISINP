@@ -27,8 +27,9 @@ REGIONAL_AREA = [
 
 # The variables to use in the email template in the admin interface, and the corresponding attribute
 INCIDENT_EMAIL_VARIABLES = [
-    ("#PRELIMINARY_NOTIFICATION_DATE#", "preliminary_notification_date"),
-    ("#INCIDENT_FINAL_NOTIFICATION_URL#", "pk"),
+    ("#INCIDENT_NOTIFICATION_DATE#", "incident_notification_date"),
+    ("#INCIDENT_DETECTION_DATE#", "incident_detection_date"),
+    ("#INCIDENT_STARTING_DATE#", "incident_starting_date"),
     ("#INCIDENT_ID#", "incident_id"),
 ]
 

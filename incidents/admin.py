@@ -192,13 +192,18 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="content",
     )
 
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
     class Meta:
         model = Email
 
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["subject", "content"]
+    list_display = ["name", "subject", "content",]
     search_fields = ["subject", "content"]
     resource_class = EmailResource
 
@@ -250,7 +255,7 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
 
-    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "impacts")
+    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "impacts", "opening_email", "closing_email")
     filter_horizontal = [
         "sectors",
         "impacts",
@@ -282,7 +287,7 @@ class SectorRegulationWorkflowEmailResource(resources.ModelResource):
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
 class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin):
-    list_display = ["sector_regulation_workflow", "trigger_event"]
+    list_display = ["sector_regulation_workflow", "trigger_event", "delay_in_hours"]
     search_fields = ["sector_regulation_workflow"]
     resource_class = SectorRegulationWorkflowEmailResource
     fields = ("sector_regulation_workflow", "email", "trigger_event", "delay_in_hours")
