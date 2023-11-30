@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -42,6 +42,7 @@ from .models import (
     Question,
     QuestionCategory,
     SectorRegulation,
+    Workflow,
 )
 from .pdf_generation import get_pdf_report
 
@@ -119,21 +120,59 @@ def get_next_workflow(request, form_list=None, incident_id=None):
     )(request)
 
 
-@login_required
-@otp_required
-def edit_workflow(request, form_list=None, incident_workflow_id=None):
-    if form_list is None and incident_workflow_id is not None:
-        incident_workflow = IncidentWorkflow.objects.get(id=incident_workflow_id)
-        form_list = get_forms_list(
-            incident=incident_workflow.incident, workflow=incident_workflow.workflow
-        )
-    if incident_workflow_id is not None:
-        request.incident = incident_workflow.incident.id
-        request.incident_workflow = incident_workflow.id
+def create_workflow(request):
+    incident_id = request.GET.get("incident_id", None)
+    workflow_id = request.GET.get("workflow_id", None)
+    if not workflow_id and not incident_id:
+        messages.error(request, _("Missing data to create the incident report"))
+        return redirect("incidents")
 
+    incident = Incident.objects.filter(pk=incident_id)
+    workflow = Workflow.objects.filter(id=workflow_id)
+
+    if not workflow:
+        messages.error(request, _("Workflow not found"))
+        return redirect("incidents")
+
+    if not incident:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
+
+    form_list = get_forms_list(incident=incident.first())
+    request.incident = incident_id
+    request.workflow = workflow.first()
+    request.incident_workflow = None
     return WorkflowWizardView.as_view(
         form_list,
     )(request)
+
+
+@login_required
+@otp_required
+def edit_workflow(request):
+    incident_id = request.GET.get("incident_id", None)
+    workflow_id = request.GET.get("workflow_id", None)
+    if not workflow_id and not incident_id:
+        messages.warning(request, _("No incident report found"))
+        return redirect("incidents")
+
+    incident_workflow = IncidentWorkflow.objects.filter(
+        incident=incident_id, workflow=workflow_id
+    ).order_by("timestamp")
+    if incident_workflow:
+        incident_workflow = incident_workflow.last()
+        form_list = get_forms_list(
+            incident=incident_workflow.incident, workflow=incident_workflow.workflow
+        )
+        request.incident = incident_workflow.incident.id
+        request.incident_workflow = incident_workflow.id
+
+        return WorkflowWizardView.as_view(
+            form_list,
+        )(request)
+
+    messages.warning(request, _("No incident report found"))
+    return redirect("incidents")
 
 
 @login_required
@@ -532,7 +571,11 @@ class WorkflowWizardView(SessionWizardView):
             )
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
-            self.workflow = self.incident.get_next_step()
+            if not self.request.workflow:
+                self.workflow = self.incident.get_next_step()
+            else:
+                self.workflow = self.request.workflow
+
             form = QuestionForm(
                 data,
                 position=position,
