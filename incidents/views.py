@@ -35,7 +35,6 @@ from .forms import (
 )
 from .models import (
     Answer,
-    Email,
     Incident,
     IncidentWorkflow,
     PredefinedAnswer,
@@ -535,10 +534,10 @@ class FormWizardView(SessionWizardView):
             )
             incident.save()
 
-        # Send Email
-        email = Email.objects.filter(email_type="PRELI").first()
-        if email is not None:
-            send_email(email, incident)
+            # send The email notification opening
+            if sector_regulation.opening_email is not None:
+                send_email(sector_regulation.opening_email, incident)
+
         return HttpResponseRedirect("/incidents")
 
 

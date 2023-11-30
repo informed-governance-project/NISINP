@@ -80,11 +80,15 @@ class PredefinedAnswer(TranslatableModel):
 
 
 # Email sent from regulator to operator
-class Email(TranslatableModel):
+class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
         subject=models.CharField(max_length=255, blank=True, default=None, null=True),
         content=models.TextField(),
     )
+    name = models.CharField(max_length=255, blank=True, default=None, null=True)
+
+    def __str__(self):
+        return self.name if self.name is not None else ""
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -127,6 +131,23 @@ class SectorRegulation(TranslatableModel):
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
     is_detection_date_needed = models.BooleanField(
         default=False, verbose_name=_("Detection date needed")
+    )
+    # email
+    opening_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="opening_email"
+    )
+    closing_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="closing_email"
     )
 
     def __str__(self):
@@ -303,6 +324,22 @@ class IncidentWorkflow(models.Model):
         blank=False,
         default=WORKFLOW_REVIEW_STATUS[0][0],
     )
+
+    def get_previous_workflow(self):
+        current = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.workflow.sector_regulation,
+            workflow=self.workflow
+        ).first()
+
+        self.workflow.sector_regulation
+        previous = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.workflow.sector_regulation,
+            position__lt=current.position
+        ).order_by("-position").first()
+
+        if previous is not None:
+            return previous
+        return False
 
 
 # answers
