@@ -1,6 +1,8 @@
 {% extends 'home/base.html' %}
 {% load i18n %}
+{% load tz %}
 {% block content %}
+
 <div class="text-justify">
     <h1>{% translate "Incident list" %}</h1>
     {% if incidents %}
@@ -11,8 +13,8 @@
                 <th scope="col">{% translate "Contact" %}</th>
                 <th scope="col">{% translate "Regulator" %}</th>
                 <th scope="col">{% translate "Regulation" %}</th>
-                <th scope="col">{% translate "Next step" %}</th>
-                <th scope="col">{% translate "See or edit workflow" %}</th>
+                <th scope="col">{% translate "Incident report" %}</th>
+                <th scope="col">{% translate "Status" %}</th>
                 <th scope="col">{% translate "Action" %}</th>
                 <th scope="col">{% translate "Review status" %}</th>
             </tr>
@@ -20,16 +22,21 @@
         {% for incident in incidents %}
         <tbody>
             <tr>
-                <td scope="row">{{incident.incident_notification_date}}</td>
-                <td>{{incident.contact_lastname}}</td>
+                {% timezone "Europe/Paris" %}
+                    <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+                {% endtimezone %}
+                <td>{{incident.contact_firstname}} {{incident.contact_lastname}}</td>
                 <td>{{incident.sector_regulation.regulator}}</td>
                 <td>{{incident.sector_regulation.regulation}}</td>
-                <td>{% if incident.get_next_step is not None %}
-                    <a href="{% url 'next_workflow' incident.id %}">{{incident.get_next_step}}</a>
+                <td>{% for report in incident.get_all_workflows %}
+                    <a href="{% if report in incident.get_workflows_completed %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{incident.id}}&workflow_id={{report.id}}">{{report}}</a><br/>
+                {% endfor %}</td>
+                <td>{% for report in incident.get_all_workflows%}
+                    {% if report in incident.get_workflows_completed %}
+                        {{report.get_status.get_review_status_display}}<br/>
+                    {% else %}
+                        <br/>
                     {% endif %}
-                </td>
-                <td>{% for completed_workflow in incident.get_latest_workflows %}
-                    <a href="{% url 'edit_workflow' completed_workflow.id %}">{{completed_workflow.workflow}}</a> <br/>
                 {% endfor %}</td>
                 <td scope="col">
                     {% if incident.are_impacts_present %}
@@ -41,6 +48,7 @@
         </tbody>
         {% endfor %}
     </table>
+
     <div class="pagination">
         <span class="step-links">
             {% if incidents_page.has_previous %}
