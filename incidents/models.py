@@ -73,11 +73,12 @@ class PredefinedAnswer(TranslatableModel):
 
 
 # Email sent from regulator to operator
-class Email(TranslatableModel):
+class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
         subject=models.CharField(max_length=255, blank=True, default=None, null=True),
         content=models.TextField(),
     )
+    name = models.CharField(max_length=255, blank=True, default=None, null=True)
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
