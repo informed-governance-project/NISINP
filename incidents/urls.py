@@ -18,12 +18,13 @@ from django.urls import path
 from django.views.i18n import set_language
 
 from .views import (
+    create_workflow,
     download_incident_pdf,
-    get_next_workflow,
-    edit_workflow,
     edit_impacts,
+    edit_workflow,
     get_form_list,
     get_incidents,
+    get_next_workflow,
     get_regulator_incident_edit_form,
 )
 
@@ -39,11 +40,13 @@ urlpatterns = [
         get_next_workflow,
         name="next_workflow",
     ),
-    path(
-        r"edit_workflow/<int:incident_workflow_id>",
-        edit_workflow,
-        name="edit_workflow",
-    ),
+    path("create_workflow", create_workflow, name="create_workflow"),
+    path("edit_workflow", edit_workflow, name="edit_workflow"),
+    # path(
+    #     r"edit_workflow/<int:incident_workflow_id>",
+    #     edit_workflow,
+    #     name="edit_workflow",
+    # ),
     path(
         r"edit_impacts/<int:incident_id>",
         edit_impacts,
