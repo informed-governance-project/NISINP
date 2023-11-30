@@ -1,17 +1,22 @@
-from datetime import date
-
 from django.contrib import admin
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import INCIDENT_STATUS, QUESTION_TYPES, REVIEW_STATUS, WORKFLOW_REVIEW_STATUS, INCIDENT_EMAIL_TRIGGER_EVENT
+from .globals import (
+    INCIDENT_EMAIL_TRIGGER_EVENT,
+    INCIDENT_STATUS,
+    QUESTION_TYPES,
+    REVIEW_STATUS,
+    WORKFLOW_REVIEW_STATUS,
+)
 
 
 # impacts of the incident, they are linked to sector
 class Impact(TranslatableModel):
     """Defines an impact."""
+
     translations = TranslatedFields(label=models.TextField())
     is_generic_impact = models.BooleanField(
         default=False, verbose_name=_("Generic Impact")
@@ -65,7 +70,9 @@ class Question(TranslatableModel):
 # answers for the question
 class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(predefined_answer=models.TextField())
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, default=None, null=True)
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, default=None, null=True
+    )
     position = models.IntegerField(blank=True, default=0, null=True)
 
     def __str__(self):
@@ -91,6 +98,12 @@ class Workflow(TranslatableModel):
     def __str__(self):
         return self.name if self.name is not None else ""
 
+    def get_status(self):
+        status = self.incidentworkflow_set.all().first()
+        if status:
+            return status
+        return None
+
 
 # link between a regulation and a regulator,
 # a regulator can only create a sector_regulation for the regulation the
@@ -108,7 +121,9 @@ class SectorRegulation(TranslatableModel):
     )
     workflows = models.ManyToManyField(Workflow, through="SectorRegulationWorkflow")
 
-    sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True)
+    sectors = models.ManyToManyField(
+        "governanceplatform.Sector", default=None, blank=True
+    )
     impacts = models.ManyToManyField(Impact, default=None, blank=True)
     is_detection_date_needed = models.BooleanField(
         default=False, verbose_name=_("Detection date needed")
@@ -120,12 +135,8 @@ class SectorRegulation(TranslatableModel):
 
 # link between sector regulation and workflows
 class SectorRegulationWorkflow(models.Model):
-    sector_regulation = models.ForeignKey(
-        SectorRegulation, on_delete=models.CASCADE
-    )
-    workflow = models.ForeignKey(
-        Workflow, on_delete=models.CASCADE
-    )
+    sector_regulation = models.ForeignKey(SectorRegulation, on_delete=models.CASCADE)
+    workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
     position = models.IntegerField(blank=True, default=0, null=True)
     emails = models.ManyToManyField(Email, through="SectorRegulationWorkflowEmail")
 
@@ -138,12 +149,13 @@ class SectorRegulationWorkflowEmail(models.Model):
     sector_regulation_workflow = models.ForeignKey(
         SectorRegulationWorkflow, on_delete=models.CASCADE
     )
-    email = models.ForeignKey(
-        Email, on_delete=models.CASCADE
-    )
+    email = models.ForeignKey(Email, on_delete=models.CASCADE)
     # the trigger event which send the email
     trigger_event = models.CharField(
-        max_length=15, choices=INCIDENT_EMAIL_TRIGGER_EVENT, blank=False, default=INCIDENT_EMAIL_TRIGGER_EVENT[0][0]
+        max_length=15,
+        choices=INCIDENT_EMAIL_TRIGGER_EVENT,
+        blank=False,
+        default=INCIDENT_EMAIL_TRIGGER_EVENT[0][0],
     )
     # the delay after the trigger event
     delay_in_hours = models.IntegerField(default=0)
@@ -153,9 +165,9 @@ class SectorRegulationWorkflowEmail(models.Model):
 class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
     incident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
-    incident_notification_date = models.DateField(default=date.today)
-    incident_detection_date = models.DateField(blank=True, null=True)
-    incident_starting_date = models.DateField(blank=True, null=True)
+    incident_notification_date = models.DateTimeField(default=timezone.now)
+    incident_detection_date = models.DateTimeField(blank=True, null=True)
+    incident_starting_date = models.DateTimeField(blank=True, null=True)
     company_name = models.CharField(max_length=100, verbose_name=_("Company name"))
     company = models.ForeignKey(
         "governanceplatform.Company",
@@ -209,11 +221,15 @@ class Incident(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        default=None,)
+        default=None,
+    )
     # keep a trace of selected sectors
     affected_sectors = models.ManyToManyField("governanceplatform.Sector")
-    workflows = models.ManyToManyField(Workflow, through='IncidentWorkflow')
-    impacts = models.ManyToManyField(Impact, default=None, )
+    workflows = models.ManyToManyField(Workflow, through="IncidentWorkflow")
+    impacts = models.ManyToManyField(
+        Impact,
+        default=None,
+    )
     is_significative_impact = models.BooleanField(
         default=False, verbose_name=_("Significative impact")
     )
@@ -241,31 +257,38 @@ class Incident(models.Model):
         return dict(INCIDENT_STATUS).get(self.incident_status)
 
     def get_next_step(self):
-        current_workflow = IncidentWorkflow.objects.all().filter(
-            incident=self,
-        ).values_list('workflow')
-        regulation = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.sector_regulation,
-        ).exclude(workflow__in=current_workflow).order_by("position")
+        current_workflow = (
+            IncidentWorkflow.objects.all()
+            .filter(
+                incident=self,
+            )
+            .values_list("workflow")
+        )
+        regulation = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+            )
+            .exclude(workflow__in=current_workflow)
+            .order_by("position")
+        )
         if len(regulation) > 0:
             return regulation[0].workflow
         else:
             return None
 
-    def get_completed_workflows(self):
-        current_workflow = IncidentWorkflow.objects.all().filter(
-            incident=self,
-        )
-        return current_workflow
-
-    def get_latest_workflows(self):
-        current_workflow = IncidentWorkflow.objects.all().filter(
-            incident=self,
-        ).order_by('workflow', '-timestamp').distinct('workflow')
-        return current_workflow
-
     def are_impacts_present(self):
         return self.sector_regulation.impacts.count() > 0
+
+    def get_all_workflows(self):
+        workflows = self.sector_regulation.workflows.all().order_by(
+            "sectorregulationworkflow__position"
+        )
+        return list(workflows)
+
+    def get_workflows_completed(self):
+        workflows = self.workflows.all()
+        return list(workflows)
 
 
 # link between incident and workflow
@@ -275,7 +298,10 @@ class IncidentWorkflow(models.Model):
     # for versionning
     timestamp = models.DateTimeField(default=timezone.now)
     review_status = models.CharField(
-        max_length=5, choices=REVIEW_STATUS, blank=False, default=WORKFLOW_REVIEW_STATUS[0][0]
+        max_length=5,
+        choices=REVIEW_STATUS,
+        blank=False,
+        default=WORKFLOW_REVIEW_STATUS[0][0],
     )
 
 
