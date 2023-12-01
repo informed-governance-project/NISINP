@@ -32,3 +32,17 @@ def run():
                         dt = actual_time - incident_workflow.timestamp
                         if round(dt.seconds/60/60, 0) == email.delay_in_hours:
                             send_email(email.email, incident)
+            # From notification date
+            sector_regulation_workflow = SectorRegulationWorkflow.objects.all().filter(
+                        sector_regulation=incident.sector_regulation,
+                        workflow=incident_workflow.workflow
+                    ).first()
+
+            emails = SectorRegulationWorkflowEmail.objects.all().filter(
+                        sector_regulation_workflow=sector_regulation_workflow,
+                        trigger_event="NOTIF_DATE"
+                    )
+            for email in emails:
+                dt = actual_time - incident_workflow.timestamp
+                if round(dt.seconds/60/60, 0) == email.delay_in_hours:
+                    send_email(email.email, incident)

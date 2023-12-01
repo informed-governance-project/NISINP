@@ -36,7 +36,6 @@ INCIDENT_EMAIL_VARIABLES = [
 # the different trigger on when to send an email to the Incident.User
 INCIDENT_EMAIL_TRIGGER_EVENT = [
     ("NOTIF_DATE", "Notification Date"),
-    ("DETECT_DATE", "Detection Date"),
     ("PREV_WORK", "Previous Workflow"),
 ]
 
