@@ -311,6 +311,14 @@ class Incident(models.Model):
         workflows = self.workflows.all()
         return list(workflows)
 
+    # TO DO : check if it returns always the correct values
+    def get_latest_incident_workflows(self):
+        incident_workflows = IncidentWorkflow.objects.order_by(
+            'workflow', '-timestamp'
+        ).distinct('workflow')
+
+        return incident_workflows
+
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
@@ -327,18 +335,32 @@ class IncidentWorkflow(models.Model):
 
     def get_previous_workflow(self):
         current = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.workflow.sector_regulation,
+            sector_regulation=self.incident.sector_regulation,
             workflow=self.workflow
         ).first()
 
-        self.workflow.sector_regulation
         previous = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.workflow.sector_regulation,
+            sector_regulation=self.incident.sector_regulation,
             position__lt=current.position
         ).order_by("-position").first()
 
         if previous is not None:
             return previous
+        return False
+
+    def get_next_workflow(self):
+        current = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.incident.sector_regulation,
+            workflow=self.workflow
+        ).first()
+
+        next = SectorRegulationWorkflow.objects.all().filter(
+            sector_regulation=self.incident.sector_regulation,
+            position__gt=current.position
+        ).order_by("position").first()
+
+        if next is not None:
+            return next.workflow
         return False
 
 
