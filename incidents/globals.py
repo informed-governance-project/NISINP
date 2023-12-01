@@ -48,12 +48,20 @@ REVIEW_STATUS = [
     ("DELIV", "Delivered but not yet reviewed"),
     ("PASS", "Review passed"),
     ("FAIL", "Review failed"),
-    ("OUT", "Final notification missing. due date exceeded"),
+    ("OUT", "Not delivered and deadline exceeded"),
 ]
 
 WORKFLOW_REVIEW_STATUS = [
     ("DELIV", "Delivered but not yet reviewed"),
     ("PASS", "Review passed"),
     ("FAIL", "Review failed"),
-    ("OUT", "Final notification missing. due date exceeded"),
+    ("OUT", "Not delivered and deadline exceeded"),
+]
+
+# after this step the delay is running
+SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT = [
+    ("NONE", "None"),
+    ("NOTIF_DATE", "Notification Date"),
+    ("DETECT_DATE", "Detection Date"),
+    ("PREV_WORK", "Previous Workflow"),
 ]

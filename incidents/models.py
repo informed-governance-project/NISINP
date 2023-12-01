@@ -10,6 +10,7 @@ from .globals import (
     QUESTION_TYPES,
     REVIEW_STATUS,
     WORKFLOW_REVIEW_STATUS,
+    SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
 )
 
 
@@ -159,6 +160,14 @@ class SectorRegulationWorkflow(models.Model):
     sector_regulation = models.ForeignKey(SectorRegulation, on_delete=models.CASCADE)
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE)
     position = models.IntegerField(blank=True, default=0, null=True)
+    # the delay after the trigger event
+    delay_in_hours_before_deadline = models.IntegerField(default=0)
+    trigger_event_before = models.CharField(
+        max_length=15,
+        choices=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
+        blank=False,
+        default=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT[0][0],
+    )
     emails = models.ManyToManyField(Email, through="SectorRegulationWorkflowEmail")
 
     def __str__(self):
