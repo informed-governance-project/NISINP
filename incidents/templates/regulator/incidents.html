@@ -13,7 +13,7 @@
         </div>
     </div>
     {% if incidents %}
-    <table class="table align-middle">
+    <table class="table align-middle table-sm">
         <thead>
             <tr>
                 <th scope="col">{% translate "Date" %}</th>
@@ -54,15 +54,20 @@
                 <td>
                     <table class="table table-borderless table-sm m-0">
                         {% with completed_workflows=incident.get_workflows_completed %}
-                            {% for report in incident.get_all_workflows %}
-                                {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
-                                    <tr>
-                                        <td>
-                                        {{ report }}
-                                        </td>
-                                    </tr>
-                                {% endwith %}
-                            {% endfor %}
+                        {% for report in incident.get_all_workflows %}
+                        {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
+                        <tr>
+                            <td class="col-4">
+                                <a href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}{% endif %}">
+                                    {{ report }}
+                                </a>
+                            </td>
+                            <td class="col-8 {% status_class filtered_workflows.0.review_status %}">
+                                {{ filtered_workflows.0.get_review_status_display }}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
                         {% endwith %}
                     </table>
                 </td>
