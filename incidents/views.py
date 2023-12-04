@@ -54,9 +54,7 @@ def get_incidents(request):
 
     if user_in_group(request.user, "RegulatorUser"):
         # RegulatorUser has access to all incidents linked by sectors.
-        incidents = incidents.filter(
-            affected_services__sector__in=request.user.sectors.all()
-        )
+        incidents = incidents.filter(affected_sectors__in=request.user.sectors.all())
     elif user_in_group(request.user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
@@ -224,7 +222,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     if (
         user_in_group(request.user, "RegulatorUser")
         and not Incident.objects.filter(
-            pk=incident_id, affected_services__sector__in=request.user.sectors.all()
+            pk=incident_id, affected_sectors__in=request.user.sectors.all()
         ).exists()
     ):
         return HttpResponseRedirect("/incidents")
