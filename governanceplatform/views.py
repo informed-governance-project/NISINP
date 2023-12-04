@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
-from .helpers import user_in_group, is_user_regulator
+from .helpers import user_in_group
 
 
 @login_required
@@ -18,7 +18,7 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
-    if user_in_group(user, "PlatformAdmin"):
+    if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
         return redirect("admin:index")
 
     if not request.session.get("company_in_use") and user.companies.exists():
@@ -27,7 +27,7 @@ def index(request):
 
         request.session["company_in_use"] = user.companies.first().id
 
-    return redirect("admin:index") if is_user_regulator(user) else redirect("incidents")
+    return redirect("incidents")
 
 
 def logout_view(request):
