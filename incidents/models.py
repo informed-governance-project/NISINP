@@ -9,8 +9,8 @@ from .globals import (
     INCIDENT_STATUS,
     QUESTION_TYPES,
     REVIEW_STATUS,
-    WORKFLOW_REVIEW_STATUS,
     SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
+    WORKFLOW_REVIEW_STATUS,
 )
 
 
@@ -103,12 +103,6 @@ class Workflow(TranslatableModel):
     def __str__(self):
         return self.name if self.name is not None else ""
 
-    def get_status(self):
-        status = self.incidentworkflow_set.all().first()
-        if status:
-            return status
-        return None
-
 
 # link between a regulation and a regulator,
 # a regulator can only create a sector_regulation for the regulation the
@@ -140,7 +134,7 @@ class SectorRegulation(TranslatableModel):
         null=True,
         blank=True,
         default=None,
-        related_name="opening_email"
+        related_name="opening_email",
     )
     closing_email = models.ForeignKey(
         Email,
@@ -148,7 +142,7 @@ class SectorRegulation(TranslatableModel):
         null=True,
         blank=True,
         default=None,
-        related_name="closing_email"
+        related_name="closing_email",
     )
 
     def __str__(self):
@@ -280,12 +274,6 @@ class Incident(models.Model):
         default=INCIDENT_STATUS[0][0],
     )
 
-    def get_review_status(self):
-        return dict(REVIEW_STATUS).get(self.review_status)
-
-    def get_incident_status(self):
-        return dict(INCIDENT_STATUS).get(self.incident_status)
-
     def get_next_step(self):
         current_workflow = (
             IncidentWorkflow.objects.all()
@@ -317,14 +305,16 @@ class Incident(models.Model):
         return list(workflows)
 
     def get_workflows_completed(self):
-        workflows = self.workflows.all()
+        workflows = self.incidentworkflow_set.all().order_by(
+            "workflow__sectorregulationworkflow__position", "-timestamp"
+        )
         return list(workflows)
 
     # TO DO : check if it returns always the correct values
     def get_latest_incident_workflows(self):
         incident_workflows = IncidentWorkflow.objects.order_by(
-            'workflow', '-timestamp'
-        ).distinct('workflow')
+            "workflow", "-timestamp"
+        ).distinct("workflow")
 
         return incident_workflows
 
@@ -343,30 +333,48 @@ class IncidentWorkflow(models.Model):
     )
 
     def get_previous_workflow(self):
-        current = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.incident.sector_regulation,
-            workflow=self.workflow
-        ).first()
+        current = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.incident.sector_regulation,
+                workflow=self.workflow,
+            )
+            .first()
+        )
 
-        previous = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.incident.sector_regulation,
-            position__lt=current.position
-        ).order_by("-position").first()
+        previous = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.incident.sector_regulation,
+                position__lt=current.position,
+            )
+            .order_by("-position")
+            .first()
+        )
 
         if previous is not None:
             return previous
         return False
 
     def get_next_workflow(self):
-        current = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.incident.sector_regulation,
-            workflow=self.workflow
-        ).first()
+        current = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.incident.sector_regulation,
+                workflow=self.workflow,
+            )
+            .first()
+        )
 
-        next = SectorRegulationWorkflow.objects.all().filter(
-            sector_regulation=self.incident.sector_regulation,
-            position__gt=current.position
-        ).order_by("position").first()
+        next = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.incident.sector_regulation,
+                position__gt=current.position,
+            )
+            .order_by("position")
+            .first()
+        )
 
         if next is not None:
             return next.workflow

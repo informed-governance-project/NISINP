@@ -42,11 +42,6 @@ urlpatterns = [
     ),
     path("create_workflow", create_workflow, name="create_workflow"),
     path("edit_workflow", edit_workflow, name="edit_workflow"),
-    # path(
-    #     r"edit_workflow/<int:incident_workflow_id>",
-    #     edit_workflow,
-    #     name="edit_workflow",
-    # ),
     path(
         r"edit_impacts/<int:incident_id>",
         edit_impacts,
