@@ -1,6 +1,8 @@
 {% extends 'home/base.html' %}
 {% load i18n %}
+{% load tz %}
 {% block content %}
+{% load custom_filters %}
 
 <div class="text-justify">
     <div class="d-flex flex-container py-2">
@@ -11,39 +13,70 @@
         </div>
     </div>
     {% if incidents %}
-    <table class="table">
-        <tr>
-            <th scope="col">{{ _('Incident ID') }}</th>
-            <th scope="col">{{ _('Significant impact') }}</th>
-            <th scope="col">{{ _('Sectors') }}</th>
-            <th scope="col">{{ _('Incident notification date') }}</th>
-            <th scope="col">{{ _('Impacts') }}</th>
-            <th scope="col">{{ _('Actions') }}</th>
-        </tr>
-        {% for incident in incidents_page.object_list %}
-        <tr>
-            <td>{{ incident.incident_id }}</td>
-            <td>{{ incident.is_significative_impact }}</td>
-            <td><ul>
-            {% for sector in incident.affected_sectors.all %}
-                <li>{{ sector.name }}</li>
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th scope="col">{% translate "Date" %}</th>
+                <th scope="col">{% translate "Regulation" %}</th>
+                <th scope="col">{% translate "Reference" %}</th>
+                <th scope="col">{% translate "Operator" %}</th>
+                <th scope="col">{% translate "Sectors" %}</th>
+                <th scope="col">{% translate "Sub-sectors" %}</th>
+                <th scope="col">{% translate "Incident report" %}</th>
+                <th scope="col">{% translate "Incident status" %}</th>
+                <th scope="col">{% translate "Review status" %}</th>
+                <th scope="col">{% translate "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for incident in incidents %}
+            <tr>
+                {% timezone "Europe/Paris" %}
+                <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+                {% endtimezone %}
+                <td>{{ incident.sector_regulation.regulation }}</td>
+                <td>{{ incident.incident_id }}</td>
+                <td>{{ incident.company.identifier }}</td>
+                <td>
+                    <ul class="m-0 p-0">
+                    {% for sector in incident.affected_sectors.all %}
+                        {{ sector.name }}
+                    {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <ul class="m-0 p-0">
+                    {% for sector in incident.affected_sectors.all %}
+                        {{ sector.name }}
+                    {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <table class="table table-borderless table-sm m-0">
+                        {% with completed_workflows=incident.get_workflows_completed %}
+                            {% for report in incident.get_all_workflows %}
+                                {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
+                                    <tr>
+                                        <td>
+                                        {{ report }}
+                                        </td>
+                                    </tr>
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    </table>
+                </td>
+                <td>{{ incident.get_incident_status_display }}</td>
+                <td>{{ incident.get_review_status_display }}</td>
+                <td style="white-space: nowrap;">
+                    <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
+                    <a href="{% url 'download_incident_pdf' incident.id %}">
+                        <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
+                    </a>
+                </td>
+            </tr>
             {% endfor %}
-            </ul>
-            </td>
-            <td>{{ incident.incident_notification_date|date:'Y-m-d' }}</td>
-            <td><ul>
-                {% for impact in incident.impacts.all %}
-                    <li>{{ impact.label }}</li>
-                {% endfor %}
-                </ul></td>
-            <td style="white-space: nowrap;">
-                <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
-                <a href="{% url 'download_incident_pdf' incident.id %}">
-                    <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
+        </tbody>
     </table>
     <div class="pagination">
         <span class="step-links">
@@ -53,7 +86,7 @@
             {% endif %}
 
             <span class="current">
-                Page {{ incidents_page.number }} of {{ incidents_page.paginator.num_pages }}.
+                Page {{ incidents_page.number }} of {{ incidents_page.paginator.num_pages }}
             </span>
 
             {% if incidents_page.has_next %}

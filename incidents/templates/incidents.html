@@ -2,11 +2,12 @@
 {% load i18n %}
 {% load tz %}
 {% block content %}
+{% load custom_filters %}
 
 <div class="text-justify">
     <h1>{% translate "Incident list" %}</h1>
     {% if incidents %}
-    <table class="table">
+    <table class="table align-middle">
         <thead>
             <tr>
                 <th scope="col">{% translate "Date" %}</th>
@@ -14,50 +15,60 @@
                 <th scope="col">{% translate "Regulator" %}</th>
                 <th scope="col">{% translate "Regulation" %}</th>
                 <th scope="col">{% translate "Incident report" %}</th>
-                <th scope="col">{% translate "Status" %}</th>
                 <th scope="col">{% translate "Action" %}</th>
                 <th scope="col">{% translate "Review status" %}</th>
             </tr>
         </thead>
-        {% for incident in incidents %}
         <tbody>
+            {% for incident in incidents %}
             <tr>
                 {% timezone "Europe/Paris" %}
-                    <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+                <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
                 {% endtimezone %}
-                <td>{{incident.contact_firstname}} {{incident.contact_lastname}}</td>
-                <td>{{incident.sector_regulation.regulator}}</td>
-                <td>{{incident.sector_regulation.regulation}}</td>
-                <td>{% for report in incident.get_all_workflows %}
-                    <a href="{% if report in incident.get_workflows_completed %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{incident.id}}&workflow_id={{report.id}}">{{report}}</a><br/>
-                {% endfor %}</td>
-                <td>{% for report in incident.get_all_workflows%}
-                    {% if report in incident.get_workflows_completed %}
-                        {{report.get_status.get_review_status_display}}<br/>
-                    {% else %}
-                        <br/>
-                    {% endif %}
-                {% endfor %}</td>
+                <td>{{ incident.contact_firstname }} {{ incident.contact_lastname }}</td>
+                <td>{{ incident.sector_regulation.regulator }}</td>
+                <td>{{ incident.sector_regulation.regulation }}</td>
+                <td>
+                    <table class="table table-borderless table-sm m-0">
+                        {% with completed_workflows=incident.get_workflows_completed %}
+                        {% for report in incident.get_all_workflows %}
+                        {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
+                        <tr>
+                            <td class="col-4">
+                                <a href="{% if filtered_workflows %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}">
+                                    {{ report }}
+                                </a>
+                            </td>
+                            <td class="col-8 {% status_class filtered_workflows.0.review_status %}">
+                                {{ filtered_workflows.0.get_review_status_display }}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                        {% endwith %}
+                    </table>
+                </td>
                 <td scope="col">
                     {% if incident.are_impacts_present %}
                     <a href="{% url 'edit_impacts' incident.id %}">{% translate "See or edit impacts" %}</a>
                     {% endif %}
                 </td>
-                <td scope="row">{{incident.get_review_status}}</td>
+                <td scope="row" class="{% status_class incident.review_status %}">{{ incident.get_review_status_display }}</td>
             </tr>
+            {% endfor %}
         </tbody>
-        {% endfor %}
     </table>
 
     <div class="pagination">
         <span class="step-links">
             {% if incidents_page.has_previous %}
-                <a href="?page=1">&laquo; {% translate "first" %}</a>
-                <a href="?page={{ incidents_page.previous_page_number }}">{% translate "previous" %}</a>
+            <a href="?page=1">&laquo; {% translate "first" %}</a>
+            <a href="?page={{ incidents_page.previous_page_number }}">{% translate "previous" %}</a>
             {% endif %}
 
             <span class="current">
-                {% translate "Page" %} {{ incidents_page.number }} {% translate "of" %} {{ incidents_page.paginator.num_pages }}
+                {% translate "Page" %} {{ incidents_page.number }} {% translate "of" %}
+                {{ incidents_page.paginator.num_pages }}
             </span>
 
             {% if incidents_page.has_next %}
