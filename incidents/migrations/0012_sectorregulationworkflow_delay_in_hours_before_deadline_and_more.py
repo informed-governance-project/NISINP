@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="sectorregulationworkflow",
-            name="trigger_event_before",
+            name="trigger_event_before_deadline",
             field=models.CharField(
                 choices=[
                     ("NONE", "None"),

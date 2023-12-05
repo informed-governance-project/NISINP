@@ -156,7 +156,7 @@ class SectorRegulationWorkflow(models.Model):
     position = models.IntegerField(blank=True, default=0, null=True)
     # the delay after the trigger event
     delay_in_hours_before_deadline = models.IntegerField(default=0)
-    trigger_event_before = models.CharField(
+    trigger_event_before_deadline = models.CharField(
         max_length=15,
         choices=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
         blank=False,
