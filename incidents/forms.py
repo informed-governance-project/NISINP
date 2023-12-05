@@ -2,7 +2,7 @@ from datetime import datetime
 from functools import partial
 from operator import is_not
 
-from bootstrap_datepicker_plus.widgets import DatePickerInput
+from bootstrap_datepicker_plus.widgets import DatePickerInput, DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -458,6 +458,21 @@ class RegulatorForm(forms.Form):
         return self.fields["regulators"].initial
 
 
+# select the detection date
+class DetectionDateForm(forms.Form):
+    detection_date = forms.DateTimeField(
+        widget=DateTimePickerInput(
+            options={
+                "format": "YYYY-MM-DD HH:mm:ss",
+            },
+            attrs={
+                "data-bs-toggle": "tooltip",
+            },
+        ),
+        required=True,
+    )
+
+
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
@@ -500,6 +515,7 @@ def get_forms_list(incident=None, workflow=None):
             RegulatorForm,
             RegulationForm,
             SectorForm,
+            DetectionDateForm,
         ]
     else:
         if workflow is None:
