@@ -124,8 +124,8 @@ def create_workflow(request):
         messages.error(request, _("Missing data to create the incident report"))
         return redirect("incidents")
 
-    incident = Incident.objects.filter(pk=incident_id)
-    workflow = Workflow.objects.filter(id=workflow_id)
+    incident = Incident.objects.filter(pk=incident_id).first()
+    workflow = Workflow.objects.filter(id=workflow_id).first()
 
     if not workflow:
         messages.error(request, _("Workflow not found"))
@@ -135,9 +135,13 @@ def create_workflow(request):
         messages.error(request, _("Incident not found"))
         return redirect("incidents")
 
-    form_list = get_forms_list(incident=incident.first())
+    if not incident.is_fillable(workflow):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+
+    form_list = get_forms_list(incident=incident)
     request.incident = incident_id
-    request.workflow = workflow.first()
+    request.workflow = workflow
     request.incident_workflow = None
     return WorkflowWizardView.as_view(
         form_list,
@@ -151,6 +155,21 @@ def edit_workflow(request):
     workflow_id = request.GET.get("workflow_id", None)
     if not workflow_id and not incident_id:
         messages.warning(request, _("No incident report found"))
+        return redirect("incidents")
+
+    incident = Incident.objects.filter(pk=incident_id).first()
+    workflow = Workflow.objects.filter(id=workflow_id).first()
+
+    if not workflow:
+        messages.error(request, _("Workflow not found"))
+        return redirect("incidents")
+
+    if not incident:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
+
+    if not incident.is_fillable(workflow):
+        messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
     incident_workflow = IncidentWorkflow.objects.filter(
