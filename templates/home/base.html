@@ -26,11 +26,9 @@
 
 {% block bootstrap5_content %}
     {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
-    <main class="flex-shrink-0">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
+    <div class="container-fluid px-4 py-2">
+        {% block content %}{% endblock %}
+    </div>
 {% endblock %}
 
 {% block bootstrap5_after_content %}
