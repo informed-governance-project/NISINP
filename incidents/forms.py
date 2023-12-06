@@ -429,7 +429,13 @@ class RegulationForm(forms.Form):
 # prepare an array of regulations
 def construct_regulation_array(regulators):
     regulations_to_select = []
-    regulations = Regulation.objects.all()
+    regulations_id = SectorRegulation.objects.all().filter(
+        regulator__in=regulators
+    ).values_list('regulation', flat=True)
+
+    regulations = Regulation.objects.all().filter(
+        id__in=regulations_id
+    )
 
     for regulation in regulations:
         for regulator in regulators:
