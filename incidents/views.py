@@ -538,7 +538,7 @@ class FormWizardView(SessionWizardView):
         # add regulation without sector excluding the previous one
         sector_regulations2 = (
             SectorRegulation.objects.all()
-            .filter(regulator__in=regulators_id, regulation__in=regulations_id)
+            .filter(regulator__in=regulators_id, regulation__in=regulations_id, sectors__in=[])
             .exclude(id__in=temps_ids)
         )
 
