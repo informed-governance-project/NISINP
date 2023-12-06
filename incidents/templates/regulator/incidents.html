@@ -1,109 +1,113 @@
 {% extends 'home/base.html' %}
 {% load i18n %}
 {% load tz %}
-{% block content %}
 {% load custom_filters %}
 
-<div class="text-justify">
-    <div class="d-flex flex-container py-2">
-        <div class="d-flex justify-content-left float-left w-75"><h2>{{ _('Reported incidents') }}</h2></div>
-        <div class="d-flex justify-content-right float-left w-25">
-            <input class="form-control" id="search-by-incident-id" placeholder="{{ _('Incident ID') }}" value="" autocomplete="off" />
-            <button class="btn btn-primary" onclick="searchByIncidentId()">{{ _('Search') }}</button>
-        </div>
+{% block content %}
+<div class="d-flex flex-container py-2">
+    <div class="d-flex justify-content-left float-left w-75">
+        <h3>{{ _('Reported incidents') }}</h3>
     </div>
-    {% if incidents %}
-    <table class="table align-middle table-sm">
-        <thead>
-            <tr>
-                <th scope="col">{% translate "Date" %}</th>
-                <th scope="col">{% translate "Regulation" %}</th>
-                <th scope="col">{% translate "Reference" %}</th>
-                <th scope="col">{% translate "Operator" %}</th>
-                <th scope="col">{% translate "Sectors" %}</th>
-                <th scope="col">{% translate "Sub-sectors" %}</th>
-                <th scope="col">{% translate "Incident report" %}</th>
-                <th scope="col">{% translate "Incident status" %}</th>
-                <th scope="col">{% translate "Review status" %}</th>
-                <th scope="col">{% translate "Actions" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for incident in incidents %}
-            <tr>
-                {% timezone "Europe/Paris" %}
-                <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
-                {% endtimezone %}
-                <td>{{ incident.sector_regulation.regulation }}</td>
-                <td>{{ incident.incident_id }}</td>
-                <td>{{ incident.company.identifier }}</td>
-                <td>
-                    <ul class="m-0 p-0">
+    <div class="d-flex justify-content-right float-left w-25 input-group input-group-sm">
+        <input class="form-control" id="search-by-incident-id" placeholder="{{ _('Incident ID') }}" value=""
+            autocomplete="off" />
+        <button class="btn btn-primary btn-sm" onclick="searchByIncidentId()">{{ _('Search') }}</button>
+    </div>
+</div>
+{% if incidents %}
+<table class="table align-middle table-sm small">
+    <thead>
+        <tr>
+            <th scope="col">{% translate "Date and Time" %}</th>
+            <th scope="col">{% translate "Regulation" %}</th>
+            <th scope="col">{% translate "Reference" %}</th>
+            <th scope="col">{% translate "Operator" %}</th>
+            <th scope="col">{% translate "Sectors" %}</th>
+            <th scope="col">{% translate "Sub-sectors" %}</th>
+            <th scope="col">{% translate "Incident report" %}</th>
+            <th scope="col">{% translate "Incident status" %}</th>
+            <th scope="col">{% translate "Review status" %}</th>
+            <th scope="col">{% translate "Actions" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for incident in incidents %}
+        <tr>
+            {% timezone "Europe/Paris" %}
+            <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+            {% endtimezone %}
+            <td>{{ incident.sector_regulation.regulation }}</td>
+            <td>{{ incident.incident_id }}</td>
+            <td>{{ incident.company.identifier }}</td>
+            <td>
+                <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
-                        {{ sector.name }}
+                    {{ sector.name }}
                     {% endfor %}
-                    </ul>
-                </td>
-                <td>
-                    <ul class="m-0 p-0">
+                </ul>
+            </td>
+            <td>
+                <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
-                        {{ sector.name }}
+                    {{ sector.name }}
                     {% endfor %}
-                    </ul>
-                </td>
-                <td>
-                    <table class="table table-borderless table-sm m-0">
-                        {% with completed_workflows=incident.get_workflows_completed %}
-                        {% for report in incident.get_all_workflows %}
-                        {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
-                        <tr>
-                            <td class="col-4">
-                                <a href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}{% endif %}">
-                                    {{ report }}
-                                </a>
-                            </td>
-                            <td class="col-8 {% status_class filtered_workflows.0.review_status %}">
-                                {{ filtered_workflows.0.get_review_status_display }}
-                            </td>
-                        </tr>
-                        {% endwith %}
-                        {% endfor %}
-                        {% endwith %}
-                    </table>
-                </td>
-                <td>{{ incident.get_incident_status_display }}</td>
-                <td>{{ incident.get_review_status_display }}</td>
-                <td style="white-space: nowrap;">
-                    <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
-                    <a href="{% url 'download_incident_pdf' incident.id %}">
-                        <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="pagination">
-        <span class="step-links">
-            {% if incidents_page.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ incidents_page.previous_page_number }}">previous</a>
-            {% endif %}
+                </ul>
+            </td>
+            <td>
+                <table class="table table-borderless table-sm m-0">
+                    {% with completed_workflows=incident.get_workflows_completed %}
+                    {% for report in incident.get_all_workflows %}
+                    {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
+                    <tr>
+                        <td class="col-4">
+                            <a class="{% if not filtered_workflows %}disabled-link{% endif %}"
+                                href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}{% endif %}">
+                                {{ report }}
+                            </a>
+                        </td>
+                        <td class="col-8 {% status_class filtered_workflows.0.review_status %}">
+                            {{ filtered_workflows.0.get_review_status_display }}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                </table>
+            </td>
+            <td>{{ incident.get_incident_status_display }}</td>
+            <td class="{% status_class incident.review_status %}">
+                {{ incident.get_review_status_display }}
+            </td>
+            <td style="white-space: nowrap;">
+                <a href="{% url 'regulator_incident_edit' incident.id %}" class="changelink">{{ _('Edit') }}</a>
+                <a href="{% url 'download_incident_pdf' incident.id %}">
+                    <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="pagination">
+    <span class="step-links">
+        {% if incidents_page.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ incidents_page.previous_page_number }}">previous</a>
+        {% endif %}
 
-            <span class="current">
-                Page {{ incidents_page.number }} of {{ incidents_page.paginator.num_pages }}
-            </span>
-
-            {% if incidents_page.has_next %}
-                <a href="?page={{ incidents_page.next_page_number }}">next</a>
-                <a href="?page={{ incidents_page.paginator.num_pages }}">last &raquo;</a>
-            {% endif %}
+        <span class="current">
+            Page {{ incidents_page.number }} of {{ incidents_page.paginator.num_pages }}
         </span>
-    </div>
-    {% else %}
-        <p>There are no incidents</p>
-    {% endif %}
 
+        {% if incidents_page.has_next %}
+        <a href="?page={{ incidents_page.next_page_number }}">next</a>
+        <a href="?page={{ incidents_page.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% else %}
+<p>{% translate "There are no incidents" %}</p>
+{% endif %}
 </div>
 
 <script type="text/javascript">
