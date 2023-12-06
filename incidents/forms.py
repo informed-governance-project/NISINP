@@ -438,10 +438,7 @@ def construct_regulation_array(regulators):
     )
 
     for regulation in regulations:
-        for regulator in regulators:
-            if regulator in regulation.regulators.all():
-                if [regulation.id, regulation.label] not in regulations_to_select:
-                    regulations_to_select.append([regulation.id, regulation.label])
+        regulations_to_select.append([regulation.id, regulation.label])
 
     return regulations_to_select
 
