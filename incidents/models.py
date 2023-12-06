@@ -305,8 +305,10 @@ class Incident(models.Model):
         return list(workflows)
 
     def get_workflows_completed(self):
-        workflows = self.incidentworkflow_set.all().order_by(
-            "workflow__sectorregulationworkflow__position", "-timestamp"
+        workflows = (
+            self.incidentworkflow_set.all()
+            .order_by("workflow__sectorregulationworkflow__position", "-timestamp")
+            .distinct()
         )
         return list(workflows)
 
