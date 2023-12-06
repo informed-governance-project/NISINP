@@ -107,7 +107,7 @@ def get_form_list(request, form_list=None):
     return FormWizardView.as_view(
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
-        condition_dict={"3": show_sector_form_condition},
+        condition_dict={"3": show_sector_form_condition, "4": show_dection_date_form_condition},
     )(request)
 
 
@@ -132,8 +132,8 @@ def create_workflow(request):
         messages.error(request, _("Missing data to create the incident report"))
         return redirect("incidents")
 
-    incident = Incident.objects.filter(pk=incident_id)
-    workflow = Workflow.objects.filter(id=workflow_id)
+    incident = Incident.objects.filter(pk=incident_id).first()
+    workflow = Workflow.objects.filter(id=workflow_id).first()
 
     if not workflow:
         messages.error(request, _("Workflow not found"))
@@ -143,9 +143,13 @@ def create_workflow(request):
         messages.error(request, _("Incident not found"))
         return redirect("incidents")
 
-    form_list = get_forms_list(incident=incident.first())
+    if not incident.is_fillable(workflow):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+
+    form_list = get_forms_list(incident=incident)
     request.incident = incident_id
-    request.workflow = workflow.first()
+    request.workflow = workflow
     request.incident_workflow = None
     return WorkflowWizardView.as_view(
         form_list,
@@ -159,6 +163,21 @@ def edit_workflow(request):
     workflow_id = request.GET.get("workflow_id", None)
     if not workflow_id and not incident_id:
         messages.warning(request, _("No incident report found"))
+        return redirect("incidents")
+
+    incident = Incident.objects.filter(pk=incident_id).first()
+    workflow = Workflow.objects.filter(id=workflow_id).first()
+
+    if not workflow:
+        messages.error(request, _("Workflow not found"))
+        return redirect("incidents")
+
+    if not incident:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
+
+    if not incident.is_fillable(workflow):
+        messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
     incident_workflow = IncidentWorkflow.objects.filter(
@@ -384,6 +403,44 @@ def show_sector_form_condition(wizard):
     return has_sector
 
 
+def show_dection_date_form_condition(wizard):
+    data1 = wizard.storage.get_step_data("1")
+    if data1 is not None:
+        data1 = get_temporary_cleaned_data(data1, "1-")
+    data2 = wizard.storage.get_step_data("2")
+    if data2 is not None:
+        data2 = get_temporary_cleaned_data(data2, "2-")
+    temp_regulator_form = RegulatorForm(
+        data=data1,
+    )
+    regulators = None
+    if data1 is not None and data1["regulators"] is not None:
+        regulators = Regulator.objects.all().filter(pk__in=data1.getlist("regulators"))
+    temp_regulation_form = RegulationForm(
+        data=data2, initial={"regulators": regulators}
+    )
+    data_regulation = data_regulator = None
+
+    if temp_regulation_form.is_valid() and temp_regulator_form.is_valid():
+        data_regulation = temp_regulation_form.cleaned_data
+        data_regulator = temp_regulator_form.cleaned_data
+
+    detection_date_needed = False
+    if data_regulator is not None and data_regulation is not None:
+        ids = data_regulation.get("regulations", "")
+        regulations = Regulation.objects.filter(id__in=ids)
+        ids = data_regulator.get("regulators", "")
+        regulators = Regulator.objects.filter(id__in=ids)
+        sector_regulations = SectorRegulation.objects.all().filter(
+            regulation__in=regulations, regulator__in=regulators
+        )
+
+        for sector_regulation in sector_regulations:
+            if sector_regulation.is_detection_date_needed:
+                detection_date_needed = True
+    return detection_date_needed
+
+
 class FormWizardView(SessionWizardView):
     """Wizard to manage the preliminary form."""
 
@@ -410,6 +467,7 @@ class FormWizardView(SessionWizardView):
             _("Regulators"),
             _("Regulations"),
             _("Sectors"),
+            _("Detection date"),
         ]
 
         return context
@@ -443,13 +501,20 @@ class FormWizardView(SessionWizardView):
         company = get_active_company_from_session(self.request)
 
         sectors_id = []
+        detection_date_data = None
         if len(data) > 3:
-            for sector_data in data[3]["sectors"]:
-                try:
-                    sector_id = int(sector_data)
-                    sectors_id.append(sector_id)
-                except Exception:
-                    pass
+            if data[3].get("sectors"):
+                for sector_data in data[3]["sectors"]:
+                    try:
+                        sector_id = int(sector_data)
+                        sectors_id.append(sector_id)
+                    except Exception:
+                        pass
+            if data[3].get("detection_date"):
+                detection_date_data = data[3]["detection_date"]
+        if len(data) > 4:
+            if data[4].get("detection_date"):
+                detection_date_data = data[4]["detection_date"]
 
         regulations_id = []
         for regulations_data in data[2]["regulations"]:
@@ -481,7 +546,7 @@ class FormWizardView(SessionWizardView):
         # add regulation without sector excluding the previous one
         sector_regulations2 = (
             SectorRegulation.objects.all()
-            .filter(regulator__in=regulators_id, regulation__in=regulations_id)
+            .filter(regulator__in=regulators_id, regulation__in=regulations_id, sectors__in=[])
             .exclude(id__in=temps_ids)
         )
 
@@ -506,6 +571,7 @@ class FormWizardView(SessionWizardView):
                 company=company,
                 company_name=company.name if company else data[0]["company_name"],
                 sector_regulation=sector_regulation,
+                incident_detection_date=detection_date_data
             )
             affected_sectors = Sector.objects.filter(id__in=sectors_id)
             incident.affected_sectors.set(affected_sectors)

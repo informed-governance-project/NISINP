@@ -2,7 +2,7 @@ from datetime import datetime
 from functools import partial
 from operator import is_not
 
-from bootstrap_datepicker_plus.widgets import DatePickerInput
+from bootstrap_datepicker_plus.widgets import DatePickerInput, DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -429,13 +429,16 @@ class RegulationForm(forms.Form):
 # prepare an array of regulations
 def construct_regulation_array(regulators):
     regulations_to_select = []
-    regulations = Regulation.objects.all()
+    regulations_id = SectorRegulation.objects.all().filter(
+        regulator__in=regulators
+    ).values_list('regulation', flat=True)
+
+    regulations = Regulation.objects.all().filter(
+        id__in=regulations_id
+    )
 
     for regulation in regulations:
-        for regulator in regulators:
-            if regulator in regulation.regulators.all():
-                if [regulation.id, regulation.label] not in regulations_to_select:
-                    regulations_to_select.append([regulation.id, regulation.label])
+        regulations_to_select.append([regulation.id, regulation.label])
 
     return regulations_to_select
 
@@ -456,6 +459,21 @@ class RegulatorForm(forms.Form):
 
     def get_selected_data(self):
         return self.fields["regulators"].initial
+
+
+# select the detection date
+class DetectionDateForm(forms.Form):
+    detection_date = forms.DateTimeField(
+        widget=DateTimePickerInput(
+            options={
+                "format": "YYYY-MM-DD HH:mm:ss",
+            },
+            attrs={
+                "data-bs-toggle": "tooltip",
+            },
+        ),
+        required=True,
+    )
 
 
 class SectorForm(forms.Form):
@@ -500,6 +518,7 @@ def get_forms_list(incident=None, workflow=None):
             RegulatorForm,
             RegulationForm,
             SectorForm,
+            DetectionDateForm,
         ]
     else:
         if workflow is None:

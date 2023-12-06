@@ -156,7 +156,7 @@ class SectorRegulationWorkflow(models.Model):
     position = models.IntegerField(blank=True, default=0, null=True)
     # the delay after the trigger event
     delay_in_hours_before_deadline = models.IntegerField(default=0)
-    trigger_event_before = models.CharField(
+    trigger_event_before_deadline = models.CharField(
         max_length=15,
         choices=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
         blank=False,
@@ -271,7 +271,7 @@ class Incident(models.Model):
         max_length=5,
         choices=INCIDENT_STATUS,
         blank=False,
-        default=INCIDENT_STATUS[0][0],
+        default=INCIDENT_STATUS[1][0],
     )
 
     def get_next_step(self):
@@ -319,6 +319,60 @@ class Incident(models.Model):
         ).distinct("workflow")
 
         return incident_workflows
+
+    # check if the previous workflow is filled and no next workflow filled
+    def is_fillable(self, workflow):
+        if self.incident_status != "CLOSE":
+            current = (
+                SectorRegulationWorkflow.objects.all()
+                .filter(
+                    sector_regulation=self.sector_regulation,
+                    workflow=workflow,
+                )
+                .first()
+            )
+            previous = (
+                SectorRegulationWorkflow.objects.all()
+                .filter(
+                    sector_regulation=self.sector_regulation,
+                    position__lt=current.position,
+                )
+                .order_by("-position")
+                .first()
+            )
+            # i am first
+            if previous is None:
+                # check if there are other record than me
+                existing_workflow = IncidentWorkflow.objects.all().filter(
+                    incident=self,
+                ).exclude(workflow=workflow).first()
+                if existing_workflow is None:
+                    return True
+            # i am not first
+            else:
+                previous_incident_workflow = IncidentWorkflow.objects.all().filter(
+                    incident=self,
+                    workflow=previous.workflow,
+                ).first()
+                if previous_incident_workflow is not None:
+                    next_workflows = (
+                        SectorRegulationWorkflow.objects.all()
+                        .filter(
+                            sector_regulation=self.sector_regulation,
+                            position__gt=current.position,
+                        )
+                        .order_by("-position")
+                        .values_list("workflow", flat=True)
+                    )
+                    next_incident_workflows = IncidentWorkflow.objects.all().filter(
+                        incident=self,
+                        workflow__in=next_workflows,
+                    ).first()
+                    # There are previous and no next sor we are good
+                    if next_incident_workflows is None:
+                        return True
+            return False
+        return False
 
 
 # link between incident and workflow
