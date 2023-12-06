@@ -50,18 +50,26 @@ from .pdf_generation import get_pdf_report
 @otp_required
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
+    user = request.user
     incidents = Incident.objects.order_by("-incident_notification_date")
 
-    if user_in_group(request.user, "RegulatorUser"):
-        # RegulatorUser has access to all incidents linked by sectors.
-        incidents = incidents.filter(affected_sectors__in=request.user.sectors.all())
-    elif user_in_group(request.user, "OperatorAdmin"):
+    if is_user_regulator(user):
+        # Filter indients by regulator
+        incidents = incidents.filter(
+            sector_regulation__regulator__in=user.regulators.all()
+        )
+        if user_in_group(user, "RegulatorUser"):
+            # RegulatorUser has access to all incidents linked by sectors.
+            incidents = incidents.filter(
+                affected_sectors__in=request.user.sectors.all()
+            )
+    elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
     # RegulatorAdmin can see all the incidents reported by operators.
-    elif not user_in_group(request.user, "RegulatorAdmin"):
-        # OperatorStaff and IncidentUser can see only their reports.
-        incidents = incidents.filter(contact_user=request.user)
+    else:
+        # OperatorUser and IncidentUser can see only their reports.
+        incidents = incidents.filter(contact_user=user)
 
     if request.GET.get("incidentId"):
         # Search by incident id
