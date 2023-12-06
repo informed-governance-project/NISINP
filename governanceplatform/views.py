@@ -18,7 +18,7 @@ def index(request):
 
     otp_required(lambda req: index(req))
 
-    if user_in_group(user, "PlatformAdmin") or user_in_group(user, "RegulatorAdmin"):
+    if user_in_group(user, "PlatformAdmin"):
         return redirect("admin:index")
 
     if not request.session.get("company_in_use") and user.companies.exists():
@@ -76,11 +76,7 @@ def registration_view(request, *args, **kwargs):
             raw_password = form.cleaned_data.get("password1")
             account = authenticate(email=email, password=raw_password)
             login(request, account)
-            destination = kwargs.get("next")
-            if destination:
-                return redirect(destination)
-            else:
-                pass
+            return redirect("index")
         else:
             context["form"] = form
 
