@@ -271,7 +271,7 @@ class Incident(models.Model):
         max_length=5,
         choices=INCIDENT_STATUS,
         blank=False,
-        default=INCIDENT_STATUS[0][0],
+        default=INCIDENT_STATUS[1][0],
     )
 
     def get_next_step(self):
