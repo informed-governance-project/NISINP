@@ -16,3 +16,9 @@ a.changelink {
     font-weight: bold;
     padding-right: 2px;
 }
+
+.disabled-link {
+    color: gray !important;
+    pointer-events: none;
+    cursor: default;
+}
