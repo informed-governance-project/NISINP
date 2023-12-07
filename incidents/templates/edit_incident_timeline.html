@@ -15,7 +15,8 @@
 
             {% csrf_token %}
 
-            {% bootstrap_form form %}
+            {% bootstrap_form form%}
+            {{ form.media }}
 
             <div class="form-group py-4">
                 <div class="d-flex flex-row justify-content-center">
