@@ -578,3 +578,19 @@ def construct_impact_array(incident):
     for impact in impacts:
         impacts_array.append([impact.id, impact.label])
     return impacts_array
+
+
+# let the user change the date of his incident
+class IncidenteDateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = self.instance.id
+
+    class Meta:
+        model = Incident
+        fields = [
+            "id",
+            "incident_notification_date",
+            "incident_detection_date",
+            "incident_starting_date",
+        ]

@@ -31,6 +31,7 @@ from .forms import (
     RegulationForm,
     RegulatorForm,
     RegulatorIncidentEditForm,
+    IncidenteDateForm,
     get_forms_list,
 )
 from .models import (
@@ -284,6 +285,70 @@ def get_regulator_incident_edit_form(request, incident_id: int):
         "regulator/incident_edit.html",
         context={
             "regulator_incident_form": regulator_incident_form,
+            "incident": incident,
+        },
+    )
+
+
+@login_required
+@otp_required
+def get_edit_incident_timeline_form(request, incident_id: int):
+    # RegulatorUser can access only incidents from accessible sectors.
+    if (
+        user_in_group(request.user, "RegulatorUser")
+        and not Incident.objects.filter(
+            pk=incident_id, affected_sectors__in=request.user.sectors.all()
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+    # OperatorAdmin can access only incidents related to selected company.
+    elif (
+        user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(
+            pk=incident_id, company__id=request.session.get("company_in_use")
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+    # OperatorStaff and IncidentUser can access only their reports.
+    elif (
+        not is_user_regulator(request.user)
+        and not user_in_group(request.user, "OperatorAdmin")
+        and not Incident.objects.filter(
+            pk=incident_id, contact_user=request.user
+        ).exists()
+    ):
+        return HttpResponseRedirect("/incidents")
+
+    incident = Incident.objects.get(pk=incident_id)
+
+    incident_date_form = IncidenteDateForm(
+        instance=incident, data=request.POST if request.method == "POST" else None
+    )
+    if request.method == "POST":
+        if incident_date_form.is_valid():
+            incident_date_form.save()
+            messages.success(
+                request,
+                f"Incident {incident.incident_id} has been successfully saved.",
+            )
+            response = HttpResponseRedirect(
+                request.session.get("return_page", "/incidents")
+            )
+            try:
+                del request.session["return_page"]
+            except KeyError:
+                pass
+
+            return response
+
+    if not request.session.get("return_page"):
+        request.session["return_page"] = request.headers.get("referer", "/incidents")
+
+    return render(
+        request,
+        "edit_incident_timeline.html",
+        context={
+            "form": incident_date_form,
             "incident": incident,
         },
     )
