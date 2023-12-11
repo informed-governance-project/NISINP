@@ -441,7 +441,7 @@ def show_sector_form_condition(wizard):
         data=data1,
     )
     regulators = None
-    if data1 is not None and data1["regulators"] is not None:
+    if data1 is not None and data1.get("regulators") is not None:
         regulators = Regulator.objects.all().filter(pk__in=data1.getlist("regulators"))
     temp_regulation_form = RegulationForm(
         data=data2, initial={"regulators": regulators}
@@ -479,7 +479,7 @@ def show_dection_date_form_condition(wizard):
         data=data1,
     )
     regulators = None
-    if data1 is not None and data1["regulators"] is not None:
+    if data1 is not None and data1.get("regulators") is not None:
         regulators = Regulator.objects.all().filter(pk__in=data1.getlist("regulators"))
     temp_regulation_form = RegulationForm(
         data=data2, initial={"regulators": regulators}
@@ -536,6 +536,19 @@ class FormWizardView(SessionWizardView):
         ]
 
         return context
+
+    def render_goto_step(self, goto_step, **kwargs):
+
+        form1 = self.get_form(self.steps.current, data=self.request.POST, files=self.request.FILES)
+
+        self.storage.set_step_data(self.steps.current, self.process_step(form1))
+        self.storage.set_step_files(self.steps.current, self.process_step_files(form1))
+
+        self.storage.current_step = goto_step
+        form = self.get_form(
+            data=self.storage.get_step_data(self.steps.current),
+            files=self.storage.get_step_files(self.steps.current))
+        return self.render(form, **kwargs)
 
     def get_form_initial(self, step):
         if step == "2":
