@@ -2,43 +2,25 @@
     <h1>Incident notification report</h1>
     <ul>
         <li>
-            <span class="bold">{{ _('Incident notification datetime') }}</span>
-            : {{ incident.preliminary_notification_date|date:'Y-m-d' }}
-        </li>
-        <li>
-            <span class="bold">{{ _('Final notification datetime') }}</span>
-            : {{ incident.final_notification_date|date:'Y-m-d' }}
+            <span class="bold">{{ _('Company name') }}</span>
+            : {{ incident.company_name }}
         </li>
         <li>
             <span class="bold">{{ _('Incident reference') }}</span>
-            : {{ incident.incident_reference }}
+            : {{ incident.incident_id }}
         </li>
         <li>
-            <span class="bold">{{ _('Complaint reference') }}</span>
-            : {{ incident.complaint_reference }}
+            <span class="bold">{{ _('Incident notification datetime') }}</span>
+            : {{ incident.incident_notification_date|date:'Y-m-d' }}
         </li>
         <li>
             <span class="bold">{{ _('Is impact significant') }}</span>
             : {% if incident.is_significative_impact %}{{ _('yes') }}{% else %}{{ _('no') }}{% endif %}
         </li>
         <li>
-            <span class="bold">{{ _('Company name') }}</span>
-            : {{ incident.company_name }}
+            <span class="bold">{{ _('Complaint reference') }}</span>
+            : {{ incident.complaint_reference }}
         </li>
-
-        <li><span class="bold">{{ _('Person in charge') }}</span></li>
-        <li>{{ _('Title') }}: {{ incident.contact_title }}</li>
-        <li>{{ _('Firstname') }}: {{ incident.contact_firstname }}</li>
-        <li>{{ _('Lastname') }}: {{ incident.contact_lastname }}</li>
-        <li>{{ _('Email') }}: {{ incident.contact_email }}</li>
-        <li>{{ _('Phone number') }}: {{ incident.contact_telephone }}</li>
-
-        <li><span class="bold">{{ _('Technical contact') }}</span></li>
-        <li>{{ _('Title') }}: {{ incident.technical_title }}</li>
-        <li>{{ _('Firstname') }}: {{ incident.technical_firstname }}</li>
-        <li>{{ _('Lastname') }}: {{ incident.technical_lastname }}</li>
-        <li>{{ _('Email') }}: {{ incident.technical_email }}</li>
-        <li>{{ _('Phone number') }}: {{ incident.technical_telephone }}</li>
     </ul>
 </div>
 

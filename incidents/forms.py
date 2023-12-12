@@ -472,7 +472,7 @@ class DetectionDateForm(forms.Form):
                 "data-bs-toggle": "tooltip",
             },
         ),
-        required=True,
+        required=False,
     )
 
 
