@@ -310,7 +310,7 @@ class Incident(models.Model):
             .order_by("workflow__sectorregulationworkflow__position", "-timestamp")
             .distinct()
         )
-        return list(workflows)
+        return workflows
 
     # TO DO : check if it returns always the correct values
     def get_latest_incident_workflows(self):
@@ -343,17 +343,26 @@ class Incident(models.Model):
             # i am first
             if previous is None:
                 # check if there are other record than me
-                existing_workflow = IncidentWorkflow.objects.all().filter(
-                    incident=self,
-                ).exclude(workflow=workflow).first()
+                existing_workflow = (
+                    IncidentWorkflow.objects.all()
+                    .filter(
+                        incident=self,
+                    )
+                    .exclude(workflow=workflow)
+                    .first()
+                )
                 if existing_workflow is None:
                     return True
             # i am not first
             else:
-                previous_incident_workflow = IncidentWorkflow.objects.all().filter(
-                    incident=self,
-                    workflow=previous.workflow,
-                ).first()
+                previous_incident_workflow = (
+                    IncidentWorkflow.objects.all()
+                    .filter(
+                        incident=self,
+                        workflow=previous.workflow,
+                    )
+                    .first()
+                )
                 if previous_incident_workflow is not None:
                     next_workflows = (
                         SectorRegulationWorkflow.objects.all()
@@ -364,10 +373,14 @@ class Incident(models.Model):
                         .order_by("-position")
                         .values_list("workflow", flat=True)
                     )
-                    next_incident_workflows = IncidentWorkflow.objects.all().filter(
-                        incident=self,
-                        workflow__in=next_workflows,
-                    ).first()
+                    next_incident_workflows = (
+                        IncidentWorkflow.objects.all()
+                        .filter(
+                            incident=self,
+                            workflow__in=next_workflows,
+                        )
+                        .first()
+                    )
                     # There are previous and no next sor we are good
                     if next_incident_workflows is None:
                         return True
