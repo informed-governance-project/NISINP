@@ -64,8 +64,8 @@
                                 {{ report }}
                             </a>
                         </td>
-                        <td class="col-7 {% status_class filtered_workflows.0.review_status %}">
-                            {{ filtered_workflows.0.get_review_status_display }}
+                        <td class="col-7 {% status_class filtered_workflows.review_status %}">
+                            {{ filtered_workflows.get_review_status_display }}
                         </td>
                     </tr>
                     {% endwith %}
