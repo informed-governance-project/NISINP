@@ -14,7 +14,7 @@ from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Service
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Incident, Question, SectorRegulation
+from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -429,13 +429,13 @@ class RegulationForm(forms.Form):
 # prepare an array of regulations
 def construct_regulation_array(regulators):
     regulations_to_select = []
-    regulations_id = SectorRegulation.objects.all().filter(
-        regulator__in=regulators
-    ).values_list('regulation', flat=True)
-
-    regulations = Regulation.objects.all().filter(
-        id__in=regulations_id
+    regulations_id = (
+        SectorRegulation.objects.all()
+        .filter(regulator__in=regulators)
+        .values_list("regulation", flat=True)
     )
+
+    regulations = Regulation.objects.all().filter(id__in=regulations_id)
 
     for regulation in regulations:
         regulations_to_select.append([regulation.id, regulation.label])
@@ -578,3 +578,56 @@ def construct_impact_array(incident):
     for impact in impacts:
         impacts_array.append([impact.id, impact.label])
     return impacts_array
+
+
+class IncidentWorkflowForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["review_status"].required = False
+        self.fields["review_status"].widget.attrs = {
+            "class": "border-0 bg-transparent",
+            "onchange": "onChangeWorkflowStatus(this, {}, {})".format(
+                self.instance.incident_id, self.instance.id
+            ),
+        }
+
+    class Meta:
+        model = IncidentWorkflow
+        fields = ["review_status"]
+
+
+class IncidentStatusForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance_id = (self.instance.pk,)
+
+        self.fields["incident_id"].required = False
+        self.fields["incident_id"].help_text = "Max. 22 characters"
+        self.fields["review_status"].required = False
+        self.fields["incident_status"].required = False
+        self.fields["is_significative_impact"].required = False
+
+        self.fields["incident_id"].widget.attrs = {
+            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+        }
+        self.fields["incident_status"].widget.attrs = {
+            "class": "border-0 bg-transparent",
+            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+        }
+        self.fields["review_status"].widget.attrs = {
+            "class": "border-0 bg-transparent",
+            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+        }
+
+        self.fields["is_significative_impact"].widget.attrs = {
+            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+        }
+
+    class Meta:
+        model = Incident
+        fields = [
+            "incident_id",
+            "review_status",
+            "incident_status",
+            "is_significative_impact",
+        ]
