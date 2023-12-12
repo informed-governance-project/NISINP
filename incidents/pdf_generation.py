@@ -9,35 +9,34 @@ from .models import Answer, Incident
 
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
-    regulations = []
-    services: Dict[str, List[str]] = {}
-    for regulation in incident.regulations.all():
-        regulations.append(regulation.label)
-    for service in incident.affected_services.all():
-        if service.sector.name not in services:
-            services[service.sector.name] = []
-        services[service.sector.name].append(service.name)
+    sectors: Dict[str, List[str]] = {}
 
-    preliminary_questions_answers: Dict[str, str, List[str]] = {}
+    for sector in incident.affected_sectors.all():
+        if sector.name not in sectors:
+            sectors[sector.name] = []
+        sectors[sector.name].append(sector.name)
+
     final_questions_answers: Dict[str, str, List[str]] = {}
-    for answer in incident.answer_set.all():
-        populate_questions_answers(
-            answer,
-            final_questions_answers,
-            # preliminary_questions_answers
-            # if answer.question.is_preliminary
-            # else final_questions_answers,
+    for incident_workflow in incident.workflows.all():
+        answers = Answer.objects.all().filter(
+            incident_workflow=incident_workflow
         )
+        for answer in answers.all():
+            populate_questions_answers(
+                answer,
+                final_questions_answers,
+            )
+            print('answers')
+    print(final_questions_answers)
 
     # Render the HTML file
     output_from_parsed_template = render_to_string(
         "report/template.html",
         {
             "incident": incident,
-            "preliminary_questions_answers": preliminary_questions_answers,
             "final_questions_answers": final_questions_answers,
-            "regulations": regulations,
-            "services": services,
+            "regulation": incident.sector_regulation.regulation,
+            "services": sectors,
         },
         request=request,
     )
