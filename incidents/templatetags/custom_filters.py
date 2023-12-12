@@ -40,11 +40,18 @@ def status_class(value):
 
 @register.filter
 def filter_workflows(incidentWorkflows, report_id):
-    return [
-        incidentworkflow
-        for incidentworkflow in incidentWorkflows
-        if incidentworkflow.workflow.pk == report_id
-    ]
+    for incidentworkflow in incidentWorkflows:
+        if incidentworkflow.workflow.pk == report_id:
+            return incidentworkflow
+    return None
+
+
+@register.filter
+def filter_workflows_forms(incidentWorkflows_forms, report_id):
+    for incidentworkflow in incidentWorkflows_forms:
+        if incidentworkflow.instance.workflow.pk == report_id:
+            return incidentworkflow
+    return None
 
 
 @register.simple_tag
