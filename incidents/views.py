@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
@@ -27,10 +27,11 @@ from .email import send_email
 from .forms import (
     ContactForm,
     ImpactForm,
+    IncidentStatusForm,
+    IncidentWorkflowForm,
     QuestionForm,
     RegulationForm,
     RegulatorForm,
-    RegulatorIncidentEditForm,
     get_forms_list,
 )
 from .models import (
@@ -62,6 +63,15 @@ def get_incidents(request):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
                 affected_sectors__in=request.user.sectors.all()
+            )
+        for incident in incidents:
+            incident.formsWorkflow = []
+            for workflow_completed in incident.get_workflows_completed():
+                incident.formsWorkflow.append(
+                    IncidentWorkflowForm(instance=workflow_completed)
+                )
+            incident.formsStatus = IncidentStatusForm(
+                instance=incident,
             )
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
@@ -107,7 +117,10 @@ def get_form_list(request, form_list=None):
     return FormWizardView.as_view(
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
-        condition_dict={"3": show_sector_form_condition, "4": show_dection_date_form_condition},
+        condition_dict={
+            "3": show_sector_form_condition,
+            "4": show_dection_date_form_condition,
+        },
     )(request)
 
 
@@ -254,39 +267,52 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     ):
         return HttpResponseRedirect("/incidents")
 
+    workflow_id = request.GET.get("workflow_id", None)
     incident = Incident.objects.get(pk=incident_id)
+    if workflow_id and IncidentWorkflow.objects.filter(pk=workflow_id).exists():
+        workflow = IncidentWorkflow.objects.get(pk=workflow_id)
+        workflow_form = IncidentWorkflowForm(
+            instance=workflow,
+            data=request.POST if request.method == "POST" else None,
+        )
+        if request.method == "POST":
+            if workflow_form.is_valid():
+                response = {"id": workflow.pk}
+                for field_name, field_value in workflow_form.cleaned_data.items():
+                    if field_value:
+                        response[field_name] = field_value
+                        setattr(workflow, field_name, field_value)
+                    else:
+                        response[field_name] = workflow_form.initial[field_name]
+                        setattr(
+                            workflow,
+                            field_name,
+                            workflow_form.initial[field_name],
+                        )
+                workflow.save()
 
-    regulator_incident_form = RegulatorIncidentEditForm(
+            return JsonResponse(response)
+
+    incident_form = IncidentStatusForm(
         instance=incident, data=request.POST if request.method == "POST" else None
     )
     if request.method == "POST":
-        if regulator_incident_form.is_valid():
-            regulator_incident_form.save()
-            messages.success(
-                request,
-                f"Incident {incident.incident_id} has been successfully saved.",
-            )
-            response = HttpResponseRedirect(
-                request.session.get("return_page", "/incidents")
-            )
-            try:
-                del request.session["return_page"]
-            except KeyError:
-                pass
+        if incident_form.is_valid():
+            response = {"id": incident.pk}
+            for field_name, field_value in incident_form.cleaned_data.items():
+                if field_value:
+                    response[field_name] = field_value
+                    setattr(incident, field_name, field_value)
+                else:
+                    response[field_name] = incident_form.initial[field_name]
+                    setattr(
+                        incident,
+                        field_name,
+                        incident_form.initial[field_name],
+                    )
+            incident.save()
 
-            return response
-
-    if not request.session.get("return_page"):
-        request.session["return_page"] = request.headers.get("referer", "/incidents")
-
-    return render(
-        request,
-        "regulator/incident_edit.html",
-        context={
-            "regulator_incident_form": regulator_incident_form,
-            "incident": incident,
-        },
-    )
+    return JsonResponse(response)
 
 
 @login_required
@@ -546,7 +572,11 @@ class FormWizardView(SessionWizardView):
         # add regulation without sector excluding the previous one
         sector_regulations2 = (
             SectorRegulation.objects.all()
-            .filter(regulator__in=regulators_id, regulation__in=regulations_id, sectors__in=[])
+            .filter(
+                regulator__in=regulators_id,
+                regulation__in=regulations_id,
+                sectors__in=[],
+            )
             .exclude(id__in=temps_ids)
         )
 
@@ -571,7 +601,7 @@ class FormWizardView(SessionWizardView):
                 company=company,
                 company_name=company.name if company else data[0]["company_name"],
                 sector_regulation=sector_regulation,
-                incident_detection_date=detection_date_data
+                incident_detection_date=detection_date_data,
             )
             affected_sectors = Sector.objects.filter(id__in=sectors_id)
             incident.affected_sectors.set(affected_sectors)
