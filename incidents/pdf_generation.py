@@ -9,35 +9,36 @@ from .models import Answer, Incident
 
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
-    regulations = []
-    services: Dict[str, List[str]] = {}
-    for regulation in incident.regulations.all():
-        regulations.append(regulation.label)
-    for service in incident.affected_services.all():
-        if service.sector.name not in services:
-            services[service.sector.name] = []
-        services[service.sector.name].append(service.name)
+    sectors: Dict[str, List[str]] = {}
 
-    preliminary_questions_answers: Dict[str, str, List[str]] = {}
-    final_questions_answers: Dict[str, str, List[str]] = {}
-    for answer in incident.answer_set.all():
-        populate_questions_answers(
-            answer,
-            final_questions_answers,
-            # preliminary_questions_answers
-            # if answer.question.is_preliminary
-            # else final_questions_answers,
+    # TO DO : recreate the trees for sectors
+    for sector in incident.affected_sectors.all():
+        if sector.name not in sectors:
+            sectors[sector.name] = []
+        sectors[sector.name].append(sector.name)
+
+    incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
+    for incident_workflow in incident.get_latest_incident_workflows():
+        if incident_workflow.workflow.name not in incident_workflows_answer:
+            incident_workflows_answer[incident_workflow.workflow.name] = dict()
+
+        answers = Answer.objects.all().filter(
+            incident_workflow=incident_workflow
         )
+        for answer in answers.all():
+            populate_questions_answers(
+                answer,
+                incident_workflows_answer[incident_workflow.workflow.name],
+            )
 
     # Render the HTML file
     output_from_parsed_template = render_to_string(
         "report/template.html",
         {
             "incident": incident,
-            "preliminary_questions_answers": preliminary_questions_answers,
-            "final_questions_answers": final_questions_answers,
-            "regulations": regulations,
-            "services": services,
+            "incident_workflows_answer": incident_workflows_answer,
+            "regulation": incident.sector_regulation.regulation,
+            "sectors": sectors,
         },
         request=request,
     )

@@ -472,7 +472,7 @@ class DetectionDateForm(forms.Form):
                 "data-bs-toggle": "tooltip",
             },
         ),
-        required=True,
+        required=False,
     )
 
 
@@ -578,6 +578,66 @@ def construct_impact_array(incident):
     for impact in impacts:
         impacts_array.append([impact.id, impact.label])
     return impacts_array
+
+
+# let the user change the date of his incident
+class IncidenteDateForm(forms.ModelForm):
+    incident = None
+
+    incident_notification_date = forms.DateTimeField(
+        widget=DateTimePickerInput(
+            options={
+                "format": "YYYY-MM-DD HH:mm:ss",
+            },
+            attrs={
+                "data-bs-toggle": "tooltip",
+            },
+        ),
+        required=False,
+    )
+
+    incident_detection_date = forms.DateTimeField(
+        widget=DateTimePickerInput(
+            options={
+                "format": "YYYY-MM-DD HH:mm:ss",
+            },
+            attrs={
+                "data-bs-toggle": "tooltip",
+            },
+        ),
+        required=False,
+    )
+
+    incident_starting_date = forms.DateTimeField(
+        widget=DateTimePickerInput(
+            options={
+                "format": "YYYY-MM-DD HH:mm:ss",
+            },
+            attrs={
+                "data-bs-toggle": "tooltip",
+            },
+        ),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = self.instance.id
+        self.incident = Incident.objects.get(id=self.id)
+        self.fields["incident_notification_date"].disabled = True
+        if self.incident is not None:
+            self.fields[
+                "incident_detection_date"
+            ].disabled = self.incident.sector_regulation.is_detection_date_needed
+
+    class Meta:
+        model = Incident
+        fields = [
+            "id",
+            "incident_notification_date",
+            "incident_detection_date",
+            "incident_starting_date",
+        ]
 
 
 class IncidentWorkflowForm(forms.ModelForm):

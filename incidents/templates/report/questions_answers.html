@@ -1,6 +1,6 @@
-<h2 id="preliminary_questions">{{ _('Preliminary questions answers') }}</h2>
+<h2 id="incident_report_answers">{{ _('Incident report answers') }}</h2>
 <div>
-    <span class="bold">{{ _('Regulation') }}</span>
+    <span class="bold">{{ _('Regulation') }} : </span> {{ regulation.label }}
     <ul>
         {% for regulation_label in regulations %}
             <li>{{ regulation_label }}</li>
@@ -8,7 +8,7 @@
     </ul>
 </div>
 <div>
-    <span class="bold">{{ _('Affected services') }}</span>
+    <span class="bold">{{ _('Affected sectors') }}</span>
     <ul>
         {% for sector_name, services in services.items %}
             <li><span class="bold">{{ sector_name }}</span>
@@ -21,37 +21,24 @@
         {% endfor %}
     </ul>
 </div>
-{% for category_label, questions_answers in preliminary_questions_answers.items %}
-<div>
-    <span class="bold">{{ category_label }}</span>
-    <ul>
-        {% for question_label, answers in questions_answers.items %}
-            <li><span class="bold">{{ question_label }}</span>
-                <ul>
-                    {% for answer_label in answers %}
-                        <li>{{ answer_label }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
+
+{% for incident_workflow_label, category_questions_answers in incident_workflows_answer.items %}
+<span class="bold">{{ incident_workflow_label }}</span>
+    {% for category_label, questions_answers in category_questions_answers.items %}
+    <div>
+        <span class="bold">{{ category_label }}</span>
+        <ul>
+            {% for question_label, answers in questions_answers.items %}
+                <li><span class="bold">{{ question_label }}</span>
+                    <ul>
+                        {% for answer_label in answers %}
+                            <li>{{ answer_label }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
 {% endfor %}
 
-<h2 id="final_questions">{{ _('Final questions answers') }}</h2>
-{% for category_label, questions_answers in final_questions_answers.items %}
-<div>
-    <span class="bold">{{ category_label }}</span>
-    <ul>
-        {% for question_label, answers in questions_answers.items %}
-            <li><span class="bold">{{ question_label }}</span>
-                <ul>
-                    {% for answer_label in answers %}
-                        <li>{{ answer_label }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endfor %}

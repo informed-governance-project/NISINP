@@ -22,13 +22,11 @@
           {% bootstrap_button name="wizard_goto_step" button_type="submit" value=step content=step_name %}
           {% endif %}
           {% endwith %}
-        </form>
       </li>
       {% endfor %}
     </ul>
   </div>
   <div class="card-body">
-    <form action="" method="post">
       {% csrf_token %}
       {{ wizard.management_form }}
       {% if wizard.form.forms %}

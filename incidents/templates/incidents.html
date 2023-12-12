@@ -83,6 +83,8 @@
                     {% translate "See or edit impacts" %}
                 </a>
                 {% endif %}
+                <br/>
+                <a href="{% url 'edit_incident_timeline' incident.id %}" class="changelink">{{ _('Edit timeline') }}</a>
             </td>
         </tr>
         {% endfor %}
