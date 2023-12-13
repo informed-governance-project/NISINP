@@ -796,18 +796,20 @@ class WorkflowWizardView(SessionWizardView):
         return self.render(form, **kwargs)
 
     def done(self, form_list, **kwargs):
-        data = [form.cleaned_data for form in form_list]
-        if self.incident is None:
-            self.incident = Incident.objects.get(pk=self.request.incident)
+        user = self.request.user
+        if not is_user_regulator(user):
+            data = [form.cleaned_data for form in form_list]
+            if self.incident is None:
+                self.incident = Incident.objects.get(pk=self.request.incident)
 
-        # TO DO : send the email
-        email = None
+            # TO DO : send the email
+            email = None
 
-        self.incident.save()
-        # manage question
-        save_answers(0, data, self.incident, self.workflow)
-        if email is not None:
-            send_email(email, self.incident)
+            self.incident.save()
+            # manage question
+            save_answers(0, data, self.incident, self.workflow)
+            if email is not None:
+                send_email(email, self.incident)
         return HttpResponseRedirect("/incidents")
 
 
