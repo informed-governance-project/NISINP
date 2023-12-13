@@ -84,6 +84,9 @@
                 </a>
                 {% endif %}
                 <br/>
+                <a href="{% url 'download_incident_pdf' incident.id %}">
+                    <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
+                </a>
                 <a href="{% url 'edit_incident_timeline' incident.id %}" class="changelink">{{ _('Edit timeline') }}</a>
             </td>
         </tr>
