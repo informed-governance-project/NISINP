@@ -15,6 +15,7 @@ from governanceplatform.models import Regulation, Regulator, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
+from governanceplatform.models import Sector
 
 
 # TO DO: change the templates to custom one
@@ -479,7 +480,7 @@ class DetectionDateForm(forms.Form):
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=OtherCheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -495,19 +496,45 @@ class SectorForm(forms.Form):
             self.fields["sectors"].required = False
 
 
-# prepare an array of sectors
+# OLD VERSION
+# # prepare an array of sectors
+# def construct_sectors_array(regulations, regulators):
+#     sectors_to_select = []
+#     sector_regulations = SectorRegulation.objects.all().filter(
+#         regulation__in=regulations, regulator__in=regulators
+#     )
+
+#     for sector_regulation in sector_regulations:
+#         for sector in sector_regulation.sectors.all():
+#             if [sector.id, sector.name] not in sectors_to_select:
+#                 sectors_to_select.append([sector.id, sector.name])
+
+#     return sectors_to_select
+
+
 def construct_sectors_array(regulations, regulators):
-    sectors_to_select = []
-    sector_regulations = SectorRegulation.objects.all().filter(
-        regulation__in=regulations, regulator__in=regulators
+
+    parent_sectors = Sector.objects.all().filter(
+        parent=None
     )
+    all_sectors = Sector.objects.all()
+    categs = dict()
 
-    for sector_regulation in sector_regulations:
-        for sector in sector_regulation.sectors.all():
-            if [sector.id, sector.name] not in sectors_to_select:
-                sectors_to_select.append([sector.id, sector.name])
+    print(parent_sectors)
+    for sector in all_sectors:
+        if sector.parent is not None:
+            if not categs.get(sector.parent.name):
+                categs[sector.parent.name] = [[sector.id, sector]]
+            else:
+                categs[sector.parent.name].append([sector.id, sector])
+        else:
+            if not categs.get(sector.name):
+                categs[sector.name] = []
+    final_categs = []
+    for sector, list_of_options in categs.items():
+        final_categs.append([sector, list_of_options])
 
-    return sectors_to_select
+    return final_categs
 
 
 def get_forms_list(incident=None, workflow=None):
