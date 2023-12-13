@@ -174,6 +174,7 @@ def create_workflow(request):
 def edit_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
+    user = request.user
     if not workflow_id and not incident_id:
         messages.warning(request, _("No incident report found"))
         return redirect("incidents")
@@ -189,9 +190,10 @@ def edit_workflow(request):
         messages.error(request, _("Incident not found"))
         return redirect("incidents")
 
-    if not incident.is_fillable(workflow):
-        messages.error(request, _("Forbidden"))
-        return redirect("incidents")
+    if not is_user_regulator(user):
+        if not incident.is_fillable(workflow):
+            messages.error(request, _("Forbidden"))
+            return redirect("incidents")
 
     incident_workflow = IncidentWorkflow.objects.filter(
         incident=incident_id, workflow=workflow_id
