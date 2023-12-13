@@ -81,3 +81,9 @@ function getReviewStatusClass(reviewStatus) {
             return "";
     }
 }
+
+
+$(document).ready(function () {
+    new DataTable('#incidents-table', {
+    });
+});
