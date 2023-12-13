@@ -40,14 +40,18 @@
             <td>
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
-                    {{ sector.name }}
-                    {% endfor %}
+                        {% if sector.parent is None %}
+                            {{ sector.name }}
+                        {% else %}
+                            {{ sector.parent }}
+                        {% endif %}
                 </ul>
             </td>
             <td>
                 <ul class="m-0 p-0">
-                    {% for sector in incident.affected_sectors.all %}
-                    {{ sector.name }}
+                        {% if sector.parent is not None %}
+                            {{ sector.name }}
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </td>
