@@ -11,11 +11,10 @@ from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
 from governanceplatform.helpers import get_active_company_from_session
-from governanceplatform.models import Regulation, Regulator, Service
+from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
-from governanceplatform.models import Sector
 
 
 # TO DO: change the templates to custom one
@@ -513,10 +512,7 @@ class SectorForm(forms.Form):
 
 
 def construct_sectors_array(regulations, regulators):
-
-    parent_sectors = Sector.objects.all().filter(
-        parent=None
-    )
+    parent_sectors = Sector.objects.all().filter(parent=None)
     all_sectors = Sector.objects.all()
     categs = dict()
 
@@ -672,10 +668,8 @@ class IncidentWorkflowForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["review_status"].required = False
         self.fields["review_status"].widget.attrs = {
-            "class": "border-0 bg-transparent",
-            "onchange": "onChangeWorkflowStatus(this, {}, {})".format(
-                self.instance.incident_id, self.instance.id
-            ),
+            "class": "border-0 bg-transparent form-select-sm py-0 select-break-spaces",
+            "onchange": f"onChangeWorkflowStatus(this, {self.instance.incident_id}, {self.instance.pk})",
         }
 
     class Meta:
@@ -686,28 +680,28 @@ class IncidentWorkflowForm(forms.ModelForm):
 class IncidentStatusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.instance_id = (self.instance.pk,)
 
-        self.fields["incident_id"].required = False
-        self.fields["incident_id"].help_text = "Max. 22 characters"
-        self.fields["review_status"].required = False
-        self.fields["incident_status"].required = False
-        self.fields["is_significative_impact"].required = False
+        onchange_funtion = f"onChangeIncident(this, {self.instance.pk})"
+        classes_select_widget = (
+            "border-0 bg-transparent form-select-sm py-0 select-break-spaces"
+        )
 
         self.fields["incident_id"].widget.attrs = {
-            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+            "class": "form-control-sm",
+            "onchange": onchange_funtion,
         }
         self.fields["incident_status"].widget.attrs = {
-            "class": "border-0 bg-transparent",
-            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+            "class": classes_select_widget,
+            "onchange": onchange_funtion,
         }
         self.fields["review_status"].widget.attrs = {
-            "class": "border-0 bg-transparent",
-            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+            "class": classes_select_widget,
+            "onchange": onchange_funtion,
         }
 
         self.fields["is_significative_impact"].widget.attrs = {
-            "onchange": "onChangeIncident(this, %s)" % self.instance.pk,
+            "class": "large-checkbox",
+            "onchange": onchange_funtion,
         }
 
     class Meta:
@@ -718,3 +712,10 @@ class IncidentStatusForm(forms.ModelForm):
             "incident_status",
             "is_significative_impact",
         ]
+
+        required = {
+            "incident_id": False,
+            "review_status": False,
+            "incident_status": False,
+            "is_significative_impact": False,
+        }
