@@ -70,7 +70,8 @@ def is_workflow_disabled(allWorkflows, incidentWorkflows, report):
         return True
 
     if (
-        current_index == len(allWorkflows) - 1
+        len(allWorkflows) > 1
+        and current_index == len(allWorkflows) - 1
         and allWorkflows[current_index - 1] not in workflow_list
     ):
         return True
