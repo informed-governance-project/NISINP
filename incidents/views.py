@@ -41,7 +41,6 @@ from .models import (
     IncidentWorkflow,
     PredefinedAnswer,
     Question,
-    QuestionCategory,
     SectorRegulation,
     Workflow,
 )
@@ -768,15 +767,31 @@ class WorkflowWizardView(SessionWizardView):
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
 
-        # TO DO : put the correct categories
-        categories = QuestionCategory.objects.all().order_by("position").distinct()
-
-        context["steps"] = []
-
-        for categorie in categories:
-            context["steps"].append(categorie.label)
+        if self.workflow is not None:
+            questions = self.workflow.questions
+            categories = []
+            for question in questions.all():
+                categories.append(question.category)
+            # sort the list
+            categories.sort(key=lambda c: c.position)
+            context["steps"] = categories
 
         return context
+
+    def render_goto_step(self, goto_step, **kwargs):
+        form1 = self.get_form(
+            self.steps.current, data=self.request.POST, files=self.request.FILES
+        )
+
+        self.storage.set_step_data(self.steps.current, self.process_step(form1))
+        self.storage.set_step_files(self.steps.current, self.process_step_files(form1))
+
+        self.storage.current_step = goto_step
+        form = self.get_form(
+            data=self.storage.get_step_data(self.steps.current),
+            files=self.storage.get_step_files(self.steps.current),
+        )
+        return self.render(form, **kwargs)
 
     def done(self, form_list, **kwargs):
         data = [form.cleaned_data for form in form_list]
