@@ -464,15 +464,15 @@ class RegulatorForm(forms.Form):
 # select the detection date
 class DetectionDateForm(forms.Form):
     detection_date = forms.DateTimeField(
+        required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
+                "format": "yyyy-MM-DD HH:mm:ss",
             },
             attrs={
                 "data-bs-toggle": "tooltip",
             },
         ),
-        required=False,
     )
 
 
@@ -512,11 +512,9 @@ class SectorForm(forms.Form):
 
 
 def construct_sectors_array(regulations, regulators):
-    parent_sectors = Sector.objects.all().filter(parent=None)
     all_sectors = Sector.objects.all()
     categs = dict()
 
-    print(parent_sectors)
     for sector in all_sectors:
         if sector.parent is not None:
             if not categs.get(sector.parent.name):
