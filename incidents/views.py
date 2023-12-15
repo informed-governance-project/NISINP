@@ -750,6 +750,7 @@ class WorkflowWizardView(SessionWizardView):
                 data,
                 position=position,
                 incident_workflow=self.incident_workflow,
+                incident=self.incident,
             )
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
@@ -762,6 +763,7 @@ class WorkflowWizardView(SessionWizardView):
                 data,
                 position=position,
                 workflow=self.workflow,
+                incident=self.incident,
             )
 
         return form

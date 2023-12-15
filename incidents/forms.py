@@ -2,7 +2,7 @@ from datetime import datetime
 from functools import partial
 from operator import is_not
 
-from bootstrap_datepicker_plus.widgets import DatePickerInput, DateTimePickerInput
+from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -113,7 +113,7 @@ class QuestionForm(forms.Form):
     label = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     # for dynamicly add question to forms
-    def create_question(self, question, incident_workflow=None):
+    def create_question(self, question, incident_workflow=None, incident=None):
         initial_data = []
         if (
             question.question_type == "MULTI"
@@ -136,6 +136,16 @@ class QuestionForm(forms.Form):
                         # .order_by("position"),
                     )
                 )
+            elif incident is not None:
+                initial_data = list(
+                    filter(
+                        partial(is_not, None),
+                        Answer.objects.values_list(
+                            "predefined_answers", flat=True
+                        ).filter(question=question, incident_workflow__in=incident.get_latest_incident_workflows())
+                        # .order_by("position"),
+                    )
+                )
             for choice in question.predefinedanswer_set.all().order_by("position"):
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
@@ -152,9 +162,14 @@ class QuestionForm(forms.Form):
                 initial=initial_data,
             )
             if question.question_type == "MT" or question.question_type == "ST":
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident_workflow=incident_workflow
-                )
+                if incident_workflow is not None:
+                    answer = Answer.objects.values_list("answer", flat=True).filter(
+                        question=question, incident_workflow=incident_workflow
+                    )
+                elif incident is not None:
+                    answer = Answer.objects.values_list("answer", flat=True).filter(
+                        question=question, incident_workflow__in=incident.get_latest_incident_workflows()
+                    )
                 if len(answer) > 0:
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
@@ -180,10 +195,21 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
                         initial_data = datetime.strptime(
-                            initial_data, "%Y-%m-%d %H:%m:%s"
+                            initial_data, "%Y-%m-%d %H:%M:%S"
                         ).date()
-            self.fields[str(question.id)] = forms.DateField(
-                widget=DatePickerInput(
+            elif incident is not None:
+                answer = Answer.objects.values_list("answer", flat=True).filter(
+                    question=question,
+                    incident_workflow__in=incident.get_latest_incident_workflows()
+                ).order_by("timestamp").first()
+                if answer is not None:
+                    if answer != "":
+                        initial_data = answer
+                        initial_data = datetime.strptime(
+                            initial_data, "%Y-%m-%d %H:%M:%S"
+                        ).date()
+            self.fields[str(question.id)] = forms.DateTimeField(
+                widget=DateTimePickerInput(
                     options={
                         "format": "YYYY-MM-DD HH:mm:ss",
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
@@ -206,6 +232,15 @@ class QuestionForm(forms.Form):
                 if len(answer) > 0:
                     if answer[0] != "":
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
+            elif incident is not None:
+                answer = Answer.objects.values_list("answer", flat=True).filter(
+                    question=question,
+                    incident_workflow__in=incident.get_latest_incident_workflows()
+                ).order_by("timestamp").first()
+                if answer is not None:
+                    if answer != "":
+                        initial_data = answer
+
             self.fields[str(question.id)] = forms.CharField(
                 required=question.is_mandatory,
                 widget=forms.Textarea(
@@ -240,13 +275,15 @@ class QuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         position = -1
-        workflow = incident_workflow = None
+        workflow = incident_workflow = incident = None
         if "position" in kwargs:
             position = kwargs.pop("position")
         if "workflow" in kwargs:
             workflow = kwargs.pop("workflow")
         if "incident_workflow" in kwargs:
             incident_workflow = kwargs.pop("incident_workflow")
+        if "incident" in kwargs:
+            incident = kwargs.pop("incident")
         super().__init__(*args, **kwargs)
 
         if workflow is not None:
@@ -266,7 +303,7 @@ class QuestionForm(forms.Form):
         )
 
         for question in subquestion:
-            self.create_question(question, incident_workflow)
+            self.create_question(question, incident_workflow, incident)
 
 
 # the first question for preliminary notification

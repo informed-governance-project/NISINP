@@ -314,7 +314,9 @@ class Incident(models.Model):
 
     # TO DO : check if it returns always the correct values
     def get_latest_incident_workflows(self):
-        incident_workflows = IncidentWorkflow.objects.order_by(
+        incident_workflows = IncidentWorkflow.objects.filter(
+            incident=self,
+        ).order_by(
             "workflow", "-timestamp"
         ).distinct("workflow")
 
@@ -456,3 +458,4 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.TextField(null=True, blank=True)
     predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
+    timestamp = models.DateTimeField(default=timezone.now)
