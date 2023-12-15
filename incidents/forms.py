@@ -516,7 +516,7 @@ class DetectionDateForm(forms.Form):
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=OtherCheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
 
     def __init__(self, *args, **kwargs):
