@@ -647,7 +647,7 @@ class FormWizardView(SessionWizardView):
                 sectors__in=sectors_id,
                 regulator__in=regulators_id,
                 regulation__in=regulations_id,
-            )
+            ).order_by().distinct()
             temps_ids = sector_regulations.values_list("id", flat=True)
 
         # add regulation without sector excluding the previous one
@@ -657,7 +657,7 @@ class FormWizardView(SessionWizardView):
                 regulator__in=regulators_id,
                 regulation__in=regulations_id,
                 sectors__in=[],
-            )
+            ).order_by().distinct()
             .exclude(id__in=temps_ids)
         )
 
@@ -684,7 +684,9 @@ class FormWizardView(SessionWizardView):
                 sector_regulation=sector_regulation,
                 incident_detection_date=detection_date_data,
             )
-            affected_sectors = Sector.objects.filter(id__in=sectors_id)
+            sec = sector_regulation.sectors.values_list("id", flat=True)
+            selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
+            affected_sectors = selected_sectors & sec
             incident.affected_sectors.set(affected_sectors)
             # incident reference
             company_for_ref = ""
