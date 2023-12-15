@@ -773,12 +773,15 @@ class WorkflowWizardView(SessionWizardView):
 
         if self.workflow is not None:
             questions = self.workflow.questions
-            categories = []
+            categories = set()
             for question in questions.all():
-                categories.append(question.category)
-            # sort the list
-            categories.sort(key=lambda c: c.position)
-            context["steps"] = categories
+                categories.add(question.category)
+            categ_list = []
+            for category in categories:
+                categ_list.append(category)
+            categ_list.sort(key=lambda c: c.position)
+
+            context["steps"] = categ_list
 
         return context
 
