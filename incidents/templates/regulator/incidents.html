@@ -49,13 +49,17 @@
                             {% else %}
                                 {{ sector.parent }}
                             {% endif %}
+                            <br/>
+                        {% endfor %}
                     </ul>
                 </td>
                 <td>
                     <ul class="m-0 p-0">
+                        {% for sector in incident.affected_sectors.all %}
                             {% if sector.parent is not None %}
                                 {{ sector.name }}
                             {% endif %}
+                            <br/>
                         {% endfor %}
                     </ul>
                 </td>
