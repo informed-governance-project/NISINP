@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -43,6 +44,7 @@ from .models import (
     Question,
     SectorRegulation,
     Workflow,
+    SectorRegulationWorkflow
 )
 from .pdf_generation import get_pdf_report
 
@@ -692,6 +694,17 @@ class FormWizardView(SessionWizardView):
                 sector_regulation=sector_regulation,
                 incident_detection_date=detection_date_data,
             )
+            # check if the detection date is over
+            if sector_regulation.is_detection_date_needed:
+                sr_workflow = SectorRegulationWorkflow.objects.all().filter(
+                    sector_regulation=sector_regulation,
+                ).order_by("position").first()
+                actual_time = timezone.now()
+                if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
+                    dt = actual_time - incident.incident_detection_date
+                    if round(dt.seconds/60/60, 0) > sr_workflow.delay_in_hours_before_deadline:
+                        incident.review_status = "OUT"
+
             sec = sector_regulation.sectors.values_list("id", flat=True)
             selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
             affected_sectors = selected_sectors & sec

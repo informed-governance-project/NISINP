@@ -45,6 +45,7 @@ INCIDENT_STATUS = [
 ]
 
 REVIEW_STATUS = [
+    ("UNDE", "Not delivered"),
     ("DELIV", "Delivered but not yet reviewed"),
     ("PASS", "Review passed"),
     ("FAIL", "Review failed"),
@@ -52,6 +53,7 @@ REVIEW_STATUS = [
 ]
 
 WORKFLOW_REVIEW_STATUS = [
+    ("UNDE", "Not delivered"),
     ("DELIV", "Delivered but not yet reviewed"),
     ("PASS", "Review passed"),
     ("FAIL", "Review failed"),
