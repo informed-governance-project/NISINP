@@ -43,7 +43,7 @@ class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "position",
     ]
     list_display_links = ["question", "predefined_answer"]
-    search_fields = ["predefined_answer"]
+    search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
 
 
@@ -65,7 +65,7 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["position", "label"]
-    search_fields = ["label"]
+    search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
     ordering = ["position"]
 
@@ -113,7 +113,7 @@ class PredefinedAnswerInline(TranslatableTabularInline):
 class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
     list_display_links = ["position", "category", "label"]
-    search_fields = ["label"]
+    search_fields = ["translations__label"]
     resource_class = QuestionResource
     fields = [
         ("position", "is_mandatory"),
@@ -204,7 +204,7 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "subject", "content",]
-    search_fields = ["subject", "content"]
+    search_fields = ["translations__subject", "translations__content"]
     resource_class = EmailResource
 
 
@@ -225,7 +225,7 @@ class WorkflowInline(admin.TabularInline):
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = WorkflowResource
     inlines = (WorkflowInline,)
     fields = ("name", "questions")
@@ -251,7 +251,7 @@ class SectorRegulationInline(admin.TabularInline):
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
 
@@ -288,6 +288,6 @@ class SectorRegulationWorkflowEmailResource(resources.ModelResource):
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
 class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin):
     list_display = ["sector_regulation_workflow", "trigger_event", "delay_in_hours"]
-    search_fields = ["sector_regulation_workflow"]
+    search_fields = ["sector_regulation_workflow__workflow__translations__name"]
     resource_class = SectorRegulationWorkflowEmailResource
     fields = ("sector_regulation_workflow", "email", "trigger_event", "delay_in_hours")

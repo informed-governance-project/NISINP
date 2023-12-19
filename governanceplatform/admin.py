@@ -81,7 +81,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = SectorResource
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
@@ -130,7 +130,7 @@ class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
 class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
     list_display_links = ["acronym", "name"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = ServiceResource
     fields = ("name", "acronym", "sector")
     ordering = ["sector"]
@@ -696,7 +696,7 @@ class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Functionality, site=admin_site)
 class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = FunctionalityResource
 
 
@@ -724,7 +724,7 @@ class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(OperatorType, site=admin_site)
 class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["type"]
-    search_fields = ["type"]
+    search_fields = ["translations__type"]
     resource_class = OperatorTypeResource
     fields = ("type", "functionalities")
     filter_horizontal = ["functionalities"]
@@ -786,7 +786,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label", "get_regulators"]
-    search_fields = ["label", "regulators"]
+    search_fields = ["translations__label"]
     resource_class = RegulationResource
     fields = (
         "label",
