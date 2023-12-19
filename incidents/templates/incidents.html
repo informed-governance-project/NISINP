@@ -1,7 +1,17 @@
 {% extends 'home/base.html' %}
 {% load i18n %}
 {% load tz %}
+{% load static %}
 {% load custom_filters %}
+{% load django_bootstrap5 %}
+
+{% block bootstrap5_extra_script %}
+<script type="text/javascript" src="{% static 'npm_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'npm_components/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" />
+<script type="text/javascript" src="{% static 'npm_components/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'npm_components/datatables.net-searchpanes-bs5/css/searchPanes.bootstrap5.min.css' %}" />
+<script src='{% static "js/incidents_operator.js" %}'></script>
+{% endblock %}
 
 {% block content %}
 <div class="d-flex">
@@ -13,7 +23,7 @@
 </div>
 
 {% if incidents %}
-<table class="table align-middle table-sm small">
+<table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
             <th scope="col">{% translate "Date and Time" %}</th>

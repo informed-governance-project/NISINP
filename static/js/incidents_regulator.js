@@ -83,16 +83,52 @@ function getReviewStatusClass(reviewStatus) {
 }
 
 
-$(document).ready(function () {
-    new DataTable('#incidents-table', {
-        columnDefs: [{
+// $(document).ready(function () {
+//     new DataTable('#incidents-table', {
+//         columnDefs: [{
+//             targets: 0,
+//             type: 'mydate'
+//         },
+//         {
+//             targets: 2,
+//             type: 'mydate'
+//         }
+//     ]
+//     });
+// });
+
+// Object.assign($.fn.DataTable.ext.oSort, {
+//     'mydate-asc': (a,b) => new Date(a) - new Date(b),
+//     'mydate-desc': (a,b) => new Date(b) - new Date(a)
+//   });
+
+  $('#incidents-table').DataTable( {
+    paging: false,
+    columnDefs: [
+        {
             targets: 0,
             type: 'mydate'
-    }]
-    });
-});
-
-Object.assign($.fn.DataTable.ext.oSort, {
-    'mydate-asc': (a,b) => new Date(a) - new Date(b),
-    'mydate-desc': (a,b) => new Date(b) - new Date(a)
-  });
+        },
+        {
+            targets: 2,
+            orderable: true,
+            type:'string'
+        },
+        {
+            targets: 7,
+            orderable: false,
+        },
+        {
+            targets: 8,
+            orderable: false,
+        },
+        {
+            targets: 9,
+            orderable: false,
+        },
+        {
+            targets: 10,
+            orderable: false,
+        }
+    ]
+} );
