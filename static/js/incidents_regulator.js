@@ -85,5 +85,14 @@ function getReviewStatusClass(reviewStatus) {
 
 $(document).ready(function () {
     new DataTable('#incidents-table', {
+        columnDefs: [{
+            targets: 0,
+            type: 'mydate'
+    }]
     });
 });
+
+Object.assign($.fn.DataTable.ext.oSort, {
+    'mydate-asc': (a,b) => new Date(a) - new Date(b),
+    'mydate-desc': (a,b) => new Date(b) - new Date(a)
+  });

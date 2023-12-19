@@ -299,7 +299,10 @@ def get_regulator_incident_edit_form(request, incident_id: int):
         instance=incident, data=request.POST if request.method == "POST" else None
     )
     if request.method == "POST":
-        if incident_form.is_valid():
+        # TO DO : improve, but we can't check if the form is valid because we send only one value
+        if incident_form is not None:
+            # need to validate to get the cleaned data
+            incident_form.is_valid()
             response = {"id": incident.pk}
             for field_name, field_value in incident_form.cleaned_data.items():
                 if field_value:
