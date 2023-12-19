@@ -454,7 +454,7 @@ class RegulationForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        regulators = kwargs["initial"]["regulators"]
+        regulators = kwargs["initial"].get("regulators", None)
         super().__init__(*args, **kwargs)
 
         if regulators is not None:

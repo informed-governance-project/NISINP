@@ -551,6 +551,11 @@ class FormWizardView(SessionWizardView):
         if step is None:
             step = self.steps.current
 
+        if step == "2":
+            step1data = self.get_cleaned_data_for_step("1")
+            if step1data is None:
+                messages.warning(self.request, _("Please select at least 1 regulator"))
+
         form = super().get_form(step, data, files)
         return form
 
