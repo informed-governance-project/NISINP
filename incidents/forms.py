@@ -481,7 +481,9 @@ def construct_regulation_array(regulators):
 
 
 class RegulatorForm(forms.Form):
-    initial_data = [(k.id, k.name) for k in Regulator.objects.all()]
+    initial_data = [
+        (k.id, k.name + ' ' + k.full_name) for k in Regulator.objects.all()
+    ]
 
     # generic impact definitions
     regulators = forms.MultipleChoiceField(
