@@ -19,8 +19,12 @@ class Impact(TranslatableModel):
     """Defines an impact."""
 
     translations = TranslatedFields(label=models.TextField())
-    is_generic_impact = models.BooleanField(
-        default=False, verbose_name=_("Generic Impact")
+    regulation = models.ForeignKey(
+        "governanceplatform.Regulation",
+        on_delete=models.CASCADE,
+    )
+    sectors = models.ManyToManyField(
+        "governanceplatform.Sector", default=None, blank=True
     )
 
     def __str__(self):
@@ -123,7 +127,6 @@ class SectorRegulation(TranslatableModel):
     sectors = models.ManyToManyField(
         "governanceplatform.Sector", default=None, blank=True
     )
-    impacts = models.ManyToManyField(Impact, default=None, blank=True)
     is_detection_date_needed = models.BooleanField(
         default=False, verbose_name=_("Detection date needed")
     )
@@ -401,6 +404,10 @@ class IncidentWorkflow(models.Model):
         choices=REVIEW_STATUS,
         blank=False,
         default=WORKFLOW_REVIEW_STATUS[0][0],
+    )
+    impacts = models.ManyToManyField(
+        Impact,
+        default=None,
     )
 
     def get_previous_workflow(self):

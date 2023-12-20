@@ -127,13 +127,13 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
+    regulation = fields.Field(
+        column_name="regulation",
+        attribute="regulation",
+    )
     label = fields.Field(
         column_name="label",
         attribute="label",
-    )
-    is_generic_impact = fields.Field(
-        column_name="is_generic_impact",
-        attribute="is_generic_impact",
     )
 
     class Meta:
@@ -153,20 +153,18 @@ class ImpactSectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(
-                Q(sector=self.value()) | Q(sector__parent=self.value())
+                Q(sectors=self.value()) | Q(sectors__parent=self.value())
             )
 
 
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
-        "label",
-        "is_generic_impact",
+        "regulation", "label",
     ]
-    search_fields = ["translations__label"]
+    search_fields = ["translations__label", "regulation__translations__label"]
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter]
-    ordering = ["-is_generic_impact"]
 
 
 class IncidentResource(resources.ModelResource):
@@ -255,10 +253,9 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
 
-    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "impacts", "opening_email", "closing_email")
+    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "opening_email", "closing_email")
     filter_horizontal = [
         "sectors",
-        "impacts",
     ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
