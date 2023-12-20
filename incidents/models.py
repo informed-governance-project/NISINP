@@ -102,6 +102,9 @@ class Workflow(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
+    is_impact_needed = models.BooleanField(
+        default=False, verbose_name=_("Impacts are needed")
+    )
     questions = models.ManyToManyField(Question)
 
     def __str__(self):
@@ -299,7 +302,11 @@ class Incident(models.Model):
             return None
 
     def are_impacts_present(self):
-        return self.sector_regulation.impacts.count() > 0
+        impacts = Impact.objects.all().filter(
+            regulation=self.sector_regulation.regulation,
+            sectors__in=self.affected_sectors.all()
+        )
+        return impacts.count() > 0
 
     def get_all_workflows(self):
         workflows = self.sector_regulation.workflows.all().order_by(

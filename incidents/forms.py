@@ -14,7 +14,14 @@ from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
+from .models import (
+    Answer,
+    Incident,
+    IncidentWorkflow,
+    Question,
+    SectorRegulation,
+    Impact,
+)
 
 
 # TO DO: change the templates to custom one
@@ -275,7 +282,9 @@ class QuestionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         position = -1
-        workflow = incident_workflow = incident = None
+        workflow = None
+        incident_workflow = None
+        incident = None
         if "position" in kwargs:
             position = kwargs.pop("position")
         if "workflow" in kwargs:
@@ -290,10 +299,12 @@ class QuestionForm(forms.Form):
             questions = workflow.questions.all()
         if incident_workflow is not None:
             questions = incident_workflow.workflow.questions.all()
-        categories = []
-        # TO DO : filter by category position
+        categories = set()
+
         for question in questions:
-            categories.append(question.category)
+            categories.add(question.category)
+        categories = list(categories)
+        categories.sort(key=lambda x: x.position)
         category = categories[position]
 
         subquestion = (
@@ -581,18 +592,24 @@ def get_forms_list(incident=None, workflow=None):
             DetectionDateForm,
         ]
     else:
+        impact_needed = False
         if workflow is None:
             workflow = incident.get_next_step()
+            if workflow.is_impact_needed:
+                impact_needed = True
             categories = set()
             for question in workflow.questions.all():
                 categories.add(question.category)
         else:
+            if workflow.is_impact_needed:
+                impact_needed = True
             categories = set()
             for question in workflow.questions.all():
                 categories.add(question.category)
-
         for _category in categories:
             category_tree.append(QuestionForm)
+        if impact_needed:
+            category_tree.append(ImpactForm)
 
     return category_tree
 
@@ -633,7 +650,10 @@ class ImpactForm(forms.Form):
 
 # prepare an array of impacts from incident
 def construct_impact_array(incident):
-    impacts = incident.sector_regulation.impacts.all()
+    impacts = Impact.objects.all().filter(
+        regulation=incident.sector_regulation.regulation,
+        sectors__in=incident.affected_sectors.all()
+    )
     impacts_array = []
     for impact in impacts:
         impacts_array.append([impact.id, impact.label])

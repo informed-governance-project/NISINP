@@ -769,12 +769,15 @@ class WorkflowWizardView(SessionWizardView):
             )
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
-            form = QuestionForm(
-                data,
-                position=position,
-                incident_workflow=self.incident_workflow,
-                incident=self.incident,
-            )
+            if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                form = ImpactForm(incident=self.incident)
+            else:
+                form = QuestionForm(
+                    data,
+                    position=position,
+                    incident_workflow=self.incident_workflow,
+                    incident=self.incident,
+                )
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
             if not self.request.workflow:
@@ -782,12 +785,15 @@ class WorkflowWizardView(SessionWizardView):
             else:
                 self.workflow = self.request.workflow
 
-            form = QuestionForm(
-                data,
-                position=position,
-                workflow=self.workflow,
-                incident=self.incident,
-            )
+            if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                form = ImpactForm(incident=self.incident)
+            else:
+                form = QuestionForm(
+                    data,
+                    position=position,
+                    workflow=self.workflow,
+                    incident=self.incident,
+                )
 
         return form
 
@@ -805,7 +811,8 @@ class WorkflowWizardView(SessionWizardView):
             categ_list.sort(key=lambda c: c.position)
 
             context["steps"] = categ_list
-
+            if Workflow.is_impact_needed:
+                context["steps"].append(_("Impacts"))
         return context
 
     def render_goto_step(self, goto_step, **kwargs):
