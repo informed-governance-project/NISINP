@@ -1,5 +1,6 @@
 $('#incidents-table').DataTable( {
     paging: false,
+    order: [[0, 'mydate-desc']],
     columnDefs: [
         {
             targets: 0,
@@ -19,3 +20,8 @@ $('#incidents-table').DataTable( {
         },
     ]
 } );
+
+Object.assign($.fn.DataTable.ext.oSort, {
+    'mydate-asc': (a,b) => new Date(a) - new Date(b),
+    'mydate-desc': (a,b) => new Date(b) - new Date(a)
+  });

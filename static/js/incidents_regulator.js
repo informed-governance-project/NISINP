@@ -97,17 +97,14 @@ function getReviewStatusClass(reviewStatus) {
 //     });
 // });
 
-// Object.assign($.fn.DataTable.ext.oSort, {
-//     'mydate-asc': (a,b) => new Date(a) - new Date(b),
-//     'mydate-desc': (a,b) => new Date(b) - new Date(a)
-//   });
 
   $('#incidents-table').DataTable( {
     paging: false,
+    order: [[0, 'mydate-desc']],
     columnDefs: [
         {
             targets: 0,
-            type: 'mydate'
+            type:'my-date'
         },
         {
             targets: 2,
@@ -132,3 +129,8 @@ function getReviewStatusClass(reviewStatus) {
         }
     ]
 } );
+
+Object.assign($.fn.DataTable.ext.oSort, {
+    'mydate-asc': (a,b) => new Date(a) - new Date(b),
+    'mydate-desc': (a,b) => new Date(b) - new Date(a)
+  });
