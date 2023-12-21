@@ -19,7 +19,7 @@
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
-            <th scope="col">{% translate "Date and Time" %}</th>
+            <th scope="col">{% translate "Notification date" %}</th>
             <th scope="col">{% translate "Regulation" %}</th>
             <th scope="col">{% translate "Reference" %}</th>
             <th scope="col">{% translate "Operator" %}</th>
@@ -99,6 +99,6 @@
     </tbody>
 </table>
 {% else %}
-<p>{% translate "There are no incidents" %}</p>
+<p>{% translate "No incident" %}</p>
 {% endif %}
 {% endblock %}

@@ -83,6 +83,10 @@ class PredefinedAnswer(TranslatableModel):
     def __str__(self):
         return self.predefined_answer if self.predefined_answer is not None else ""
 
+    class Meta:
+        verbose_name_plural = "Question - predefined answers"
+        verbose_name = "Question - predefined answer"
+
 
 # Email sent from regulator to operator
 class Email(TranslatableModel, models.Model):
@@ -94,6 +98,10 @@ class Email(TranslatableModel, models.Model):
 
     def __str__(self):
         return self.name if self.name is not None else ""
+
+    class Meta:
+        verbose_name_plural = "Email templates"
+        verbose_name = "Email template"
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -109,6 +117,10 @@ class Workflow(TranslatableModel):
 
     def __str__(self):
         return self.name if self.name is not None else ""
+
+    class Meta:
+        verbose_name_plural = "Incident Reports"
+        verbose_name = "Incident report"
 
 
 # link between a regulation and a regulator,
@@ -151,6 +163,10 @@ class SectorRegulation(TranslatableModel):
         related_name="closing_email",
     )
 
+    class Meta:
+        verbose_name_plural = "Incident notification workflows"
+        verbose_name = "Incident notification workflow"
+
     def __str__(self):
         return self.name if self.name is not None else ""
 
@@ -189,6 +205,10 @@ class SectorRegulationWorkflowEmail(models.Model):
     )
     # the delay after the trigger event
     delay_in_hours = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = "Emails for Incident notification workflows"
+        verbose_name = "Email for Incident notification workflow"
 
 
 # incident
