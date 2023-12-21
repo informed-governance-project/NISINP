@@ -635,29 +635,34 @@ class ImpactForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
     )
-    incident = None
+
+    # prepare an array of impacts from incident
+    def construct_impact_array(self, incident):
+        impacts = Impact.objects.all().filter(
+            regulation=incident.sector_regulation.regulation,
+            sectors__in=incident.affected_sectors.all()
+        )
+        impacts_array = []
+        for impact in impacts:
+            impacts_array.append([impact.id, impact.label])
+        return impacts_array
 
     def __init__(self, *args, **kwargs):
+        incident = None
+        incident_workflow = None
         if "incident" in kwargs:
-            self.incident = kwargs.pop("incident")
+            incident = kwargs.pop("incident")
+        if "incident_workflow" in kwargs:
+            incident_workflow = kwargs.pop("incident_workflow")
         super().__init__(*args, **kwargs)
 
-        self.fields["impacts"].choices = construct_impact_array(self.incident)
-
-        if self.incident is not None:
-            self.fields["impacts"].initial = [i.id for i in self.incident.impacts.all()]
-
-
-# prepare an array of impacts from incident
-def construct_impact_array(incident):
-    impacts = Impact.objects.all().filter(
-        regulation=incident.sector_regulation.regulation,
-        sectors__in=incident.affected_sectors.all()
-    )
-    impacts_array = []
-    for impact in impacts:
-        impacts_array.append([impact.id, impact.label])
-    return impacts_array
+        if incident is not None:
+            self.fields["impacts"].choices = self.construct_impact_array(incident)
+        if incident_workflow is not None:
+            self.fields["impacts"].initial = [i.id for i in incident_workflow.impacts.all()]
+        else:
+            previous_incident_workflow = incident.get_latest_incident_workflow()
+            self.fields["impacts"].initial = [i.id for i in previous_incident_workflow.impacts.all()]
 
 
 # let the user change the date of his incident

@@ -757,7 +757,7 @@ class WorkflowWizardView(SessionWizardView):
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
-        return super().__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:
@@ -770,7 +770,11 @@ class WorkflowWizardView(SessionWizardView):
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
-                form = ImpactForm(incident=self.incident)
+                form = ImpactForm(
+                    incident=self.incident,
+                    incident_workflow=self.incident_workflow,
+                    data=data
+                )
             else:
                 form = QuestionForm(
                     data,
@@ -786,7 +790,7 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow = self.request.workflow
 
             if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
-                form = ImpactForm(incident=self.incident)
+                form = ImpactForm(incident=self.incident, data=data)
             else:
                 form = QuestionForm(
                     data,
@@ -836,6 +840,7 @@ class WorkflowWizardView(SessionWizardView):
             data = [form.cleaned_data for form in form_list]
             if self.incident is None:
                 self.incident = Incident.objects.get(pk=self.request.incident)
+                self.incident.review_status = 'DELIV'
 
             # TO DO : send the email
             email = None
@@ -855,7 +860,16 @@ def save_answers(index=0, data=None, incident=None, workflow=None):
     incident_workflow = IncidentWorkflow.objects.create(
         incident=incident, workflow=workflow
     )
-    for d in range(index, len(data)):
+    incident_workflow.review_status = 'DELIV'
+    incident_workflow.save()
+    # TO DO manage impact
+    offset_top = len(data)
+    if workflow.is_impact_needed:
+        # impact are the last form
+        offset_top = offset_top - 1
+        incident_workflow.impacts.set(data[offset_top]['impacts'])
+
+    for d in range(index, offset_top):
         for key, value in data[d].items():
             question_id = None
             try:

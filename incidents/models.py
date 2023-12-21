@@ -332,6 +332,15 @@ class Incident(models.Model):
 
         return incident_workflows
 
+    def get_latest_incident_workflow(self):
+        incident_workflow = IncidentWorkflow.objects.filter(
+            incident=self,
+        ).order_by(
+            "-timestamp"
+        ).first()
+
+        return incident_workflow
+
     # check if the previous workflow is filled and no next workflow filled
     def is_fillable(self, workflow):
         if self.incident_status != "CLOSE":
