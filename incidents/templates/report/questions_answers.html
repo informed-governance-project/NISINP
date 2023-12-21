@@ -8,18 +8,15 @@
     </ul>
 </div>
 <div>
-    <span class="bold">{{ _('Affected sectors') }}</span>
-    <ul>
-        {% for sector_name, services in services.items %}
-            <li><span class="bold">{{ sector_name }}</span>
+    <h3>{{ _('Affected sectors') }}</h3>
+        {% for sector_name, subsectors in sectors.items %}
+            <h4>{{ sector_name }}</h4>
                 <ul>
-                    {% for service_label in services %}
-                        <li>{{ service_label }}</li>
+                    {% for subsector_label in subsectors %}
+                        <li>{{ subsector_label }}</li>
                     {% endfor %}
                 </ul>
-            </li>
         {% endfor %}
-    </ul>
 </div>
 
 <p class="page-break" ></p>

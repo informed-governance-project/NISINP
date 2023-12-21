@@ -9,13 +9,17 @@ from .models import Answer, Incident
 
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
-    sectors: Dict[str, List[str]] = {}
 
-    # TO DO : recreate the trees for sectors
+    # TO DO : improve for more than 2 level ?
+    sectors: Dict[str, List(str)] = {}
     for sector in incident.affected_sectors.all():
-        if sector.name not in sectors:
-            sectors[sector.name] = []
-        sectors[sector.name].append(sector.name)
+        if sector.parent:
+            if sector.parent.name not in sectors:
+                sectors[sector.parent.name] = []
+            sectors[sector.parent.name].append(sector.name)
+        else:
+            if sector.name not in sectors:
+                sectors[sector.name] = []
 
     incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
     incident_workflows_impact: Dict[str, List[str]] = {}
