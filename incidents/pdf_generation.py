@@ -18,9 +18,12 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
         sectors[sector.name].append(sector.name)
 
     incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
+    incident_workflows_impact: Dict[str, List[str]] = {}
     for incident_workflow in incident.get_latest_incident_workflows():
         if incident_workflow.workflow.name not in incident_workflows_answer:
             incident_workflows_answer[incident_workflow.workflow.name] = dict()
+        if incident_workflow.workflow.name not in incident_workflows_impact:
+            incident_workflows_impact[incident_workflow.workflow.name] = []
 
         answers = Answer.objects.all().filter(
             incident_workflow=incident_workflow
@@ -30,13 +33,16 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
                 answer,
                 incident_workflows_answer[incident_workflow.workflow.name],
             )
-
+        # impacts
+        for impact in incident_workflow.impacts.all():
+            incident_workflows_impact[incident_workflow.workflow.name].append(impact)
     # Render the HTML file
     output_from_parsed_template = render_to_string(
         "report/template.html",
         {
             "incident": incident,
             "incident_workflows_answer": incident_workflows_answer,
+            "incident_workflows_impact": incident_workflows_impact,
             "regulation": incident.sector_regulation.regulation,
             "sectors": sectors,
         },

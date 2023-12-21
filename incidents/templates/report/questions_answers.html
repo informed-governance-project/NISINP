@@ -22,8 +22,21 @@
     </ul>
 </div>
 
+<p class="page-break" ></p>
 {% for incident_workflow_label, category_questions_answers in incident_workflows_answer.items %}
-<span class="bold">{{ incident_workflow_label }}</span>
+<h3>{{ incident_workflow_label }}</h3>
+    {% for label, impacts in incident_workflows_impact.items %}
+        {% if incident_workflow_label == label %}
+        <h4>{{ _('Impacts') }}</h4>
+            <ul>
+                {% for impact in impacts %}
+                    <li>{{ impact }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endfor %}
+
+    <h4>{{ _('Answers') }}</h4>
     {% for category_label, questions_answers in category_questions_answers.items %}
     <div>
         <span class="bold">{{ category_label }}</span>
@@ -40,5 +53,6 @@
         </ul>
     </div>
     {% endfor %}
+    <p class="page-break" ></p>
 {% endfor %}
 
