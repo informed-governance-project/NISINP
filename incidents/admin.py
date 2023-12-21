@@ -157,6 +157,23 @@ class ImpactSectorListFilter(SimpleListFilter):
             )
 
 
+class ImpactRegulationListFilter(SimpleListFilter):
+    title = _("Regulation")
+    parameter_name = "regulation"
+
+    def lookups(self, request, model_admin):
+        return [
+            (regulation.id, regulation.label)
+            for regulation in Regulation.objects.all().order_by("translations__label")
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(
+                Q(regulation=self.value())
+            )
+
+
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
@@ -164,7 +181,7 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     ]
     search_fields = ["translations__label", "regulation__translations__label"]
     resource_class = ImpactResource
-    list_filter = [ImpactSectorListFilter]
+    list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
 
 
 class IncidentResource(resources.ModelResource):
