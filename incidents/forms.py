@@ -662,7 +662,8 @@ class ImpactForm(forms.Form):
             self.fields["impacts"].initial = [i.id for i in incident_workflow.impacts.all()]
         else:
             previous_incident_workflow = incident.get_latest_incident_workflow()
-            self.fields["impacts"].initial = [i.id for i in previous_incident_workflow.impacts.all()]
+            if previous_incident_workflow is not None:
+                self.fields["impacts"].initial = [i.id for i in previous_incident_workflow.impacts.all()]
 
 
 # let the user change the date of his incident
