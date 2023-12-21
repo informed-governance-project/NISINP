@@ -96,12 +96,12 @@
                 {{ incident.get_review_status_display }}
             </td>
             <td scope="col">
-                {% if incident.are_impacts_present %}
+                <!-- {% if incident.are_impacts_present %}
                 <a href="{% url 'edit_impacts' incident.id %}">
                     {% translate "See or edit impacts" %}
                 </a>
                 {% endif %}
-                <br/>
+                <br/> -->
                 <a href="{% url 'download_incident_pdf' incident.id %}">
                     <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
                 </a>
