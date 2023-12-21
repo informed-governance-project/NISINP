@@ -841,6 +841,8 @@ class WorkflowWizardView(SessionWizardView):
             if self.incident is None:
                 self.incident = Incident.objects.get(pk=self.request.incident)
                 self.incident.review_status = 'DELIV'
+            else:
+                self.incident.review_status = 'DELIV'
 
             # TO DO : send the email
             email = None
