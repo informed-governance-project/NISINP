@@ -638,10 +638,15 @@ class ImpactForm(forms.Form):
 
     # prepare an array of impacts from incident
     def construct_impact_array(self, incident):
-        impacts = Impact.objects.all().filter(
+        impacts_with_sector = Impact.objects.all().filter(
             regulation=incident.sector_regulation.regulation,
             sectors__in=incident.affected_sectors.all()
         )
+        impacts_without_sector = Impact.objects.all().filter(
+            regulation=incident.sector_regulation.regulation,
+            sectors=None
+        )
+        impacts = impacts_with_sector | impacts_without_sector
         impacts_array = []
         for impact in impacts:
             impacts_array.append([impact.id, impact.label])
