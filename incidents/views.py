@@ -1,3 +1,6 @@
+# import hashlib
+# import json
+
 from datetime import date
 from urllib.parse import urlparse
 
@@ -614,6 +617,22 @@ class FormWizardView(SessionWizardView):
             return HttpResponseRedirect("/incidents")
 
         data = [form.cleaned_data for form in form_list]
+
+        # prevent multi-record in the same session
+        # json_data = [json.dumps(form.cleaned_data, indent=4, sort_keys=True, default=str) for form in form_list]
+        # sha512 = hashlib.sha512()
+        # sha512.update(str(json_data).encode("utf-8"))
+
+        # if self.request.session.get('forbidden_data', None) is None:
+        #     self.request.session['forbidden_data'] = []
+
+        # hashed_form = sha512.hexdigest()
+        # if hashed_form in self.request.session['forbidden_data']:
+        #     messages.error(self.request, _("This incident has already been submitted"))
+        #     return HttpResponseRedirect("/incidents")
+        # else:
+        #     self.request.session['forbidden_data'].append(hashed_form)
+
         user = self.request.user
         company = get_active_company_from_session(self.request)
 
@@ -674,7 +693,7 @@ class FormWizardView(SessionWizardView):
         sector_regulations = sector_regulations | sector_regulations2
 
         for sector_regulation in sector_regulations:
-            incident = Incident.objects.create(
+            incident, incident_created = Incident.objects.get_or_create(
                 contact_lastname=data[0]["contact_lastname"],
                 contact_firstname=data[0]["contact_firstname"],
                 contact_title=data[0]["contact_title"],
@@ -694,55 +713,56 @@ class FormWizardView(SessionWizardView):
                 sector_regulation=sector_regulation,
                 incident_detection_date=detection_date_data,
             )
-            # check if the detection date is over
-            if sector_regulation.is_detection_date_needed:
-                sr_workflow = SectorRegulationWorkflow.objects.all().filter(
-                    sector_regulation=sector_regulation,
-                ).order_by("position").first()
-                actual_time = timezone.now()
-                if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
-                    dt = actual_time - incident.incident_detection_date
-                    if round(dt.seconds/60/60, 0) > sr_workflow.delay_in_hours_before_deadline:
-                        incident.review_status = "OUT"
+            if incident_created:
+                # check if the detection date is over
+                if sector_regulation.is_detection_date_needed:
+                    sr_workflow = SectorRegulationWorkflow.objects.all().filter(
+                        sector_regulation=sector_regulation,
+                    ).order_by("position").first()
+                    actual_time = timezone.now()
+                    if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
+                        dt = actual_time - incident.incident_detection_date
+                        if round(dt.seconds/60/60, 0) > sr_workflow.delay_in_hours_before_deadline:
+                            incident.review_status = "OUT"
 
-            sec = sector_regulation.sectors.values_list("id", flat=True)
-            selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
-            affected_sectors = selected_sectors & sec
-            incident.affected_sectors.set(affected_sectors)
-            # incident reference
-            company_for_ref = ""
-            sector_for_ref = ""
-            subsector_for_ref = ""
-            if company is None:
-                company_for_ref = data[0]["company_name"][:4]
-            else:
-                company_for_ref = company.identifier
+                sec = sector_regulation.sectors.values_list("id", flat=True)
+                selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
+                affected_sectors = selected_sectors & sec
+                incident.affected_sectors.set(affected_sectors)
+                # incident reference
+                company_for_ref = ""
+                sector_for_ref = ""
+                subsector_for_ref = ""
+                if company is None:
+                    company_for_ref = data[0]["company_name"][:4]
+                else:
+                    company_for_ref = company.identifier
 
-            for sector in sector_regulation.sectors.all():
-                if sector.id in sectors_id:
-                    if subsector_for_ref == "":
-                        subsector_for_ref = sector.acronym[:3]
-                        if sector.parent is not None:
-                            sector_for_ref = sector.parent.acronym[:3]
+                for sector in sector_regulation.sectors.all():
+                    if sector.id in sectors_id:
+                        if subsector_for_ref == "":
+                            subsector_for_ref = sector.acronym[:3]
+                            if sector.parent is not None:
+                                sector_for_ref = sector.parent.acronym[:3]
 
-            incidents_per_company = company.incident_set.count() + 1 if company else 0
-            number_of_incident = f"{incidents_per_company:04}"
-            incident.incident_id = (
-                company_for_ref
-                + "_"
-                + sector_for_ref
-                + "_"
-                + subsector_for_ref
-                + "_"
-                + number_of_incident
-                + "_"
-                + str(date.today().year)
-            )
-            incident.save()
+                incidents_per_company = company.incident_set.count() + 1 if company else 0
+                number_of_incident = f"{incidents_per_company:04}"
+                incident.incident_id = (
+                    company_for_ref
+                    + "_"
+                    + sector_for_ref
+                    + "_"
+                    + subsector_for_ref
+                    + "_"
+                    + number_of_incident
+                    + "_"
+                    + str(date.today().year)
+                )
+                incident.save()
 
-            # send The email notification opening
-            if sector_regulation.opening_email is not None:
-                send_email(sector_regulation.opening_email, incident)
+                # send The email notification opening
+                if sector_regulation.opening_email is not None:
+                    send_email(sector_regulation.opening_email, incident)
 
         return HttpResponseRedirect("/incidents")
 
