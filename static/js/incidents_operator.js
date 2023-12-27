@@ -14,10 +14,6 @@ $('#incidents-table').DataTable( {
             targets: 8,
             orderable: false,
         },
-        {
-            targets: 9,
-            orderable: false,
-        },
     ]
 } );
 

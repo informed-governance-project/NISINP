@@ -27,7 +27,7 @@
             <th scope="col">{% translate "Sub-sectors" %}</th>
             <th scope="col">{% translate "Incident report" %}</th>
             <th scope="col">{% translate "Incident status" %}</th>
-            <th scope="col">{% translate "Review status" %}</th>
+            <!-- <th scope="col">{% translate "Review status" %}</th> -->
             <th scope="col">{% translate "Significative impact" %}</th>
             <th scope="col">{% translate "Actions" %}</th>
         </tr>
@@ -77,6 +77,8 @@
                             <td id="workflow_review_status_{{filtered_workflows.instance.id}}" class="col-8 {% status_class filtered_workflows.initial.review_status %}">
                                 {% if filtered_workflows %}
                                 {% bootstrap_field filtered_workflows.review_status show_label=False wrapper_class="m-0" %}
+                                {% else %}
+                                {{ _("Not delivered") }}
                                 {% endif %}
                             </td>
                         </tr>
@@ -85,9 +87,9 @@
                     </table>
                 </td>
                 <td>{% bootstrap_field incident.formsStatus.incident_status show_label=False wrapper_class="m-0" %}</td>
-                <td id="review_status_{{incident.pk}}" class="{% status_class incident.review_status %}">
+                <!-- <td id="review_status_{{incident.pk}}" class="{% status_class incident.review_status %}">
                     {% bootstrap_field incident.formsStatus.review_status show_label=False wrapper_class="m-0"%}
-                </td>
+                </td> -->
                 <td>{% bootstrap_field incident.formsStatus.is_significative_impact show_label=False wrapper_class="d-flex align-items-center justify-content-center" %}</td>
                 <td style="white-space: nowrap;">
                     <a href="{% url 'download_incident_pdf' incident.id %}">

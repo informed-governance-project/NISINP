@@ -361,6 +361,30 @@ class Incident(models.Model):
 
         return incident_workflow
 
+    def get_previous_workflow(self, workflow):
+        current = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+                workflow=workflow,
+            )
+            .first()
+        )
+
+        previous = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+                position__lt=current.position,
+            )
+            .order_by("-position")
+            .first()
+        )
+
+        if previous is not None:
+            return previous
+        return False
+
     # check if the previous workflow is filled and no next workflow filled
     def is_fillable(self, workflow):
         if self.incident_status != "CLOSE":

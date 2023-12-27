@@ -123,10 +123,6 @@ function getReviewStatusClass(reviewStatus) {
             targets: 9,
             orderable: false,
         },
-        {
-            targets: 10,
-            orderable: false,
-        }
     ]
 } );
 

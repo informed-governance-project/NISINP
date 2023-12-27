@@ -32,9 +32,9 @@
             <th scope="col">{% translate "Regulation" %}</th>
             <th scope="col">{% translate "Sector" %}</th>
             <th scope="col">{% translate "Sub-sector" %}</th>
-            <th scope="col">{% translate "Notification type" %}</th>
+            <th scope="col">{% translate "Report" %}</th>
             <th scope="col">{% translate "Incident status" %}</th>
-            <th scope="col">{% translate "Review status" %}</th>
+            <!-- <th scope="col">{% translate "Review status" %}</th> -->
             <th scope="col">{% translate "Action" %}</th>
         </tr>
     </thead>
@@ -83,7 +83,11 @@
                             </a>
                         </td>
                         <td class="col-7 {% status_class filtered_workflows.review_status %}">
-                            {{ filtered_workflows.get_review_status_display }}
+                            {% if filtered_workflows.get_review_status_display %}
+                                {{ filtered_workflows.get_review_status_display }}
+                            {% else %}
+                                {% is_deadline_exceeded report incident %}
+                            {% endif %}
                         </td>
                     </tr>
                     {% endwith %}
@@ -92,9 +96,9 @@
                 </table>
             </td>
             <td>{{ incident.get_incident_status_display }}</td>
-            <td scope="row" class="{% status_class incident.review_status %}">
+            <!-- <td scope="row" class="{% status_class incident.review_status %}">
                 {{ incident.get_review_status_display }}
-            </td>
+            </td> -->
             <td scope="col">
                 <!-- {% if incident.are_impacts_present %}
                 <a href="{% url 'edit_impacts' incident.id %}">
