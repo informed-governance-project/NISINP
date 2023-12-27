@@ -469,6 +469,7 @@ class IncidentWorkflow(models.Model):
         Impact,
         default=None,
     )
+    comment = models.TextField(null=True, blank=True)
 
     def get_previous_workflow(self):
         current = (

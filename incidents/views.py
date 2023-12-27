@@ -37,6 +37,7 @@ from .forms import (
     QuestionForm,
     RegulationForm,
     RegulatorForm,
+    RegulatorIncidentWorkflowCommentForm,
     get_forms_list,
 )
 from .models import (
@@ -206,7 +207,9 @@ def edit_workflow(request):
     if incident_workflow:
         incident_workflow = incident_workflow.last()
         form_list = get_forms_list(
-            incident=incident_workflow.incident, workflow=incident_workflow.workflow
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            is_regulator=is_user_regulator(user)
         )
         request.incident = incident_workflow.incident.id
         request.incident_workflow = incident_workflow.id
@@ -783,25 +786,39 @@ class WorkflowWizardView(SessionWizardView):
         if step is None:
             step = self.steps.current
         position = int(step)
+        user = self.request.user
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
                 pk=self.request.incident_workflow
             )
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
-            if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
-                form = ImpactForm(
-                    incident=self.incident,
-                    incident_workflow=self.incident_workflow,
-                    data=data
-                )
+            if not is_user_regulator(user):
+                if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                    form = ImpactForm(incident=self.incident, data=data)
+                else:
+                    form = QuestionForm(
+                        data,
+                        position=position,
+                        workflow=self.workflow,
+                        incident=self.incident,
+                    )
             else:
-                form = QuestionForm(
-                    data,
-                    position=position,
-                    incident_workflow=self.incident_workflow,
-                    incident=self.incident,
-                )
+                if position == len(self.form_list) - 2 and self.workflow.is_impact_needed:
+                    form = ImpactForm(incident=self.incident, data=data)
+                elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                    form = RegulatorIncidentWorkflowCommentForm(
+                        instance=self.incident_workflow,
+                        data=data
+                    )
+                else:
+                    form = QuestionForm(
+                        data,
+                        position=position,
+                        workflow=self.workflow,
+                        incident=self.incident,
+                    )
+
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
             if not self.request.workflow:
@@ -818,6 +835,13 @@ class WorkflowWizardView(SessionWizardView):
                     workflow=self.workflow,
                     incident=self.incident,
                 )
+
+        # Read only for regulator except for last form (save comment)
+        user = self.request.user
+        if is_user_regulator(user) and position != len(self.form_list) - 1:
+            for field in form.fields:
+                form.fields[field].disabled = True
+                form.fields[field].required = False
 
         return form
 
@@ -837,6 +861,10 @@ class WorkflowWizardView(SessionWizardView):
             context["steps"] = categ_list
             if Workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
+
+            user = self.request.user
+            if is_user_regulator(user):
+                context["steps"].append(_("Comment"))
         return context
 
     def render_goto_step(self, goto_step, **kwargs):
@@ -872,6 +900,15 @@ class WorkflowWizardView(SessionWizardView):
             save_answers(0, data, self.incident, self.workflow)
             if email is not None:
                 send_email(email, self.incident)
+        # save the comment if the user is regulator
+        elif is_user_regulator(user):
+            data = [form.cleaned_data for form in form_list]
+            incident_workflow = IncidentWorkflow.objects.all().filter(
+                incident=self.incident,
+                workflow=self.workflow
+            ).order_by("-timestamp").first()
+            incident_workflow.comment = data[len(data)-1]['comment']
+            incident_workflow.save()
         return HttpResponseRedirect("/incidents")
 
 

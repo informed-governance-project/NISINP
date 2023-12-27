@@ -581,7 +581,7 @@ def construct_sectors_array(regulations, regulators):
     return final_categs
 
 
-def get_forms_list(incident=None, workflow=None):
+def get_forms_list(incident=None, workflow=None, is_regulator=False):
     category_tree = []
     if incident is None:
         category_tree = [
@@ -610,6 +610,8 @@ def get_forms_list(incident=None, workflow=None):
             category_tree.append(QuestionForm)
         if impact_needed:
             category_tree.append(ImpactForm)
+        if is_regulator:
+            category_tree.append(RegulatorIncidentWorkflowCommentForm)
 
     return category_tree
 
@@ -627,6 +629,19 @@ class RegulatorIncidentEditForm(forms.ModelForm):
             "is_significative_impact",
             "review_status",
             "incident_status",
+        ]
+
+
+class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = self.instance.id
+
+    class Meta:
+        model = IncidentWorkflow
+        fields = [
+            "id",
+            "comment",
         ]
 
 
