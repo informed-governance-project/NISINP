@@ -25,7 +25,12 @@
             <th scope="col">{% translate "Operator" %}</th>
             <th scope="col">{% translate "Sectors" %}</th>
             <th scope="col">{% translate "Sub-sectors" %}</th>
-            <th scope="col">{% translate "Incident report" %}</th>
+            <th scope="col"><table class="table table-borderless table-sm m-0">
+                <tr>
+                    <td>{% translate "Report" %}</td>
+                    <td>{% translate "Status" %}</td>
+                </tr> 
+            </table></th>
             <th scope="col">{% translate "Incident status" %}</th>
             <!-- <th scope="col">{% translate "Review status" %}</th> -->
             <th scope="col">{% translate "Significative impact" %}</th>
@@ -78,7 +83,7 @@
                                 {% if filtered_workflows %}
                                 {% bootstrap_field filtered_workflows.review_status show_label=False wrapper_class="m-0" %}
                                 {% else %}
-                                {{ _("Not delivered") }}
+                                    {% is_deadline_exceeded report incident %}
                                 {% endif %}
                             </td>
                         </tr>
