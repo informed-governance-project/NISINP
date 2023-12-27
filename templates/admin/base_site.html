@@ -13,7 +13,7 @@
         <a href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
         <a href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
         {% if site_url and not is_only_admin %}
-                <a href="{{ site_url }}">{% translate 'Return to' %} {{ site_name }}</a>
+                <a href="{{ site_url }}">{% translate 'Return to User website' %}</a>
         {% endif %}
         <a href="{% url 'logout' %}">{% translate 'Log out' %}</a>
         {% include "home/language_selector.html" %}
