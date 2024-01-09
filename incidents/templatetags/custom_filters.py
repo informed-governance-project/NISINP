@@ -93,10 +93,11 @@ def is_deadline_exceeded(report, incident):
         ).first()
         actual_time = timezone.now()
         if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
-            dt = actual_time - incident.incident_detection_date
-            if round(dt.seconds/60/60, 0) >= sr_workflow.delay_in_hours_before_deadline:
-                incident.review_status = "OUT"
-                return _("Not delivered and deadline exceeded")
+            if incident.incident_detection_date is not None:
+                dt = actual_time - incident.incident_detection_date
+                if round(dt.seconds/60/60, 0) >= sr_workflow.delay_in_hours_before_deadline:
+                    incident.review_status = "OUT"
+                    return _("Not delivered and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.notification_date
             if round(dt.seconds/60/60, 0) >= sr_workflow.delay_in_hours_before_deadline:
