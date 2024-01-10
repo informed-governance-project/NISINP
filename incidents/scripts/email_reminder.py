@@ -3,6 +3,8 @@ from django.utils import timezone
 from incidents.email import send_email
 from incidents.models import Incident, IncidentWorkflow, SectorRegulationWorkflowEmail, SectorRegulationWorkflow
 
+import math
+
 
 # Script to run every hour
 def run():
@@ -30,7 +32,7 @@ def run():
                     )
                     for email in emails:
                         dt = actual_time - incident_workflow.timestamp
-                        if round(dt.seconds/60/60, 0) == email.delay_in_hours:
+                        if math.floor(dt.seconds/60/60) == email.delay_in_hours:
                             send_email(email.email, incident)
             # From notification date
             sector_regulation_workflow = SectorRegulationWorkflow.objects.all().filter(
@@ -44,5 +46,5 @@ def run():
                     )
             for email in emails:
                 dt = actual_time - incident_workflow.timestamp
-                if round(dt.seconds/60/60, 0) == email.delay_in_hours:
+                if math.floor(dt.seconds/60/60) == email.delay_in_hours:
                     send_email(email.email, incident)
