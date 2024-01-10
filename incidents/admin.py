@@ -243,7 +243,7 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
     inlines = (WorkflowInline,)
-    fields = ("name", "questions", "is_impact_needed")
+    fields = ("name", "questions", "is_impact_needed", "submission_email")
     filter_horizontal = [
         "questions",
     ]

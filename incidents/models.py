@@ -122,6 +122,15 @@ class Workflow(TranslatableModel):
         verbose_name_plural = "Incident Reports"
         verbose_name = "Incident report"
 
+    submission_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="submission_email",
+    )
+
 
 # link between a regulation and a regulator,
 # a regulator can only create a sector_regulation for the regulation the
