@@ -87,6 +87,32 @@
                                 {{ report }}
                             </a>
                         </td>
+                        <td>
+                            {% if filtered_workflows.comment is not None %}
+                            <button class="bi bi-chat-left" fill="currentColor" data-bs-toggle="modal" data-bs-target="#comment{{ filtered_workflows.id }}" >
+                            </button>
+                            <!-- Modal -->
+                            <div class="modal fade" id="comment{{ filtered_workflows.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Edit timeline') }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {{ filtered_workflows.comment }}
+                                    </div>
+                                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            
+                                <!-- <a href="" alt="view comment" class="bi bi-chat-left"></a> -->
+                                <!-- {{ filtered_workflows.comment }} -->
+                            {% endif %}
+                        </td>
                         <td class="col-7 {% status_class filtered_workflows.review_status %}">
                             {% if filtered_workflows.get_review_status_display %}
                                 {{ filtered_workflows.get_review_status_display }}
