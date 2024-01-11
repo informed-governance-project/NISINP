@@ -19,8 +19,8 @@ from incidents.models import (
     Question,
     QuestionCategory,
     SectorRegulation,
-    Workflow,
     SectorRegulationWorkflowEmail,
+    Workflow,
 )
 
 
@@ -169,15 +169,14 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(
-                Q(regulation=self.value())
-            )
+            return queryset.filter(Q(regulation=self.value()))
 
 
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
-        "regulation", "label",
+        "regulation",
+        "label",
     ]
     search_fields = ["translations__label", "regulation__translations__label"]
     resource_class = ImpactResource
@@ -218,7 +217,11 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "subject", "content",]
+    list_display = [
+        "name",
+        "subject",
+        "content",
+    ]
     search_fields = ["translations__subject", "translations__content"]
     resource_class = EmailResource
 
@@ -270,7 +273,15 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
 
-    fields = ("name", "regulation", "regulator", "is_detection_date_needed", "sectors", "opening_email", "closing_email")
+    fields = (
+        "name",
+        "regulation",
+        "regulator",
+        "is_detection_date_needed",
+        "sectors",
+        "opening_email",
+        "closing_email",
+    )
     filter_horizontal = [
         "sectors",
     ]

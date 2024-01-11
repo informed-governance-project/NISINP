@@ -45,16 +45,25 @@ Governance Platform
    permissions
 
 
+.. toctree::
+   :caption: User interface
+   :maxdepth: 3
+   :hidden:
+
+
+
+
 Presentation
 ------------
 
-Software for the `NC3-LU <https://github.com/NC3-LU>`_ Governance Platform.
+Incidents notifications platform by `NC3-LU <https://github.com/NC3-LU>`_
+developed in the framework of the Informed Governance Project.
 
 
 Contact
 -------
 
-`NC3 Luxembourg <https://www.nc3.lu>`_
+`NC3 Luxembourg <https://www.nc3.lu>`_ - `info@nc3.lu <info@nc3.lu>`_
 
 
 License
@@ -62,3 +71,8 @@ License
 
 The Governance Platform is licensed under
 `GNU Affero General Public License version 3 <https://www.gnu.org/licenses/agpl-3.0.html>`_.
+
+- Copyright (C) 2023-2024 Cédric Bonhomme <cedric.bonhomme@nc3.lu>
+- Copyright (C) 2023-2024 Jérôme Lombardi <jerome.lombardi@nc3.lu>
+- Copyright (C) 2023-2024 Juan Rocha <juan.rocha@nc3.lu>
+- Copyright (C) 2023-2024 `NC3 Luxembourg <https://www.nc3.lu>`_

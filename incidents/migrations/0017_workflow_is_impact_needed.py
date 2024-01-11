@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('incidents', '0016_remove_impact_is_generic_impact_and_more'),
+        ("incidents", "0016_remove_impact_is_generic_impact_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='workflow',
-            name='is_impact_needed',
-            field=models.BooleanField(default=False, verbose_name='Impacts are needed'),
+            model_name="workflow",
+            name="is_impact_needed",
+            field=models.BooleanField(default=False, verbose_name="Impacts are needed"),
         ),
     ]

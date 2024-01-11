@@ -17,7 +17,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
 django.setup()
 
 project = "Governance Platform"
-copyright = "LHC <info@nc3.lu>"
+copyright = "Luxembourg House of Cybersecurity 2023-2024"
 author = "NC3 Team <info@nc3.lu>"
 
 # The full version, including alpha/beta/rc tags

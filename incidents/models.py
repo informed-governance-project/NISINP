@@ -333,7 +333,7 @@ class Incident(models.Model):
     def are_impacts_present(self):
         impacts = Impact.objects.all().filter(
             regulation=self.sector_regulation.regulation,
-            sectors__in=self.affected_sectors.all()
+            sectors__in=self.affected_sectors.all(),
         )
         return impacts.count() > 0
 
@@ -353,20 +353,24 @@ class Incident(models.Model):
 
     # TO DO : check if it returns always the correct values
     def get_latest_incident_workflows(self):
-        incident_workflows = IncidentWorkflow.objects.filter(
-            incident=self,
-        ).order_by(
-            "workflow", "-timestamp"
-        ).distinct("workflow")
+        incident_workflows = (
+            IncidentWorkflow.objects.filter(
+                incident=self,
+            )
+            .order_by("workflow", "-timestamp")
+            .distinct("workflow")
+        )
 
         return incident_workflows
 
     def get_latest_incident_workflow(self):
-        incident_workflow = IncidentWorkflow.objects.filter(
-            incident=self,
-        ).order_by(
-            "-timestamp"
-        ).first()
+        incident_workflow = (
+            IncidentWorkflow.objects.filter(
+                incident=self,
+            )
+            .order_by("-timestamp")
+            .first()
+        )
 
         return incident_workflow
 

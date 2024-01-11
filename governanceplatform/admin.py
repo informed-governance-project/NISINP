@@ -254,9 +254,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            readonly_fields += (
-                "identifier",
-            )
+            readonly_fields += ("identifier",)
 
         return readonly_fields
 

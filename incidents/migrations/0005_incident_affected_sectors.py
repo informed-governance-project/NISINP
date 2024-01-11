@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('governanceplatform', '0004_remove_sector_specific_impact'),
-        ('incidents', '0004_remove_question_predefined_answers_and_more'),
+        ("governanceplatform", "0004_remove_sector_specific_impact"),
+        ("incidents", "0004_remove_question_predefined_answers_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='incident',
-            name='affected_sectors',
-            field=models.ManyToManyField(to='governanceplatform.sector'),
+            model_name="incident",
+            name="affected_sectors",
+            field=models.ManyToManyField(to="governanceplatform.sector"),
         ),
     ]

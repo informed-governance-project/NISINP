@@ -1,7 +1,9 @@
 openapi: 3.0.3
 info:
-  title: ''
-  version: 0.0.0
+  title: NC3-LU Governance Platform
+  version: 1.0.0
+  description: API for the <a href="https://github.com/informed-governance-project"
+    rel="noopener noreferrer" target="_blank">Governance Platform</a> by NC3-LU.
 paths:
   /api/v1/company/:
     get:
@@ -214,13 +216,6 @@ components:
           type: string
           title: Incident identifier
           maxLength: 22
-        preliminary_notification_date:
-          type: string
-          format: date
-        final_notification_date:
-          type: string
-          format: date
-          nullable: true
         company_name:
           type: string
           maxLength: 100
@@ -232,7 +227,7 @@ components:
         regulations:
           type: array
           items:
-            $ref: '#/components/schemas/RegulationType'
+            $ref: '#/components/schemas/Regulation'
           readOnly: true
         is_significative_impact:
           type: boolean
@@ -242,7 +237,7 @@ components:
       - company_name
       - incident_id
       - regulations
-    RegulationType:
+    Regulation:
       type: object
       description: Serializer that saves :class:`TranslatedFieldsField` automatically.
       properties:

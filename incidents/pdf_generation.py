@@ -9,7 +9,6 @@ from .models import Answer, Incident
 
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
-
     # TO DO : improve for more than 2 level ?
     sectors: Dict[str, List(str)] = {}
     for sector in incident.affected_sectors.all():
@@ -29,9 +28,7 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
         if incident_workflow.workflow.name not in incident_workflows_impact:
             incident_workflows_impact[incident_workflow.workflow.name] = []
 
-        answers = Answer.objects.all().filter(
-            incident_workflow=incident_workflow
-        )
+        answers = Answer.objects.all().filter(incident_workflow=incident_workflow)
         for answer in answers.all():
             populate_questions_answers(
                 answer,
