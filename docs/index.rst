@@ -76,3 +76,4 @@ The Governance Platform is licensed under
 - Copyright (C) 2023-2024 Jérôme Lombardi <jerome.lombardi@nc3.lu>
 - Copyright (C) 2023-2024 Juan Rocha <juan.rocha@nc3.lu>
 - Copyright (C) 2023-2024 `NC3 Luxembourg <https://www.nc3.lu>`_
+- Copyright (C) 2023-2024 Ruslan Baidan <ruslan.baidan@nc3.lu>
