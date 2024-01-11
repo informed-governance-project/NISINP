@@ -218,9 +218,15 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "subject", "content",]
+    list_display = ["creator_name", "name", "subject", "content",]
     search_fields = ["translations__subject", "translations__content"]
+    fields = ("name", "subject", "content")
     resource_class = EmailResource
+
+    def save_model(self, request, obj, form, change):
+        obj.creator_name = request.user.regulators.all().first().name
+        obj.creator_id = request.user.regulators.all().first()
+        super().save_model(request, obj, form, change)
 
 
 class WorkflowResource(resources.ModelResource):

@@ -95,6 +95,15 @@ class Email(TranslatableModel, models.Model):
         content=models.TextField(),
     )
     name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator_id = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.name if self.name is not None else ""
