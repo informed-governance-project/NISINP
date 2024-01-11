@@ -16,11 +16,11 @@ from governanceplatform.models import Regulation, Regulator, Sector, Service
 from .globals import REGIONAL_AREA
 from .models import (
     Answer,
+    Impact,
     Incident,
     IncidentWorkflow,
     Question,
     SectorRegulation,
-    Impact,
 )
 
 
@@ -149,7 +149,10 @@ class QuestionForm(forms.Form):
                         partial(is_not, None),
                         Answer.objects.values_list(
                             "predefined_answers", flat=True
-                        ).filter(question=question, incident_workflow__in=incident.get_latest_incident_workflows())
+                        ).filter(
+                            question=question,
+                            incident_workflow__in=incident.get_latest_incident_workflows(),
+                        )
                         # .order_by("position"),
                     )
                 )
@@ -175,7 +178,8 @@ class QuestionForm(forms.Form):
                     )
                 elif incident is not None:
                     answer = Answer.objects.values_list("answer", flat=True).filter(
-                        question=question, incident_workflow__in=incident.get_latest_incident_workflows()
+                        question=question,
+                        incident_workflow__in=incident.get_latest_incident_workflows(),
                     )
                 if len(answer) > 0:
                     if answer[0] != "":
@@ -205,10 +209,15 @@ class QuestionForm(forms.Form):
                             initial_data, "%Y-%m-%d %H:%M:%S"
                         ).date()
             elif incident is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question,
-                    incident_workflow__in=incident.get_latest_incident_workflows()
-                ).order_by("timestamp").first()
+                answer = (
+                    Answer.objects.values_list("answer", flat=True)
+                    .filter(
+                        question=question,
+                        incident_workflow__in=incident.get_latest_incident_workflows(),
+                    )
+                    .order_by("timestamp")
+                    .first()
+                )
                 if answer is not None:
                     if answer != "":
                         initial_data = answer
@@ -240,10 +249,15 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_data = list(filter(partial(is_not, ""), answer))[0]
             elif incident is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question,
-                    incident_workflow__in=incident.get_latest_incident_workflows()
-                ).order_by("timestamp").first()
+                answer = (
+                    Answer.objects.values_list("answer", flat=True)
+                    .filter(
+                        question=question,
+                        incident_workflow__in=incident.get_latest_incident_workflows(),
+                    )
+                    .order_by("timestamp")
+                    .first()
+                )
                 if answer is not None:
                     if answer != "":
                         initial_data = answer
@@ -492,9 +506,7 @@ def construct_regulation_array(regulators):
 
 
 class RegulatorForm(forms.Form):
-    initial_data = [
-        (k.id, k.name + ' ' + k.full_name) for k in Regulator.objects.all()
-    ]
+    initial_data = [(k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()]
 
     # generic impact definitions
     regulators = forms.MultipleChoiceField(
@@ -655,11 +667,10 @@ class ImpactForm(forms.Form):
     def construct_impact_array(self, incident):
         impacts_with_sector = Impact.objects.all().filter(
             regulation=incident.sector_regulation.regulation,
-            sectors__in=incident.affected_sectors.all()
+            sectors__in=incident.affected_sectors.all(),
         )
         impacts_without_sector = Impact.objects.all().filter(
-            regulation=incident.sector_regulation.regulation,
-            sectors=None
+            regulation=incident.sector_regulation.regulation, sectors=None
         )
         impacts = impacts_with_sector | impacts_without_sector
         impacts_array = []
@@ -679,11 +690,15 @@ class ImpactForm(forms.Form):
         if incident is not None:
             self.fields["impacts"].choices = self.construct_impact_array(incident)
         if incident_workflow is not None:
-            self.fields["impacts"].initial = [i.id for i in incident_workflow.impacts.all()]
+            self.fields["impacts"].initial = [
+                i.id for i in incident_workflow.impacts.all()
+            ]
         else:
             previous_incident_workflow = incident.get_latest_incident_workflow()
             if previous_incident_workflow is not None:
-                self.fields["impacts"].initial = [i.id for i in previous_incident_workflow.impacts.all()]
+                self.fields["impacts"].initial = [
+                    i.id for i in previous_incident_workflow.impacts.all()
+                ]
 
 
 # let the user change the date of his incident

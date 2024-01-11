@@ -2,7 +2,7 @@ from parler_rest.fields import TranslatedFieldsField
 from parler_rest.serializers import TranslatableModelSerializer
 from rest_framework import serializers
 
-from governanceplatform.models import Company, Service, User, Regulation
+from governanceplatform.models import Company, Regulation, Service, User
 from incidents.models import Incident
 
 
@@ -53,7 +53,6 @@ class CompanySerializer(serializers.ModelSerializer):
             "name",
             "country",
             "email",
-            "is_regulator",
             "sectors",
         ]
 
@@ -95,8 +94,6 @@ class IncidentSerializer(serializers.ModelSerializer):
         model = Incident
         fields = [
             "incident_id",
-            "preliminary_notification_date",
-            "final_notification_date",
             "company_name",
             "affected_services",
             "regulations",

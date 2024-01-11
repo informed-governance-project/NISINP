@@ -4,25 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('incidents', '0005_incident_affected_sectors'),
+        ("incidents", "0005_incident_affected_sectors"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='incident',
-            name='incident_detection_date',
+            model_name="incident",
+            name="incident_detection_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='incident',
-            name='incident_starting_date',
+            model_name="incident",
+            name="incident_starting_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='sectorregulation',
-            name='is_detection_date_needed',
-            field=models.BooleanField(default=False, verbose_name='Detection date needed'),
+            model_name="sectorregulation",
+            name="is_detection_date_needed",
+            field=models.BooleanField(
+                default=False, verbose_name="Detection date needed"
+            ),
         ),
     ]

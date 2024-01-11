@@ -47,8 +47,8 @@ from .models import (
     PredefinedAnswer,
     Question,
     SectorRegulation,
+    SectorRegulationWorkflow,
     Workflow,
-    SectorRegulationWorkflow
 )
 from .pdf_generation import get_pdf_report
 
@@ -209,7 +209,7 @@ def edit_workflow(request):
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
-            is_regulator=is_user_regulator(user)
+            is_regulator=is_user_regulator(user),
         )
         request.incident = incident_workflow.incident.id
         request.incident_workflow = incident_workflow.id
@@ -675,11 +675,16 @@ class FormWizardView(SessionWizardView):
         temps_ids = []
         sector_regulations = SectorRegulation.objects.none()
         if len(sectors_id) > 0:
-            sector_regulations = SectorRegulation.objects.all().filter(
-                sectors__in=sectors_id,
-                regulator__in=regulators_id,
-                regulation__in=regulations_id,
-            ).order_by().distinct()
+            sector_regulations = (
+                SectorRegulation.objects.all()
+                .filter(
+                    sectors__in=sectors_id,
+                    regulator__in=regulators_id,
+                    regulation__in=regulations_id,
+                )
+                .order_by()
+                .distinct()
+            )
             temps_ids = sector_regulations.values_list("id", flat=True)
 
         # add regulation without sector excluding the previous one
@@ -689,7 +694,9 @@ class FormWizardView(SessionWizardView):
                 regulator__in=regulators_id,
                 regulation__in=regulations_id,
                 sectors__in=[],
-            ).order_by().distinct()
+            )
+            .order_by()
+            .distinct()
             .exclude(id__in=temps_ids)
         )
 
@@ -719,17 +726,27 @@ class FormWizardView(SessionWizardView):
             if incident_created:
                 # check if the detection date is over
                 if sector_regulation.is_detection_date_needed:
-                    sr_workflow = SectorRegulationWorkflow.objects.all().filter(
-                        sector_regulation=sector_regulation,
-                    ).order_by("position").first()
+                    sr_workflow = (
+                        SectorRegulationWorkflow.objects.all()
+                        .filter(
+                            sector_regulation=sector_regulation,
+                        )
+                        .order_by("position")
+                        .first()
+                    )
                     actual_time = timezone.now()
                     if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
                         dt = actual_time - incident.incident_detection_date
-                        if round(dt.seconds/60/60, 0) > sr_workflow.delay_in_hours_before_deadline:
+                        if (
+                            round(dt.seconds / 60 / 60, 0)
+                            > sr_workflow.delay_in_hours_before_deadline
+                        ):
                             incident.review_status = "OUT"
 
                 sec = sector_regulation.sectors.values_list("id", flat=True)
-                selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
+                selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list(
+                    "id", flat=True
+                )
                 affected_sectors = selected_sectors & sec
                 incident.affected_sectors.set(affected_sectors)
                 # incident reference
@@ -748,7 +765,9 @@ class FormWizardView(SessionWizardView):
                             if sector.parent is not None:
                                 sector_for_ref = sector.parent.acronym[:3]
 
-                incidents_per_company = company.incident_set.count() + 1 if company else 0
+                incidents_per_company = (
+                    company.incident_set.count() + 1 if company else 0
+                )
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (
                     company_for_ref
@@ -794,7 +813,10 @@ class WorkflowWizardView(SessionWizardView):
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             if not is_user_regulator(user):
-                if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                if (
+                    position == len(self.form_list) - 1
+                    and self.workflow.is_impact_needed
+                ):
                     form = ImpactForm(incident=self.incident, data=data)
                 else:
                     form = QuestionForm(
@@ -804,12 +826,17 @@ class WorkflowWizardView(SessionWizardView):
                         incident=self.incident,
                     )
             else:
-                if position == len(self.form_list) - 2 and self.workflow.is_impact_needed:
+                if (
+                    position == len(self.form_list) - 2
+                    and self.workflow.is_impact_needed
+                ):
                     form = ImpactForm(incident=self.incident, data=data)
-                elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+                elif (
+                    position == len(self.form_list) - 1
+                    and self.workflow.is_impact_needed
+                ):
                     form = RegulatorIncidentWorkflowCommentForm(
-                        instance=self.incident_workflow,
-                        data=data
+                        instance=self.incident_workflow, data=data
                     )
                 else:
                     form = QuestionForm(
@@ -888,9 +915,9 @@ class WorkflowWizardView(SessionWizardView):
             data = [form.cleaned_data for form in form_list]
             if self.incident is None:
                 self.incident = Incident.objects.get(pk=self.request.incident)
-                self.incident.review_status = 'DELIV'
+                self.incident.review_status = "DELIV"
             else:
-                self.incident.review_status = 'DELIV'
+                self.incident.review_status = "DELIV"
 
             if self.workflow.submission_email is not None:
                 email = self.workflow.submission_email
@@ -903,11 +930,13 @@ class WorkflowWizardView(SessionWizardView):
         # save the comment if the user is regulator
         elif is_user_regulator(user):
             data = [form.cleaned_data for form in form_list]
-            incident_workflow = IncidentWorkflow.objects.all().filter(
-                incident=self.incident,
-                workflow=self.workflow
-            ).order_by("-timestamp").first()
-            incident_workflow.comment = data[len(data)-1]['comment']
+            incident_workflow = (
+                IncidentWorkflow.objects.all()
+                .filter(incident=self.incident, workflow=self.workflow)
+                .order_by("-timestamp")
+                .first()
+            )
+            incident_workflow.comment = data[len(data) - 1]["comment"]
             incident_workflow.save()
         return HttpResponseRedirect("/incidents")
 
@@ -919,14 +948,14 @@ def save_answers(index=0, data=None, incident=None, workflow=None):
     incident_workflow = IncidentWorkflow.objects.create(
         incident=incident, workflow=workflow
     )
-    incident_workflow.review_status = 'DELIV'
+    incident_workflow.review_status = "DELIV"
     incident_workflow.save()
     # TO DO manage impact
     offset_top = len(data)
     if workflow.is_impact_needed:
         # impact are the last form
         offset_top = offset_top - 1
-        incident_workflow.impacts.set(data[offset_top]['impacts'])
+        incident_workflow.impacts.set(data[offset_top]["impacts"])
 
     for d in range(index, offset_top):
         for key, value in data[d].items():

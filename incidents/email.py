@@ -22,7 +22,9 @@ def replace_email_variables(content, incident):
             var_txt = f'<a href="{final_notification_url}">{final_notification_url}</a>'
 
         else:
-            var_txt = getattr(incident, key) if getattr(incident, key) is not None else ''
+            var_txt = (
+                getattr(incident, key) if getattr(incident, key) is not None else ""
+            )
             if isinstance(var_txt, date):
                 var_txt = getattr(incident, key).strftime("%Y-%m-%d")
         modify_content = modify_content.replace(variable, var_txt)

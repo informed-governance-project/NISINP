@@ -1,8 +1,8 @@
+import math
+
 from django.utils import timezone
 
 from incidents.models import Incident, SectorRegulationWorkflow
-
-import math
 
 
 # Script to run every hour
@@ -14,25 +14,47 @@ def run():
         for incident_workflow in incident.get_latest_incident_workflows():
             # check status
             if incident_workflow.review_status != "PASS":
-                sector_regulation_workflow = SectorRegulationWorkflow.objects.all().filter(
+                sector_regulation_workflow = (
+                    SectorRegulationWorkflow.objects.all()
+                    .filter(
                         sector_regulation=incident.sector_regulation,
-                        workflow=incident_workflow.workflow
-                ).first()
+                        workflow=incident_workflow.workflow,
+                    )
+                    .first()
+                )
                 # check notif date
-                if sector_regulation_workflow.trigger_event_before_deadline == "NOTIF_DATE":
+                if (
+                    sector_regulation_workflow.trigger_event_before_deadline
+                    == "NOTIF_DATE"
+                ):
                     dt = actual_time - incident_workflow.timestamp
-                    if math.floor(dt.seconds/60/60) == sector_regulation_workflow.delay_in_hours_before_deadline:
+                    if (
+                        math.floor(dt.seconds / 60 / 60)
+                        == sector_regulation_workflow.delay_in_hours_before_deadline
+                    ):
                         incident_workflow.review_status = "OUT"
                 # detection date
-                elif sector_regulation_workflow.trigger_event_before_deadline == "DETECT_DATE":
+                elif (
+                    sector_regulation_workflow.trigger_event_before_deadline
+                    == "DETECT_DATE"
+                ):
                     if incident.incident_detection_date is not None:
                         dt = actual_time - incident.incident_detection_date
-                        if math.floor(dt.seconds/60/60) == sector_regulation_workflow.delay_in_hours_before_deadline:
+                        if (
+                            math.floor(dt.seconds / 60 / 60)
+                            == sector_regulation_workflow.delay_in_hours_before_deadline
+                        ):
                             incident_workflow.review_status = "OUT"
                 # previous incident_workflow
-                elif sector_regulation_workflow.trigger_event_before_deadline == "PREV_WORK":
+                elif (
+                    sector_regulation_workflow.trigger_event_before_deadline
+                    == "PREV_WORK"
+                ):
                     prev_work = incident_workflow.get_previous_workflow()
                     if prev_work is not False:
                         dt = actual_time - prev_work.timestamp
-                        if math.floor(dt.seconds/60/60) == sector_regulation_workflow.delay_in_hours_before_deadline:
+                        if (
+                            math.floor(dt.seconds / 60 / 60)
+                            == sector_regulation_workflow.delay_in_hours_before_deadline
+                        ):
                             incident_workflow.review_status = "OUT"

@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('incidents', '0009_sectorregulation_closing_email_and_more'),
-        ('incidents', '0010_alter_incident_incident_detection_date_and_more'),
+        ("incidents", "0009_sectorregulation_closing_email_and_more"),
+        ("incidents", "0010_alter_incident_incident_detection_date_and_more"),
     ]
 
-    operations = [
-    ]
+    operations = []

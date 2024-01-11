@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('incidents', '0002_remove_answer_incident_answer_incident_workflow'),
+        ("incidents", "0002_remove_answer_incident_answer_incident_workflow"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='question',
-            name='is_preliminary',
+            model_name="question",
+            name="is_preliminary",
         ),
     ]
