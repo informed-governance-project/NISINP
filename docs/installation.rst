@@ -7,7 +7,7 @@ Prerequisites
 Generally speaking, requirements are the following:
 
 - A GNU/Linux distribution. Tested on Debian Bookworm;
-- Python version >= 3.9. Tested with Python 3.11;
+- Python version >= 3.9. Tested with Python 3.11 and 3.12;
 - A PostgreSQL server for persistent storage. Tested with PostgreSQL 15.3.
 
 
