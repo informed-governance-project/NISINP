@@ -223,7 +223,7 @@ class QuestionForm(forms.Form):
                         initial_data = answer
                         initial_data = datetime.strptime(
                             initial_data, "%Y-%m-%d %H:%M:%S"
-                        ).date()
+                        )
             self.fields[str(question.id)] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
@@ -734,6 +734,8 @@ class IncidenteDateForm(forms.ModelForm):
         widget=DateTimePickerInput(
             options={
                 "format": "YYYY-MM-DD HH:mm:ss",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
+
             },
             attrs={
                 "data-bs-toggle": "tooltip",
@@ -746,6 +748,8 @@ class IncidenteDateForm(forms.ModelForm):
         widget=DateTimePickerInput(
             options={
                 "format": "YYYY-MM-DD HH:mm:ss",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
+
             },
             attrs={
                 "data-bs-toggle": "tooltip",
