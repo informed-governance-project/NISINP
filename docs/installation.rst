@@ -5,8 +5,8 @@ Installation
 Deployment
 ----------
 
-Ghetto dev installation
-~~~~~~~~~~~~~~~~~~~~~~~
+Containerized installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 container
 `````````
