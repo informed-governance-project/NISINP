@@ -1,6 +1,7 @@
 {% extends 'home/base.html' %}
 {% load django_bootstrap5 %}
 {% load custom_filters %}
+{% load static %}
 
 {% block content %}
 <script src="/static/npm_components/jquery/dist/jquery.min.js"></script>
@@ -58,4 +59,7 @@
 </div>
 <a href="{% url 'incidents' %}">{% bootstrap_button button_type="" content="Cancel"|translate button_class="btn-danger" %}</a>
 
+{% endblock %}
+{% block bootstrap5_extra_script %}
+  <script src='{% static "js/declaration.js" %}'></script>
 {% endblock %}
