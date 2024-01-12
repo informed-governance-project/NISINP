@@ -8,7 +8,7 @@ Deployment
 Containerized installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-container
+Container
 `````````
 
 .. code-block:: bash
@@ -17,7 +17,7 @@ container
     lxc exec governance-platform -- /bin/bash
 
 
-poetry
+Poetry
 ``````
 
 .. code-block:: bash
@@ -32,8 +32,8 @@ at the end of the `~/.bashrc`
     export PATH="/root/.local/bin:$PATH"
 
 
-postgres
-````````
+PostgreSQL
+``````````
 
 .. code-block:: bash
 
@@ -93,8 +93,8 @@ at the end of the `~/.bashrc`
     npm install
 
 
-Launch the Django app
-`````````````````````
+Launch the Django application
+`````````````````````````````
 
 .. code-block:: bash
 
