@@ -30,6 +30,7 @@ Governance Platform
    :maxdepth: 3
    :hidden:
 
+   prerequisites
    installation
    modules
    architecture
