@@ -1,12 +1,11 @@
 Installation
 ============
 
+This section covers the installation steps of the sofware.
 
-Deployment
-----------
 
 Containerized installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 Container
 `````````
@@ -35,6 +34,9 @@ at the end of the `~/.bashrc`
 PostgreSQL
 ``````````
 
+Install PostgreSQL, the version provided by default for your
+GNU/Linux distribution.
+
 .. code-block:: bash
 
     apt get install postgres-14
@@ -46,7 +48,6 @@ PostgreSQL
 
 Governance Platform
 ```````````````````
-
 
 .. code-block:: bash
 
@@ -99,3 +100,15 @@ Launch the Django application
 .. code-block:: bash
 
     poetry run python manage.py runserver 127.0.0.1:8000
+
+
+Apache WSGI module
+------------------
+
+The mod_wsgi package provides an Apache module that implements a WSGI compliant
+interface for hosting Python based web applications on top of the Apache web
+server.
+
+
+Example of VirtualHost configuration file
+`````````````````````````````````````````
