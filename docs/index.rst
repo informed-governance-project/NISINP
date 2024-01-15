@@ -57,14 +57,15 @@ Governance Platform
 Presentation
 ------------
 
-The Incidents Notifications platform by `NC3-LU <https://github.com/NC3-LU>`_
-developed in the framework of the Informed Governance Project.
+The Incidents Notifications platform is developed and maintained by
+`NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
+`Informed Governance Project <https://github.com/informed-governance-project>`_.
 
-This document is intended to be a documentation for operators and users of the software.
-If you find errors or omissions in this document, please don't hesitate to submit
+This document is intended to be a documentation for operators and users of the
+Incidents Notifications software (for the NIS 2 directive).
+If you find errors or omission, please don't hesitate to submit
 `an issue <https://github.com/informed-governance-project/governance-platform/issues/new?labels=documentation&template=bug_report.md>`_
 or open a pull request with a fix.
-
 
 
 
