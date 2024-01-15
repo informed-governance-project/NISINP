@@ -673,17 +673,17 @@ files = [
 
 [[package]]
 name = "django"
-version = "4.2.9"
+version = "5.0.1"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "Django-4.2.9-py3-none-any.whl", hash = "sha256:2cc2fc7d1708ada170ddd6c99f35cc25db664f165d3794bc7723f46b2f8c8984"},
-    {file = "Django-4.2.9.tar.gz", hash = "sha256:12498cc3cb8bc8038539fef9e90e95f507502436c1f0c3a673411324fa675d14"},
+    {file = "Django-5.0.1-py3-none-any.whl", hash = "sha256:f47a37a90b9bbe2c8ec360235192c7fddfdc832206fcf618bb849b39256affc1"},
+    {file = "Django-5.0.1.tar.gz", hash = "sha256:8c8659665bc6e3a44fefe1ab0a291e5a3fb3979f9a8230be29de975e57e8f854"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.6.0,<4"
+asgiref = ">=3.7.0,<4"
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
@@ -723,16 +723,17 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-cors-headers"
-version = "3.14.0"
+version = "4.3.1"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "django_cors_headers-3.14.0-py3-none-any.whl", hash = "sha256:684180013cc7277bdd8702b80a3c5a4b3fcae4abb2bf134dceb9f5dfe300228e"},
-    {file = "django_cors_headers-3.14.0.tar.gz", hash = "sha256:5fbd58a6fb4119d975754b2bc090f35ec160a8373f276612c675b00e8a138739"},
+    {file = "django-cors-headers-4.3.1.tar.gz", hash = "sha256:0bf65ef45e606aff1994d35503e6b677c0b26cafff6506f8fd7187f3be840207"},
+    {file = "django_cors_headers-4.3.1-py3-none-any.whl", hash = "sha256:0b1fd19297e37417fc9f835d39e45c8c642938ddba1acce0c1753d3edef04f36"},
 ]
 
 [package.dependencies]
+asgiref = ">=3.6"
 Django = ">=3.2"
 
 [[package]]
@@ -934,13 +935,13 @@ files = [
 
 [[package]]
 name = "drf-spectacular"
-version = "0.26.5"
+version = "0.27.0"
 description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "drf-spectacular-0.26.5.tar.gz", hash = "sha256:aee55330a774ba8a9cbdb125714d1c9ee05a8aafd3ce3be8bfd26527649aeb44"},
-    {file = "drf_spectacular-0.26.5-py3-none-any.whl", hash = "sha256:c0002a820b11771fdbf37853deb371947caf0159d1afeeffe7598e964bc1db94"},
+    {file = "drf-spectacular-0.27.0.tar.gz", hash = "sha256:18d7ae74b2b5d533fd31f1c591ebaa5cce1447e0976ced927401e3163040dea9"},
+    {file = "drf_spectacular-0.27.0-py3-none-any.whl", hash = "sha256:6ab2d20674244e8c940c2883f744b43c34fc68c70ea3aefa802f574108c9699b"},
 ]
 
 [package.dependencies]
@@ -957,13 +958,13 @@ sidecar = ["drf-spectacular-sidecar"]
 
 [[package]]
 name = "drf-spectacular-sidecar"
-version = "2023.12.1"
+version = "2024.1.1"
 description = "Serve self-contained distribution builds of Swagger UI and Redoc with Django"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "drf-spectacular-sidecar-2023.12.1.tar.gz", hash = "sha256:179422fd79db83774ccb177dc5ca22822691353f509343782ed8b941fd37b96d"},
-    {file = "drf_spectacular_sidecar-2023.12.1-py3-none-any.whl", hash = "sha256:65ac53674377691636722ec1a9b71f12203b483a90ae5f1afc5d216269eb299a"},
+    {file = "drf-spectacular-sidecar-2024.1.1.tar.gz", hash = "sha256:099ec58b6af6a90e851a9329b12a57aa1ee7daa6cef62fb504f2ed302f10da76"},
+    {file = "drf_spectacular_sidecar-2024.1.1-py3-none-any.whl", hash = "sha256:4b9e33b4dcfa43f84e3db2659d31766a018a2b98b02d8856d9cd69580a4911c9"},
 ]
 
 [package.dependencies]
@@ -3010,4 +3011,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7e166ff2e6ba948c2c233c402ce1e1861e7f0f01b32fb8ea5a5df949b1592717"
+content-hash = "61727ae9205c9469d394a481000466f1ab669fe81566373004b6f88e1e98427c"
