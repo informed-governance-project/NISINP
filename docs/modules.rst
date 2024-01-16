@@ -1,13 +1,14 @@
 Modules
 =======
 
-Main components of the governance platform:
+Main components of the software:
 
-- the governance module
-- the NIS Incident Notification module
+- the governance platform module (settings, administration panel and core
+  components);
+- the NIS 2 Incident Notification module (models and views related to the
+  incidents notifications);
+- the API.
 
-Governance
-----------
 
 Incident Notification
 ---------------------
