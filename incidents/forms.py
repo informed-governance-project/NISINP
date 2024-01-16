@@ -158,19 +158,34 @@ class QuestionForm(forms.Form):
                 )
             for choice in question.predefinedanswer_set.all().order_by("position"):
                 choices.append([choice.id, choice])
-            self.fields[str(question.id)] = forms.MultipleChoiceField(
-                required=question.is_mandatory,
-                choices=choices,
-                widget=OtherCheckboxSelectMultiple(
-                    input_type=input_type,
-                    attrs={
-                        "title": question.tooltip,
-                        "data-bs-toggle": "tooltip",
-                    },
-                ),
-                label=question.label,
-                initial=initial_data,
-            )
+            if question.question_type == "MULTI" or question.question_type == "MT":
+                self.fields[str(question.id)] = forms.MultipleChoiceField(
+                    required=question.is_mandatory,
+                    choices=choices,
+                    widget=forms.CheckboxSelectMultiple(
+                        attrs={
+                            "title": question.tooltip,
+                            "data-bs-toggle": "tooltip",
+                        },
+                    ),
+                    label=question.label,
+                    initial=initial_data,
+                )
+            else:
+                self.fields[str(question.id)] = forms.MultipleChoiceField(
+                    required=question.is_mandatory,
+                    choices=choices,
+                    widget=OtherCheckboxSelectMultiple(
+                        input_type=input_type,
+                        attrs={
+                            "title": question.tooltip,
+                            "data-bs-toggle": "tooltip",
+                        },
+                    ),
+                    label=question.label,
+                    initial=initial_data,
+                )
+
             if question.question_type == "MT" or question.question_type == "ST":
                 if incident_workflow is not None:
                     answer = Answer.objects.values_list("answer", flat=True).filter(
@@ -185,7 +200,7 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
                 self.fields[str(question.id) + "_answer"] = forms.CharField(
-                    required=True,
+                    required=question.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
