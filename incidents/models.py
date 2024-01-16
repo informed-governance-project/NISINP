@@ -18,7 +18,10 @@ from .globals import (
 class Impact(TranslatableModel):
     """Defines an impact."""
 
-    translations = TranslatedFields(label=models.TextField())
+    translations = TranslatedFields(
+        label=models.TextField(),
+        headline=models.CharField(max_length=255, blank=True, default=None, null=True),
+    )
     regulation = models.ForeignKey(
         "governanceplatform.Regulation",
         on_delete=models.CASCADE,
@@ -91,6 +94,7 @@ class PredefinedAnswer(TranslatableModel):
 # Email sent from regulator to operator
 class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
+        headline=models.CharField(max_length=255, blank=True, default=None, null=True),
         subject=models.CharField(max_length=255, blank=True, default=None, null=True),
         content=models.TextField(),
     )
