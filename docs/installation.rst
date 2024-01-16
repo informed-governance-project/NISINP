@@ -39,7 +39,7 @@ GNU/Linux distribution.
 
 .. code-block:: bash
 
-    apt get install postgres-14
+    sudo apt-get install postgresql-15
     sudo su postgres
     psql
     /password postgres
@@ -109,6 +109,102 @@ The mod_wsgi package provides an Apache module that implements a WSGI compliant
 interface for hosting Python based web applications on top of the Apache web
 server.
 
+For the next steps you must have a valid domain name.
+
 
 Example of VirtualHost configuration file
 `````````````````````````````````````````
+
+Only in the case you can not use the version of mod_wsgi from your
+GNU/Linux distribution.
+
+
+.. code-block:: bash
+
+    $ sudo apt install apache2 apache2-dev # apxs2
+    $ wget https://github.com/GrahamDumpleton/mod_wsgi/archive/refs/tags/5.0.0.tar.gz
+    $ tar -xzvf 5.0.0.tar.gz
+    $ cd mod_wsgi-5.0.0/
+    $ ./configure --with-apxs=/usr/bin/apxs2 --with-python=/home/<user>/.pyenv/shims/python
+    $ make
+    $ sudo make install
+
+
+Then in ```/etc/apache2/apache2.conf``` add the lines:
+
+.. code-block:: bash
+
+    LoadFile /home/<user>/.pyenv/versions/3.11.0/lib/libpython3.11.so
+    LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
+
+
+Restart Apache:
+
+.. code-block:: bash
+
+    sudo systemctl restart apache2.service
+
+
+Create an Apache VirtualHost. Below is an example:
+
+
+.. code-block:: apacheconf
+
+    <VirtualHost *:80>
+        ServerName serima.monarc.lu
+
+        RewriteEngine On
+        RewriteCond %{REQUEST_METHOD} !^(GET|POST|PUT|PATCH|DELETE|HEAD)
+        RewriteRule .* - [R=405,L]
+
+        Redirect permanent / https://serima.monarc.lu/
+    </VirtualHost>
+
+    <VirtualHost _default_:443>
+        ServerName serima.monarc.lu
+        ServerAdmin info@nc3.lu
+        DocumentRoot ~/SERIMA/governance-platform
+
+        WSGIDaemonProcess serima python-path=~/SERIMA/governance-platform python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.8
+        WSGIProcessGroup serima
+        WSGIScriptAlias / ~/SERIMA/governance-platform/governanceplatform/wsgi.py
+
+        <Directory "~/SERIMA/governance-platform/governanceplatform/">
+            <Files "wsgi.py">
+                Require all granted
+            </Files>
+            WSGIApplicationGroup %{GLOBAL}
+            WSGIPassAuthorization On
+
+            Options Indexes FollowSymLinks
+            Require all granted
+        </Directory>
+
+        Alias /static ~/SERIMA/governance-platform/governanceplatform/static
+        <Directory ~/SERIMA/governance-platform/governance-platform/static>
+            Require all granted
+        </Directory>
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+        CustomLog /var/log/apache2/SERIMA/access.log combined
+        ErrorLog /var/log/apache2/SERIMA/error.log
+
+        Include /etc/letsencrypt/options-ssl-apache.conf
+        ServerAlias serima.monarc.lu
+        SSLCertificateFile /etc/letsencrypt/live/serima.monarc.lu/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/serima.monarc.lu/privkey.pem
+    </VirtualHost>
+
+
+Then configure HTTPS properly.
+
+.. code-block:: bash
+
+    sudo apt install certbot python3-certbot-apache
+    sudo certbot certonly --standalone -d serima.monarc.lu
+    sudo a2enmod rewrite
+    sudo systemctl restart apache2.service
