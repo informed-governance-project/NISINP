@@ -38,6 +38,7 @@
                     <td>{% translate "Status" %}</td>
                 </tr>
             </table></th>
+            <th scope="col">{% translate "Significative impact" %}</th>
             <th scope="col">{% translate "Incident status" %}</th>
             <!-- <th scope="col">{% translate "Review status" %}</th> -->
             <th scope="col">{% translate "Action" %}</th>
@@ -122,6 +123,13 @@
                     {% endfor %}
                     {% endwith %}
                 </table>
+            </td>
+            <td>
+                {% if incident.is_significative_impact %}
+                    &#x2713;
+                {% else %}
+                    &#x2717;
+                {% endif %}
             </td>
             <td>{{ incident.get_incident_status_display }}</td>
             <!-- <td scope="row" class="{% status_class incident.review_status %}">
