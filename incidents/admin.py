@@ -217,7 +217,12 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["creator_name", "name", "subject", "content",]
+    list_display = [
+        "creator_name",
+        "name",
+        "subject",
+        "content",
+    ]
     search_fields = ["translations__subject", "translations__content"]
     fields = ("name", "subject", "content")
     resource_class = EmailResource
@@ -306,7 +311,9 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class SectorRegulationWorkflowEmailResource(resources.ModelResource):
+class SectorRegulationWorkflowEmailResource(
+    TranslationUpdateMixin, resources.ModelResource
+):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
 
     class Meta:
@@ -314,8 +321,23 @@ class SectorRegulationWorkflowEmailResource(resources.ModelResource):
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin):
-    list_display = ["sector_regulation_workflow", "trigger_event", "delay_in_hours"]
-    search_fields = ["sector_regulation_workflow__workflow__translations__name"]
+class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
+    list_display = [
+        "regulation",
+        "sector_regulation_workflow",
+        "headline",
+        "trigger_event",
+        "delay_in_hours",
+    ]
+    search_fields = [
+        "sector_regulation_workflow__workflow__translations__name",
+        "headline",
+    ]
     resource_class = SectorRegulationWorkflowEmailResource
-    fields = ("sector_regulation_workflow", "email", "trigger_event", "delay_in_hours")
+    fields = (
+        "sector_regulation_workflow",
+        "headline",
+        "email",
+        "trigger_event",
+        "delay_in_hours",
+    )
