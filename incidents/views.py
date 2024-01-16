@@ -957,6 +957,15 @@ def save_answers(index=0, data=None, incident=None, workflow=None):
         offset_top = offset_top - 1
         incident_workflow.impacts.set(data[offset_top]["impacts"])
 
+        if len(data[offset_top]["impacts"]) > 0:
+            incident = incident_workflow.incident
+            incident.is_significative_impact = True
+            incident.save()
+        else:
+            incident = incident_workflow.incident
+            incident.is_significative_impact = False
+            incident.save()
+
     for d in range(index, offset_top):
         for key, value in data[d].items():
             question_id = None
