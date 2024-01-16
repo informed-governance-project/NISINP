@@ -27,6 +27,16 @@ and disk space, particularly for the database, especially when it shares the
 same server. This proactive approach ensures smoother performance and
 mitigates potential resource constraints.
 
+A decent configuration for a server would be:
+
+- number of vCPU: 4;
+- RAM (GB): 4;
+- HDD (GB): 20.
+
+The application will function seamlessly with these settings.
+Moreover, these values are relatively low when considering the capacity of
+modern servers.
+
 
 Network
 -------
