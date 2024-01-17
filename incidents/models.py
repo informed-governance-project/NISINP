@@ -94,7 +94,6 @@ class PredefinedAnswer(TranslatableModel):
 # Email sent from regulator to operator
 class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
-        headline=models.CharField(max_length=255, blank=True, default=None, null=True),
         subject=models.CharField(max_length=255, blank=True, default=None, null=True),
         content=models.TextField(),
     )
@@ -213,7 +212,11 @@ class SectorRegulationWorkflow(models.Model):
 
 
 # for emailing during each workflow
-class SectorRegulationWorkflowEmail(models.Model):
+class SectorRegulationWorkflowEmail(TranslatableModel):
+    translations = TranslatedFields(
+        headline=models.CharField(max_length=255, blank=True, default=None, null=True),
+    )
+
     sector_regulation_workflow = models.ForeignKey(
         SectorRegulationWorkflow, on_delete=models.CASCADE
     )
@@ -231,6 +234,12 @@ class SectorRegulationWorkflowEmail(models.Model):
     class Meta:
         verbose_name_plural = "Emails for Incident notification workflows"
         verbose_name = "Email for Incident notification workflow"
+
+    def __str__(self):
+        return self.headline if self.headline is not None else ""
+
+    def regulation(self):
+        return self.sector_regulation_workflow.sector_regulation.regulation
 
 
 # incident
