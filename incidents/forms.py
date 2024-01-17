@@ -750,7 +750,6 @@ class IncidenteDateForm(forms.ModelForm):
             options={
                 "format": "YYYY-MM-DD HH:mm:ss",
                 "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-
             },
             attrs={
                 "data-bs-toggle": "tooltip",
@@ -764,7 +763,6 @@ class IncidenteDateForm(forms.ModelForm):
             options={
                 "format": "YYYY-MM-DD HH:mm:ss",
                 "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-
             },
             attrs={
                 "data-bs-toggle": "tooltip",

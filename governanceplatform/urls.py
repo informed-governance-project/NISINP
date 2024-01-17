@@ -67,7 +67,9 @@ urlpatterns = [
     path(
         "robots.txt",
         TemplateView.as_view(
-            template_name="home/robots.txt", content_type="text/plain; charset=utf8"
+            template_name="home/robots.txt",
+            content_type="text/plain; charset=utf8",
+            extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
         ),
     ),
     path(

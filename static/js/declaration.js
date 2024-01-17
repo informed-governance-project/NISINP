@@ -17,4 +17,3 @@ for(selectpicker of selectpickers) {
         $('#'+id).selectpicker('val', values);
     }
 }
-
