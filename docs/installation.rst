@@ -165,7 +165,7 @@ Create an Apache VirtualHost. Below is an example:
         ServerAdmin info@nc3.lu
         DocumentRoot ~/SERIMA/governance-platform
 
-        WSGIDaemonProcess serima python-path=~/SERIMA/governance-platform python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.8
+        WSGIDaemonProcess serima python-path=~/SERIMA/governance-platform python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.11
         WSGIProcessGroup serima
         WSGIScriptAlias / ~/SERIMA/governance-platform/governanceplatform/wsgi.py
 
