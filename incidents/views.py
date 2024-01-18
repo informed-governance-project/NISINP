@@ -919,8 +919,11 @@ class WorkflowWizardView(SessionWizardView):
             else:
                 self.incident.review_status = "DELIV"
 
-            if self.workflow.submission_email is not None:
-                email = self.workflow.submission_email
+            email = (
+                self.workflow.submission_email
+                if self.workflow.submission_email
+                else None
+            )
 
             self.incident.save()
             # manage question

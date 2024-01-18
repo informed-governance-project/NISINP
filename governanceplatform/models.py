@@ -23,11 +23,11 @@ class Sector(TranslatableModel):
 
     def __str__(self):
         if self.name is not None and self.parent is not None:
-            return self.parent.name+' --> '+self.name
+            return self.parent.name + " --> " + self.name
         elif self.name is not None and self.parent is None:
             return self.name
         else:
-            return ''
+            return ""
 
     class Meta:
         verbose_name = _("Sector")
