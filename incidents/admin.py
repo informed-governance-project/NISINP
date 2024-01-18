@@ -176,11 +176,29 @@ class ImpactRegulationListFilter(SimpleListFilter):
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
         "regulation",
+        "headline",
         "label",
     ]
     search_fields = ["translations__label", "regulation__translations__label"]
+    fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
+
+    def formfield_for_manytomany(
+        self,
+        db_field,
+        request,
+        **kwargs
+    ):
+        # TO DO : display a hierarchy
+        # Energy
+        #   -> ELEC
+        #   -> GAZ
+        # See MPTT
+        if db_field.name == "sectors":
+            kwargs["queryset"] = Sector.objects.all()
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class IncidentResource(resources.ModelResource):

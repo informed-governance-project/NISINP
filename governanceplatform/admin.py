@@ -98,6 +98,15 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
             return False
         return super().has_module_permission(request)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "parent":
+            # Regulator Admin
+            kwargs["queryset"] = Sector.objects.filter(
+                parent=None
+            )
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(

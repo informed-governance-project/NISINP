@@ -22,7 +22,12 @@ class Sector(TranslatableModel):
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        if self.name is not None and self.parent is not None:
+            return self.parent.name+' --> '+self.name
+        elif self.name is not None and self.parent is None:
+            return self.name
+        else:
+            return ''
 
     class Meta:
         verbose_name = _("Sector")
