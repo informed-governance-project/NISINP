@@ -184,12 +184,7 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
 
-    def formfield_for_manytomany(
-        self,
-        db_field,
-        request,
-        **kwargs
-    ):
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
         # TO DO : display a hierarchy
         # Energy
         #   -> ELEC
