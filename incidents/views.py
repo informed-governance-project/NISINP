@@ -833,7 +833,6 @@ class WorkflowWizardView(SessionWizardView):
                     form = ImpactForm(incident=self.incident, data=data)
                 elif (
                     position == len(self.form_list) - 1
-                    and self.workflow.is_impact_needed
                 ):
                     form = RegulatorIncidentWorkflowCommentForm(
                         instance=self.incident_workflow, data=data
@@ -886,7 +885,7 @@ class WorkflowWizardView(SessionWizardView):
             categ_list.sort(key=lambda c: c.position)
 
             context["steps"] = categ_list
-            if Workflow.is_impact_needed:
+            if self.workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
 
             user = self.request.user
