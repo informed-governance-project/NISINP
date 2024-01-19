@@ -7,6 +7,8 @@ from weasyprint import CSS, HTML
 
 from .models import Answer, Incident
 
+from governanceplatform.settings import BASE_DIR
+
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
     # TO DO : improve for more than 2 level ?
@@ -50,7 +52,7 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
         request=request,
     )
 
-    base_url = os.path.abspath("incidents/templates/report")
+    base_url = os.path.join(BASE_DIR, "incidents/templates/report")
     htmldoc = HTML(string=output_from_parsed_template, base_url=base_url)
 
     stylesheets = [
