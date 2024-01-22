@@ -406,6 +406,9 @@ def download_incident_pdf(request, incident_id: int):
             pk=incident_id, affected_services__sector__in=request.user.sectors.all()
         ).exists()
     ):
+        messages.warning(
+            request, _("You can only access incidents from accessible sectors.")
+        )
         return HttpResponseRedirect("/incidents")
     # OperatorAdmin can access only incidents related to selected company.
     if (
@@ -414,6 +417,9 @@ def download_incident_pdf(request, incident_id: int):
             pk=incident_id, company__id=request.session.get("company_in_use")
         ).exists()
     ):
+        messages.warning(
+            request, _("You can only access incidents related to selected company.")
+        )
         return HttpResponseRedirect("/incidents")
     # OperatorStaff and IncidentUser can access only their reports.
     if (
@@ -423,12 +429,17 @@ def download_incident_pdf(request, incident_id: int):
             pk=incident_id, contact_user=request.user
         ).exists()
     ):
+        messages.warning(
+            request, _("You can only access the incidents reports you have created.")
+        )
         return HttpResponseRedirect("/incidents")
 
     incident = Incident.objects.get(pk=incident_id)
 
     try:
+        print("generating PDF")
         pdf_report = get_pdf_report(incident, request)
+        print("generation done")
     except Exception:
         messages.warning(request, _("An error occurred when generating the report."))
         return HttpResponseRedirect(target)
@@ -831,9 +842,7 @@ class WorkflowWizardView(SessionWizardView):
                     and self.workflow.is_impact_needed
                 ):
                     form = ImpactForm(incident=self.incident, data=data)
-                elif (
-                    position == len(self.form_list) - 1
-                ):
+                elif position == len(self.form_list) - 1:
                     form = RegulatorIncidentWorkflowCommentForm(
                         instance=self.incident_workflow, data=data
                     )
