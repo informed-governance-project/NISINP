@@ -437,9 +437,7 @@ def download_incident_pdf(request, incident_id: int):
     incident = Incident.objects.get(pk=incident_id)
 
     try:
-        print("generating PDF")
         pdf_report = get_pdf_report(incident, request)
-        print("generation done")
     except Exception:
         messages.warning(request, _("An error occurred when generating the report."))
         return HttpResponseRedirect(target)
