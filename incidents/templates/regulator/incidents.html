@@ -15,7 +15,11 @@
 
 {% block content %}
 <h3>{{ _('Reported incidents') }}</h3>
-{% if incidents %}
+{% if filter.qs %}
+<form method="get">
+    {{ filter.form.as_p }}
+    <input type="submit" />
+</form>
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
@@ -38,13 +42,19 @@
         </tr>
     </thead>
     <tbody>
-        {% for incident in incidents %}
+        {% for incident in filter.qs %}
         <tr>
                 {% timezone "Europe/Paris" %}
                 <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
                 {% endtimezone %}
                 <td>{{ incident.sector_regulation.regulation }}</td>
-                <td>{% bootstrap_field incident.formsStatus.incident_id show_label=False wrapper_class="m-0" %}</td>
+                <td>
+                    {% for field in incident.formsStatus %}
+                        {% if field.name == "incident_id" %}
+                        {% bootstrap_field field show_label=False wrapper_class="m-0" %}
+                        {% endif %}
+                    {% endfor %}
+                </td>
                 <td>{{ incident.company.identifier }}</td>
                 <td>
                     <ul class="m-0 p-0">
@@ -91,11 +101,18 @@
                         {% endfor %}
                     </table>
                 </td>
-                <td>{% bootstrap_field incident.formsStatus.incident_status show_label=False wrapper_class="m-0" %}</td>
-                <!-- <td id="review_status_{{incident.pk}}" class="{% status_class incident.review_status %}">
-                    {% bootstrap_field incident.formsStatus.review_status show_label=False wrapper_class="m-0"%}
-                </td> -->
-                <td>{% bootstrap_field incident.formsStatus.is_significative_impact show_label=False wrapper_class="d-flex align-items-center justify-content-center" %}</td>
+                <td>
+                    {% for field in incident.formsStatus %}
+                        {% if field.name == "incident_status" %}
+                        {% bootstrap_field field show_label=False wrapper_class="m-0" %}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{% for field in incident.formsStatus %}
+                        {% if field.name == "is_significative_impact" %}
+                        {% bootstrap_field field show_label=False wrapper_class="d-flex align-items-center justify-content-center" %}
+                        {% endif %}
+                    {% endfor %}</td>
                 <td style="white-space: nowrap;">
                     <a href="{% url 'download_incident_pdf' incident.id %}">
                         <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">

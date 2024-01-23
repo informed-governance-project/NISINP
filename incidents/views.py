@@ -51,6 +51,7 @@ from .models import (
     Workflow,
 )
 from .pdf_generation import get_pdf_report
+from .filters import IncidentFilter
 
 
 @login_required
@@ -62,6 +63,7 @@ def get_incidents(request):
 
     if is_user_regulator(user):
         # Filter indients by regulator
+
         incidents = incidents.filter(
             sector_regulation__regulator__in=user.regulators.all()
         )
@@ -79,6 +81,8 @@ def get_incidents(request):
             incident.formsStatus = IncidentStatusForm(
                 instance=incident,
             )
+
+        f = IncidentFilter(request.GET, queryset=incidents)
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
@@ -108,6 +112,7 @@ def get_incidents(request):
             "site_name": SITE_NAME,
             "incidents": incidents,
             "incidents_page": incidents_page,
+            "filter": f
         },
     )
 
