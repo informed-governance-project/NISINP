@@ -5,9 +5,9 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
 
-from .models import Answer, Incident
-
 from governanceplatform.settings import BASE_DIR
+
+from .models import Answer, Incident
 
 
 def get_pdf_report(incident: Incident, request: HttpRequest):
