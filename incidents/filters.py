@@ -4,12 +4,14 @@ from governanceplatform.models import Sector
 from .forms import IncidentWorkflowForm, IncidentStatusForm
 from django.db.models.functions import Concat
 from django.db.models import Case, Value, When
+from django.utils.translation import get_language
 
 
 # define a tree view for the sectors (only work with 2 levels)
-# TO DO : improve, it gets extra record due to translations
+# Only fetch on the current language
 def affected_sectors(request):
-    return Sector.objects.annotate(
+
+    return Sector.objects.translated(get_language()).annotate(
         full_name=Case(
             When(parent__isnull=False, then=Concat('parent__translations__name', Value(' --> '), 'translations__name')),
             default='translations__name',
