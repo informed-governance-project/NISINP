@@ -1,14 +1,15 @@
 import django_filters
+
+from .forms import IncidentStatusForm, IncidentWorkflowForm
 from .models import Incident
-from .forms import IncidentWorkflowForm, IncidentStatusForm
 
 
 class IncidentFilter(django_filters.FilterSet):
-    incident_id = django_filters.CharFilter(lookup_expr='iexact')
+    incident_id = django_filters.CharFilter(lookup_expr="iexact")
 
     class Meta:
         model = Incident
-        fields = ['incident_id', 'incident_status']
+        fields = ["incident_id", "incident_status"]
 
     @property
     def qs(self):

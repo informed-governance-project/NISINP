@@ -4,6 +4,7 @@
 {% load static %}
 {% load custom_filters %}
 {% load django_bootstrap5 %}
+{% load mptt_tags %}
 
 {% block bootstrap5_extra_script %}
 <script type="text/javascript" src="{% static 'npm_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
@@ -58,14 +59,16 @@
                 <td>{{ incident.company.identifier }}</td>
                 <td>
                     <ul class="m-0 p-0">
-                        {% for sector in incident.affected_sectors.all %}
-                            {% if sector.parent is None %}
-                                {{ sector.name }}
-                            {% else %}
-                                {{ sector.parent }}
-                            {% endif %}
-                            <br/>
-                        {% endfor %}
+                        {% recursetree incident.affected_sectors.all %}
+                            <li>
+                                {{ node.name }}
+                                {% if not node.is_leaf_node %}
+                                    <ul class="children">
+                                        {{ children }}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endrecursetree %}
                     </ul>
                 </td>
                 <td>

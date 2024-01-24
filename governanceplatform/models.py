@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from mptt.models import MPTTModel, TreeForeignKey
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -9,14 +10,14 @@ from .managers import CustomUserManager
 
 
 # sector
-class Sector(TranslatableModel):
+class Sector(TranslatableModel, MPTTModel):
     translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
-    parent = models.ForeignKey(
+    parent = TreeForeignKey(
         "self",
-        null=True,
         on_delete=models.CASCADE,
+        null=True,
         blank=True,
-        default=None,
+        related_name="children",
         verbose_name=_("parent"),
     )
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
@@ -32,6 +33,9 @@ class Sector(TranslatableModel):
     class Meta:
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")
+
+    class MPTTMeta:
+        order_insertion_by = ["translations"]
 
 
 # esssential services

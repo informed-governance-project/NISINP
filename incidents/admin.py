@@ -4,6 +4,8 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
+
+# from mptt.admin import DraggableMPTTAdmin, MPTTModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
@@ -22,6 +24,8 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+
+# admin.site.register(Sector, DraggableMPTTAdmin)
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
@@ -182,18 +186,19 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["translations__label", "regulation__translations__label"]
     fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
-    list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
+    # list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
+    list_filter = [ImpactRegulationListFilter]
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        # TO DO : display a hierarchy
-        # Energy
-        #   -> ELEC
-        #   -> GAZ
-        # See MPTT
-        if db_field.name == "sectors":
-            kwargs["queryset"] = Sector.objects.all()
+    # def formfield_for_manytomany(self, db_field, request, **kwargs):
+    #     # TO DO : display a hierarchy
+    #     # Energy
+    #     #   -> ELEC
+    #     #   -> GAZ
+    #     # See MPTT
+    #     if db_field.name == "sectors":
+    #         kwargs["queryset"] = Sector.objects.all()
 
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+    #     return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class IncidentResource(resources.ModelResource):

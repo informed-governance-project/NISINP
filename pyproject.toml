@@ -41,6 +41,7 @@ django-parler-rest = "^2.2"
 python-dateutil = "^2.8.2"
 django-phonenumber-field = "^7.3.0"
 django-filter = "^23.5"
+django-mptt = "^0.16.0"
 
 
 [tool.poetry.group.dev.dependencies]

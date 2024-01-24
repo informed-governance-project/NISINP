@@ -28,6 +28,7 @@ from governanceplatform.settings import (
 
 from .decorators import regulator_role_required
 from .email import send_email
+from .filters import IncidentFilter
 from .forms import (
     ContactForm,
     ImpactForm,
@@ -51,7 +52,6 @@ from .models import (
     Workflow,
 )
 from .pdf_generation import get_pdf_report
-from .filters import IncidentFilter
 
 
 @login_required
@@ -112,7 +112,7 @@ def get_incidents(request):
             "site_name": SITE_NAME,
             "incidents": incidents,
             "incidents_page": incidents_page,
-            "filter": f
+            "filter": f,
         },
     )
 
