@@ -100,6 +100,7 @@ function getReviewStatusClass(reviewStatus) {
 
   $('#incidents-table').DataTable( {
     paging: false,
+    searching: false,
     order: [[0, 'mydate-desc']],
     columnDefs: [
         {

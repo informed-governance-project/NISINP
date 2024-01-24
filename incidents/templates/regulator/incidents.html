@@ -18,8 +18,9 @@
 <h3>{{ _('Reported incidents') }}</h3>
 {% if filter.qs %}
 <form method="get">
-    {{ filter.form.as_p }}
-    <input type="submit" />
+    {% bootstrap_form filter.form %}
+    <!-- {% bootstrap_field filter.form.incident_id show_label=True %} -->
+    <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
 </form>
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
@@ -37,7 +38,6 @@
                 </tr>
             </table></th>
             <th scope="col">{% translate "Incident status" %}</th>
-            <!-- <th scope="col">{% translate "Review status" %}</th> -->
             <th scope="col">{% translate "Significative impact" %}</th>
             <th scope="col">{% translate "Actions" %}</th>
         </tr>
