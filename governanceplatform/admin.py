@@ -101,8 +101,10 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parent":
             # Regulator Admin
-            curent_id = request.resolver_match.kwargs['object_id']
-            kwargs["queryset"] = Sector.objects.filter(parent=None).exclude(pk=curent_id)
+            current_id = None
+            if request.resolver_match.kwargs.get('object_id'):
+                current_id = request.resolver_match.kwargs['object_id']
+            kwargs["queryset"] = Sector.objects.filter(parent=None).exclude(pk=current_id)
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
