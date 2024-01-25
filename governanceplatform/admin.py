@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
@@ -101,9 +101,19 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parent":
             # Regulator Admin
-            kwargs["queryset"] = Sector.objects.filter(parent=None)
+            current_id = None
+            if request.resolver_match.kwargs.get('object_id'):
+                current_id = request.resolver_match.kwargs['object_id']
+            kwargs["queryset"] = Sector.objects.filter(parent=None).exclude(pk=current_id)
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if obj.id and obj.parent is not None:
+            if obj.id == obj.parent.id:
+                messages.add_message(request, messages.ERROR, "A sector cannot have itself as a parent")
+        else:
+            super().save_model(request, obj, form, change)
 
 
 class ServiceResource(TranslationUpdateMixin, resources.ModelResource):

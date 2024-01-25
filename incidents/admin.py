@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.db.models import Q
+from django.db.models import Case, Q, Value, When
+from django.db.models.functions import Concat
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
@@ -149,8 +151,24 @@ class ImpactSectorListFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            (sector.id, sector.name)
-            for sector in Sector.objects.all().order_by("translations__name")
+            (sector.id, sector.full_name)
+            for sector in (
+                Sector.objects.translated(get_language())
+                .annotate(
+                    full_name=Case(
+                        When(
+                            parent__isnull=False,
+                            then=Concat(
+                                "parent__translations__name",
+                                Value(" --> "),
+                                "translations__name",
+                            ),
+                        ),
+                        default="translations__name",
+                    )
+                )
+                .order_by("full_name")
+            )
         ]
 
     def queryset(self, request, queryset):
@@ -167,7 +185,9 @@ class ImpactRegulationListFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         return [
             (regulation.id, regulation.label)
-            for regulation in Regulation.objects.all().order_by("translations__label")
+            for regulation in Regulation.objects.translated(get_language()).order_by(
+                "translations__label"
+            )
         ]
 
     def queryset(self, request, queryset):
@@ -182,25 +202,61 @@ admin.site.register(Sector, MPTTModelAdmin)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin, MPTTModelAdmin):
     list_display = [
         "regulation",
+        "get_sector_name",
+        "get_subsector_name",
         "headline",
-        "label",
     ]
     search_fields = ["translations__label", "regulation__translations__label"]
     fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
-    # list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
-    list_filter = [ImpactRegulationListFilter]
+    list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
 
-    # def formfield_for_manytomany(self, db_field, request, **kwargs):
-    #     # TO DO : display a hierarchy
-    #     # Energy
-    #     #   -> ELEC
-    #     #   -> GAZ
-    #     # See MPTT
-    #     if db_field.name == "sectors":
-    #         kwargs["queryset"] = Sector.objects.all()
+    @admin.display(description="Sector")
+    def get_sector_name(self, obj):
+        sectors = []
+        for sector in obj.sectors.all():
+            if not sector.parent:
+                sectors.append(sector.name)
+            else:
+                sectors.append(sector.parent.name)
+        return sectors
 
-    #     return super().formfield_for_manytomany(db_field, request, **kwargs)
+    @admin.display(description="Sub-sector")
+    def get_subsector_name(self, obj):
+        sectors = []
+        for sector in obj.sectors.all():
+            if sector.parent:
+                sectors.append(sector.name)
+            else:
+                sectors.append("")
+        return sectors
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        # TO DO : display a hierarchy
+        # Energy
+        #   -> ELEC
+        #   -> GAZ
+        # See MPTT
+        if db_field.name == "sectors":
+            kwargs["queryset"] = (
+                Sector.objects.translated(get_language())
+                .annotate(
+                    full_name=Case(
+                        When(
+                            parent__isnull=False,
+                            then=Concat(
+                                "parent__translations__name",
+                                Value(" --> "),
+                                "translations__name",
+                            ),
+                        ),
+                        default="translations__name",
+                    )
+                )
+                .order_by("full_name")
+            )
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class IncidentResource(resources.ModelResource):
