@@ -9,8 +9,11 @@
 <script type="text/javascript" src="{% static 'npm_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'npm_components/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" />
 <script type="text/javascript" src="{% static 'npm_components/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'npm_components/datatables.net-searchpanes-bs5/css/searchPanes.bootstrap5.min.css' %}" />
 <script src='{% static "js/incidents_operator.js" %}'></script>
+<script src="/static/npm_components/jquery/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="/static/npm_components/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/static/npm_components/bootstrap-select/dist/css/bootstrap-select.css" />
+<script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -22,7 +25,29 @@
     </div>
 </div>
 
-{% if incidents %}
+{% if filter.qs %}
+<div class="container border">
+    <form method="get">
+        <!-- {% bootstrap_form filter.form %} -->
+        <div class="row">
+            <div class="col-sm">
+                {% bootstrap_field filter.form.incident_id show_label=True %}
+            </div>
+            <div class="col-sm">
+                {% bootstrap_field filter.form.incident_status show_label=True %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm">
+                {% bootstrap_field filter.form.is_significative_impact show_label=True %}
+            </div>
+            <div class="col-sm">
+                {% bootstrap_field filter.form.affected_sectors show_label=True %}
+            </div>
+        </div>
+        <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
+    </form>
+</div>
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
@@ -45,7 +70,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for incident in incidents %}
+        {% for incident in filter.qs %}
         <tr>
             {% timezone "Europe/Paris" %}
             <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
