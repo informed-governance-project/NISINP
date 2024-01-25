@@ -4,8 +4,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
-
-# from mptt.admin import DraggableMPTTAdmin, MPTTModelAdmin
+from mptt.admin import DraggableMPTTAdmin, MPTTModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
@@ -176,8 +175,11 @@ class ImpactRegulationListFilter(SimpleListFilter):
             return queryset.filter(Q(regulation=self.value()))
 
 
+admin.site.register(Sector, MPTTModelAdmin)
+
+
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin, MPTTModelAdmin):
     list_display = [
         "regulation",
         "headline",
