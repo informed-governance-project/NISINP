@@ -5,7 +5,11 @@ from django.utils.translation import get_language
 
 from governanceplatform.models import Sector
 
-from .forms import IncidentStatusForm, IncidentWorkflowForm
+from .forms import (
+    DropdownCheckboxSelectMultiple,
+    IncidentStatusForm,
+    IncidentWorkflowForm,
+)
 from .models import Incident, SectorRegulation
 
 
@@ -32,18 +36,15 @@ def affected_sectors(request):
 
 
 # define specific query to get the regulation
-# TO DO : the returned value is not correct
 def sector_regulation(request):
-    return (
-        SectorRegulation.objects.all()
-        .values_list("regulation__translations__label", flat=True)
-        .distinct()
-    )
+    return SectorRegulation.objects.translated(get_language()).distinct()
 
 
 class IncidentFilter(django_filters.FilterSet):
     incident_id = django_filters.CharFilter(lookup_expr="icontains")
-    affected_sectors = django_filters.ModelChoiceFilter(queryset=affected_sectors)
+    affected_sectors = django_filters.ModelMultipleChoiceFilter(
+        queryset=affected_sectors, widget=DropdownCheckboxSelectMultiple()
+    )
     sector_regulation = django_filters.ModelChoiceFilter(queryset=sector_regulation)
 
     class Meta:
