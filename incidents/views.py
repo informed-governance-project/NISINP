@@ -86,10 +86,12 @@ def get_incidents(request):
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
+        f = IncidentFilter(request.GET, queryset=incidents)
     # RegulatorAdmin can see all the incidents reported by operators.
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
+        f = IncidentFilter(request.GET, queryset=incidents)
 
     if request.GET.get("incidentId"):
         # Search by incident id
