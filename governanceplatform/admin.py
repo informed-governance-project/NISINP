@@ -284,6 +284,24 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
         return queryset
 
+# we don't delete company with users
+    def delete_queryset(self, request, queryset):
+        all_deleted = True
+        for object in queryset:
+            if object.user_set.count() > 0:
+                all_deleted = False
+                queryset = queryset.exclude(id=object.id)
+
+        if not all_deleted:
+            messages.add_message(request, messages.WARNING, "Some Companies havn't been deleted because they contains users")
+        queryset.delete()
+
+    def delete_model(self, request, obj):
+        if obj.user_set.count() > 0:
+            messages.add_message(request, messages.WARNING, "The company has user attached and can't be deleted")
+        else:
+            obj.delete()
+
 
 class UserResource(resources.ModelResource):
     first_name = fields.Field(column_name="first_name", attribute="first_name")
