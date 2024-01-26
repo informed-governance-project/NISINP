@@ -187,40 +187,46 @@ def create_workflow(request):
 def edit_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
+    incident_workflow_id = request.GET.get("incident_workflow_id", None)
     user = request.user
-    if not workflow_id and not incident_id:
+    incident_workflow = None
+    if not workflow_id and not incident_id and not incident_workflow_id:
         messages.warning(request, _("No incident report found"))
         return redirect("incidents")
-
-    incident = Incident.objects.filter(pk=incident_id).first()
-    workflow = Workflow.objects.filter(id=workflow_id).first()
-
-    if not workflow:
-        messages.error(request, _("Workflow not found"))
-        return redirect("incidents")
-
-    if not incident:
-        messages.error(request, _("Incident not found"))
-        return redirect("incidents")
-
-    if not is_user_regulator(user):
-        if not incident.is_fillable(workflow):
-            messages.error(request, _("Forbidden"))
+    elif workflow_id and incident_id:
+        incident = Incident.objects.filter(pk=incident_id).first()
+        workflow = Workflow.objects.filter(id=workflow_id).first()
+        if not workflow:
+            messages.error(request, _("Workflow not found"))
             return redirect("incidents")
+        if not incident:
+            messages.error(request, _("Incident not found"))
+            return redirect("incidents")
+        if not is_user_regulator(user):
+            if not incident.is_fillable(workflow):
+                messages.error(request, _("Forbidden"))
+                return redirect("incidents")
+    # for the moment we only pass the incident workflow for regulator
+    elif incident_workflow_id and is_user_regulator(user):
+        incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+    else:
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
 
-    incident_workflow = IncidentWorkflow.objects.filter(
-        incident=incident_id, workflow=workflow_id
-    ).order_by("timestamp")
-    if incident_workflow:
+    if incident_workflow is None:
+        incident_workflow = IncidentWorkflow.objects.filter(
+            incident=incident_id, workflow=workflow_id
+        ).order_by("timestamp")
         incident_workflow = incident_workflow.last()
+        request.incident = incident_workflow.incident.id
+
+    if incident_workflow:
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
             is_regulator=is_user_regulator(user),
         )
-        request.incident = incident_workflow.incident.id
         request.incident_workflow = incident_workflow.id
-
         return WorkflowWizardView.as_view(
             form_list,
         )(request)
@@ -852,11 +858,11 @@ class WorkflowWizardView(SessionWizardView):
                         instance=self.incident_workflow, data=data
                     )
                 else:
+                    # regulator pass directly the incident_workflow
                     form = QuestionForm(
                         data,
                         position=position,
-                        workflow=self.workflow,
-                        incident=self.incident,
+                        incident_workflow=self.incident_workflow,
                     )
 
         elif self.request.incident:

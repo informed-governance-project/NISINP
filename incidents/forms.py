@@ -140,7 +140,7 @@ class QuestionForm(forms.Form):
                         Answer.objects.values_list(
                             "predefined_answers", flat=True
                         ).filter(question=question, incident_workflow=incident_workflow)
-                        # .order_by("position"),
+                        .order_by("-timestamp"),
                     )
                 )
             elif incident is not None:
@@ -151,9 +151,9 @@ class QuestionForm(forms.Form):
                             "predefined_answers", flat=True
                         ).filter(
                             question=question,
-                            incident_workflow__in=incident.get_latest_incident_workflows(),
+                            incident_workflow=incident.get_latest_incident_workflow(),
                         )
-                        # .order_by("position"),
+                        .order_by("-timestamp"),
                     )
                 )
             for choice in question.predefinedanswer_set.all().order_by("position"):
@@ -194,8 +194,8 @@ class QuestionForm(forms.Form):
                 elif incident is not None:
                     answer = Answer.objects.values_list("answer", flat=True).filter(
                         question=question,
-                        incident_workflow__in=incident.get_latest_incident_workflows(),
-                    )
+                        incident_workflow=incident.get_latest_incident_workflow(),
+                    ).order_by("-timestamp")
                 if len(answer) > 0:
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
@@ -213,32 +213,27 @@ class QuestionForm(forms.Form):
                 )
         elif question.question_type == "DATE":
             initial_data = ""
+            answer = None
             if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
                     question=question, incident_workflow=incident_workflow
-                )
-                if answer.count() > 0:
-                    if answer[0] != "":
-                        initial_data = list(filter(partial(is_not, ""), answer))[0]
-                        initial_data = datetime.strptime(
-                            initial_data, "%Y-%m-%d %H:%M:%S"
-                        ).date()
+                ).first()
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
                         question=question,
-                        incident_workflow__in=incident.get_latest_incident_workflows(),
+                        incident_workflow=incident.get_latest_incident_workflow(),
                     )
-                    .order_by("timestamp")
+                    .order_by("-timestamp")
                     .first()
                 )
-                if answer is not None:
-                    if answer != "":
-                        initial_data = answer
-                        initial_data = datetime.strptime(
-                            initial_data, "%Y-%m-%d %H:%M:%S"
-                        )
+            if answer is not None:
+                if answer != "":
+                    initial_data = answer
+                    initial_data = datetime.strptime(
+                        initial_data, "%Y-%m-%d %H:%M:%S"
+                    )
             self.fields[str(question.id)] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
@@ -268,9 +263,9 @@ class QuestionForm(forms.Form):
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
                         question=question,
-                        incident_workflow__in=incident.get_latest_incident_workflows(),
+                        incident_workflow=incident.get_latest_incident_workflow(),
                     )
-                    .order_by("timestamp")
+                    .order_by("-timestamp")
                     .first()
                 )
                 if answer is not None:
@@ -294,22 +289,18 @@ class QuestionForm(forms.Form):
                 answer = Answer.objects.values_list("answer", flat=True).filter(
                     question=question, incident_workflow=incident_workflow
                 )
-                if len(answer) > 0:
-                    if answer[0] != "":
-                        initial_data = list(filter(partial(is_not, ""), answer))[0]
-                        initial_data = list(initial_data.split(","))
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
                         question=question,
-                        incident_workflow__in=incident.get_latest_incident_workflows(),
+                        incident_workflow=incident.get_latest_incident_workflow(),
                     )
-                    .order_by("timestamp")
+                    .order_by("-timestamp")
                 )
-                if answer is not None:
-                    initial_data = list(filter(partial(is_not, ""), answer))[0]
-                    initial_data = list(initial_data.split(","))
+            if answer is not None:
+                initial_data = list(filter(partial(is_not, ""), answer))[0]
+                initial_data = list(initial_data.split(","))
 
             if question.question_type == "CL":
                 choices = countries

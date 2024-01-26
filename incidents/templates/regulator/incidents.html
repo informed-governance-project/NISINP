@@ -104,13 +104,23 @@
                 <td>
                     <table class="table table-borderless table-sm m-0">
                         {% for report in incident.get_all_workflows %}
-                        {% with filtered_workflows=incident.formsWorkflow|filter_workflows_forms:report.id %}
+                        {% with filtered_workflows=incident|filter_workflows_forms:report %}
                         <tr colspan="2">
                             <td class="col-5">
                                 <a class="{% if not filtered_workflows %}disabled-link{% endif %}"
-                                    href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}{% endif %}">
+                                    href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_workflow_id={{ filtered_workflows.instance.id }}{% endif %}">
                                     {{ report }}
-                                </a>
+                                </a><br/>
+                                {% with incident_workflows=incident|get_incident_workflow_by_workflow:report %}
+                                {% if incident_workflows %}
+                                <span class="fw-bold">{{ _('Historic') }}:</span><br/>
+                                    {% for incident_workflow in incident_workflows %}
+                                        <a class="text-dark" href="{% url 'edit_workflow' %}?incident_workflow_id={{ incident_workflow.id }}">
+                                        {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
+                                        </a><br/>
+                                    {% endfor %}
+                                {% endif %}
+                                {% endwith %}
                             </td>
                             <td id="workflow_review_status_{{filtered_workflows.instance.id}}" class="col-8 {% status_class filtered_workflows.initial.review_status %}">
                                 {% if filtered_workflows %}
