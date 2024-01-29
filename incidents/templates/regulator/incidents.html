@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="{% static 'npm_components/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" />
 <script type="text/javascript" src="{% static 'npm_components/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
 <script src='{% static "js/incidents_regulator.js" %}'></script>
-<script src="/static/npm_components/jquery/dist/jquery.min.js"></script>
 <link rel="stylesheet" href="/static/npm_components/bootstrap/dist/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="/static/npm_components/bootstrap-select/dist/css/bootstrap-select.css" />
 <script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
@@ -20,30 +19,44 @@
 {% block content %}
 <h3>{{ _('Reported incidents') }}</h3>
 {% if filter.qs %}
-<div class="container border">
-    <form method="get">
-        <!-- {% bootstrap_form filter.form %} -->
-        <div class="row">
-            <div class="col-sm">
-                {% bootstrap_field filter.form.incident_id show_label=True %}
+<div class="container">
+    <div class="accordion" id="accordionFilters">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="true" aria-controls="collapseFilters">
+              Filters
+            </button>
+          </h2>
+          <div id="collapseFilters" class="accordion-collapse collapse" data-bs-parent="#accordionFilters">
+            <div class="card card-body">
+                <form method="get">
+                    <!-- {% bootstrap_form filter.form %} -->
+                    <div class="row">
+                        <div class="col-sm">
+                            {% bootstrap_field filter.form.incident_id show_label=True %}
+                        </div>
+                        <div class="col-sm">
+                            {% bootstrap_field filter.form.incident_status show_label=True %}
+                        </div>
+                        <div class="col-sm">
+                            {% bootstrap_field filter.form.is_significative_impact show_label=True %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm">
+                            {% bootstrap_field filter.form.sector_regulation show_label=True %}
+                        </div>
+                        <div class="col-sm">
+                            {% bootstrap_field filter.form.affected_sectors show_label=True %}
+                        </div>
+                    </div>
+                    <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
+                </form>
             </div>
-            <div class="col-sm">
-                {% bootstrap_field filter.form.incident_status show_label=True %}
-            </div>
-            <div class="col-sm">
-                {% bootstrap_field filter.form.is_significative_impact show_label=True %}
-            </div>
+          </div>
         </div>
-        <div class="row">
-            <div class="col-sm">
-                {% bootstrap_field filter.form.sector_regulation show_label=True %}
-            </div>
-            <div class="col-sm">
-                {% bootstrap_field filter.form.affected_sectors show_label=True %}
-            </div>
-        </div>
-        <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
-    </form>
+      </div>
+    </div>
 </div>
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
