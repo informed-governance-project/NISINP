@@ -396,6 +396,18 @@ class Incident(models.Model):
 
         return incident_workflow
 
+    def get_latest_incident_workflow_by_workflow(self, workflow):
+        incident_workflow = (
+            IncidentWorkflow.objects.filter(
+                incident=self,
+                workflow=workflow,
+            )
+            .order_by("-timestamp")
+            .first()
+        )
+
+        return incident_workflow
+
     def get_previous_workflow(self, workflow):
         current = (
             SectorRegulationWorkflow.objects.all()

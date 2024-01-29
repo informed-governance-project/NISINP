@@ -49,11 +49,24 @@ def filter_workflows(incidentWorkflows, report_id):
     return None
 
 
+# return the incident workflow with form and be sure it's the last one
 @register.filter
-def filter_workflows_forms(incidentWorkflows_forms, report_id):
+def filter_workflows_forms(incident, report):
+    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(report)
+    if latest_incident_workflow is not None:
+        latest_incident_workflow_id = latest_incident_workflow.id
+    report_id = report.id
+    incidentWorkflows_forms = incident.formsWorkflow
     for incidentworkflow in incidentWorkflows_forms:
-        if incidentworkflow.instance.workflow.pk == report_id:
-            return incidentworkflow
+        if latest_incident_workflow is not None:
+            if (
+                incidentworkflow.instance.workflow.pk == report_id
+                and incidentworkflow.instance.id == latest_incident_workflow_id
+            ):
+                return incidentworkflow
+        else:
+            if incidentworkflow.instance.workflow.pk == report_id:
+                return incidentworkflow
     return None
 
 
@@ -132,3 +145,25 @@ def is_deadline_exceeded(report, incident):
                     return _("Not delivered and deadline exceeded")
 
     return _("Not delivered")
+
+
+# get the incident workflow by workflow and incident to see the historic
+@register.filter
+def get_incident_workflow_by_workflow(incident, workflow):
+    # we exclude the latest incident workflow
+    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+        workflow
+    )
+    if latest_incident_workflow is None:
+        return (
+            IncidentWorkflow.objects.all()
+            .filter(incident=incident, workflow=workflow)
+            .order_by("-timestamp")
+        )
+
+    return (
+        IncidentWorkflow.objects.all()
+        .filter(incident=incident, workflow=workflow)
+        .exclude(id=latest_incident_workflow.id)
+        .order_by("-timestamp")
+    )
