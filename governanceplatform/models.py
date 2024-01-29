@@ -35,7 +35,7 @@ class Sector(TranslatableModel, MPTTModel):
         verbose_name_plural = _("Sectors")
 
     class MPTTMeta:
-        order_insertion_by = ["translations"]
+        order_insertion_by = ["acronym"]
 
 
 # esssential services
