@@ -41,6 +41,8 @@
           {% with form_class_name=wizard.form|get_class_name %}
           {% if form_class_name == 'ContactForm' %}
             {% include "contact_form.html" %}
+          {% elif form_class_name == 'ImpactForm' %}
+            {% include "impact_form.html" %}
           {% else %}
             {{ wizard.form.media }}
             <div class="col-md-6">

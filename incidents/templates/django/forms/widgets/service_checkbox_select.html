@@ -14,7 +14,7 @@
 </script>
 
 {% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %}{% if widget.attrs.class %} class="{{ widget.attrs.class }}"{% endif %}>{% for group, options, index in widget.optgroups %}{% if group %}
-  <div><label class="btn btn-primary" onclick="toggle('{{group}}')" >{{ group }}</label>{% endif %}{% for option in options %}<div>
+  <div><label class="bi bi-arrow-down-square btn btn-secondary" onclick="toggle('{{group}}')" >    {{ group }}</label>{% endif %}{% for option in options %}<div>
     {% include option.template_name with widget=option %}</div>{% endfor %}{% if group %}
   </div>{% endif %}{% endfor %}
 </div>{% endwith %}
