@@ -31,11 +31,60 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     template_name = "django/forms/widgets/service_checkbox_select.html"
     option_template_name = "django/forms/widgets/service_checkbox_option.html"
     add_id_index = False
-    checked_attribute = {"selected": True}
+    checked_attribute = {"checked": True}
     option_inherits_attrs = False
+    initial_data = None
 
     def __init__(self, *args, **kwargs):
+        if "initial" in kwargs:
+            self.initial_data = kwargs.pop("initial")
         super().__init__(*args, **kwargs)
+
+    def optgroups(self, name, value, attrs=None):
+        """Return a list of optgroups for this widget."""
+        groups = []
+        has_selected = False
+
+        for index, (option_value, option_label) in enumerate(self.choices):
+            if option_value is None:
+                option_value = ""
+            subgroup = []
+            if isinstance(option_label, (list, tuple)):
+                group_name = option_value
+                subindex = 0
+                choices = option_label
+            else:
+                group_name = None
+                subindex = None
+                choices = [(option_value, option_label)]
+            groups.append((group_name, subgroup, index))
+
+            # other_choices = []
+            for subvalue, sublabel in choices:
+                selected = (not has_selected or self.allow_multiple_selected) and str(
+                    subvalue
+                ) in value
+                has_selected |= selected
+                # manage default value
+                if self.initial_data is not None:
+                    if subvalue in self.initial_data:
+                        selected = True
+
+                subgroup.append(
+                    self.create_option(
+                        name,
+                        subvalue,
+                        sublabel,
+                        selected,
+                        index,
+                        subindex=subindex,
+                        attrs=attrs,
+                    )
+                )
+
+                if subindex is not None:
+                    subindex += 1
+        return groups
 
 
 class DropdownCheckboxSelectMultiple(ChoiceWidget):
@@ -679,22 +728,28 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
 class ImpactForm(forms.Form):
     impacts = forms.MultipleChoiceField(
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=ServicesListCheckboxSelectMultiple(initial=None),
     )
 
-    # prepare an array of impacts from incident
+    # prepare an array of impacts from incident sectorized
     def construct_impact_array(self, incident):
-        impacts_with_sector = Impact.objects.all().filter(
-            regulation=incident.sector_regulation.regulation,
-            sectors__in=incident.affected_sectors.all(),
-        )
+        impacts_array = []
+        for sector in incident.affected_sectors.all():
+            subgroup = []
+            if sector.impact_set.count() > 0:
+                for impact in sector.impact_set.all():
+                    subgroup.append([impact.id, impact.label])
+                impacts_array.append([sector.name, subgroup])
+
         impacts_without_sector = Impact.objects.all().filter(
             regulation=incident.sector_regulation.regulation, sectors=None
         )
-        impacts = impacts_with_sector | impacts_without_sector
-        impacts_array = []
-        for impact in impacts:
-            impacts_array.append([impact.id, impact.label])
+        if impacts_without_sector.count() > 0:
+            subgroup = []
+            for impact in impacts_without_sector:
+                subgroup.append([impact.id, impact.label])
+            impacts_array.append(['others', subgroup])
+
         return impacts_array
 
     def __init__(self, *args, **kwargs):
@@ -709,13 +764,15 @@ class ImpactForm(forms.Form):
         if incident is not None:
             self.fields["impacts"].choices = self.construct_impact_array(incident)
         if incident_workflow is not None:
-            self.fields["impacts"].initial = [
+            # only with ServicesListCheckboxSelectMultiple
+            self.fields["impacts"].widget.initial_data = [
                 i.id for i in incident_workflow.impacts.all()
             ]
         else:
             previous_incident_workflow = incident.get_latest_incident_workflow()
             if previous_incident_workflow is not None:
-                self.fields["impacts"].initial = [
+                # only with ServicesListCheckboxSelectMultiple
+                self.fields["impacts"].widget.initial_data = [
                     i.id for i in previous_incident_workflow.impacts.all()
                 ]
 
