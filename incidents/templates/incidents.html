@@ -70,7 +70,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for incident in filter.qs %}
+        {% for incident in incidents %}
         <tr>
             {% timezone "Europe/Paris" %}
             <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
@@ -180,25 +180,29 @@
     </tbody>
 </table>
 
-<div class="pagination">
-    <span class="step-links">
-        {% if incidents_page.has_previous %}
-        <a href="?page=1">&laquo; {% translate "first" %}</a>
-        <a href="?page={{ incidents_page.previous_page_number }}">
-            {% translate "previous" %}
-        </a>
+<div >
+    {% if incidents.has_other_pages %}
+        <ul class="pagination">
+        {% if incidents.has_previous %}
+            <li><a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">&laquo;</a></li>
+        {% else %}
+            <li class="page-link disabled"><span>&laquo;</span></li>
         {% endif %}
-
-        <span class="current">
-            {% translate "Page" %} {{ incidents_page.number }} {% translate "of" %}
-            {{ incidents_page.paginator.num_pages }}
-        </span>
-
-        {% if incidents_page.has_next %}
-        <a href="?page={{ incidents_page.next_page_number }}">{%translate "next" %}</a>
-        <a href="?page={{ incidents_page.paginator.num_pages }}">{%translate "last" %} &raquo;</a>
+        {% for i in incidents.paginator.page_range %}
+            {% if incidents.number == i %}
+                <li class="page-link active"><span>{{ i }} <span class="sr-only">
+            </span></span></li>
+            {% else %}
+                <li class="page-link"><a href="?{% url_replace request 'page' i %}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if incidents.has_next %}
+            <li><a class="page-link" href="?{% url_replace request 'page' incidents.next_page_number %}">&raquo;</a></li>
+        {% else %}
+            <li class="page-link disabled"><span>&raquo;</span></li>
         {% endif %}
-    </span>
+    </ul>
+ {% endif %}
 </div>
 {% else %}
 <p>{% translate "No incident" %}</p>
