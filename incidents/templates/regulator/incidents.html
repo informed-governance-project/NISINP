@@ -65,7 +65,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for incident in filter.qs %}
+        {% for incident in incidents %}
         <tr>
                 {% timezone "Europe/Paris" %}
                 <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
@@ -155,6 +155,30 @@
         {% endfor %}
     </tbody>
 </table>
+<div >
+    {% if incidents.has_other_pages %}
+        <ul class="pagination">
+        {% if incidents.has_previous %}
+            <li><a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">&laquo;</a></li>
+        {% else %}
+            <li class="page-link disabled"><span>&laquo;</span></li>
+        {% endif %}
+        {% for i in incidents.paginator.page_range %}
+            {% if incidents.number == i %}
+                <li class="page-link active"><span>{{ i }} <span class="sr-only">
+            </span></span></li>
+            {% else %}
+                <li class="page-link"><a href="?{% url_replace request 'page' i %}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if incidents.has_next %}
+            <li><a class="page-link" href="?{% url_replace request 'page' incidents.next_page_number %}">&raquo;</a></li>
+        {% else %}
+            <li class="page-link disabled"><span>&raquo;</span></li>
+        {% endif %}
+    </ul>
+ {% endif %}
+</div>
 {% else %}
 <p>{% translate "No incident" %}</p>
 {% endif %}
