@@ -788,7 +788,9 @@ class FormWizardView(SessionWizardView):
                                 sector_for_ref = sector.parent.acronym[:3]
 
                 incidents_per_company = (
-                    company.incident_set.count() + 1 if company else 0
+                    company.incident_set.filter(
+                        incident_notification_date__year=date.today().year
+                    ).count() if company else 0
                 )
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (
