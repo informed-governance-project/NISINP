@@ -86,6 +86,13 @@ def is_workflow_disabled(allWorkflows, incidentWorkflows, report):
         return True
 
     if (
+        current_index < len(allWorkflows) - 1
+        and current_index > 1
+        and allWorkflows[current_index - 1] not in workflow_list
+    ):
+        return True
+
+    if (
         len(allWorkflows) > 1
         and current_index == len(allWorkflows) - 1
         and allWorkflows[current_index - 1] not in workflow_list
@@ -167,3 +174,11 @@ def get_incident_workflow_by_workflow(incident, workflow):
         .exclude(id=latest_incident_workflow.id)
         .order_by("-timestamp")
     )
+
+
+# replace a field in the URL, used for filter + pagination
+@register.simple_tag
+def url_replace(request, field, value):
+    d = request.GET.copy()
+    d[field] = value
+    return d.urlencode()

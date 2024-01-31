@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -99,10 +99,16 @@ def get_incidents(request):
             incident_id__icontains=request.GET.get("incidentId")
         ).distinct()
 
-    # Show 20 incidents per page.
-    paginator = Paginator(incidents, 20)
-    page_number = request.GET.get("page")
-    incidents_page = paginator.get_page(page_number)
+    # Show 10 incidents per page.
+    incident_list = f.qs
+    paginator = Paginator(incident_list, 10)
+    page_number = request.GET.get("page", 1)
+    try:
+        response = paginator.page(page_number)
+    except PageNotAnInteger:
+        response = paginator.page(1)
+    except EmptyPage:
+        response = paginator.page(paginator.num_pages)
 
     # add paggination to the regular incidents view.
     return render(
@@ -112,9 +118,9 @@ def get_incidents(request):
         else "incidents.html",
         context={
             "site_name": SITE_NAME,
-            "incidents": incidents,
-            "incidents_page": incidents_page,
+            "paginator": paginator,
             "filter": f,
+            "incidents": response,
         },
     )
 
@@ -788,7 +794,11 @@ class FormWizardView(SessionWizardView):
                                 sector_for_ref = sector.parent.acronym[:3]
 
                 incidents_per_company = (
-                    company.incident_set.count() + 1 if company else 0
+                    company.incident_set.filter(
+                        incident_notification_date__year=date.today().year
+                    ).count()
+                    if company
+                    else 0
                 )
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (
