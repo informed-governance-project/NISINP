@@ -337,7 +337,7 @@ class QuestionForm(forms.Form):
             if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
                     question=question, incident_workflow=incident_workflow
-                )
+                ).first()
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
@@ -346,10 +346,10 @@ class QuestionForm(forms.Form):
                         incident_workflow=incident.get_latest_incident_workflow(),
                     )
                     .order_by("-timestamp")
-                )
+                ).first()
             if answer is not None:
-                initial_data = list(filter(partial(is_not, ""), answer))[0]
-                initial_data = list(initial_data.split(","))
+                # initial_data = list(filter(partial(is_not, ""), answer))
+                initial_data = list(answer.split(","))
 
             if question.question_type == "CL":
                 choices = countries
