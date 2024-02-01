@@ -50,6 +50,13 @@ class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display_links = ["question", "predefined_answer"]
     search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
+    exclude = ['creator_name', 'creator']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
 
 
 class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
@@ -73,6 +80,13 @@ class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
     ordering = ["position"]
+    exclude = ['creator_name', 'creator']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
 
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
@@ -128,6 +142,12 @@ class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "tooltip",
     ]
     inlines = (PredefinedAnswerInline,)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
@@ -258,6 +278,13 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin, MPTTModelAdmin):
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            print(request.user.regulators.all().first())
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
+
 
 class IncidentResource(resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -306,7 +333,7 @@ class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.creator_name = request.user.regulators.all().first().name
-            obj.creator_id = request.user.regulators.all().first()
+            obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
 
@@ -334,6 +361,13 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     filter_horizontal = [
         "questions",
     ]
+    exclude = ['creator_name', 'creator']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
 
 
 class SectorRegulationResource(resources.ModelResource):

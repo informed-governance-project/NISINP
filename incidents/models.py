@@ -31,6 +31,16 @@ class Impact(MPTTModel, TranslatableModel):
         "governanceplatform.Sector", default=None, blank=True
     )
 
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
     def __str__(self):
         return self.label if self.label is not None else ""
 
@@ -41,6 +51,16 @@ class QuestionCategory(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True)
     )
     position = models.IntegerField()
+
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.label if self.label is not None else ""
@@ -65,6 +85,16 @@ class Question(TranslatableModel):
         QuestionCategory, on_delete=models.SET_NULL, default=None, null=True, blank=True
     )
 
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
     @admin.display(description="Predefined Answers")
     def get_predefined_answers(self):
         return [
@@ -83,6 +113,16 @@ class PredefinedAnswer(TranslatableModel):
         Question, on_delete=models.CASCADE, default=None, null=True
     )
     position = models.IntegerField(blank=True, default=0, null=True)
+
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.predefined_answer if self.predefined_answer is not None else ""
@@ -142,6 +182,16 @@ class Workflow(TranslatableModel):
         blank=True,
         default=None,
         related_name="submission_email",
+    )
+
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
     )
 
 

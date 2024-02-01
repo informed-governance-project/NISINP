@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from mptt.models import MPTTModel, TreeForeignKey
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
+from django_countries.fields import CountryField
 
 from .managers import CustomUserManager
 
@@ -21,6 +22,16 @@ class Sector(TranslatableModel, MPTTModel):
         verbose_name=_("parent"),
     )
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
+
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         if self.name is not None and self.parent is not None:
@@ -79,7 +90,7 @@ class Company(models.Model):
         max_length=4, verbose_name=_("Identifier")
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("name"))
-    country = models.CharField(max_length=64, verbose_name=_("country"))
+    country = CountryField()
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email = models.CharField(
         max_length=100,
