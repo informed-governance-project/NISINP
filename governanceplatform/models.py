@@ -22,6 +22,16 @@ class Sector(TranslatableModel):
     )
     acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
 
+    # name of the regulator who create the object
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
     def __str__(self):
         if self.name is not None and self.parent is not None:
             return self.parent.name + " --> " + self.name

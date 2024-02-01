@@ -109,6 +109,10 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
                 messages.add_message(request, messages.ERROR, "A sector cannot have itself as a parent")
