@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
+from django_countries.fields import CountryField
 
 from .managers import CustomUserManager
 
@@ -75,7 +76,7 @@ class Company(models.Model):
         max_length=4, verbose_name=_("Identifier")
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("name"))
-    country = models.CharField(max_length=64, verbose_name=_("country"))
+    country = CountryField()
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email = models.CharField(
         max_length=100,
