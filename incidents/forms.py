@@ -597,7 +597,8 @@ class DetectionDateForm(forms.Form):
         required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "yyyy-MM-DD HH:mm:ss",
+                "format": "YYYY-MM-DD HH:mm:ss",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
             },
             attrs={
                 "data-bs-toggle": "tooltip",
