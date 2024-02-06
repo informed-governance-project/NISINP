@@ -117,7 +117,7 @@ class Regulator(models.Model):
     country = models.CharField(max_length=64, verbose_name=_("country"))
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
-        verbose_name=_("email address"),
+        verbose_name=_("email address for incident notification"),
         default=None,
         blank=True,
         null=True,
