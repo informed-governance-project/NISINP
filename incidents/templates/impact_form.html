@@ -2,5 +2,7 @@
 {% load i18n %}
 
 <div>
-    {% bootstrap_field wizard.form.impacts show_label=False %}
+    {% autoescape on %}
+        {% bootstrap_field wizard.form.impacts show_label=False  %}
+    {% endautoescape %}
 </div>

@@ -7,18 +7,24 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('governanceplatform', '0006_alter_company_country'),
+        ("governanceplatform", "0006_alter_company_country"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sector',
-            name='creator',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, to='governanceplatform.regulator'),
+            model_name="sector",
+            name="creator",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="governanceplatform.regulator",
+            ),
         ),
         migrations.AddField(
-            model_name='sector',
-            name='creator_name',
+            model_name="sector",
+            name="creator_name",
             field=models.CharField(blank=True, default=None, max_length=255, null=True),
         ),
     ]

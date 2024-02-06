@@ -16,7 +16,7 @@ from governanceplatform.models import Regulation, Regulator, Sector, Service
 from .globals import REGIONAL_AREA
 from .models import (
     Answer,
-    Impact,
+    # Impact,
     Incident,
     IncidentWorkflow,
     Question,
@@ -597,7 +597,8 @@ class DetectionDateForm(forms.Form):
         required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "yyyy-MM-DD HH:mm:ss",
+                "format": "YYYY-MM-DD HH:mm:ss",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
             },
             attrs={
                 "data-bs-toggle": "tooltip",
@@ -741,14 +742,15 @@ class ImpactForm(forms.Form):
                     subgroup.append([impact.id, impact.label])
                 impacts_array.append([sector.name, subgroup])
 
-        impacts_without_sector = Impact.objects.all().filter(
-            regulation=incident.sector_regulation.regulation, sectors=None
-        )
-        if impacts_without_sector.count() > 0:
-            subgroup = []
-            for impact in impacts_without_sector:
-                subgroup.append([impact.id, impact.label])
-            impacts_array.append(['others', subgroup])
+        # Not needed anymore : just keep in case
+        # impacts_without_sector = Impact.objects.all().filter(
+        #     regulation=incident.sector_regulation.regulation, sectors=None
+        # )
+        # if impacts_without_sector.count() > 0:
+        #     subgroup = []
+        #     for impact in impacts_without_sector:
+        #         subgroup.append([impact.id, impact.label])
+        #     impacts_array.append(['others', subgroup])
 
         return impacts_array
 

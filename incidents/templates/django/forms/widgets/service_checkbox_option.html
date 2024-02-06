@@ -1,1 +1,1 @@
-{% if widget.wrap_label %}<label class='{{group}}' hidden="hidden" {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>{% endif %}{% include "django/forms/widgets/input.html" %}{% if widget.wrap_label %} {{ widget.label }}</label>{% endif %}
+{% if widget.wrap_label %}<label style="display: flex; align-items: center;" class='{{group}}' hidden="hidden" {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>{% endif %}{% include "django/forms/widgets/input.html" %}{% if widget.wrap_label %} {{ widget.label | linebreaksbr | safe }}</label>{% endif %}
