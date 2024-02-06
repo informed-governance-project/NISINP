@@ -7,6 +7,8 @@ from django.urls import reverse
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
+from governanceplatform.models import SectorContact
+
 
 # replace the variables in globals.py by the right value
 def replace_email_variables(content, incident):
@@ -54,5 +56,20 @@ def send_email(email, incident):
         },
     )
     recipient_list = [incident.contact_user.email]
+    # get also regulator email and emails of responsible people for the designated sectors
+    sector_regulation = incident.sector_regulation
+    regulator_email = sector_regulation.regulator.email_for_notification
+    recipient_list.append(regulator_email)
+
+    regulator_users = sector_regulation.regulator.user_set.all()
+    regulator_users_sectored = SectorContact.objects.all().filter(
+        user__in=regulator_users,
+        sector__in=incident.affected_sectors.all(),
+    ).distinct('user')
+    regulator_users_sectored_emails = []
+    for u in regulator_users_sectored:
+        regulator_users_sectored_emails.append(u.user.email)
+
+    recipient_list.extend(regulator_users_sectored_emails)
 
     send_html_email(subject, html_content, recipient_list)

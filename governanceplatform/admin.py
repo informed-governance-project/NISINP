@@ -788,6 +788,7 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "description",
         "country",
         "address",
+        "email_for_notification",
         "is_receiving_all_incident",
     )
 
