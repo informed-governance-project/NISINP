@@ -5,6 +5,29 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def populate_SectorCompanyContact(apps, schema_editor):
+    SectorContact = apps.get_model("governanceplatform", "SectorContact")
+    Company = apps.get_model("governanceplatform", "Company")
+    CompanyUser = apps.get_model("governanceplatform", "CompanyUser")
+    SectorCompanyContact = apps.get_model("governanceplatform", "SectorCompanyContact")
+    objs = []
+
+    for contact in SectorContact.objects.all():
+        for company in Company.objects.filter(sectors=contact.sector):
+            for company_user in CompanyUser.objects.filter(company=company, user=contact.user):
+                objs.append(
+                    SectorCompanyContact(
+                        user=contact.user,
+                        sector=contact.sector,
+                        is_sector_contact=contact.is_sector_contact,
+                        company=company,
+                        is_company_administrator=company_user.is_company_administrator,
+                    )
+                )
+
+    SectorCompanyContact.objects.bulk_create(objs)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -40,6 +63,30 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Sectors contact",
             },
         ),
+        migrations.AddField(
+            model_name="sectorcompanycontact",
+            name="company",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="governanceplatform.company",
+            ),
+        ),
+        migrations.AddField(
+            model_name="sectorcompanycontact",
+            name="sector",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="governanceplatform.sector",
+            ),
+        ),
+        migrations.AddField(
+            model_name="sectorcompanycontact",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
+        ),
+        migrations.RunPython(populate_SectorCompanyContact, migrations.RunPython.noop),
         migrations.RemoveField(
             model_name="sectorcontact",
             name="sector",
@@ -66,29 +113,6 @@ class Migration(migrations.Migration):
                 max_length=254,
                 null=True,
                 verbose_name="email address for incident notification",
-            ),
-        ),
-        migrations.AddField(
-            model_name="sectorcompanycontact",
-            name="company",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                to="governanceplatform.company",
-            ),
-        ),
-        migrations.AddField(
-            model_name="sectorcompanycontact",
-            name="sector",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                to="governanceplatform.sector",
-            ),
-        ),
-        migrations.AddField(
-            model_name="sectorcompanycontact",
-            name="user",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
             ),
         ),
         migrations.AddField(
