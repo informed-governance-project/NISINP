@@ -6,6 +6,8 @@ from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 from django_countries.fields import CountryField
 
+import governanceplatform
+
 from .managers import CustomUserManager
 
 
@@ -96,7 +98,8 @@ class Company(models.Model):
         verbose_name=_("email address"),
     )
     phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
-    sectors = models.ManyToManyField(Sector)
+    sector_contacts = models.ManyToManyField(Sector, through="SectorCompanyContact")
+
     types = models.ManyToManyField(OperatorType)
 
     def __str__(self):
@@ -104,7 +107,7 @@ class Company(models.Model):
 
     @admin.display(description="sectors")
     def get_sectors(self):
-        return [sector.name for sector in self.sectors.all()]
+        return [sector.name for sector in self.sector_contacts.all()]
 
     class Meta:
         verbose_name = _("Company")
@@ -151,9 +154,10 @@ class User(AbstractUser, PermissionsMixin):
         },
     )
     phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
-    companies = models.ManyToManyField(Company, through="CompanyUser")
+    companies = models.ManyToManyField(Company, through="SectorCompanyContact")
+    sectors = models.ManyToManyField(Sector, through="SectorCompanyContact")
     regulators = models.ManyToManyField(Regulator, through="RegulatorUser")
-    sectors = models.ManyToManyField(Sector, through="SectorContact")
+
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,
@@ -165,9 +169,9 @@ class User(AbstractUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    @admin.display(description="sectors")
-    def get_sectors(self):
-        return [sector.name for sector in self.sectors.all()]
+    # @admin.display(description="sectors")
+    # def get_sectors(self):
+    #     return [sector.name for sector in self.sectors.all()]
 
     @admin.display(description="companies")
     def get_companies(self):
@@ -185,6 +189,13 @@ class User(AbstractUser, PermissionsMixin):
         self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+    def get_sectors(self):
+        if governanceplatform.helpers.user_in_group(self, "RegulatorUser"):
+            ru = RegulatorUser.objects.filter(user=self).first()
+            return ru.sectors
+        else:
+            return self.sectors
+
     class Meta:
         permissions = (
             ("import_user", "Can import user"),
@@ -192,31 +203,13 @@ class User(AbstractUser, PermissionsMixin):
         )
 
 
-# link between the users and the sector
-class SectorContact(models.Model):
+class SectorCompanyContact(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     is_sector_contact = models.BooleanField(
         default=False, verbose_name=_("Contact person")
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "sector"], name="unique_SectorContact"
-            ),
-        ]
-        verbose_name = _("Sector contact")
-        verbose_name_plural = _("Sectors contact")
-
-    def __str__(self):
-        return ""
-
-
-# link between the admin users and the companies
-class CompanyUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_company_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
@@ -224,11 +217,11 @@ class CompanyUser(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "company"], name="unique_CompanyUser"
+                fields=["user", "sector", "company"], name="unique_SectorCompanyContact"
             ),
         ]
-        verbose_name = _("Company user")
-        verbose_name_plural = _("Company user")
+        verbose_name = _("Sector contact")
+        verbose_name_plural = _("Sectors contact")
 
     def __str__(self):
         return ""
@@ -241,6 +234,7 @@ class RegulatorUser(models.Model):
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
+    sectors = models.ManyToManyField(Sector)
 
     class Meta:
         constraints = [

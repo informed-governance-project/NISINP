@@ -17,16 +17,15 @@ from .helpers import user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
     Company,
-    CompanyUser,
     Functionality,
     OperatorType,
     Regulation,
     Regulator,
     RegulatorUser,
     Sector,
-    SectorContact,
     Service,
     User,
+    SectorCompanyContact
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -183,29 +182,76 @@ class CompanyResource(resources.ModelResource):
         model = Company
 
 
-class companySectorInline(admin.TabularInline):
-    model = Company.sectors.through
-    verbose_name = _("sector")
-    verbose_name_plural = _("sectors")
+class SectorCompanyContactInline(admin.TabularInline):
+    model = SectorCompanyContact
+    verbose_name = _("Contact for sector")
+    verbose_name_plural = _("Contacts for sectors")
     extra = 0
-    min_num = 1
+    min_num = 0
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector":
             user = request.user
-            # Regulator User
+            # User
             if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.sectors.all()
+                kwargs["queryset"] = user.get_sectors()
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
                 kwargs["queryset"] = user.sectors.all()
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+        if db_field.name == "user":
+            user = request.user
+            # Regulator User
+            if user_in_group(user, "RegulatorUser"):
+                kwargs["queryset"] = User.objects.filter(
+                    regulators=None
+                ).order_by('email')
+            # Operator Admin
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    regulators=None
+                ).order_by('email')
+
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == "company":
+            user = request.user
+            # Regulator User
+            if user_in_group(user, "RegulatorUser"):
+                kwargs["queryset"] = Company.objects.all().filter(
+                    sector_contacts__in=user.get_sectors().all()
+                ).order_by('name')
+            # Operator Admin
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = Company.objects.all().filter(
+                    sectorcompanycontact__user=user,
+                    sectorcompanycontact__is_company_administrator=True,
+                ).order_by('name')
+
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    # Revoke the permissions of the logged user
+    def has_add_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_add_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj == request.user:
+            return False
+        return super().has_delete_permission(request, obj)
+
 
 class CompanySectorListFilter(SimpleListFilter):
     title = _("Sectors")
-    parameter_name = "sectors"
+    parameter_name = "sector_contacts"
 
     def lookups(self, request, model_admin):
         sectors = Sector.objects.all()
@@ -219,7 +265,7 @@ class CompanySectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(companies=value)
+            return queryset.filter(sector_contacts=value)
         return queryset
 
 
@@ -236,7 +282,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     ]
     list_filter = [CompanySectorListFilter]
     search_fields = ["name"]
-    inlines = (companySectorInline,)
+    inlines = (SectorCompanyContactInline,)
     fieldsets = [
         (
             _("Contact Information"),
@@ -284,11 +330,14 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(companyuser__user=user)
+            return queryset.filter(
+                sectorcompanycontact__user=user,
+                sectorcompanycontact__is_company_administrator=True,
+            )
 
         return queryset
 
-# we don't delete company with users
+    # we don't delete company with users
     def delete_queryset(self, request, queryset):
         all_deleted = True
         for object in queryset:
@@ -343,47 +392,6 @@ class UserResource(resources.ModelResource):
         ]
 
 
-class userSectorInline(admin.TabularInline):
-    model = SectorContact
-    verbose_name = _("sector")
-    verbose_name_plural = _("sectors")
-    extra = 0
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "sector":
-            user = request.user
-            # Platform Admin
-            if user_in_group(user, "PlatformAdmin"):
-                kwargs["queryset"] = Sector.objects.none()
-            # Regulator Admin
-            if user_in_group(user, "RegulatorAdmin"):
-                kwargs["queryset"] = Sector.objects.all()
-            # Regulator User
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.sectors.all()
-            # Operator Admin
-            if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = user.sectors.all()
-
-            return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    # Revoke the permissions of the logged user
-    def has_add_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_add_permission(request, obj)
-
-    def has_change_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_delete_permission(request, obj)
-
-
 class userRegulatorInline(admin.TabularInline):
     model = RegulatorUser
     verbose_name = _("regulator")
@@ -432,50 +440,6 @@ class userRegulatorInline(admin.TabularInline):
             formset.form.base_fields["is_regulator_administrator"].initial = True
         formset.empty_permitted = False
         return formset
-
-
-class userCompanyInline(admin.TabularInline):
-    model = CompanyUser
-    verbose_name = _("company")
-    verbose_name_plural = _("companies")
-    extra = 0
-    min_num = 1
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "company":
-            user = request.user
-            # Regulator User
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = Company.objects.filter(
-                    sectors__in=user.sectors.all(),
-                ).distinct()
-            # Operator Admin
-            if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = user.companies.all()
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        formset.empty_permitted = False
-
-        return formset
-
-    # Revoke the permissions of the logged user
-    def has_add_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_add_permission(request, obj)
-
-    def has_change_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        if obj == request.user:
-            return False
-        return super().has_delete_permission(request, obj)
 
 
 # reset the 2FA we delete the TOTP devices
@@ -585,7 +549,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "phone_number",
         "get_regulators",
         "get_companies",
-        "get_sectors",
+        # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
     ]
@@ -597,7 +561,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
-    inlines = [userCompanyInline, userRegulatorInline, userSectorInline]
+    inlines = [userRegulatorInline, SectorCompanyContactInline]
     fieldsets = [
         (
             _("Contact Information"),
@@ -625,7 +589,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 inline
                 for inline in inline_instances
                 if not isinstance(
-                    inline, (userCompanyInline, userSectorInline, userRegulatorInline)
+                    inline, (SectorCompanyContactInline, userRegulatorInline)
                 )
             ]
 
@@ -643,13 +607,13 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 inline_instances = [
                     inline
                     for inline in inline_instances
-                    if not isinstance(inline, userRegulatorInline)
+                    if not isinstance(inline, (SectorCompanyContactInline))
                 ]
             else:
                 inline_instances = [
                     inline
                     for inline in inline_instances
-                    if not isinstance(inline, userCompanyInline)
+                    if not isinstance(inline, (SectorCompanyContactInline))
                 ]
 
         return inline_instances

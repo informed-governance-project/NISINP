@@ -70,7 +70,7 @@ def get_incidents(request):
         if user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
-                affected_sectors__in=request.user.sectors.all()
+                affected_sectors__in=request.user.get_sectors().all()
             )
         for incident in incidents:
             incident.formsWorkflow = []
