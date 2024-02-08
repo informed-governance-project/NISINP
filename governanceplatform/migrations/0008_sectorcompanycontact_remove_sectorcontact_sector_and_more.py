@@ -12,20 +12,37 @@ def populate_SectorCompanyContact(apps, schema_editor):
     SectorCompanyContact = apps.get_model("governanceplatform", "SectorCompanyContact")
     objs = []
 
-    for contact in SectorContact.objects.all():
-        for company in Company.objects.filter(sectors=contact.sector):
-            for company_user in CompanyUser.objects.filter(company=company, user=contact.user):
-                objs.append(
-                    SectorCompanyContact(
-                        user=contact.user,
-                        sector=contact.sector,
-                        is_sector_contact=contact.is_sector_contact,
-                        company=company,
-                        is_company_administrator=company_user.is_company_administrator,
+    if SectorContact.objects.all().count() > 0:
+        for contact in SectorContact.objects.all():
+            for company in Company.objects.filter(sectors=contact.sector):
+                for company_user in CompanyUser.objects.filter(company=company, user=contact.user):
+                    objs.append(
+                        SectorCompanyContact(
+                            user=contact.user,
+                            sector=contact.sector,
+                            is_sector_contact=contact.is_sector_contact,
+                            company=company,
+                            is_company_administrator=company_user.is_company_administrator,
+                        )
                     )
-                )
 
-    SectorCompanyContact.objects.bulk_create(objs)
+        SectorCompanyContact.objects.bulk_create(objs)
+
+
+def populate_RegulatorsSectors(apps, schema_editor):
+    User = apps.get_model("governanceplatform", "User")
+    RegulatorUser = apps.get_model("governanceplatform", "RegulatorUser")
+
+    if RegulatorUser.objects.all().count() > 0:
+        for regulatoruser in RegulatorUser.objects.all():
+            user = None
+            user = User.objects.filter(pk=regulatoruser.id).first()
+            if user is not None:
+                sectors = user.sectors.all()
+                if sectors.count() > 0:
+                    for sector in sectors:
+                        if not regulatoruser.sectors.filter(pk=sector.id).exists():
+                            regulatoruser.sectors.add(sector.id)
 
 
 class Migration(migrations.Migration):
@@ -87,6 +104,12 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(populate_SectorCompanyContact, migrations.RunPython.noop),
+        migrations.AddField(
+            model_name="regulatoruser",
+            name="sectors",
+            field=models.ManyToManyField(to="governanceplatform.sector"),
+        ),
+        migrations.RunPython(populate_RegulatorsSectors, migrations.RunPython.noop),
         migrations.RemoveField(
             model_name="sectorcontact",
             name="sector",
@@ -98,11 +121,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="company",
             name="sectors",
-        ),
-        migrations.AddField(
-            model_name="regulatoruser",
-            name="sectors",
-            field=models.ManyToManyField(to="governanceplatform.sector"),
         ),
         migrations.AlterField(
             model_name="regulator",
