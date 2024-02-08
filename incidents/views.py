@@ -13,6 +13,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
+from django import forms
+from django_countries import countries
+from .globals import REGIONAL_AREA
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -938,6 +941,25 @@ class WorkflowWizardView(SessionWizardView):
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
+                # replace following widget by more readable in read only
+                if form.fields[field].widget.__class__.__name__ == 'DropdownCheckboxSelectMultiple':
+                    initial = ''
+                    COUNTRY_DICT = dict(countries)
+                    for val in form.fields[field].initial:
+                        if val != '':
+                            if val in COUNTRY_DICT:
+                                initial = initial + COUNTRY_DICT[val] + ' - '
+                            elif val in REGIONAL_AREA:
+                                initial = initial + COUNTRY_DICT[val] + ' - '
+                            else:
+                                initial = initial + val + ' - '
+                    new_field = forms.CharField(
+                        required=False,
+                        disabled=True,
+                        label=form.fields[field].label,
+                        initial=initial
+                    )
+                    form.fields[field] = new_field
 
         return form
 
