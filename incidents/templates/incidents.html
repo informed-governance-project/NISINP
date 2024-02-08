@@ -151,9 +151,9 @@
             </td>
             <td>
                 {% if incident.is_significative_impact %}
-                    &#x2713;
+                    <span class="bi bi-check-lg d-flex align-items-center justify-content-center"></span> 
                 {% else %}
-                    &#x2717;
+                    <span class="d-flex align-items-center justify-content-center">X</span> 
                 {% endif %}
             </td>
             <td>{{ incident.get_incident_status_display }}</td>
