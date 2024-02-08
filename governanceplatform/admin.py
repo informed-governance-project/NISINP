@@ -495,7 +495,7 @@ class UserCompaniesListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(companies=value)
+            return queryset.filter(companies=value).distinct()
         return queryset
 
 
@@ -589,7 +589,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
 
-        # Exclude userCompanyInline, userSectorInline, userRegulatorInline for the logged-in user
+        # Exclude SectorCompanyContactInline, userRegulatorInline for the logged-in user
         if obj and obj == request.user:
             inline_instances = [
                 inline
@@ -607,13 +607,13 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 if not isinstance(inline, userRegulatorInline)
             ]
 
-        # Exclude userRegulatorInline or userCompanyInline for users in RegulatorAdmin group
+        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorAdmin"):
             if obj and not user_in_group(obj, "RegulatorUser"):
                 inline_instances = [
                     inline
                     for inline in inline_instances
-                    if not isinstance(inline, (SectorCompanyContactInline))
+                    if not isinstance(inline, (userRegulatorInline))
                 ]
             else:
                 inline_instances = [
