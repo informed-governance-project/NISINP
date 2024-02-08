@@ -843,7 +843,21 @@ class WorkflowWizardView(SessionWizardView):
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             if not is_user_regulator(user):
-                if (
+                if position == 0:
+                    # TO DO : find a solution to manage modelform properly
+                    tempdict = self.request.POST.copy() if self.request.method == "POST" else None
+                    if tempdict is not None and 'incident_starting_date' not in tempdict:
+                        if self.storage.get_step_data(self.steps.current) is not None:
+                            tempdict["incident_starting_date"] = (
+                                self.storage.get_step_data(self.steps.current).get(
+                                    "incident_starting_date"
+                                )
+                            )
+                    form = IncidenteDateForm(
+                        instance=self.incident_workflow.incident,
+                        data=tempdict
+                    )
+                elif (
                     position == len(self.form_list) - 1
                     and self.workflow.is_impact_needed
                 ):
@@ -851,12 +865,26 @@ class WorkflowWizardView(SessionWizardView):
                 else:
                     form = QuestionForm(
                         data,
-                        position=position,
+                        position=position-1,
                         workflow=self.workflow,
                         incident=self.incident,
                     )
             else:
-                if (
+                if position == 0:
+                    # TO DO : find a solution to manage modelform properly
+                    tempdict = self.request.POST.copy() if self.request.method == "POST" else None
+                    if tempdict is not None and 'incident_starting_date' not in tempdict:
+                        if self.storage.get_step_data(self.steps.current) is not None:
+                            tempdict["incident_starting_date"] = (
+                                self.storage.get_step_data(self.steps.current).get(
+                                    "incident_starting_date"
+                                )
+                            )
+                    form = IncidenteDateForm(
+                        instance=self.incident_workflow.incident,
+                        data=tempdict
+                    )
+                elif (
                     position == len(self.form_list) - 2
                     and self.workflow.is_impact_needed
                 ):
@@ -869,7 +897,7 @@ class WorkflowWizardView(SessionWizardView):
                     # regulator pass directly the incident_workflow
                     form = QuestionForm(
                         data,
-                        position=position,
+                        position=position-1,
                         incident_workflow=self.incident_workflow,
                     )
 
@@ -880,12 +908,26 @@ class WorkflowWizardView(SessionWizardView):
             else:
                 self.workflow = self.request.workflow
 
-            if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+            if position == 0:
+                # TO DO : find a solution to manage modelform properly
+                tempdict = self.request.POST.copy() if self.request.method == "POST" else None
+                if tempdict is not None and 'incident_starting_date' not in tempdict:
+                    if self.storage.get_step_data(self.steps.current) is not None:
+                        tempdict["incident_starting_date"] = (
+                            self.storage.get_step_data(self.steps.current).get(
+                                "incident_starting_date"
+                            )
+                        )
+                form = IncidenteDateForm(
+                    instance=self.incident,
+                    data=tempdict
+                )
+            elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
                 form = ImpactForm(incident=self.incident, data=data)
             else:
                 form = QuestionForm(
                     data,
-                    position=position,
+                    position=position-1,
                     workflow=self.workflow,
                     incident=self.incident,
                 )
@@ -913,6 +955,7 @@ class WorkflowWizardView(SessionWizardView):
             categ_list.sort(key=lambda c: c.position)
 
             context["steps"] = categ_list
+            context["steps"].insert(0, _("Timeline"))
             if self.workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
 
@@ -951,10 +994,14 @@ class WorkflowWizardView(SessionWizardView):
                 if self.workflow.submission_email
                 else None
             )
-
+            timeline_data = self.storage.get_step_data(self.steps.first)
+            # TO DO : manage this modelform properly - Save timeline
+            if timeline_data is not None:
+                if 'incident_starting_date' in timeline_data:
+                    self.incident.incident_starting_date = timeline_data['incident_starting_date']
             self.incident.save()
             # manage question
-            save_answers(0, data, self.incident, self.workflow)
+            save_answers(1, data, self.incident, self.workflow)
             if email is not None:
                 send_email(email, self.incident)
         # save the comment if the user is regulator

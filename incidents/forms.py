@@ -673,6 +673,7 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
             DetectionDateForm,
         ]
     else:
+        category_tree.append(IncidenteDateForm)
         impact_needed = False
         if workflow is None:
             workflow = incident.get_next_step()
