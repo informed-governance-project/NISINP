@@ -735,10 +735,11 @@ class ImpactForm(forms.Form):
     # prepare an array of impacts from incident sectorized
     def construct_impact_array(self, incident):
         impacts_array = []
+        regulation = incident.sector_regulation.regulation
         for sector in incident.affected_sectors.all():
             subgroup = []
-            if sector.impact_set.count() > 0:
-                for impact in sector.impact_set.all():
+            if sector.impact_set.filter(regulation=regulation).count() > 0:
+                for impact in sector.impact_set.filter(regulation=regulation):
                     subgroup.append([impact.id, impact.label])
                 impacts_array.append([sector.name, sorted(subgroup, key=lambda item: item[1])])
 
