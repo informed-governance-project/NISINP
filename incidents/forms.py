@@ -740,7 +740,7 @@ class ImpactForm(forms.Form):
             if sector.impact_set.count() > 0:
                 for impact in sector.impact_set.all():
                     subgroup.append([impact.id, impact.label])
-                impacts_array.append([sector.name, subgroup])
+                impacts_array.append([sector.name, sorted(subgroup, key=lambda item: item[1])])
 
         # Not needed anymore : just keep in case
         # impacts_without_sector = Impact.objects.all().filter(
