@@ -107,7 +107,14 @@ class Company(models.Model):
 
     @admin.display(description="sectors")
     def get_sectors(self):
-        return [sector.name for sector in self.sector_contacts.all()]
+        sectors = []
+        for sector in self.sector_contacts.all().distinct():
+            if sector.name is not None and sector.parent is not None:
+                sectors.append(sector.parent.name + " --> " + sector.name)
+            elif sector.name is not None and sector.parent is None:
+                sectors.append(sector.name)
+
+        return sectors
 
     class Meta:
         verbose_name = _("Company")

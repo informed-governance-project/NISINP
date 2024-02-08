@@ -260,12 +260,18 @@ class CompanySectorListFilter(SimpleListFilter):
         if user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
 
-        return [(sector.id, sector.name) for sector in sectors]
+        sectors_list = []
+        for sector in sectors:
+            if sector.name is not None and sector.parent is not None:
+                sectors_list.append((sector.id, sector.parent.name + " --> " + sector.name))
+            elif sector.name is not None and sector.parent is None:
+                sectors_list.append((sector.id, sector.name))
+        return sorted(sectors_list, key=lambda item: item[1])
 
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(sector_contacts=value)
+            return queryset.filter(sector_contacts=value).distinct()
         return queryset
 
 
