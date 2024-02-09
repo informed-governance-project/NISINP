@@ -115,6 +115,8 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
                 messages.add_message(request, messages.ERROR, "A sector cannot have itself as a parent")
+            else:
+                super().save_model(request, obj, form, change)
         else:
             super().save_model(request, obj, form, change)
 
