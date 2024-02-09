@@ -154,7 +154,7 @@ def is_deadline_exceeded(report, incident):
     return _("Not delivered")
 
 
-# get the incident workflow by workflow and incident to see the historic
+# get the incident workflow by workflow and incident to see the historic for regulator
 @register.filter
 def get_incident_workflow_by_workflow(incident, workflow):
     # we exclude the latest incident workflow
@@ -172,6 +172,27 @@ def get_incident_workflow_by_workflow(incident, workflow):
         IncidentWorkflow.objects.all()
         .filter(incident=incident, workflow=workflow)
         .exclude(id=latest_incident_workflow.id)
+        .order_by("-timestamp")
+    )
+
+
+# get the incident workflow by workflow and incident to see the historic for operator
+@register.filter
+def get_incident_workflow_by_workflow_operator(incident, workflow):
+    # we exclude the latest incident workflow
+    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+        workflow
+    )
+    if latest_incident_workflow is None:
+        return (
+            IncidentWorkflow.objects.all()
+            .filter(incident=incident, workflow=workflow)
+            .order_by("-timestamp")
+        )
+
+    return (
+        IncidentWorkflow.objects.all()
+        .filter(incident=incident, workflow=workflow)
         .order_by("-timestamp")
     )
 

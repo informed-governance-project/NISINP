@@ -193,6 +193,30 @@ def create_workflow(request):
 
 @login_required
 @otp_required
+def review_workflow(request):
+    incident_workflow_id = request.GET.get("incident_workflow_id", None)
+    if not incident_workflow_id:
+        messages.warning(request, _("No incident report found"))
+        return redirect("incidents")
+
+    user = request.user
+    incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+
+    if incident_workflow:
+        form_list = get_forms_list(
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            is_regulator=is_user_regulator(user),
+        )
+        request.incident_workflow = incident_workflow.id
+        return WorkflowWizardView.as_view(
+            form_list,
+            read_only=True,
+        )(request)
+
+
+@login_required
+@otp_required
 def edit_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -829,9 +853,11 @@ class WorkflowWizardView(SessionWizardView):
     incident = None
     workflow = None
     incident_workflow = None
+    read_only = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, read_only=False, **kwargs):
         self.form_list = kwargs.pop("form_list")
+        self.read_only = read_only
         super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
@@ -839,6 +865,8 @@ class WorkflowWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         user = self.request.user
+        # Operator : Complete an existing workflow or see historic
+        # Regulator : See the report
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
                 pk=self.request.incident_workflow
@@ -936,8 +964,15 @@ class WorkflowWizardView(SessionWizardView):
                 )
 
         # Read only for regulator except for last form (save comment)
+        # Read only for operator review (read_only = True)
         user = self.request.user
-        if is_user_regulator(user) and position != len(self.form_list) - 1:
+        if self.read_only:
+            last_form_index = -1
+        else:
+            last_form_index = len(self.form_list) - 1
+        if (is_user_regulator(user) and position != last_form_index) or self.read_only:
+            print('user')
+            print(is_user_regulator(user))
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
@@ -1003,7 +1038,7 @@ class WorkflowWizardView(SessionWizardView):
 
     def done(self, form_list, **kwargs):
         user = self.request.user
-        if not is_user_regulator(user):
+        if not is_user_regulator(user) and not self.read_only:
             data = [form.cleaned_data for form in form_list]
             if self.incident is None:
                 self.incident = Incident.objects.get(pk=self.request.incident)

@@ -111,7 +111,17 @@
                             <a class="{% if workflow_disabled %}disabled-link{% endif %}"
                                 href="{% if filtered_workflows %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}">
                                 {{ report }}
-                            </a>
+                            </a><br/>
+                            {% with incident_workflows=incident|get_incident_workflow_by_workflow_operator:report %}
+                            {% if incident_workflows %}
+                            <span class="fw-bold">{{ _('Historic') }}:</span><br/>
+                                {% for incident_workflow in incident_workflows %}
+                                    <a class="text-dark" href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}">
+                                    {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
+                                    </a><br/>
+                                {% endfor %}
+                            {% endif %}
+                            {% endwith %}
                         </td>
                         <td>
                             {% if filtered_workflows.comment is not None %}
