@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import CompanyUser, RegulatorUser
+from .models import SectorCompanyContact, RegulatorUser
 from .permissions import (
     set_operator_admin_permissions,
     set_operator_user_permissions,
@@ -12,13 +12,13 @@ from .permissions import (
 )
 
 
-@receiver(post_save, sender=CompanyUser)
+@receiver(post_save, sender=SectorCompanyContact)
 def update_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
 
-    some_company_is_administrator = user.companyuser_set.filter(
+    some_company_is_administrator = user.sectorcompanycontact_set.filter(
         is_company_administrator=True
     )
 
@@ -45,7 +45,7 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
         return
 
 
-@receiver(post_delete, sender=CompanyUser)
+@receiver(post_delete, sender=SectorCompanyContact)
 @receiver(post_delete, sender=RegulatorUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
@@ -66,7 +66,7 @@ def delete_user_groups(sender, instance, **kwargs):
         if group and user.groups.filter(name=group_name).exists():
             user.groups.remove(group)
 
-    if not user.companyuser_set.exists():
+    if not user.sectorcompanycontact_set.exists():
         user.is_staff = False
         user.is_superuser = False
 

@@ -13,6 +13,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
+from django import forms
+from django_countries import countries
+from .globals import REGIONAL_AREA
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -62,7 +65,7 @@ def get_incidents(request):
     incidents = Incident.objects.order_by("-incident_notification_date")
 
     if is_user_regulator(user):
-        # Filter indients by regulator
+        # Filter incidents by regulator
 
         incidents = incidents.filter(
             sector_regulation__regulator__in=user.regulators.all()
@@ -70,7 +73,7 @@ def get_incidents(request):
         if user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
-                affected_sectors__in=request.user.sectors.all()
+                affected_sectors__in=request.user.get_sectors().all()
             )
         for incident in incidents:
             incident.formsWorkflow = []
@@ -186,6 +189,30 @@ def create_workflow(request):
     return WorkflowWizardView.as_view(
         form_list,
     )(request)
+
+
+@login_required
+@otp_required
+def review_workflow(request):
+    incident_workflow_id = request.GET.get("incident_workflow_id", None)
+    if not incident_workflow_id:
+        messages.warning(request, _("No incident report found"))
+        return redirect("incidents")
+
+    user = request.user
+    incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+
+    if incident_workflow:
+        form_list = get_forms_list(
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            is_regulator=is_user_regulator(user),
+        )
+        request.incident_workflow = incident_workflow.id
+        return WorkflowWizardView.as_view(
+            form_list,
+            read_only=True,
+        )(request)
 
 
 @login_required
@@ -828,9 +855,11 @@ class WorkflowWizardView(SessionWizardView):
     incident = None
     workflow = None
     incident_workflow = None
+    read_only = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, read_only=False, **kwargs):
         self.form_list = kwargs.pop("form_list")
+        self.read_only = read_only
         super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
@@ -838,42 +867,56 @@ class WorkflowWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         user = self.request.user
+        # Operator : Complete an existing workflow or see historic
+        # Regulator : See the report
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
                 pk=self.request.incident_workflow
             )
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
-            if not is_user_regulator(user):
-                if (
-                    position == len(self.form_list) - 1
-                    and self.workflow.is_impact_needed
-                ):
-                    form = ImpactForm(incident=self.incident, data=data)
-                else:
-                    form = QuestionForm(
-                        data,
-                        position=position,
-                        workflow=self.workflow,
-                        incident=self.incident,
-                    )
+            if position == 0:
+                # TO DO : find a solution to manage modelform properly
+                tempdict = self.request.POST.copy() if self.request.method == "POST" else None
+                if tempdict is not None and 'incident_starting_date' not in tempdict:
+                    if self.storage.get_step_data(self.steps.current) is not None:
+                        tempdict["incident_starting_date"] = (
+                            self.storage.get_step_data(self.steps.current).get(
+                                "incident_starting_date"
+                            )
+                        )
+                form = IncidenteDateForm(
+                    instance=self.incident_workflow.incident,
+                    data=tempdict
+                )
+            # Regulator case
+            elif (
+                position == len(self.form_list) - 2
+                and self.workflow.is_impact_needed
+                and is_user_regulator(user)
+            ):
+                form = ImpactForm(incident=self.incident, data=data)
+            elif (
+                position == len(self.form_list) - 1
+                and is_user_regulator(user)
+            ):
+                form = RegulatorIncidentWorkflowCommentForm(
+                    instance=self.incident_workflow, data=data
+                )
+            # Operator case
+            elif (
+                position == len(self.form_list) - 1
+                and self.workflow.is_impact_needed
+                and not is_user_regulator(user)
+            ):
+                form = ImpactForm(incident=self.incident, data=data)
             else:
-                if (
-                    position == len(self.form_list) - 2
-                    and self.workflow.is_impact_needed
-                ):
-                    form = ImpactForm(incident=self.incident, data=data)
-                elif position == len(self.form_list) - 1:
-                    form = RegulatorIncidentWorkflowCommentForm(
-                        instance=self.incident_workflow, data=data
-                    )
-                else:
-                    # regulator pass directly the incident_workflow
-                    form = QuestionForm(
-                        data,
-                        position=position,
-                        incident_workflow=self.incident_workflow,
-                    )
+                # regulator pass directly the incident_workflow
+                form = QuestionForm(
+                    data,
+                    position=position-1,
+                    incident_workflow=self.incident_workflow,
+                )
 
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
@@ -882,22 +925,60 @@ class WorkflowWizardView(SessionWizardView):
             else:
                 self.workflow = self.request.workflow
 
-            if position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
+            if position == 0:
+                # TO DO : find a solution to manage modelform properly
+                tempdict = self.request.POST.copy() if self.request.method == "POST" else None
+                if tempdict is not None and 'incident_starting_date' not in tempdict:
+                    if self.storage.get_step_data(self.steps.current) is not None:
+                        tempdict["incident_starting_date"] = (
+                            self.storage.get_step_data(self.steps.current).get(
+                                "incident_starting_date"
+                            )
+                        )
+                form = IncidenteDateForm(
+                    instance=self.incident,
+                    data=tempdict
+                )
+            elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
                 form = ImpactForm(incident=self.incident, data=data)
             else:
                 form = QuestionForm(
                     data,
-                    position=position,
+                    position=position-1,
                     workflow=self.workflow,
                     incident=self.incident,
                 )
 
         # Read only for regulator except for last form (save comment)
+        # Read only for operator review (read_only = True)
         user = self.request.user
-        if is_user_regulator(user) and position != len(self.form_list) - 1:
+        if self.read_only:
+            last_form_index = -1
+        else:
+            last_form_index = len(self.form_list) - 1
+        if (is_user_regulator(user) and position != last_form_index) or self.read_only:
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
+                # replace following widget by more readable in read only
+                if form.fields[field].widget.__class__.__name__ == 'DropdownCheckboxSelectMultiple':
+                    initial = ''
+                    COUNTRY_DICT = dict(countries)
+                    for val in form.fields[field].initial:
+                        if val != '':
+                            if val in COUNTRY_DICT:
+                                initial = initial + COUNTRY_DICT[val] + ' - '
+                            elif val in REGIONAL_AREA:
+                                initial = initial + COUNTRY_DICT[val] + ' - '
+                            else:
+                                initial = initial + val + ' - '
+                    new_field = forms.CharField(
+                        required=False,
+                        disabled=True,
+                        label=form.fields[field].label,
+                        initial=initial
+                    )
+                    form.fields[field] = new_field
 
         return form
 
@@ -905,6 +986,7 @@ class WorkflowWizardView(SessionWizardView):
         context = super().get_context_data(form=form, **kwargs)
 
         if self.workflow is not None:
+            context["steps"] = []
             questions = self.workflow.questions
             categories = set()
             for question in questions.all():
@@ -914,7 +996,8 @@ class WorkflowWizardView(SessionWizardView):
                 categ_list.append(category)
             categ_list.sort(key=lambda c: c.position)
 
-            context["steps"] = categ_list
+            context["steps"].append(_("Timeline"))
+            context["steps"] += categ_list
             if self.workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
 
@@ -940,7 +1023,7 @@ class WorkflowWizardView(SessionWizardView):
 
     def done(self, form_list, **kwargs):
         user = self.request.user
-        if not is_user_regulator(user):
+        if not is_user_regulator(user) and not self.read_only:
             data = [form.cleaned_data for form in form_list]
             if self.incident is None:
                 self.incident = Incident.objects.get(pk=self.request.incident)
@@ -953,10 +1036,14 @@ class WorkflowWizardView(SessionWizardView):
                 if self.workflow.submission_email
                 else None
             )
-
+            timeline_data = self.storage.get_step_data(self.steps.first)
+            # TO DO : manage this modelform properly - Save timeline
+            if timeline_data is not None:
+                if 'incident_starting_date' in timeline_data:
+                    self.incident.incident_starting_date = timeline_data['incident_starting_date']
             self.incident.save()
             # manage question
-            save_answers(0, data, self.incident, self.workflow)
+            save_answers(1, data, self.incident, self.workflow)
             if email is not None:
                 send_email(email, self.incident)
         # save the comment if the user is regulator
