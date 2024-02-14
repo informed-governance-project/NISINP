@@ -422,11 +422,20 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
                 instances = f.save(commit=False)
                 # there is a modification
                 if len(instances) > 0:
-                    # exclude the deleted objets for check
+                    # exclude the deleted objets for check and modified one
+                    instances_id = [instance.id for instance in instances]
+                    deleted = deleted + instances_id
                     srws = SectorRegulationWorkflow.objects.filter(
                         sector_regulation=form.instance
                     ).exclude(id__in=deleted)
 
+                    # check in the modified one if there is a position issue
+                    for in1 in instances:
+                        for in2 in instances:
+                            if in1.id != in2.id and in1.position == in2.position:
+                                error = True
+
+                    # check with the unmodified
                     for srw in srws:
                         for instance in instances:
                             if srw.id != instance.id and srw.position == instance.position:
