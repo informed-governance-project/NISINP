@@ -114,6 +114,7 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
+                messages.set_level(request, messages.WARNING)
                 messages.add_message(request, messages.ERROR, "A sector cannot have itself as a parent")
             else:
                 super().save_model(request, obj, form, change)
@@ -359,6 +360,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def delete_model(self, request, obj):
         if obj.user_set.count() > 0:
+            messages.set_level(request, messages.WARNING)
             messages.add_message(request, messages.WARNING, "The company has user attached and can't be deleted")
         else:
             obj.delete()
