@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("governanceplatform", "0007_sector_creator_sector_creator_name"),
-        ("two_factor", "0009_initial"),
+        # ("two_factor", "0009_initial"),
         ("incidents", "0022_impact_creator_impact_creator_name_and_more"),
     ]
 
