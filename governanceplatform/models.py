@@ -101,6 +101,9 @@ class Company(models.Model):
     sector_contacts = models.ManyToManyField(Sector, through="SectorCompanyContact")
 
     types = models.ManyToManyField(OperatorType)
+    is_public_entity = models.BooleanField(
+        default=False, verbose_name=_("Public entity")
+    )
 
     def __str__(self):
         return self.name
@@ -150,6 +153,35 @@ class Regulator(models.Model):
         verbose_name_plural = _("Regulators")
 
 
+# CERT
+class Cert(models.Model):
+    name = models.CharField(max_length=64, verbose_name=_("name"))
+    country = models.CharField(max_length=64, verbose_name=_("country"))
+    address = models.CharField(max_length=255, verbose_name=_("address"))
+    email_for_notification = models.EmailField(
+        verbose_name=_("email address for incident notification"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+    full_name = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("full name")
+    )
+    description = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("description")
+    )
+    is_receiving_all_incident = models.BooleanField(
+        default=False, verbose_name=_("Receive all incident")
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("CERT")
+        verbose_name_plural = _("CERTs")
+
+
 # define an abstract class which make  the difference between operator and regulator
 class User(AbstractUser, PermissionsMixin):
     username = None
@@ -164,6 +196,7 @@ class User(AbstractUser, PermissionsMixin):
     companies = models.ManyToManyField(Company, through="SectorCompanyContact")
     sectors = models.ManyToManyField(Sector, through="SectorCompanyContact")
     regulators = models.ManyToManyField(Regulator, through="RegulatorUser")
+    certs = models.ManyToManyField(Cert, through="CertUser")
 
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
@@ -251,6 +284,27 @@ class RegulatorUser(models.Model):
         ]
         verbose_name = _("Regulator user")
         verbose_name_plural = _("Regulator users")
+
+    def __str__(self):
+        return ""
+
+
+# link between the admin cert users and the cert.
+class CertUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cert = models.ForeignKey(Cert, on_delete=models.CASCADE)
+    is_cert_administrator = models.BooleanField(
+        default=False, verbose_name=_("is administrator")
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "cert"], name="unique_CertUser"
+            ),
+        ]
+        verbose_name = _("CERT user")
+        verbose_name_plural = _("CERT users")
 
     def __str__(self):
         return ""

@@ -370,8 +370,8 @@ class SectorRegulationResource(resources.ModelResource):
 
 class SectorRegulationInline(admin.TabularInline):
     model = SectorRegulation.workflows.through
-    verbose_name = _("sector regulation")
-    verbose_name_plural = _("sectors regulations")
+    verbose_name = _("Incident Report")
+    verbose_name_plural = _("Incident reports")
     extra = 0
 
 
