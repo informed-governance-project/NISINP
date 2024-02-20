@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from mptt.models import MPTTModel
 from parler.models import TranslatableModel, TranslatedFields
 
 from .globals import (
@@ -16,7 +15,7 @@ from .globals import (
 
 
 # impacts of the incident, they are linked to sector
-class Impact(MPTTModel, TranslatableModel):
+class Impact(TranslatableModel):
     """Defines an impact."""
 
     translations = TranslatedFields(

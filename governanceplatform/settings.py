@@ -98,7 +98,6 @@ INSTALLED_APPS = [
     "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
-    "mptt",
 ]
 
 AUTHENTICATION_BACKENDS = [

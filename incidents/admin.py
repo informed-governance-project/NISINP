@@ -6,7 +6,6 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
-from mptt.admin import DraggableMPTTAdmin, MPTTModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
@@ -25,8 +24,6 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
-
-# admin.site.register(Sector, DraggableMPTTAdmin)
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
@@ -50,7 +47,7 @@ class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display_links = ["question", "predefined_answer"]
     search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -80,7 +77,7 @@ class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
     ordering = ["position"]
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -215,11 +212,8 @@ class ImpactRegulationListFilter(SimpleListFilter):
             return queryset.filter(Q(regulation=self.value()))
 
 
-admin.site.register(Sector, MPTTModelAdmin)
-
-
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin, MPTTModelAdmin):
+class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -361,7 +355,7 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     filter_horizontal = [
         "questions",
     ]
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
