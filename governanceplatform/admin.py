@@ -25,7 +25,9 @@ from .models import (
     Sector,
     Service,
     User,
-    SectorCompanyContact
+    SectorCompanyContact,
+    Cert,
+    CertUser,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -626,6 +628,14 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                     if not isinstance(inline, (SectorCompanyContactInline))
                 ]
 
+        # platform admin just create user and manage certuser and regulatoruser entity
+        if user_in_group(request.user, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, (userRegulatorInline))
+            ]
+
         return inline_instances
 
     def get_list_display(self, request):
@@ -781,6 +791,88 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         user = request.user
         if user_in_group(user, "RegulatorAdmin") and obj != user.regulators.first():
+            return False
+        return super().has_delete_permission(request, obj)
+
+
+class CertResource(TranslationUpdateMixin, resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+    class Meta:
+        model = Cert
+
+
+class CertUserInline(admin.TabularInline):
+    model = CertUser
+    verbose_name = _("CERT user")
+    verbose_name_plural = _("CERT users")
+    extra = 0
+    min_num = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            # current_id of the parent, here a CERT
+            current_id = None
+            if request.resolver_match.kwargs.get('object_id'):
+                current_id = request.resolver_match.kwargs['object_id']
+            query1 = User.objects.filter(
+                regulators=None,
+                companies=None,
+                sectors=None,
+                is_staff=False,
+                is_superuser=False,
+                sectorcompanycontact=None,
+                groups=None,
+                certs=None,
+            )
+            query_union = query1
+            if current_id is not None:
+                query2 = User.objects.filter(
+                    certs=current_id,
+                    regulators=None,
+                    companies=None,
+                    sectors=None,
+                )
+                query_union = query1.union(query2)
+            kwargs["queryset"] = User.objects.filter(id__in=query_union.values('id'))
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(Cert, site=admin_site)
+class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
+    search_fields = ["name"]
+    resource_class = CertResource
+    fields = (
+        "name",
+        "full_name",
+        "description",
+        "country",
+        "address",
+        "email_for_notification",
+        "is_receiving_all_incident",
+    )
+
+    inlines = (CertUserInline, )
+
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin"):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin") and obj != user.certs.first():
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "RegulatorAdmin") and obj != user.certs.first():
             return False
         return super().has_delete_permission(request, obj)
 

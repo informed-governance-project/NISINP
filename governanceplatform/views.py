@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
@@ -71,7 +72,13 @@ def registration_view(request, *args, **kwargs):
     elif request.method == "POST":
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            # default give the role IncidentUser
+            new_group, created = Group.objects.get_or_create(name='IncidentUser')
+            if new_group:
+                user.groups.add(new_group)
+            else:
+                user.groups.add(created)
             email = form.cleaned_data.get("email").lower()
             raw_password = form.cleaned_data.get("password1")
             account = authenticate(email=email, password=raw_password)

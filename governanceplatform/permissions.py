@@ -53,6 +53,8 @@ def set_platform_admin_permissions(user):
             "regulatoruser": ["add", "change", "delete"],
             "regulator": ["add", "change", "delete"],
             "regulation": ["add", "change", "delete"],
+            "certuser": ["add", "change", "delete"],
+            "cert": ["add", "change", "delete"],
         },
     )
 
@@ -63,6 +65,29 @@ def set_regulator_admin_permissions(user):
         is_superuser=True,
         is_staff=True,
         group_name="RegulatorAdmin",
+        permissions={},
+    )
+
+
+def set_cert_admin_permissions(user):
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        is_staff=True,
+        group_name="CertAdmin",
+        permissions={
+            "user": ["add", "change", "delete"],
+        },
+    )
+
+
+def set_cert_user_permissions(user):
+    user.is_staff = False
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        is_staff=False,
+        group_name="CertUser",
         permissions={},
     )
 
@@ -103,5 +128,16 @@ def set_operator_user_permissions(user):
         is_superuser=False,
         is_staff=False,
         group_name="OperatorUser",
+        permissions={},
+    )
+
+
+def set_incident_user_permissions(user):
+    user.is_staff = False
+    set_permissions_for_user(
+        user,
+        is_superuser=False,
+        is_staff=False,
+        group_name="IncidentUser",
         permissions={},
     )

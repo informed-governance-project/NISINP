@@ -3,12 +3,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import SectorCompanyContact, RegulatorUser
+from .models import SectorCompanyContact, RegulatorUser, CertUser
 from .permissions import (
     set_operator_admin_permissions,
     set_operator_user_permissions,
     set_regulator_admin_permissions,
     set_regulator_staff_permissions,
+    set_cert_admin_permissions,
+    set_cert_user_permissions
 )
 
 
@@ -45,6 +47,21 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
         return
 
 
+@receiver(post_save, sender=CertUser)
+def update_cert_user_groups(sender, instance, created, **kwargs):
+    user = instance.user
+    user.is_staff = False
+    user.is_superuser = False
+
+    # Regulator Administrator permissions
+    if instance.is_cert_administrator:
+        set_cert_admin_permissions(user)
+        return
+    else:
+        set_cert_user_permissions(user)
+        return
+
+
 @receiver(post_delete, sender=SectorCompanyContact)
 @receiver(post_delete, sender=RegulatorUser)
 def delete_user_groups(sender, instance, **kwargs):
@@ -55,6 +72,9 @@ def delete_user_groups(sender, instance, **kwargs):
         "RegulatorUser",
         "OperatorAdmin",
         "OperatorUser",
+        "IncidentUser",
+        "CertAdmin",
+        "CertUser",
     ]
 
     for group_name in group_names:
