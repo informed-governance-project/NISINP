@@ -101,9 +101,6 @@ class Company(models.Model):
     sector_contacts = models.ManyToManyField(Sector, through="SectorCompanyContact")
 
     types = models.ManyToManyField(OperatorType)
-    is_public_entity = models.BooleanField(
-        default=False, verbose_name=_("Public entity")
-    )
 
     def __str__(self):
         return self.name
