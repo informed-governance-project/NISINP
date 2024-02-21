@@ -257,6 +257,13 @@ class SectorRegulationWorkflow(models.Model):
     )
     emails = models.ManyToManyField(Email, through="SectorRegulationWorkflowEmail")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["sector_regulation", "position"], name="Unique_SectorRegulationWorkflowPosition"
+            ),
+        ]
+
     def __str__(self):
         return self.workflow.name if self.workflow is not None else ""
 
