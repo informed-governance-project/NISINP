@@ -482,6 +482,25 @@ class UserRegulatorsListFilter(SimpleListFilter):
         return queryset
 
 
+class CertUsersListFilter(SimpleListFilter):
+    title = _("CERT")
+    parameter_name = "certs"
+
+    def lookups(self, request, model_admin):
+        certs = Cert.objects.none()
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            certs = Cert.objects.all()
+        return [(cert.id, cert.name) for cert in certs]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(certs=value)
+        return queryset
+
+
 class UserCompaniesListFilter(SimpleListFilter):
     title = _("Companies")
     parameter_name = "companies"
@@ -490,7 +509,7 @@ class UserCompaniesListFilter(SimpleListFilter):
         companies = Company.objects.all()
         user = request.user
         # Platform Admin
-        if user_in_group(user, "PlatformAdmin"):
+        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "CertAdmin"):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -513,7 +532,7 @@ class UserSectorListFilter(SimpleListFilter):
         sectors = Sector.objects.all()
         user = request.user
         # Platform Admin
-        if user_in_group(user, "PlatformAdmin"):
+        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "CertAdmin"):
             sectors = Sector.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -539,6 +558,21 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
         if user_in_group(user, "RegulatorAdmin"):
             groups = groups.exclude(name__in=["PlatformAdmin"])
 
+        if user_in_group(user, "PlatformAdmin"):
+            groups = groups.exclude(name__in=["OperatorAdmin", "OperatorUser", "IncidentUser"])
+
+        if user_in_group(user, "CertAdmin"):
+            groups = groups.exclude(
+                name__in=[
+                    "PlatformAdmin",
+                    "RegulatorAdmin",
+                    "RegulatorUser",
+                    "OperatorAdmin",
+                    "OperatorUser",
+                    "IncidentUser",
+                ]
+            )
+
         if user_in_group(user, "RegulatorUser"):
             groups = groups.exclude(name__in=["PlatformAdmin", "RegulatorAdmin"])
 
@@ -561,6 +595,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         "phone_number",
         "get_regulators",
         "get_companies",
+        "get_certs",
         # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
@@ -568,6 +603,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
         UserRegulatorsListFilter,
+        CertUsersListFilter,
         UserCompaniesListFilter,
         UserSectorListFilter,
         UserPermissionsGroupListFilter,
@@ -648,6 +684,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 field for field in list_display if field not in fields_to_exclude
             ]
 
+        if user_in_group(request.user, "CertAdmin"):
+            fields_to_exclude = ["get_sectors", "get_companies", "get_regulators"]
+            list_display = [
+                field for field in list_display if field not in fields_to_exclude
+            ]
+
         if user_in_group(request.user, "RegulatorUser"):
             list_display = [
                 field for field in list_display if field != "get_regulators"
@@ -673,10 +715,31 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         except ObjectDoesNotExist:
             RegulatorAdminGroupId = None
 
+        try:
+            RegulatorUserGroupId = Group.objects.get(name="RegulatorUser").id
+        except ObjectDoesNotExist:
+            RegulatorUserGroupId = None
+
+        try:
+            CertAdminGroupId = Group.objects.get(name="CertAdmin").id
+        except ObjectDoesNotExist:
+            CertAdminGroupId = None
+
+        try:
+            CertUserGroupId = Group.objects.get(name="CertUser").id
+        except ObjectDoesNotExist:
+            CertUserGroupId = None
+
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
-                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId]
+                groups__in=[
+                    PlatformAdminGroupId,
+                    RegulatorAdminGroupId,
+                    RegulatorUserGroupId,
+                    CertUserGroupId,
+                    CertAdminGroupId,
+                ]
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
@@ -687,6 +750,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
                 groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId]
+            )
+        # Cert Admin
+        if user_in_group(user, "CertAdmin"):
+            return queryset.filter(
+                Q(certs=user.certs.first())
             )
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -700,6 +768,21 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         if user_in_group(user, "RegulatorUser") and obj == user:
             return True
         return super().has_change_permission(request, obj)
+
+    def save_model(self, request, obj, form, change):
+        user = request.user
+        if not change:
+            # in CertAdmin we can only add user for our CERT and default is CertUser
+            if user_in_group(user, "CertAdmin"):
+                super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name='CertUser')
+                obj.certs.add(user.certs.first())
+                if new_group:
+                    obj.groups.add(new_group)
+                else:
+                    obj.groups.add(created)
+
+        super().save_model(request, obj, form, change)
 
 
 class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
@@ -860,7 +943,7 @@ class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def has_add_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
+        if user_in_group(user, "RegulatorAdmin") or user_in_group(user, "CertAdmin"):
             return False
         return super().has_change_permission(request, obj)
 
@@ -872,9 +955,30 @@ class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin") and obj != user.certs.first():
+        if user_in_group(user, "PlatformAdmin"):
+            return super().has_delete_permission(request, obj)
+        else:
             return False
-        return super().has_delete_permission(request, obj)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Cert Admin
+        if user_in_group(user, "CertAdmin"):
+            return queryset.filter(
+                user=user,
+            )
+
+        return queryset
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the is_receive_all_incident
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("is_receiving_all_incident",)
+
+        return readonly_fields
 
 
 class RegulationResource(TranslationUpdateMixin, resources.ModelResource):

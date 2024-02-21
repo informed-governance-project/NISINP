@@ -218,6 +218,10 @@ class User(AbstractUser, PermissionsMixin):
     def get_regulators(self):
         return [regulator.name for regulator in self.regulators.all()]
 
+    @admin.display(description="certs")
+    def get_certs(self):
+        return [cert.name for cert in self.certs.all()]
+
     @admin.display(description="Roles")
     def get_permissions_groups(self):
         return ", ".join([group.name for group in self.groups.all()])

@@ -55,6 +55,7 @@ def update_cert_user_groups(sender, instance, created, **kwargs):
 
     # Regulator Administrator permissions
     if instance.is_cert_administrator:
+        print('admin')
         set_cert_admin_permissions(user)
         return
     else:
@@ -64,6 +65,7 @@ def update_cert_user_groups(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=SectorCompanyContact)
 @receiver(post_delete, sender=RegulatorUser)
+@receiver(post_delete, sender=CertUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
     group_names = [

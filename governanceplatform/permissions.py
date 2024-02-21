@@ -77,6 +77,8 @@ def set_cert_admin_permissions(user):
         group_name="CertAdmin",
         permissions={
             "user": ["add", "change", "delete"],
+            "certuser": ["add", "change", "delete"],
+            "cert": ["change"],
         },
     )
 
