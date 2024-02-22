@@ -2,6 +2,7 @@ import secrets
 from typing import Optional
 
 from .models import Company, User
+from incidents.models import Incident
 
 
 def generate_token():
@@ -20,6 +21,47 @@ def is_user_regulator(user: User) -> bool:
     return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorUser")
 
 
+def is_cert_user(user: User) -> bool:
+    return user_in_group(user, "CertAdmin") or user_in_group(user, "CertUser")
+
+
+def is_cert_user_viewving_all_incident(user: User) -> bool:
+    return (user_in_group(user, "CertAdmin") or user_in_group(user, "CertUser")) and user.certs.first().is_receiving_all_incident
+
+
 def get_active_company_from_session(request) -> Optional[Company]:
     company_in_use = request.session.get("company_in_use")
     return request.user.companies.get(id=company_in_use) if company_in_use else None
+
+
+def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
+    # RegulatorUser can access only incidents from accessible sectors.
+    if (
+        user_in_group(user, "RegulatorUser")
+        and Incident.objects.filter(
+            pk=incident.id, affected_services__sector__in=user.sectors.all()
+        ).exists()
+    ):
+        return True
+    # OperatorAdmin can access only incidents related to selected company.
+    if (
+        user_in_group(user, "OperatorAdmin")
+        and Incident.objects.filter(
+            pk=incident.id, company__id=company_id
+        ).exists()
+    ):
+        return True
+    # OperatorStaff and IncidentUser can access only their reports.
+    if (
+        not is_user_regulator(user)
+        and (user_in_group(user, "OperatorUser") or user_in_group(user, "IncidentUser"))
+        and Incident.objects.filter(
+            pk=incident.id, contact_user=user
+        ).exists()
+    ):
+        return True
+    # CertUser access all incident if he is in a cert who can access all incident.
+    if is_cert_user_viewving_all_incident(user):
+        return True
+
+    return False

@@ -41,6 +41,20 @@ def status_class(value):
         return "table-secondary"
 
 
+@register.simple_tag
+def get_review_status_name(value):
+    if value == "PASS":
+        return _("Review passed")
+    elif value == "FAIL":
+        return _("Review failed")
+    elif value == "DELIV":
+        return _("Delivered")
+    elif value == "OUT":
+        return _("Not delivered and deadline exceeded")
+    else:
+        return _("Not delivered")
+
+
 @register.filter
 def filter_workflows(incidentWorkflows, report_id):
     for incidentworkflow in incidentWorkflows:

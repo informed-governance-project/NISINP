@@ -21,6 +21,9 @@ from governanceplatform.helpers import (
     get_active_company_from_session,
     is_user_regulator,
     user_in_group,
+    is_cert_user_viewving_all_incident,
+    is_cert_user,
+    can_access_incident,
 )
 from governanceplatform.models import Regulation, Regulator, Sector
 from governanceplatform.settings import (
@@ -90,7 +93,9 @@ def get_incidents(request):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(request.GET, queryset=incidents)
-    # RegulatorAdmin can see all the incidents reported by operators.
+    elif is_cert_user_viewving_all_incident(user):
+        incidents = Incident.objects.all().order_by("-incident_notification_date")
+        f = IncidentFilter(request.GET, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
@@ -114,11 +119,14 @@ def get_incidents(request):
         response = paginator.page(paginator.num_pages)
 
     # add paggination to the regular incidents view.
+    html_view = "incidents.html"
+    if is_user_regulator(request.user):
+        html_view = "regulator/incidents.html"
+    elif is_cert_user(request.user):
+        html_view = "cert/incidents.html"
     return render(
         request,
-        "regulator/incidents.html"
-        if is_user_regulator(request.user)
-        else "incidents.html",
+        html_view,
         context={
             "site_name": SITE_NAME,
             "paginator": paginator,
@@ -194,25 +202,30 @@ def create_workflow(request):
 @login_required
 @otp_required
 def review_workflow(request):
+    company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
     if not incident_workflow_id:
         messages.warning(request, _("No incident report found"))
         return redirect("incidents")
-
     user = request.user
     incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+    incident = incident_workflow.incident
 
     if incident_workflow:
-        form_list = get_forms_list(
-            incident=incident_workflow.incident,
-            workflow=incident_workflow.workflow,
-            is_regulator=is_user_regulator(user),
-        )
-        request.incident_workflow = incident_workflow.id
-        return WorkflowWizardView.as_view(
-            form_list,
-            read_only=True,
-        )(request)
+        if can_access_incident(user, incident, company_id):
+            form_list = get_forms_list(
+                incident=incident_workflow.incident,
+                workflow=incident_workflow.workflow,
+                is_regulator=is_user_regulator(user),
+            )
+            request.incident_workflow = incident_workflow.id
+            return WorkflowWizardView.as_view(
+                form_list,
+                read_only=True,
+            )(request)
+        else:
+            messages.error(request, _("Forbidden"))
+            return redirect("incidents")
 
 
 @login_required
@@ -442,58 +455,31 @@ def get_edit_incident_timeline_form(request, incident_id: int):
 @otp_required
 def download_incident_pdf(request, incident_id: int):
     target = request.headers.get("referer", "/")
-    if not can_redirect(target):
-        target = "/"
+    user = request.user
+    incident = Incident.objects.get(pk=incident_id)
+    company_id = request.session.get("company_in_use")
 
-    # RegulatorUser can access only incidents from accessible sectors.
-    if (
-        user_in_group(request.user, "RegulatorUser")
-        and not Incident.objects.filter(
-            pk=incident_id, affected_services__sector__in=request.user.sectors.all()
-        ).exists()
-    ):
-        messages.warning(
-            request, _("You can only access incidents from accessible sectors.")
-        )
-        return HttpResponseRedirect("/incidents")
-    # OperatorAdmin can access only incidents related to selected company.
-    if (
-        user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, company__id=request.session.get("company_in_use")
-        ).exists()
-    ):
-        messages.warning(
-            request, _("You can only access incidents related to selected company.")
-        )
-        return HttpResponseRedirect("/incidents")
-    # OperatorStaff and IncidentUser can access only their reports.
-    if (
-        not is_user_regulator(request.user)
-        and not user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, contact_user=request.user
-        ).exists()
-    ):
+    if not can_access_incident(user, incident, company_id):
         messages.warning(
             request, _("You can only access the incidents reports you have created.")
         )
         return HttpResponseRedirect("/incidents")
+    else:
+        if not can_redirect(target):
+            target = "/"
 
-    incident = Incident.objects.get(pk=incident_id)
+        try:
+            pdf_report = get_pdf_report(incident, request)
+        except Exception:
+            messages.warning(request, _("An error occurred when generating the report."))
+            return HttpResponseRedirect(target)
 
-    try:
-        pdf_report = get_pdf_report(incident, request)
-    except Exception:
-        messages.warning(request, _("An error occurred when generating the report."))
-        return HttpResponseRedirect(target)
+        response = HttpResponse(pdf_report, content_type="application/pdf")
+        response["Content-Disposition"] = "attachment;filename=Incident_{}_{}.pdf".format(
+            incident_id, date.today()
+        )
 
-    response = HttpResponse(pdf_report, content_type="application/pdf")
-    response["Content-Disposition"] = "attachment;filename=Incident_{}_{}.pdf".format(
-        incident_id, date.today()
-    )
-
-    return response
+        return response
 
 
 def is_incidents_report_limit_reached(request):
