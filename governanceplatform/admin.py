@@ -192,17 +192,17 @@ class SectorCompanyContactInline(admin.TabularInline):
     verbose_name = _("Contact for sector")
     verbose_name_plural = _("Contacts for sectors")
     extra = 0
-    min_num = 0
+    min_num = 1
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector":
             user = request.user
             # User
             if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.get_sectors()
+                kwargs["queryset"] = user.get_sectors().distinct()
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = user.sectors.all()
+                kwargs["queryset"] = user.sectors.all().distinct()
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -215,8 +215,13 @@ class SectorCompanyContactInline(admin.TabularInline):
                 ).order_by('email')
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
+                current_id = None
+                if request.resolver_match.kwargs.get('object_id'):
+                    current_id = request.resolver_match.kwargs['object_id']
                 kwargs["queryset"] = User.objects.filter(
-                    regulators=None
+                    regulators=None,
+                    certs=None,
+                    companies=current_id
                 ).order_by('email')
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -316,6 +321,19 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
             },
         ),
     ]
+
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        user = request.user
+        # Exclude SectorCompanyContactInline for OperatorAdmin
+        if obj and user_in_group(user, "OperatorAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, SectorCompanyContactInline)
+            ]
+
+        return inline_instances
 
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
@@ -764,7 +782,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
                 companies__in=request.user.companies.all(),
-            )
+            ).distinct()
         return queryset
 
     def has_change_permission(self, request, obj=None):
