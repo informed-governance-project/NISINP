@@ -133,7 +133,7 @@ def is_deadline_exceeded(report, incident):
                 return _("Not delivered and deadline exceeded")
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
-            and incident.get_previous_workflow(report) is not None
+            and incident.get_previous_workflow(report) is not False
         ):
             previous_workflow = incident.get_previous_workflow(report)
             previous_incident_workflow = (
