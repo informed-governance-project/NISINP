@@ -24,6 +24,7 @@ from governanceplatform.helpers import (
     is_cert_user_viewving_all_incident,
     is_cert_user,
     can_access_incident,
+    can_create_incident_report
 )
 from governanceplatform.models import Regulation, Regulator, Sector
 from governanceplatform.settings import (
@@ -195,7 +196,7 @@ def create_workflow(request):
     user = request.user
     company_id = request.session.get("company_in_use")
 
-    if not can_access_incident(user, incident, company_id):
+    if not can_create_incident_report(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
     else:
