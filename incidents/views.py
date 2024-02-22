@@ -168,6 +168,8 @@ def get_next_workflow(request, form_list=None, incident_id=None):
     )(request)
 
 
+@login_required
+@otp_required
 def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -190,13 +192,20 @@ def create_workflow(request):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
-    form_list = get_forms_list(incident=incident)
-    request.incident = incident_id
-    request.workflow = workflow
-    request.incident_workflow = None
-    return WorkflowWizardView.as_view(
-        form_list,
-    )(request)
+    user = request.user
+    company_id = request.session.get("company_in_use")
+
+    if not can_access_incident(user, incident, company_id):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+    else:
+        form_list = get_forms_list(incident=incident)
+        request.incident = incident_id
+        request.workflow = workflow
+        request.incident_workflow = None
+        return WorkflowWizardView.as_view(
+            form_list,
+        )(request)
 
 
 @login_required
@@ -460,10 +469,8 @@ def download_incident_pdf(request, incident_id: int):
     company_id = request.session.get("company_in_use")
 
     if not can_access_incident(user, incident, company_id):
-        messages.warning(
-            request, _("You can only access the incidents reports you have created.")
-        )
-        return HttpResponseRedirect("/incidents")
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
     else:
         if not can_redirect(target):
             target = "/"

@@ -65,3 +65,28 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         return True
 
     return False
+
+
+# check if the user is allowed to create an incident_workflow
+def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # prevent regulator and cert to create incident_workflow
+    if (
+        user_in_group(user, "RegulatorUser")
+        or user_in_group(user, "RegulatorAdmin")
+        or user_in_group(user, "CertAdmin")
+        or user_in_group(user, "CertUser")
+        or user_in_group(user, "PlatformAdmin")
+    ):
+        return False
+    # if it's the incident of the user he can create
+    if (incident.contact_user == user):
+        return True
+    # if he is admin of the company he can create
+    if (
+        user_in_group(user, "OperatorAdmin")
+        and Incident.objects.filter(
+            pk=incident.id, company__id=company_id
+        ).exists()
+    ):
+        return True
+    return False
