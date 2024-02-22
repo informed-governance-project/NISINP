@@ -24,7 +24,8 @@ from governanceplatform.helpers import (
     is_cert_user_viewving_all_incident,
     is_cert_user,
     can_access_incident,
-    can_create_incident_report
+    can_create_incident_report,
+    can_edit_incident_report,
 )
 from governanceplatform.models import Regulation, Regulator, Sector
 from governanceplatform.settings import (
@@ -245,6 +246,7 @@ def edit_workflow(request):
     workflow_id = request.GET.get("workflow_id", None)
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
     user = request.user
+    company_id = request.session.get("company_in_use")
     incident_workflow = None
     if not workflow_id and not incident_id and not incident_workflow_id:
         messages.warning(request, _("No incident report found"))
@@ -268,25 +270,27 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
+    if can_edit_incident_report(user, incident, company_id):
+        if incident_workflow is None:
+            incident_workflow = IncidentWorkflow.objects.filter(
+                incident=incident_id, workflow=workflow_id
+            ).order_by("timestamp")
+            incident_workflow = incident_workflow.last()
+            request.incident = incident_workflow.incident.id
 
-    if incident_workflow is None:
-        incident_workflow = IncidentWorkflow.objects.filter(
-            incident=incident_id, workflow=workflow_id
-        ).order_by("timestamp")
-        incident_workflow = incident_workflow.last()
-        request.incident = incident_workflow.incident.id
-
-    if incident_workflow:
-        form_list = get_forms_list(
-            incident=incident_workflow.incident,
-            workflow=incident_workflow.workflow,
-            is_regulator=is_user_regulator(user),
-        )
-        request.incident_workflow = incident_workflow.id
-        return WorkflowWizardView.as_view(
-            form_list,
-        )(request)
-
+        if incident_workflow:
+            form_list = get_forms_list(
+                incident=incident_workflow.incident,
+                workflow=incident_workflow.workflow,
+                is_regulator=is_user_regulator(user),
+            )
+            request.incident_workflow = incident_workflow.id
+            return WorkflowWizardView.as_view(
+                form_list,
+            )(request)
+    else:
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
     messages.warning(request, _("No incident report found"))
     return redirect("incidents")
 

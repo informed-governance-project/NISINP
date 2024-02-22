@@ -90,3 +90,43 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     ):
         return True
     return False
+
+
+# check if the user is allowed to create an incident_workflow
+def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # prevent cert to edit incident_workflow
+    if (
+        user_in_group(user, "CertAdmin")
+        or user_in_group(user, "CertUser")
+        or user_in_group(user, "PlatformAdmin")
+    ):
+        return False
+    # if it's the incident of the user he can create
+    if (incident.contact_user == user):
+        return True
+    # if he is admin of the company he can create
+    if (
+        user_in_group(user, "OperatorAdmin")
+        and Incident.objects.filter(
+            pk=incident.id, company__id=company_id
+        ).exists()
+    ):
+        return True
+    # if he is the regulator admin of the incident
+    if (
+        user_in_group(user, "RegulatorAdmin")
+        and incident.sector_regulation.regulator == user.regulators.first()
+    ):
+        return True
+    # if he is the regulator user of the incident, he need to have the sectors
+    if (
+        user_in_group(user, "RegulatorUser")
+        and incident.sector_regulation.regulator == user.regulators.first()
+    ):
+        sectors = [sector for sector in incident.sectors if sector in user.regulators.sectors]
+        if len(sectors) > 0:
+            return True
+        else:
+            return False
+
+    return False
