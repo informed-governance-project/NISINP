@@ -574,7 +574,8 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             )
 
         if user_in_group(user, "RegulatorUser"):
-            groups = groups.exclude(name__in=["PlatformAdmin", "RegulatorAdmin"])
+            groups = groups.exclude(name__in=["PlatformAdmin", "RegulatorAdmin",
+                                              "CertAdmin", "CertUser"])
 
         if user_in_group(user, "OperatorAdmin"):
             groups = groups.filter(name__in=["OperatorAdmin", "OperatorUser"])
@@ -691,12 +692,14 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
+            fields_to_exclude = ["get_regulators", "get_certs"]
             list_display = [
-                field for field in list_display if field != "get_regulators"
+                field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
+            fields_to_exclude = ["get_regulators", "get_certs"]
             list_display = [
-                field for field in list_display if field != "get_regulators"
+                field for field in list_display if field not in fields_to_exclude
             ]
 
         return list_display
@@ -749,8 +752,9 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
-                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId]
-            )
+                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId, CertUserGroupId,
+                            CertAdminGroupId, None],
+            ).filter(~Q(groups=None))
         # Cert Admin
         if user_in_group(user, "CertAdmin"):
             return queryset.filter(
