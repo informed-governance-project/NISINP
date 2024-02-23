@@ -211,7 +211,14 @@ class SectorCompanyContactInline(admin.TabularInline):
             # Regulator User
             if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = User.objects.filter(
-                    regulators=None
+                    regulators=None,
+                    certs=None
+                ).order_by('email')
+            # Regulator User
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    regulators=None,
+                    certs=None
                 ).order_by('email')
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
