@@ -33,6 +33,16 @@ from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
+# get the id of a group by name
+def get_group_id(name=''):
+    try:
+        group_id = Group.objects.get(name=name).id
+    except ObjectDoesNotExist:
+        group_id = None
+
+    return group_id
+
+
 class CustomAdminSite(admin.AdminSite):
     site_header = SITE_NAME + " " + _("Administration")
     site_title = SITE_NAME
@@ -206,29 +216,20 @@ class SectorCompanyContactInline(admin.TabularInline):
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+        platformAdminGroupId = get_group_id('PlatformAdmin')
+        certAdminGroupId = get_group_id('CertAdmin')
+        certUserGroupId = get_group_id('CertUser')
+        regulatorAdminGroupId = get_group_id('RegulatorAdmin')
+        regulatorUserGroupId = get_group_id('RegulatorUser')
         if db_field.name == "user":
             user = request.user
-            # Regulator User
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = User.objects.filter(
+            # Regulator User and admin
+            if user_in_group(user, "RegulatorUser") or user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = User.objects.exclude(
+                    groups__in=[platformAdminGroupId, certAdminGroupId, certUserGroupId, regulatorAdminGroupId, regulatorUserGroupId]
+                ).filter(
                     regulators=None,
                     certs=None
-                ).order_by('email')
-            # Regulator User
-            if user_in_group(user, "RegulatorAdmin"):
-                kwargs["queryset"] = User.objects.filter(
-                    regulators=None,
-                    certs=None
-                ).order_by('email')
-            # Operator Admin
-            if user_in_group(user, "OperatorAdmin"):
-                current_id = None
-                if request.resolver_match.kwargs.get('object_id'):
-                    current_id = request.resolver_match.kwargs['object_id']
-                kwargs["queryset"] = User.objects.filter(
-                    regulators=None,
-                    certs=None,
-                    companies=current_id
                 ).order_by('email')
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -332,7 +333,8 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude SectorCompanyContactInline for OperatorAdmin
+        # Exclude SectorCompanyContactInline for OperatorAdmin because if we go for user creation
+        # it asks company and that's not good
         if obj and user_in_group(user, "OperatorAdmin"):
             inline_instances = [
                 inline
@@ -733,30 +735,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         queryset = super().get_queryset(request)
         user = request.user
 
-        try:
-            PlatformAdminGroupId = Group.objects.get(name="PlatformAdmin").id
-        except ObjectDoesNotExist:
-            PlatformAdminGroupId = None
-
-        try:
-            RegulatorAdminGroupId = Group.objects.get(name="RegulatorAdmin").id
-        except ObjectDoesNotExist:
-            RegulatorAdminGroupId = None
-
-        try:
-            RegulatorUserGroupId = Group.objects.get(name="RegulatorUser").id
-        except ObjectDoesNotExist:
-            RegulatorUserGroupId = None
-
-        try:
-            CertAdminGroupId = Group.objects.get(name="CertAdmin").id
-        except ObjectDoesNotExist:
-            CertAdminGroupId = None
-
-        try:
-            CertUserGroupId = Group.objects.get(name="CertUser").id
-        except ObjectDoesNotExist:
-            CertUserGroupId = None
+        PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
+        RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
+        RegulatorUserGroupId = get_group_id(name="RegulatorUser")
+        CertAdminGroupId = get_group_id(name="CertAdmin")
+        CertUserGroupId = get_group_id(name="CertUser")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
