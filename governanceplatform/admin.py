@@ -439,6 +439,10 @@ class userRegulatorInline(admin.TabularInline):
     max_num = 1
     min_num = 1
 
+    filter_horizontal = [
+        "sectors",
+    ]
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
             user = request.user
