@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -36,6 +36,7 @@ from governanceplatform.settings import (
 
 from .decorators import regulator_role_required
 from .email import send_email
+from .filters import IncidentFilter
 from .forms import (
     ContactForm,
     ImpactForm,
@@ -59,7 +60,6 @@ from .models import (
     Workflow,
 )
 from .pdf_generation import get_pdf_report
-from .filters import IncidentFilter
 
 
 @login_required
@@ -821,7 +821,9 @@ class FormWizardView(SessionWizardView):
                 incidents_per_company = (
                     company.incident_set.filter(
                         incident_notification_date__year=date.today().year
-                    ).count() if company else 0
+                    ).count()
+                    if company
+                    else 0
                 )
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (

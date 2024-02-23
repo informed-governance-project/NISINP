@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
-from django_countries.fields import CountryField
 
 import governanceplatform
 

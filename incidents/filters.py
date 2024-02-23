@@ -1,10 +1,16 @@
 import django_filters
-from .models import Incident, SectorRegulation
-from governanceplatform.models import Sector
-from .forms import IncidentWorkflowForm, IncidentStatusForm, DropdownCheckboxSelectMultiple
-from django.db.models.functions import Concat
 from django.db.models import Case, Value, When
+from django.db.models.functions import Concat
 from django.utils.translation import get_language
+
+from governanceplatform.models import Sector
+
+from .forms import (
+    DropdownCheckboxSelectMultiple,
+    IncidentStatusForm,
+    IncidentWorkflowForm,
+)
+from .models import Incident, SectorRegulation
 
 
 # define a tree view for the sectors (only work with 2 levels)
@@ -37,8 +43,7 @@ def sector_regulation(request):
 class IncidentFilter(django_filters.FilterSet):
     incident_id = django_filters.CharFilter(lookup_expr="icontains")
     affected_sectors = django_filters.ModelMultipleChoiceFilter(
-        queryset=affected_sectors,
-        widget=DropdownCheckboxSelectMultiple()
+        queryset=affected_sectors, widget=DropdownCheckboxSelectMultiple()
     )
     sector_regulation = django_filters.ModelChoiceFilter(queryset=sector_regulation)
 

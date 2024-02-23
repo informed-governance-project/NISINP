@@ -97,7 +97,7 @@ INSTALLED_APPS = [
     "parler",
     "bootstrap_datepicker_plus",
     "phonenumber_field",
-    'django_filters',
+    "django_filters",
 ]
 
 AUTHENTICATION_BACKENDS = [

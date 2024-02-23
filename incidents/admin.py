@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.db.models import Q, Case, Value, When
+from django.db.models import Case, Q, Value, When
 from django.db.models.functions import Concat
-from django.utils.translation import gettext_lazy as _, get_language
+from django.utils.translation import get_language
+from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
@@ -46,7 +47,7 @@ class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display_links = ["question", "predefined_answer"]
     search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -76,7 +77,7 @@ class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
     ordering = ["position"]
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -201,7 +202,9 @@ class ImpactRegulationListFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         return [
             (regulation.id, regulation.label)
-            for regulation in Regulation.objects.translated(get_language()).order_by("translations__label")
+            for regulation in Regulation.objects.translated(get_language()).order_by(
+                "translations__label"
+            )
         ]
 
     def queryset(self, request, queryset):
@@ -239,7 +242,7 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
             if sector.parent:
                 sectors.append(sector.name)
             else:
-                sectors.append('')
+                sectors.append("")
         return sectors
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -351,7 +354,7 @@ class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
     filter_horizontal = [
         "questions",
     ]
-    exclude = ['creator_name', 'creator']
+    exclude = ["creator_name", "creator"]
 
     def save_model(self, request, obj, form, change):
         if not change:
