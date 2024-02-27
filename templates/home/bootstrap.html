@@ -36,9 +36,9 @@
         {% block bootstrap5_after_content %}{% endblock %}
 
         <!-- Bootstrap JavaScript if it is in body -->
-        {% if not 'javascript_in_head'|bootstrap_setting %}
+        <!-- {% if not 'javascript_in_head'|bootstrap_setting %}
             {% bootstrap_javascript %}
-        {% endif %}
+        {% endif %} -->
 
         {% block bootstrap5_extra_script %}{% endblock %}
     </body>
