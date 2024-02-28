@@ -127,7 +127,7 @@
                             {% if incident_workflows %}
                             <span class="fw-bold">{{ _('Historic') }}:</span><br/>
                                 {% for incident_workflow in incident_workflows %}
-                                    <a class="text-dark" href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}">
+                                    <a href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}">
                                     {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
                                     </a><br/>
                                 {% endfor %}
