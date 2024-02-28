@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 from governanceplatform.settings import BASE_DIR
@@ -11,8 +10,7 @@ def get_version():
     Try to get the version from the Git tags.
     """
     version_res = (
-        os.environ.get("PKGVER")
-        or subprocess.run(
+        subprocess.run(
             ["git", "-C", BASE_DIR, "describe", "--tags"], stdout=subprocess.PIPE
         )
         .stdout.decode()
