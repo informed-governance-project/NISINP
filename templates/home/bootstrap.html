@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE|default:'en_us' }}" class="h-100">
+<html lang="{{ LANGUAGE_CODE|default:'en_us' }}" class="h-100" data-bs-theme="dark">
     <head>
         <!-- Required meta tags -->
         <meta charset="utf-8">
@@ -43,3 +43,17 @@
         {% block bootstrap5_extra_script %}{% endblock %}
     </body>
 </html>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('btnThemeSwitch').addEventListener('click',()=>{
+            if (document.documentElement.getAttribute('data-bs-theme') == 'dark') {
+                document.documentElement.setAttribute('data-bs-theme','light')
+                document.getElementById('btnThemeSwitch').textContent = 'Dark theme';
+            }
+            else {
+                document.documentElement.setAttribute('data-bs-theme','dark');
+                document.getElementById('btnThemeSwitch').textContent = 'Light theme';
+            }
+        })
+    });
+</script>
