@@ -59,7 +59,7 @@
         document.cookie = "theme=dark";
     }
     document.documentElement.setAttribute('data-bs-theme', getCookie("theme"));
-    document.getElementById('btnThemeSwitch').textContent = getCookie("theme") == 'dark' ? 'Light' : 'Dark' + ' theme';
+    document.getElementById('btnThemeSwitch').textContent = (getCookie("theme") == 'dark' ? 'Light' : 'Dark').concat(' theme');
 
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('btnThemeSwitch').addEventListener('click',()=>{
