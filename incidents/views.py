@@ -4,6 +4,7 @@
 from datetime import date
 from urllib.parse import urlparse
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -11,21 +12,19 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
-from django import forms
-from django_countries import countries
-from .globals import REGIONAL_AREA
 
 from governanceplatform.helpers import (
-    get_active_company_from_session,
-    is_user_regulator,
-    user_in_group,
-    is_cert_user_viewving_all_incident,
-    is_cert_user,
     can_access_incident,
     can_create_incident_report,
     can_edit_incident_report,
+    get_active_company_from_session,
+    is_cert_user,
+    is_cert_user_viewving_all_incident,
+    is_user_regulator,
+    user_in_group,
 )
 from governanceplatform.models import Regulation, Regulator, Sector
 from governanceplatform.settings import (
@@ -49,6 +48,7 @@ from .forms import (
     RegulatorIncidentWorkflowCommentForm,
     get_forms_list,
 )
+from .globals import REGIONAL_AREA
 from .models import (
     Answer,
     Incident,
@@ -270,7 +270,7 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    if can_edit_incident_report(user, incident, company_id):
+    if incident_id and can_edit_incident_report(user, incident, company_id):
         if incident_workflow is None:
             incident_workflow = IncidentWorkflow.objects.filter(
                 incident=incident_id, workflow=workflow_id
@@ -483,13 +483,15 @@ def download_incident_pdf(request, incident_id: int):
         try:
             pdf_report = get_pdf_report(incident, request)
         except Exception:
-            messages.warning(request, _("An error occurred when generating the report."))
+            messages.warning(
+                request, _("An error occurred when generating the report.")
+            )
             return HttpResponseRedirect(target)
 
         response = HttpResponse(pdf_report, content_type="application/pdf")
-        response["Content-Disposition"] = "attachment;filename=Incident_{}_{}.pdf".format(
-            incident_id, date.today()
-        )
+        response[
+            "Content-Disposition"
+        ] = f"attachment;filename=Incident_{incident_id}_{date.today()}.pdf"
 
         return response
 
@@ -875,17 +877,16 @@ class WorkflowWizardView(SessionWizardView):
             self.workflow = self.incident_workflow.workflow
             if position == 0:
                 # TO DO : find a solution to manage modelform properly
-                tempdict = self.request.POST.copy() if self.request.method == "POST" else None
-                if tempdict is not None and 'incident_starting_date' not in tempdict:
+                tempdict = (
+                    self.request.POST.copy() if self.request.method == "POST" else None
+                )
+                if tempdict is not None and "incident_starting_date" not in tempdict:
                     if self.storage.get_step_data(self.steps.current) is not None:
-                        tempdict["incident_starting_date"] = (
-                            self.storage.get_step_data(self.steps.current).get(
-                                "incident_starting_date"
-                            )
-                        )
+                        tempdict["incident_starting_date"] = self.storage.get_step_data(
+                            self.steps.current
+                        ).get("incident_starting_date")
                 form = IncidenteDateForm(
-                    instance=self.incident_workflow.incident,
-                    data=tempdict
+                    instance=self.incident_workflow.incident, data=tempdict
                 )
             # Regulator case
             elif (
@@ -894,10 +895,7 @@ class WorkflowWizardView(SessionWizardView):
                 and is_user_regulator(user)
             ):
                 form = ImpactForm(incident=self.incident, data=data)
-            elif (
-                position == len(self.form_list) - 1
-                and is_user_regulator(user)
-            ):
+            elif position == len(self.form_list) - 1 and is_user_regulator(user):
                 form = RegulatorIncidentWorkflowCommentForm(
                     instance=self.incident_workflow, data=data
                 )
@@ -912,7 +910,7 @@ class WorkflowWizardView(SessionWizardView):
                 # regulator pass directly the incident_workflow
                 form = QuestionForm(
                     data,
-                    position=position-1,
+                    position=position - 1,
                     incident_workflow=self.incident_workflow,
                 )
 
@@ -925,24 +923,21 @@ class WorkflowWizardView(SessionWizardView):
 
             if position == 0:
                 # TO DO : find a solution to manage modelform properly
-                tempdict = self.request.POST.copy() if self.request.method == "POST" else None
-                if tempdict is not None and 'incident_starting_date' not in tempdict:
-                    if self.storage.get_step_data(self.steps.current) is not None:
-                        tempdict["incident_starting_date"] = (
-                            self.storage.get_step_data(self.steps.current).get(
-                                "incident_starting_date"
-                            )
-                        )
-                form = IncidenteDateForm(
-                    instance=self.incident,
-                    data=tempdict
+                tempdict = (
+                    self.request.POST.copy() if self.request.method == "POST" else None
                 )
+                if tempdict is not None and "incident_starting_date" not in tempdict:
+                    if self.storage.get_step_data(self.steps.current) is not None:
+                        tempdict["incident_starting_date"] = self.storage.get_step_data(
+                            self.steps.current
+                        ).get("incident_starting_date")
+                form = IncidenteDateForm(instance=self.incident, data=tempdict)
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
                 form = ImpactForm(incident=self.incident, data=data)
             else:
                 form = QuestionForm(
                     data,
-                    position=position-1,
+                    position=position - 1,
                     workflow=self.workflow,
                     incident=self.incident,
                 )
@@ -959,22 +954,25 @@ class WorkflowWizardView(SessionWizardView):
                 form.fields[field].disabled = True
                 form.fields[field].required = False
                 # replace following widget by more readable in read only
-                if form.fields[field].widget.__class__.__name__ == 'DropdownCheckboxSelectMultiple':
-                    initial = ''
+                if (
+                    form.fields[field].widget.__class__.__name__
+                    == "DropdownCheckboxSelectMultiple"
+                ):
+                    initial = ""
                     COUNTRY_DICT = dict(countries)
                     for val in form.fields[field].initial:
-                        if val != '':
+                        if val != "":
                             if val in COUNTRY_DICT:
-                                initial = initial + COUNTRY_DICT[val] + ' - '
+                                initial = initial + COUNTRY_DICT[val] + " - "
                             elif val in REGIONAL_AREA:
-                                initial = initial + COUNTRY_DICT[val] + ' - '
+                                initial = initial + COUNTRY_DICT[val] + " - "
                             else:
-                                initial = initial + val + ' - '
+                                initial = initial + val + " - "
                     new_field = forms.CharField(
                         required=False,
                         disabled=True,
                         label=form.fields[field].label,
-                        initial=initial
+                        initial=initial,
                     )
                     form.fields[field] = new_field
 
@@ -1037,8 +1035,10 @@ class WorkflowWizardView(SessionWizardView):
             timeline_data = self.storage.get_step_data(self.steps.first)
             # TO DO : manage this modelform properly - Save timeline
             if timeline_data is not None:
-                if 'incident_starting_date' in timeline_data:
-                    self.incident.incident_starting_date = timeline_data['incident_starting_date']
+                if "incident_starting_date" in timeline_data:
+                    self.incident.incident_starting_date = timeline_data[
+                        "incident_starting_date"
+                    ]
             self.incident.save()
             # manage question
             save_answers(1, data, self.incident, self.workflow)
