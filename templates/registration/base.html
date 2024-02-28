@@ -20,9 +20,8 @@
 {% endblock %}
 
 {% block bootstrap5_content %}
-
     <div class="background">
-        <div class="container py-5 h-100">
+        <div class="container py-5 h-100" data-bs-theme="light">
             {% block messages %}
                 {% if messages %}
                     {% for message in messages %}
@@ -48,7 +47,7 @@
 {% endblock %}
 
 {% block bootstrap5_after_content %}
-    <div class="position-absolute bottom-0 w-100">
+    <div class="position-absolute bottom-0 w-100" data-bs-theme="light">
         {% include "parts/footer.html" %}
     </div>
 {% endblock %}

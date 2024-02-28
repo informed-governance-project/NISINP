@@ -14,9 +14,8 @@ from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
-from .models import (
+from .models import (  # Impact,
     Answer,
-    # Impact,
     Incident,
     IncidentWorkflow,
     Question,
@@ -186,9 +185,8 @@ class QuestionForm(forms.Form):
                 initial_data = list(
                     filter(
                         partial(is_not, None),
-                        Answer.objects.values_list(
-                            "predefined_answers", flat=True
-                        ).filter(question=question, incident_workflow=incident_workflow)
+                        Answer.objects.values_list("predefined_answers", flat=True)
+                        .filter(question=question, incident_workflow=incident_workflow)
                         .order_by("-timestamp"),
                     )
                 )
@@ -196,9 +194,8 @@ class QuestionForm(forms.Form):
                 initial_data = list(
                     filter(
                         partial(is_not, None),
-                        Answer.objects.values_list(
-                            "predefined_answers", flat=True
-                        ).filter(
+                        Answer.objects.values_list("predefined_answers", flat=True)
+                        .filter(
                             question=question,
                             incident_workflow=incident.get_latest_incident_workflow(),
                         )
@@ -241,10 +238,14 @@ class QuestionForm(forms.Form):
                         question=question, incident_workflow=incident_workflow
                     )
                 elif incident is not None:
-                    answer = Answer.objects.values_list("answer", flat=True).filter(
-                        question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    ).order_by("-timestamp")
+                    answer = (
+                        Answer.objects.values_list("answer", flat=True)
+                        .filter(
+                            question=question,
+                            incident_workflow=incident.get_latest_incident_workflow(),
+                        )
+                        .order_by("-timestamp")
+                    )
                 if len(answer) > 0:
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
@@ -264,9 +265,11 @@ class QuestionForm(forms.Form):
             initial_data = ""
             answer = None
             if incident_workflow is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident_workflow=incident_workflow
-                ).first()
+                answer = (
+                    Answer.objects.values_list("answer", flat=True)
+                    .filter(question=question, incident_workflow=incident_workflow)
+                    .first()
+                )
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
@@ -280,9 +283,7 @@ class QuestionForm(forms.Form):
             if answer is not None:
                 if answer != "":
                     initial_data = answer
-                    initial_data = datetime.strptime(
-                        initial_data, "%Y-%m-%d %H:%M:%S"
-                    )
+                    initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M:%S")
             self.fields[str(question.id)] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
@@ -335,9 +336,11 @@ class QuestionForm(forms.Form):
         elif question.question_type == "CL" or question.question_type == "RL":
             initial_data = ""
             if incident_workflow is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident_workflow=incident_workflow
-                ).first()
+                answer = (
+                    Answer.objects.values_list("answer", flat=True)
+                    .filter(question=question, incident_workflow=incident_workflow)
+                    .first()
+                )
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
@@ -742,7 +745,9 @@ class ImpactForm(forms.Form):
             if sector.impact_set.filter(regulation=regulation).count() > 0:
                 for impact in sector.impact_set.filter(regulation=regulation):
                     subgroup.append([impact.id, impact.label])
-                impacts_array.append([sector.name, sorted(subgroup, key=lambda item: item[1])])
+                impacts_array.append(
+                    [sector.name, sorted(subgroup, key=lambda item: item[1])]
+                )
 
         # Not needed anymore : just keep in case
         # impacts_without_sector = Impact.objects.all().filter(
@@ -848,7 +853,7 @@ class IncidentWorkflowForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["review_status"].required = False
         self.fields["review_status"].widget.attrs = {
-            "class": "border-0 bg-transparent form-select-sm py-0 select-break-spaces",
+            "class": "border-0 form-select-sm py-0 select-break-spaces",
             "onchange": f"onChangeWorkflowStatus(this, {self.instance.incident_id}, {self.instance.pk})",
         }
 
@@ -862,9 +867,7 @@ class IncidentStatusForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         onchange_funtion = f"onChangeIncident(this, {self.instance.pk})"
-        classes_select_widget = (
-            "border-0 bg-transparent form-select-sm py-0 select-break-spaces"
-        )
+        classes_select_widget = "border-0 form-select-sm py-0 select-break-spaces"
 
         self.fields["incident_id"].widget.attrs = {
             "class": "form-control-sm",
