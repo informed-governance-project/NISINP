@@ -12,8 +12,8 @@ Container
 
 .. code-block:: bash
 
-    lxc launch ubuntu:22.10 governance-platform --storage your-storage
-    lxc exec governance-platform -- /bin/bash
+    lxc launch ubuntu:22.10 NISINP --storage your-storage
+    lxc exec NISINP -- /bin/bash
 
 
 Poetry
@@ -51,8 +51,8 @@ Governance Platform
 
 .. code-block:: bash
 
-    git clone https://github.com/informed-governance-project/governance-platform.git
-    cd governance-platform
+    git clone https://github.com/informed-governance-project/NISINP.git
+    cd NISINP
     git submodule update --init --recursive
     # Copy the config and adjust the DB connection settings.
     cp governanceplatform/config_dev.py governanceplatform/config.py
@@ -90,7 +90,7 @@ at the end of the `~/.bashrc`
 
 .. code-block:: bash
 
-    cd governance-platform
+    cd NISINP
     npm install
 
 
@@ -163,13 +163,13 @@ Create an Apache VirtualHost. Below is an example:
     <VirtualHost _default_:443>
         ServerName serima.monarc.lu
         ServerAdmin info@nc3.lu
-        DocumentRoot ~/SERIMA/governance-platform
+        DocumentRoot ~/SERIMA/NISINP
 
-        WSGIDaemonProcess serima python-path=~/SERIMA/governance-platform python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.11
+        WSGIDaemonProcess serima python-path=~/SERIMA/NISINP python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.11
         WSGIProcessGroup serima
-        WSGIScriptAlias / ~/SERIMA/governance-platform/governanceplatform/wsgi.py
+        WSGIScriptAlias / ~/SERIMA/NISINP/governanceplatform/wsgi.py
 
-        <Directory "~/SERIMA/governance-platform/governanceplatform/">
+        <Directory "~/SERIMA/NISINP/governanceplatform/">
             <Files "wsgi.py">
                 Require all granted
             </Files>
@@ -180,8 +180,8 @@ Create an Apache VirtualHost. Below is an example:
             Require all granted
         </Directory>
 
-        Alias /static ~/SERIMA/governance-platform/governanceplatform/static
-        <Directory ~/SERIMA/governance-platform/governance-platform/static>
+        Alias /static ~/SERIMA/NISINP/governanceplatform/static
+        <Directory ~/SERIMA/NISINP/governanceplatform/static>
             Require all granted
         </Directory>
 

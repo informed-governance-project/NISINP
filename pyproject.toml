@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "governanceplatform"
 version = "0.1.0"
-description = "Governance Platform"
+description = "Governance Platform - NISINP"
 authors = [
     "Cédric Bonhomme <cedric.bonhomme@nc3.lu>",
     "Jérôme Lombardi <jerome.lombardi@nc3.lu>",
@@ -11,9 +11,9 @@ authors = [
 license = "AGPL-3.0-or-later"
 readme = "README.md"
 
-homepage = "https://github.com/informed-governance-project/governance-platform"
-repository = "https://github.com/informed-governance-project/governance-platform"
-documentation = "https://governance-platform.readthedocs.io"
+homepage = "https://github.com/informed-governance-project/NISINP"
+repository = "https://github.com/informed-governance-project/NISINP"
+documentation = "https://nisinp.readthedocs.io"
 
 keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 

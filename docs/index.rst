@@ -1,11 +1,11 @@
-Governance Platform
-===================
+NISINP - NIS Incident Notification Platform
+===========================================
 
 
 .. only:: html
 
     .. image:: https://img.shields.io/github/release/informed-governance-project/governance-platform.svg?style=flat-square
-        :target: https://github.com/informed-governance-project/governance-platform/releases/latest
+        :target: https://github.com/informed-governance-project/NISINP/releases/latest
         :alt: Latest release
 
     .. image:: https://img.shields.io/github/license/informed-governance-project/governance-platform.svg?style=flat-square
@@ -13,15 +13,15 @@ Governance Platform
         :alt: License
 
     .. image:: https://img.shields.io/github/stars/informed-governance-project/governance-platform.svg?style=flat-square
-        :target: https://github.com/informed-governance-project/governance-platform/stargazers
+        :target: https://github.com/informed-governance-project/NISINP/stargazers
         :alt: Stars
 
-    .. image:: https://github.com/informed-governance-project/governance-platform/workflows/Python%20application%20tests/badge.svg?style=flat-square
-        :target: https://github.com/informed-governance-project/governance-platform/actions?query=workflow%3A%22Python+application+tests%22
+    .. image:: https://github.com/informed-governance-project/NISINP/workflows/Python%20application%20tests/badge.svg?style=flat-square
+        :target: https://github.com/informed-governance-project/NISINP/actions?query=workflow%3A%22Python+application+tests%22
         :alt: Workflow
 
-    .. image:: https://readthedocs.org/projects/governance-platform/badge/?version=latest
-        :target: https://governance-platform.readthedocs.io/en/latest/?badge=latest
+    .. image:: https://readthedocs.org/projects/nisinp/badge/?version=latest
+        :target: https://nisinp.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
 
@@ -57,14 +57,14 @@ Governance Platform
 Presentation
 ------------
 
-The Incidents Notifications platform is developed and maintained by
+The Incident Notification Platform is developed and maintained by
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
 This document is intended to be a documentation for operators and users of the
 Incidents Notifications software (for the NIS 2 directive).
 If you find errors or omission, please don't hesitate to submit
-`an issue <https://github.com/informed-governance-project/governance-platform/issues/new?labels=documentation&template=bug_report.md>`_
+`an issue <https://github.com/informed-governance-project/NISINP/issues/new?labels=documentation&template=bug_report.md>`_
 or open a pull request with a fix.
 
 

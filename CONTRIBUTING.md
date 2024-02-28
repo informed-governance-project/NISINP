@@ -4,7 +4,7 @@ project.
 Before starting to contribute please install the Git hook scripts:
 
 ```bash
-$ git clone https://github.com/informed-governance-project/governance-platform
+$ git clone https://github.com/informed-governance-project/NISINP
 $ cd governance-platform/
 $ poetry install
 $ poetry shell
