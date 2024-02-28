@@ -56,7 +56,7 @@
     }
 
     if (getCookie("theme") == null) {
-        document.cookie = "theme=dark";
+        document.cookie = "theme=dark; path=/";
     }
     document.documentElement.setAttribute('data-bs-theme', getCookie("theme"));
     document.getElementById('btnThemeSwitch').textContent = (getCookie("theme") == 'dark' ? 'Light' : 'Dark').concat(' theme');
@@ -66,12 +66,12 @@
             if (document.documentElement.getAttribute('data-bs-theme') == 'dark') {
                 document.documentElement.setAttribute('data-bs-theme','light')
                 document.getElementById('btnThemeSwitch').textContent = 'Dark theme';
-                document.cookie = "theme=light";
+                document.cookie = "theme=light; path=/";
             }
             else {
                 document.documentElement.setAttribute('data-bs-theme','dark');
                 document.getElementById('btnThemeSwitch').textContent = 'Light theme';
-                document.cookie = "theme=dark";
+                document.cookie = "theme=dark; path=/";
             }
         })
     });
