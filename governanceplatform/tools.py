@@ -1,6 +1,7 @@
+import os
 import subprocess
 
-from governanceplatform.settings import BASE_DIR
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_version():
@@ -9,13 +10,13 @@ def get_version():
     on the project home page.
     Try to get the version from the Git tags.
     """
-    version_res: str = (
+    version_res = (
         subprocess.run(
             ["git", "-C", BASE_DIR, "describe", "--tags"], stdout=subprocess.PIPE
         )
         .stdout.decode()
         .strip()
-    )
+    ) or ""
     version = version_res.split("-")
     if len(version) == 1:
         app_version = version[0]
