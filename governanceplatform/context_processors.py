@@ -1,7 +1,9 @@
 from django.utils.translation import gettext_lazy as _
 
+from governanceplatform import tools
+
 from .helpers import is_user_regulator, user_in_group
-from .settings import SITE_NAME
+from .settings import REGULATOR_CONTACT, SITE_NAME
 
 
 def extra_content_for_all_templates(request):
@@ -20,3 +22,19 @@ def extra_content_for_all_templates(request):
         extra_data["site_title"] = SITE_NAME
 
     return extra_data
+
+
+def get_version(request):
+    """
+    Context proprocessor used to render the version of the sowftware
+    in the HTML template.
+    """
+    return tools.get_version()
+
+
+def instance_configurations(request):
+    configurations = {
+        "regulator": REGULATOR_CONTACT,
+    }
+
+    return configurations

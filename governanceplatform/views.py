@@ -1,3 +1,5 @@
+import sys
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -53,7 +55,8 @@ def edit_account(request):
 
 
 def about(request):
-    return render(request, "home/about.html")
+    python_version = "{}.{}.{}".format(*sys.version_info[:3])
+    return render(request, "home/about.html", {"python_version": python_version})
 
 
 def terms(request):
@@ -74,7 +77,7 @@ def registration_view(request, *args, **kwargs):
         if form.is_valid():
             user = form.save()
             # default give the role IncidentUser
-            new_group, created = Group.objects.get_or_create(name='IncidentUser')
+            new_group, created = Group.objects.get_or_create(name="IncidentUser")
             if new_group:
                 user.groups.add(new_group)
             else:

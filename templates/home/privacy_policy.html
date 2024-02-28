@@ -1,5 +1,7 @@
 {% extends 'home/base.html' %}
-<div class="text-justify">
+{% block bootstrap5_title %}Privacy Policy{% endblock %}
+{% block content %}
+<div class="container text-justify">
   <h1>Privacy policy</h1>
   <p>We collect and process personal data in accordance with the applicable data protection legislations such as, but
     not imited to, Regulation (EU) 2016/679 on the protection of natural persons with regards to the processing of their
@@ -149,3 +151,4 @@
     <a href="{{operator.website}}" rel="noopener noreferrer" target="_blank">{{operator.name}}</a>, please contact us.
   </p>
 </div>
+{% endblock %}

@@ -191,6 +191,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
                 "governanceplatform.context_processors.extra_content_for_all_templates",
+                "governanceplatform.context_processors.get_version",
+                "governanceplatform.context_processors.instance_configurations",
             ],
         },
     },

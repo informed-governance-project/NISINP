@@ -1,7 +1,38 @@
 {% extends 'home/base.html' %}
-{% block bootstrap5_title %}Terms of Service{% endblock %}
+{% block bootstrap5_title %}About{% endblock %}
 {% block content %}
-<div class="text-justify">
-    <h1>The Governance Platform</h1>
+<div class="container text-justify">
+    <div class="card">
+        <div class="card-body">
+            <h2>About</h2>
+            <p>The Incidents Notifications platform is developed and maintained by NC3-LU team in the framework of the Informed Governance Project.</p>
+            <p>This software is under AGPLv3 license. You are welcome to copy, modify or
+            redistribute the <a href="https://github.com/informed-governance-project/governance-platform" target="_blank" rel="noopener noreferrer">source code</a>
+            according to the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">Affero GPL</a> license.</p>
+            <p>Found a bug? Report it <a href="https://github.com/informed-governance-project/governance-platform/issues" target="_blank" rel="noopener noreferrer">here</a>.
+            A documentation is available <a href="https://governance-platform.readthedocs.io" target="_blank" rel="noopener noreferrer">here</a>.</p>
+        </div>
+    </div>
+    <br />
+    <div class="card">
+        <div class="card-body">
+            <h2>Contact</h2>
+            <ul class="list-group">
+                <li class="list-group-item text-white">Regulator: {{ regulator.name }}</li>
+                <li class="list-group-item text-white">Regulator website: <a href="{{ regulator.website }}" target="_blank" rel="noopener noreferrer">{{ regulator.website }}</a></li>
+                <li class="list-group-item text-white">Email: <a href="mailto:{{ regulator.contact_email }}">{{ regulator.contact_email }}</a></li>
+            <ul>
+        </div>
+    </div>
+    <br />
+    <div class="card">
+        <div class="card-body">
+            <h2>Information about this instance</h2>
+            <ul class="list-group">
+                <li class="list-group-item text-white">Software version: <a href="{{ version_url }}" target="_blank" rel="noopener noreferrer">{{ app_version }}</a></li>
+                <li class="list-group-item text-white">Python version: {{ python_version }}</li>
+            <ul>
+        </div>
+    </div>
 </div>
 {% endblock %}
