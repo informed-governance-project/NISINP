@@ -1,4 +1,5 @@
 {% extends 'home/base.html' %}
+{% block bootstrap5_title %}Incidents{% endblock %}
 {% load i18n %}
 {% load tz %}
 {% load static %}
@@ -18,7 +19,7 @@
 <div class="d-flex">
     <div class="ms-auto">
         <a role="button" class="btn btn-primary btn-sm" href="{% url 'declaration' %}">
-            {% translate "Signaler un incident" %}
+            {% translate "Report an incident" %}
         </a>
     </div>
 </div>
