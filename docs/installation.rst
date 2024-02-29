@@ -68,6 +68,7 @@ You can replace it by your own. Currently two themes are available:
 - https://github.com/informed-governance-project/default-theme (default theme, used for ILR Luxembourg)
 - https://github.com/informed-governance-project/serimabe-theme (theme for IBPT.be)
 
+If you do not want to use the default theme, do not clone the main repository with the submodule.
 
 
 JavaScript
