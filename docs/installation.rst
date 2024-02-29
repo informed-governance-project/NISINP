@@ -3,12 +3,8 @@ Installation
 
 This section covers the installation steps of the sofware.
 
-
 Containerized installation
 --------------------------
-
-Container
-`````````
 
 You can, optionnally, create a LXC container.
 
@@ -19,7 +15,7 @@ You can, optionnally, create a LXC container.
 
 
 Poetry
-``````
+------
 
 .. code-block:: bash
 
@@ -34,7 +30,7 @@ at the end of the `~/.bashrc`
 
 
 PostgreSQL
-``````````
+----------
 
 Install PostgreSQL, the version provided by default for your
 GNU/Linux distribution.
@@ -49,7 +45,7 @@ GNU/Linux distribution.
 
 
 NISINP
-``````
+------
 
 .. code-block:: bash
 
@@ -75,7 +71,7 @@ You can replace it by your own. Currently two themes are available:
 
 
 JavaScript
-``````````
+----------
 
 .. code-block:: bash
 
@@ -107,11 +103,13 @@ If you do not want to use ``asdf``, you can as well use ``npm install``.
 
 
 Launch the Django application
-`````````````````````````````
+-----------------------------
 
 .. code-block:: bash
 
     poetry run python manage.py runserver 127.0.0.1:8000
+
+Of course, do not do that for a production environment.
 
 
 Apache WSGI module
