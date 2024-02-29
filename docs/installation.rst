@@ -10,6 +10,8 @@ Containerized installation
 Container
 `````````
 
+You can, optionnally, create a LXC container.
+
 .. code-block:: bash
 
     lxc launch ubuntu:22.10 NISINP --storage your-storage
@@ -46,15 +48,15 @@ GNU/Linux distribution.
     # password
 
 
-Governance Platform
-```````````````````
+NISINP
+``````
 
 .. code-block:: bash
 
     git clone https://github.com/informed-governance-project/NISINP.git
     cd NISINP
     git submodule update --init --recursive
-    # Copy the config and adjust the DB connection settings.
+    # Copy the config and adjust the DB connection and the other settings:
     cp governanceplatform/config_dev.py governanceplatform/config.py
     poetry install
     poetry shell
@@ -64,13 +66,20 @@ Governance Platform
     poetry manage.py compilemessages
 
 
+The theme (CSS, icons, etc.) of the sofware will be under the ``theme`` folder as a Git submodule.
+You can replace it by your own. Currently two themes are available:
+
+- https://github.com/informed-governance-project/default-theme (default theme, used for ILR Luxembourg)
+- https://github.com/informed-governance-project/serimabe-theme (theme for IBPT.be)
+
+
+
 JavaScript
 ``````````
 
 .. code-block:: bash
 
     git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.12.0
-
 
 at the end of the `~/.bashrc`
 
@@ -88,10 +97,13 @@ at the end of the `~/.bashrc`
     asdf global nodejs latest
 
 
+If you do not want to use ``asdf``, you can as well use ``npm install``.
+
 .. code-block:: bash
 
     cd NISINP
     npm install
+    poetry run python manage.py collectstatic
 
 
 Launch the Django application
