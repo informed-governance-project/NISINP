@@ -1,10 +1,10 @@
 {% extends 'home/base.html' %}
+{% block bootstrap5_title %}{{ action }} an incident{% endblock %}
 {% load django_bootstrap5 %}
 {% load custom_filters %}
 {% load static %}
 
 {% block content %}
-<script src="/static/npm_components/jquery/dist/jquery.min.js"></script>
 <link rel="stylesheet" href="/static/npm_components/bootstrap/dist/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="/static/npm_components/bootstrap-select/dist/css/bootstrap-select.css" />
 <script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>

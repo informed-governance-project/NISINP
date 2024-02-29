@@ -632,6 +632,7 @@ class FormWizardView(SessionWizardView):
             _("Sectors"),
             _("Detection date"),
         ]
+        context["action"] = "Create"
 
         return context
 
@@ -982,6 +983,7 @@ class WorkflowWizardView(SessionWizardView):
         context = super().get_context_data(form=form, **kwargs)
 
         if self.workflow is not None:
+            context["action"] = "Edit"
             context["steps"] = []
             questions = self.workflow.questions
             categories = set()

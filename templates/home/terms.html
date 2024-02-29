@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container text-justify">
   <h1>Terms of Service</h1>
-  <p>These terms govern use of the website    To use the website, you must agree to these terms with {{ operator.name }}, the company that runs the website.
+  <p>These terms govern use of the website    To use the website, you must agree to these terms with {{ regulator.name }}, the company that runs the website.
   </p>
-  <p><a href="{{ operator.website }}">{{ operator.name }}</a> may offer other products and services, under different
+  <p><a href="{{ regulator.website }}">{{ regulator.name }}</a> may offer other products and services, under different
     terms. These terms apply only to use of the website.</p>
   <p>Skip to:</p>
   <ul>
@@ -20,13 +20,13 @@
     <li><a href="#changes">Changes</a></li>
   </ul>
   <h2><a id="permission">Your Permission to Use the Website</a></h2>
-  <p>Subject to these terms, {{ operator.name }} gives you permission to use the website. You can't transfer it to
+  <p>Subject to these terms, {{ regulator.name }} gives you permission to use the website. You can't transfer it to
     anyone else. Others need to agree to these terms for themselves to use the website.</p>
   <h2><a id="conditions">Conditions for Use of the Website</a></h2>
   <p>Your permission to use the website is subject to the following conditions:</p>
   <ol>
     <li>
-      <p>You may no longer use the website if {{ operator.name }} contacts you directly to say that you may not.</p>
+      <p>You may no longer use the website if {{ regulator.name }} contacts you directly to say that you may not.</p>
     </li>
     <li>
       <p>You must use the website in accordance with <a href="#acceptable-use">Acceptable Use</a> and <a
@@ -61,7 +61,7 @@
       <p>You may not use the website to send e-mail to distribution lists, newsgroups, or group mail aliases.</p>
     </li>
     <li>
-      <p>You may not falsely imply that you're affiliated with or endorsed by {{ operator.name }}.</p>
+      <p>You may not falsely imply that you're affiliated with or endorsed by {{ regulator.name }}.</p>
     </li>
     <li>
       <p>You may not hyperlink to images or other non-hypertext content on the website.</p>
@@ -109,13 +109,13 @@
     <b>statistical reasons</b>.
   </p>
   <p>Between you and the company, you remain solely responsible for content you submit to the website. You agree not to
-    wrongly imply that content you submit to the website is sponsored or approved by {{ operator.name }}.</p>
-  <p>These terms do not obligate {{ operator.name }} to store, maintain, or provide copies of content you submit.</p>
+    wrongly imply that content you submit to the website is sponsored or approved by {{ regulator.name }}.</p>
+  <p>These terms do not obligate {{ regulator.name }} to store, maintain, or provide copies of content you submit.</p>
   <h2><a id="feedback">Feedback</a></h2>
-  <p>{{ operator.name }} welcomes your feedback and suggestions for the website. See the <a href="#contact">Contact</a>
+  <p>{{ regulator.name }} welcomes your feedback and suggestions for the website. See the <a href="#contact">Contact</a>
     section below for ways to get in touch with us.</p>
-  <p>You agree that {{ operator.name }} will be free to act on feedback and suggestions you provide, and that
-    {{ operator.name }} won't have to notify you that your feedback was used, get your permission to use it, or pay you.
+  <p>You agree that {{ regulator.name }} will be free to act on feedback and suggestions you provide, and that
+    {{ regulator.name }} won't have to notify you that your feedback was used, get your permission to use it, or pay you.
   </p>
   <p>You agree not to submit feedback or suggestions that you believe might be confidential or proprietary, to you or
     others.</p>
@@ -124,21 +124,13 @@
     website. The Parties submit to the exclusive jurisdiction of the competent courts of the judicial district of
     Luxembourg-City (including non-contractual claims and disputes).</p>
   <h2><a id="contact">Contact</a></h2>
-  <p>You may notify {{ operator.name }} under these terms, and send questions to the company, at <a
-      href="mailto:{{ operator.contact_email }}">{{ operator.contact_email }}</a>.</p>
-  <P>If applicable, {{ operator.name }} may notify you under these terms using the e-mail address you provide for your
+  <p>You may notify {{ regulator.name }} under these terms, and send questions to the company, at <a
+      href="mailto:{{ regulator.contact_email }}">{{ regulator.contact_email }}</a>.</p>
+  <P>If applicable, {{ regulator.name }} may notify you under these terms using the e-mail address you provide for your
     account on the website, or by posting a message to the homepage of the website or your account page.</p>
   <h2><a id="changes">Changes</a></h2>
-  <ul>
-    <li>April 4, 2022. <a
-        href="https://github.com/NC3-LU/Fit4Cybersecurity/commit/62530c1db318cdeb1a0e3e5bfb457bbf8436b5ce"
-        rel="noopener noreferrer" target="_blank">Removed section "Limits on Liability"</a>.</li>
-    <li>March 23, 2023. <a
-        href="https://github.com/NC3-LU/Fit4Cybersecurity/commit/edac08432781932f573d35b785a619a2014672b7"
-        rel="noopener noreferrer" target="_blank">Removed several sections</a>.</li>
-  </ul>
-  <p>{{ operator.name }} last updated these terms on March 23, 2023, and may update these terms again.
-    {{ operator.name }} will post all updates to the website.</p>
-  <p>{{ operator.name }} may also announce updates with special messages or alerts on the website.</p>
+  <p>{{ regulator.name }} last updated these terms on March 23, 2023, and may update these terms again.
+    {{ regulator.name }} will post all updates to the website.</p>
+  <p>{{ regulator.name }} may also announce updates with special messages or alerts on the website.</p>
 </div>
 {% endblock %}
