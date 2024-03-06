@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
-from governanceplatform import tools
+from governanceplatform import __version__
 
 from .helpers import is_user_regulator, user_in_group
 from .settings import REGULATOR_CONTACT, SITE_NAME
@@ -29,7 +29,7 @@ def get_version(request):
     Context proprocessor used to render the version of the sowftware
     in the HTML template.
     """
-    return tools.get_version()
+    return __version__
 
 
 def instance_configurations(request):
