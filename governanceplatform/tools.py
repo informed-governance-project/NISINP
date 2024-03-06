@@ -1,8 +1,7 @@
-import os
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+from governanceplatform.settings import BASE_DIR
 
 
 def get_version():
