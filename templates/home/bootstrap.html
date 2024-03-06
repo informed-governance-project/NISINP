@@ -49,6 +49,7 @@
         {% block bootstrap5_extra_script %}{% endblock %}
     </body>
 </html>
+{% if user.is_authenticated %}
 <script>
     function getCookie(name) {
         var nameEQ = name + "=";
@@ -82,3 +83,4 @@
         })
     });
 </script>
+{% endif %}
