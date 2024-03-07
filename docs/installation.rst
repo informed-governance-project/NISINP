@@ -58,12 +58,15 @@ NISINP
     poetry install
     poetry shell
     python manage.py migrate
-    python manage.py createsuperuser
     python manage.py collectstatic
     poetry manage.py compilemessages
+    python manage.py createsuperuser
 
 
-The theme (CSS, icons, etc.) of the sofware will be under the ``theme`` folder as a Git submodule.
+Theme
+`````
+
+In this case, the theme (CSS, icons, etc.) of the sofware will be under the ``theme`` folder as a Git submodule.
 You can replace it by your own. Currently two themes are available:
 
 - https://github.com/informed-governance-project/default-theme (default theme, used for ILR Luxembourg)
@@ -71,12 +74,23 @@ You can replace it by your own. Currently two themes are available:
 
 If you do not want to use the default theme, do not clone the main repository with the submodule.
 
-In the configuration file ```config.py``` , ensures that __PUBLIC_URL__, __ALLOWED_HOSTS__ and the other
-variables are configured for your instance.
+
+Configuration
+`````````````
+
+In the configuration file ``config.py`` , ensures that you have configured:
+
+- ``PUBLIC_URL``
+- ``ALLOWED_HOSTS``
+- ``OPERATOR_CONTACT`` and ``OPERATOR_CONTACT``
+- ``HASH_KEY`` and ``SECRET_KEY``
+- ``DEBUG`` must be set to ``False`` in a production environment
+- ``EMAIL_SENDER``
+- etc.
 
 You **must really** set **your** secret keys.
 
-Here is an example for the Fernet hash key:
+Here is an example for the Fernet hash key (``HASH_KEY``):
 
 .. code-block:: bash
 
@@ -88,7 +102,7 @@ Here is an example for the Fernet hash key:
     b'Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8='
 
 
-For the Django secret key, you can for example do:
+For the Django secret key (``SECRET_KEY``), you can for example do:
 
 .. code-block:: bash
 
@@ -97,6 +111,7 @@ For the Django secret key, you can for example do:
     Type "help", "copyright", "credits" or "license" for more information.
     >>> from django.utils.crypto import get_random_string
     >>> get_random_string(50)
+    'itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu'
 
 
 
@@ -138,7 +153,7 @@ GNU/Linux distribution.
     $ sudo make install
 
 
-Then in ```/etc/apache2/apache2.conf``` add the lines:
+Then in ``/etc/apache2/apache2.conf`` add the lines:
 
 .. code-block:: bash
 

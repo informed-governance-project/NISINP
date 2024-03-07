@@ -19,8 +19,8 @@ REGULATOR_CONTACT = {
 # The generic site/tool name. Used to load specific config, templates, styles, logo.
 SITE_NAME = "NISINP"
 
-SECRET_KEY = "django-Notinsecure-1*nt5exfgm+po13ngrz7fm5sitfvi24f!13t=z*l5zz*w9zic$"
-HASH_KEY = b"SHP-TmGv-4z7h-2xaQp0RYuY20="
+SECRET_KEY = "itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu"
+HASH_KEY = b"Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8="
 
 DEBUG = True
 
