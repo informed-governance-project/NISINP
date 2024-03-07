@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath(".."))
 os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
 django.setup()
 
-project = "Governance Platform"
+project = "NIS Incident Notification Platform"
 copyright = "2023-2024 Luxembourg House of Cybersecurity"
 author = "NC3 Team <info@nc3.lu>"
 
@@ -57,7 +57,7 @@ html_theme = "sphinx_book_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_title = "Governance Platform"
+html_title = "NISINP"
 html_theme_options = {
     "path_to_docs": "docs",
     "repository_url": "https://github.com/informed-governance-project/NISINP",

@@ -1,5 +1,5 @@
-NISINP - NIS Incident Notification Platform
-===========================================
+NIS Incident Notification Platform
+==================================
 
 
 .. only:: html
