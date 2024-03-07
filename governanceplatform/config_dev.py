@@ -17,7 +17,7 @@ REGULATOR_CONTACT = {
 }
 
 # The generic site/tool name. Used to load specific config, templates, styles, logo.
-SITE_NAME = "governanceplatform"
+SITE_NAME = "NISINP"
 
 SECRET_KEY = "django-Notinsecure-1*nt5exfgm+po13ngrz7fm5sitfvi24f!13t=z*l5zz*w9zic$"
 HASH_KEY = b"SHP-TmGv-4z7h-2xaQp0RYuY20="
@@ -46,6 +46,8 @@ CORS_ALLOW_METHODS = [
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
 EMAIL_SENDER = "no-reply@monarc.lu"
+
+API_ENABLED = False
 
 # business configuration
 MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = 3
