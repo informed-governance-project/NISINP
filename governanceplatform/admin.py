@@ -99,13 +99,13 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorUser") or user_in_group(user, "PlatformAdmin"):
+        if user_in_group(user, "RegulatorUser"):
             return False
         return super().has_change_permission(request, obj)
 
     def has_module_permission(self, request):
         user = request.user
-        if user_in_group(user, "RegulatorUser") or user_in_group(user, "PlatformAdmin"):
+        if user_in_group(user, "RegulatorUser"):
             return False
         return super().has_module_permission(request)
 
@@ -123,8 +123,12 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
-            obj.creator_id = request.user.regulators.all().first().id
+            try:
+                obj.creator_name = request.user.regulators.all().first().name
+                obj.creator_id = request.user.regulators.all().first().id
+            except Exception:
+                obj.creator_name = request.user.name
+                obj.creator_id = request.user.id
 
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
