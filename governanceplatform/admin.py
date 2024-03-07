@@ -127,7 +127,7 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
                 obj.creator_name = request.user.regulators.all().first().name
                 obj.creator_id = request.user.regulators.all().first().id
             except Exception:
-                obj.creator_name = request.user.name
+                obj.creator_name = request.user.first_name
                 obj.creator_id = request.user.id
 
         if obj.id and obj.parent is not None:
