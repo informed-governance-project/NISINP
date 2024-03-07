@@ -16,6 +16,8 @@ from parler.admin import TranslatableAdmin
 from .helpers import user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
+    Cert,
+    CertUser,
     Company,
     Functionality,
     OperatorType,
@@ -23,18 +25,16 @@ from .models import (
     Regulator,
     RegulatorUser,
     Sector,
+    SectorCompanyContact,
     Service,
     User,
-    SectorCompanyContact,
-    Cert,
-    CertUser,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
 # get the id of a group by name
-def get_group_id(name=''):
+def get_group_id(name=""):
     try:
         group_id = Group.objects.get(name=name).id
     except ObjectDoesNotExist:
@@ -113,9 +113,11 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         if db_field.name == "parent":
             # Regulator Admin
             current_id = None
-            if request.resolver_match.kwargs.get('object_id'):
-                current_id = request.resolver_match.kwargs['object_id']
-            kwargs["queryset"] = Sector.objects.filter(parent=None).exclude(pk=current_id)
+            if request.resolver_match.kwargs.get("object_id"):
+                current_id = request.resolver_match.kwargs["object_id"]
+            kwargs["queryset"] = Sector.objects.filter(parent=None).exclude(
+                pk=current_id
+            )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -127,7 +129,9 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
                 messages.set_level(request, messages.WARNING)
-                messages.add_message(request, messages.ERROR, "A sector cannot have itself as a parent")
+                messages.add_message(
+                    request, messages.ERROR, "A sector cannot have itself as a parent"
+                )
             else:
                 super().save_model(request, obj, form, change)
         else:
@@ -216,21 +220,30 @@ class SectorCompanyContactInline(admin.TabularInline):
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-        platformAdminGroupId = get_group_id('PlatformAdmin')
-        certAdminGroupId = get_group_id('CertAdmin')
-        certUserGroupId = get_group_id('CertUser')
-        regulatorAdminGroupId = get_group_id('RegulatorAdmin')
-        regulatorUserGroupId = get_group_id('RegulatorUser')
+        platformAdminGroupId = get_group_id("PlatformAdmin")
+        certAdminGroupId = get_group_id("CertAdmin")
+        certUserGroupId = get_group_id("CertUser")
+        regulatorAdminGroupId = get_group_id("RegulatorAdmin")
+        regulatorUserGroupId = get_group_id("RegulatorUser")
         if db_field.name == "user":
             user = request.user
             # Regulator User and admin
-            if user_in_group(user, "RegulatorUser") or user_in_group(user, "RegulatorAdmin"):
-                kwargs["queryset"] = User.objects.exclude(
-                    groups__in=[platformAdminGroupId, certAdminGroupId, certUserGroupId, regulatorAdminGroupId, regulatorUserGroupId]
-                ).filter(
-                    regulators=None,
-                    certs=None
-                ).order_by('email')
+            if user_in_group(user, "RegulatorUser") or user_in_group(
+                user, "RegulatorAdmin"
+            ):
+                kwargs["queryset"] = (
+                    User.objects.exclude(
+                        groups__in=[
+                            platformAdminGroupId,
+                            certAdminGroupId,
+                            certUserGroupId,
+                            regulatorAdminGroupId,
+                            regulatorUserGroupId,
+                        ]
+                    )
+                    .filter(regulators=None, certs=None)
+                    .order_by("email")
+                )
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -238,15 +251,21 @@ class SectorCompanyContactInline(admin.TabularInline):
             user = request.user
             # Regulator User
             if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = Company.objects.all().filter(
-                    sector_contacts__in=user.get_sectors().all()
-                ).order_by('name')
+                kwargs["queryset"] = (
+                    Company.objects.all()
+                    .filter(sector_contacts__in=user.get_sectors().all())
+                    .order_by("name")
+                )
             # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = Company.objects.all().filter(
-                    sectorcompanycontact__user=user,
-                    sectorcompanycontact__is_company_administrator=True,
-                ).order_by('name')
+                kwargs["queryset"] = (
+                    Company.objects.all()
+                    .filter(
+                        sectorcompanycontact__user=user,
+                        sectorcompanycontact__is_company_administrator=True,
+                    )
+                    .order_by("name")
+                )
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -281,7 +300,9 @@ class CompanySectorListFilter(SimpleListFilter):
         sectors_list = []
         for sector in sectors:
             if sector.name is not None and sector.parent is not None:
-                sectors_list.append((sector.id, sector.parent.name + " --> " + sector.name))
+                sectors_list.append(
+                    (sector.id, sector.parent.name + " --> " + sector.name)
+                )
             elif sector.name is not None and sector.parent is None:
                 sectors_list.append((sector.id, sector.name))
         return sorted(sectors_list, key=lambda item: item[1])
@@ -384,13 +405,21 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 queryset = queryset.exclude(id=object.id)
 
         if not all_deleted:
-            messages.add_message(request, messages.WARNING, "Some Companies havn't been deleted because they contains users")
+            messages.add_message(
+                request,
+                messages.WARNING,
+                "Some Companies havn't been deleted because they contains users",
+            )
         queryset.delete()
 
     def delete_model(self, request, obj):
         if obj.user_set.count() > 0:
             messages.set_level(request, messages.WARNING)
-            messages.add_message(request, messages.WARNING, "The company has user attached and can't be deleted")
+            messages.add_message(
+                request,
+                messages.WARNING,
+                "The company has user attached and can't be deleted",
+            )
         else:
             obj.delete()
 
@@ -590,7 +619,9 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             groups = groups.exclude(name__in=["PlatformAdmin"])
 
         if user_in_group(user, "PlatformAdmin"):
-            groups = groups.exclude(name__in=["OperatorAdmin", "OperatorUser", "IncidentUser"])
+            groups = groups.exclude(
+                name__in=["OperatorAdmin", "OperatorUser", "IncidentUser"]
+            )
 
         if user_in_group(user, "CertAdmin"):
             groups = groups.exclude(
@@ -605,8 +636,9 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             )
 
         if user_in_group(user, "RegulatorUser"):
-            groups = groups.exclude(name__in=["PlatformAdmin", "RegulatorAdmin",
-                                              "CertAdmin", "CertUser"])
+            groups = groups.exclude(
+                name__in=["PlatformAdmin", "RegulatorAdmin", "CertAdmin", "CertUser"]
+            )
 
         if user_in_group(user, "OperatorAdmin"):
             groups = groups.filter(name__in=["OperatorAdmin", "OperatorUser"])
@@ -697,12 +729,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 ]
 
         # platform admin just create user and manage certuser and regulatoruser entity
-        if user_in_group(request.user, "PlatformAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, (userRegulatorInline))
-            ]
+        # if user_in_group(request.user, "PlatformAdmin"):
+        #     inline_instances = [
+        #         inline
+        #         for inline in inline_instances
+        #         if not isinstance(inline, (userRegulatorInline))
+        #     ]
 
         return inline_instances
 
@@ -764,14 +796,17 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
-                groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId, CertUserGroupId,
-                            CertAdminGroupId, None],
+                groups__in=[
+                    PlatformAdminGroupId,
+                    RegulatorAdminGroupId,
+                    CertUserGroupId,
+                    CertAdminGroupId,
+                    None,
+                ],
             ).filter(~Q(groups=None))
         # Cert Admin
         if user_in_group(user, "CertAdmin"):
-            return queryset.filter(
-                Q(certs=user.certs.first())
-            )
+            return queryset.filter(Q(certs=user.certs.first()))
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
@@ -791,7 +826,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             # in CertAdmin we can only add user for our CERT and default is CertUser
             if user_in_group(user, "CertAdmin"):
                 super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name='CertUser')
+                new_group, created = Group.objects.get_or_create(name="CertUser")
                 obj.certs.add(user.certs.first())
                 if new_group:
                     obj.groups.add(new_group)
@@ -915,8 +950,8 @@ class CertUserInline(admin.TabularInline):
         if db_field.name == "user":
             # current_id of the parent, here a CERT
             current_id = None
-            if request.resolver_match.kwargs.get('object_id'):
-                current_id = request.resolver_match.kwargs['object_id']
+            if request.resolver_match.kwargs.get("object_id"):
+                current_id = request.resolver_match.kwargs["object_id"]
             query1 = User.objects.filter(
                 regulators=None,
                 companies=None,
@@ -936,7 +971,7 @@ class CertUserInline(admin.TabularInline):
                     sectors=None,
                 )
                 query_union = query1.union(query2)
-            kwargs["queryset"] = User.objects.filter(id__in=query_union.values('id'))
+            kwargs["queryset"] = User.objects.filter(id__in=query_union.values("id"))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -955,7 +990,7 @@ class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (CertUserInline, )
+    inlines = (CertUserInline,)
 
     def has_add_permission(self, request, obj=None):
         user = request.user
