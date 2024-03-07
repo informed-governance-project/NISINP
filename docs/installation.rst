@@ -22,7 +22,7 @@ Poetry
     curl -sSL https://install.python-poetry.org | python3 -
 
 
-at the end of the `~/.bashrc`
+at the end of the `~/.bashrc` file add the line:
 
 .. code-block:: bash
 
@@ -78,13 +78,13 @@ If you do not want to use the default theme, do not clone the main repository wi
 Configuration
 `````````````
 
-In the configuration file ``config.py`` , ensures that you have configured:
+In the configuration file ``governanceplatform/config.py`` , ensures that you have configured:
 
 - ``PUBLIC_URL``
 - ``ALLOWED_HOSTS``
-- ``OPERATOR_CONTACT`` and ``OPERATOR_CONTACT``
+- ``OPERATOR_CONTACT`` and ``REGULATOR_CONTACT``
 - ``HASH_KEY`` and ``SECRET_KEY``
-- ``DEBUG`` must be set to ``False`` in a production environment
+- ``DEBUG``: must be set to ``False`` in a production environment
 - ``EMAIL_SENDER``
 - etc.
 
