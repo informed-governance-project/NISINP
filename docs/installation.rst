@@ -83,8 +83,10 @@ In the configuration file ``governanceplatform/config.py`` , ensures that you ha
 - ``PUBLIC_URL``
 - ``ALLOWED_HOSTS``
 - ``OPERATOR_CONTACT`` and ``REGULATOR_CONTACT``
+- ``DATABASES``
 - ``HASH_KEY`` and ``SECRET_KEY``
 - ``DEBUG``: must be set to ``False`` in a production environment
+- ``CSRF_TRUSTED_ORIGINS``
 - ``EMAIL_SENDER``
 - etc.
 
@@ -94,11 +96,7 @@ Here is an example for the Fernet hash key (``HASH_KEY``):
 
 .. code-block:: bash
 
-    $ python
-    Python 3.12.1 (main, Dec 31 2023, 00:21:59) [GCC 12.2.0] on linux
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> from cryptography.fernet import Fernet
-    >>> Fernet.generate_key()
+    $ python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key())'
     b'Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8='
 
 
@@ -106,13 +104,8 @@ For the Django secret key (``SECRET_KEY``), you can for example do:
 
 .. code-block:: bash
 
-    $ python
-    Python 3.12.1 (main, Dec 31 2023, 00:21:59) [GCC 12.2.0] on linux
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> from django.utils.crypto import get_random_string
-    >>> get_random_string(50)
-    'itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu'
-
+    $ python -c 'import secrets; print(secrets.token_hex())'
+    9cf5c7b13e469e6f6a9403b33410589031cfe927df6471a1cbdef1d4deb57c37
 
 
 Launch the Django application
