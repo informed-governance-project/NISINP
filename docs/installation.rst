@@ -125,6 +125,18 @@ Launch the Django application
 Of course, do not do that for a production environment.
 
 
+Scheduled tasks
+---------------
+
+Configure the cron tasks:
+
+.. code-block:: bash
+
+    0 * * * * cd /<-application-path->/NISINP/  ; python manage.py runscript workflow_update_status
+    0 * * * * cd /<-application-path->/NISINP/  ; python manage.py runscript email_reminder
+
+
+
 Apache WSGI module
 ------------------
 
