@@ -55,6 +55,7 @@ def set_platform_admin_permissions(user):
             "regulation": ["add", "change", "delete"],
             "certuser": ["add", "change", "delete"],
             "cert": ["add", "change", "delete"],
+            "sector": ["add", "view", "change", "delete"],
         },
     )
 

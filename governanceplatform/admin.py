@@ -99,13 +99,13 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorUser"):
+        if user_in_group(user, "RegulatorUser") or user_in_group(user, "PlatformAdmin"):
             return False
         return super().has_change_permission(request, obj)
 
     def has_module_permission(self, request):
         user = request.user
-        if user_in_group(user, "RegulatorUser"):
+        if user_in_group(user, "RegulatorUser") or user_in_group(user, "PlatformAdmin"):
             return False
         return super().has_module_permission(request)
 
