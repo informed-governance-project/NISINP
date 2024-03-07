@@ -52,6 +52,7 @@ NISINP
     git clone https://github.com/informed-governance-project/NISINP.git
     cd NISINP
     git submodule update --init --recursive
+    npm install
     # Copy the config and adjust the DB connection and the other settings:
     cp governanceplatform/config_dev.py governanceplatform/config.py
     poetry install
@@ -70,37 +71,33 @@ You can replace it by your own. Currently two themes are available:
 
 If you do not want to use the default theme, do not clone the main repository with the submodule.
 
+In the configuration file ```config.py``` , ensures that __PUBLIC_URL__, __ALLOWED_HOSTS__ and the other
+variables are configured for your instance.
 
-JavaScript
-----------
+You **must really** set **your** secret keys.
 
-.. code-block:: bash
-
-    git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.12.0
-
-at the end of the `~/.bashrc`
+Here is an example for the Fernet hash key:
 
 .. code-block:: bash
 
-    . "$HOME/.asdf/asdf.sh"
-    . "$HOME/.asdf/completions/asdf.bash"
+    $ python
+    Python 3.12.1 (main, Dec 31 2023, 00:21:59) [GCC 12.2.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from cryptography.fernet import Fernet
+    >>> Fernet.generate_key()
+    b'Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8='
 
 
-.. code-block:: bash
-
-    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-    asdf install nodjs latest
-    asdf reshim nodejs
-    asdf global nodejs latest
-
-
-If you do not want to use ``asdf``, you can as well use ``npm install``.
+For the Django secret key, you can for example do:
 
 .. code-block:: bash
 
-    cd NISINP
-    npm install
-    poetry run python manage.py collectstatic
+    $ python
+    Python 3.12.1 (main, Dec 31 2023, 00:21:59) [GCC 12.2.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from django.utils.crypto import get_random_string
+    >>> get_random_string(50)
+
 
 
 Launch the Django application
