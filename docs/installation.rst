@@ -135,6 +135,7 @@ Configure the cron tasks:
     0 * * * * cd /<-application-path->/NISINP/  ; python manage.py runscript workflow_update_status
     0 * * * * cd /<-application-path->/NISINP/  ; python manage.py runscript email_reminder
 
+The best is to use the Python executable in the virtual environment.
 
 
 Apache WSGI module
