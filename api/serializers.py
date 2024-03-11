@@ -53,7 +53,6 @@ class CompanySerializer(serializers.ModelSerializer):
             "name",
             "country",
             "email",
-            "sectors",
         ]
 
 
