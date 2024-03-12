@@ -131,8 +131,8 @@ Configure the cron tasks:
 The best is to use the Python executable in the virtual environment.
 
 
-Apache WSGI module
-------------------
+Apache
+------
 
 The mod_wsgi package provides an Apache module that implements a WSGI compliant
 interface for hosting Python based web applications on top of the Apache web
@@ -174,31 +174,70 @@ Restart Apache:
     sudo systemctl restart apache2.service
 
 
-Create an Apache VirtualHost. Below is an example:
+Example of a VirtualHost for a reverse proxy server:
 
 
 .. code-block:: apacheconf
 
     <VirtualHost *:80>
-        ServerName serima.monarc.lu
+        ServerAdmin info@incidents.serima.lu
+        ServerName incidents.serima.lu
 
+        DocumentRoot /var/www/html
+        RewriteEngine on
+        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerAdmin info@incidents.serima.lu
+        DocumentRoot /var/www/html
+        ServerName incidents.serima.lu
+
+        # main configuration
         RewriteEngine On
         RewriteCond %{REQUEST_METHOD} !^(GET|POST|PUT|PATCH|DELETE|HEAD)
         RewriteRule .* - [R=405,L]
 
-        Redirect permanent / https://serima.monarc.lu/
+        SSLProxyEngine On
+        ProxyPreserveHost On
+        ProxyTimeout 1800
+
+        CustomLog ${APACHE_LOG_DIR}/incidents.serima.lu_access.log combined
+        ErrorLog ${APACHE_LOG_DIR}/incidents.serima.lu_error.log
+
+        SSLEngine on
+        SSLCertificateFile /etc/ssl/private/incidents_serima_lu/incidents_serima_lu.cer
+        SSLCertificateChainFile /etc/ssl/private/incidents_serima_lu/incidents_serima_lu_interm.cer
+        SSLCertificateKeyFile /etc/ssl/private/incidents_serima_lu/incidents.serima_lu.key
+
+        ProxyPass / http://web01.private.serima.lu/
+        ProxyPassReverse / http://web01.private.serima.lu/
     </VirtualHost>
 
-    <VirtualHost _default_:443>
-        ServerName serima.monarc.lu
-        ServerAdmin info@nc3.lu
-        DocumentRoot ~/SERIMA/NISINP
 
-        WSGIDaemonProcess serima python-path=~/SERIMA/NISINP python-home=~/.cache/pypoetry/virtualenvs/governanceplatform-Q3fVTCKh-py3.11
+Then configure HTTPS properly. If you want to user Let's Encrypt:
+
+.. code-block:: bash
+
+    sudo apt install certbot python3-certbot-apache
+    sudo certbot certonly --standalone -d incidents.serima.lu
+    sudo a2enmod rewrite
+    sudo systemctl restart apache2.service
+
+
+Example of a VirtualHost for the application:
+
+.. code-block:: apacheconf
+
+    <VirtualHost *:80>
+        ServerName web01.private.serima.lu
+        ServerAdmin info@incidents.serima.lu
+
+        WSGIDaemonProcess serima python-path=/home/USER/NISINP:/home/USER/.cache/pypoetry/virtualenvs/governanceplatform-AGxECetm-py3.10/lib/python3.10/site-packages/
         WSGIProcessGroup serima
-        WSGIScriptAlias / ~/SERIMA/NISINP/governanceplatform/wsgi.py
+        WSGIScriptAlias / /home/USER/NISINP/governanceplatform/wsgi.py
 
-        <Directory "~/SERIMA/NISINP/governanceplatform/">
+        <Directory "/home/USER/NISINP/governanceplatform/">
             <Files "wsgi.py">
                 Require all granted
             </Files>
@@ -209,8 +248,8 @@ Create an Apache VirtualHost. Below is an example:
             Require all granted
         </Directory>
 
-        Alias /static ~/SERIMA/NISINP/governanceplatform/static
-        <Directory ~/SERIMA/NISINP/governanceplatform/static>
+        Alias /static /home/USER/NISINP/governanceplatform/static
+        <Directory /home/USER/NISINP/static>
             Require all granted
         </Directory>
 
@@ -218,22 +257,7 @@ Create an Apache VirtualHost. Below is an example:
         # error, crit, alert, emerg.
         # It is also possible to configure the loglevel for particular
         # modules, e.g.
-        #LogLevel info ssl:warn
-        CustomLog /var/log/apache2/SERIMA/access.log combined
-        ErrorLog /var/log/apache2/SERIMA/error.log
-
-        Include /etc/letsencrypt/options-ssl-apache.conf
-        ServerAlias serima.monarc.lu
-        SSLCertificateFile /etc/letsencrypt/live/serima.monarc.lu/fullchain.pem
-        SSLCertificateKeyFile /etc/letsencrypt/live/serima.monarc.lu/privkey.pem
+        LogLevel warn
+        CustomLog ${APACHE_LOG_DIR}/incidents.serima.lu_access.log combined
+        ErrorLog ${APACHE_LOG_DIR}/incidents.serima.lu_error.log
     </VirtualHost>
-
-
-Then configure HTTPS properly.
-
-.. code-block:: bash
-
-    sudo apt install certbot python3-certbot-apache
-    sudo certbot certonly --standalone -d serima.monarc.lu
-    sudo a2enmod rewrite
-    sudo systemctl restart apache2.service
