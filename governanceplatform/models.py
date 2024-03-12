@@ -247,7 +247,7 @@ class User(AbstractUser, PermissionsMixin):
 class SectorCompanyContact(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, blank=True)
     is_sector_contact = models.BooleanField(
         default=False, verbose_name=_("Contact person")
     )
@@ -275,7 +275,7 @@ class RegulatorUser(models.Model):
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
-    sectors = models.ManyToManyField(Sector)
+    sectors = models.ManyToManyField(Sector, blank=True)
 
     class Meta:
         constraints = [

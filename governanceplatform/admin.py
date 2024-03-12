@@ -473,10 +473,7 @@ class UserResource(resources.ModelResource):
 
 class userRegulatorInline(admin.TabularInline):
     model = RegulatorUser
-    verbose_name = _("regulator")
-    verbose_name_plural = _("regulators")
     extra = 0
-    max_num = 1
     min_num = 1
 
     filter_horizontal = [
@@ -492,6 +489,32 @@ class userRegulatorInline(admin.TabularInline):
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = user.regulators.all()
+
+        if db_field.name == "user":
+            RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
+            RegulatorUserGroupId = get_group_id(name="RegulatorUser")
+            user = request.user
+            # Platform Admin
+            current_id = None
+            if request.resolver_match.kwargs.get("object_id"):
+                current_id = request.resolver_match.kwargs["object_id"]
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(groups=None)
+                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=None)
+                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=current_id)
+                )
+            # Regulator Admin
+            if user_in_group(user, "RegulatorAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(groups=None)
+                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=None)
+                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=user.regulators.first())
+                )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -521,6 +544,10 @@ class userRegulatorInline(admin.TabularInline):
                 "is_regulator_administrator"
             ].widget = forms.HiddenInput()
             formset.form.base_fields["is_regulator_administrator"].initial = True
+            # TO remove the sector choice for regulator admin
+            # formset.form.base_fields[
+            #     "sectors"
+            # ].widget = forms.HiddenInput()
         formset.empty_permitted = False
         return formset
 
@@ -717,12 +744,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             ]
 
         # Exclude userRegulatorInline for PlatformAdmin group
-        # if obj and user_in_group(obj, "PlatformAdmin"):
-        #     inline_instances = [
-        #         inline
-        #         for inline in inline_instances
-        #         if not isinstance(inline, userRegulatorInline)
-        #     ]
+        if obj and user_in_group(obj, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, userRegulatorInline)
+            ]
 
         # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorAdmin"):
@@ -740,12 +767,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 ]
 
         # platform admin just create user and manage certuser and regulatoruser entity
-        # if user_in_group(request.user, "PlatformAdmin"):
-        #     inline_instances = [
-        #         inline
-        #         for inline in inline_instances
-        #         if not isinstance(inline, (userRegulatorInline))
-        #     ]
+        if user_in_group(request.user, "PlatformAdmin"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, (userRegulatorInline))
+            ]
 
         return inline_instances
 
@@ -920,6 +947,8 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "email_for_notification",
         "is_receiving_all_incident",
     )
+
+    inlines = (userRegulatorInline,)
 
     def has_add_permission(self, request, obj=None):
         user = request.user
