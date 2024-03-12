@@ -367,6 +367,13 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 if not isinstance(inline, SectorCompanyContactInline)
             ]
 
+        if user_in_group(user, "RegulatorUser"):
+            inline_instances = [
+                inline
+                for inline in inline_instances
+                if not isinstance(inline, SectorCompanyContactInline)
+            ]
+
         return inline_instances
 
     def get_list_display(self, request):
