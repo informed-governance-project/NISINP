@@ -367,7 +367,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 if not isinstance(inline, SectorCompanyContactInline)
             ]
 
-        if user_in_group(user, "RegulatorUser"):
+        if not obj and user_in_group(user, "RegulatorUser"):
             inline_instances = [
                 inline
                 for inline in inline_instances
