@@ -367,12 +367,12 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 if not isinstance(inline, SectorCompanyContactInline)
             ]
 
-        if not obj and user_in_group(user, "RegulatorUser"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactInline)
-            ]
+        # if not obj and user_in_group(user, "RegulatorUser"):
+        #     inline_instances = [
+        #         inline
+        #         for inline in inline_instances
+        #         if not isinstance(inline, SectorCompanyContactInline)
+        #     ]
 
         return inline_instances
 
@@ -766,6 +766,21 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                     if not isinstance(inline, (SectorCompanyContactInline))
                 ]
 
+        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
+        if user_in_group(request.user, "RegulatorUser"):
+            if obj and not user_in_group(obj, "RegulatorUser"):
+                inline_instances = [
+                    inline
+                    for inline in inline_instances
+                    if not isinstance(inline, (userRegulatorInline))
+                ]
+            else:
+                inline_instances = [
+                    inline
+                    for inline in inline_instances
+                    if not isinstance(inline, (SectorCompanyContactInline))
+                ]
+
         # platform admin just create user and manage certuser and regulatoruser entity
         if user_in_group(request.user, "PlatformAdmin"):
             inline_instances = [
@@ -866,6 +881,15 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 super().save_model(request, obj, form, change)
                 new_group, created = Group.objects.get_or_create(name="CertUser")
                 obj.certs.add(user.certs.first())
+                if new_group:
+                    obj.groups.add(new_group)
+                else:
+                    obj.groups.add(created)
+
+            # in RegulatorUser we can only add user for operators and default is OperatorUser
+            if user_in_group(user, "RegulatorUser"):
+                super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
                 if new_group:
                     obj.groups.add(new_group)
                 else:
