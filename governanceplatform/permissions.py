@@ -102,7 +102,7 @@ def set_regulator_staff_permissions(user):
         group_name="RegulatorUser",
         permissions={
             "user": ["add", "view", "import", "export"],
-            "sectorcompanycontact": ["add", "view", "change"],
+            "sectorcompanycontact": ["add", "view", "change", "delete"],
             "company": ["add", "view", "change", "delete"],
             "sector": ["change"],
         },

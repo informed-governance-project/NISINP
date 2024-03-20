@@ -287,6 +287,8 @@ class SectorCompanyContactInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         if obj == request.user:
             return False
+        elif user_in_group(request.user, "RegulatorUser"):
+            return True
         return super().has_delete_permission(request, obj)
 
 

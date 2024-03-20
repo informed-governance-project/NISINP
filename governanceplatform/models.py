@@ -251,7 +251,7 @@ class User(AbstractUser, PermissionsMixin):
 class SectorCompanyContact(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, blank=True)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     is_sector_contact = models.BooleanField(
         default=False, verbose_name=_("Contact person")
     )
