@@ -3,14 +3,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import SectorCompanyContact, RegulatorUser, CertUser
+from .models import CertUser, RegulatorUser, SectorCompanyContact
 from .permissions import (
+    set_cert_admin_permissions,
+    set_cert_user_permissions,
     set_operator_admin_permissions,
     set_operator_user_permissions,
     set_regulator_admin_permissions,
     set_regulator_staff_permissions,
-    set_cert_admin_permissions,
-    set_cert_user_permissions
 )
 
 
@@ -55,7 +55,7 @@ def update_cert_user_groups(sender, instance, created, **kwargs):
 
     # Regulator Administrator permissions
     if instance.is_cert_administrator:
-        print('admin')
+        print("admin")
         set_cert_admin_permissions(user)
         return
     else:

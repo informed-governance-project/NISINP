@@ -368,7 +368,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 for inline in inline_instances
                 if not isinstance(inline, SectorCompanyContactInline)
             ]
-        
+
         # Exclude SectorCompanyContactInline for RegulatorAdmin because if we go for user creation
         # it asks for regulators and that's not good
 

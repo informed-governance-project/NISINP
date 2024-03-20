@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("incidents", "0022_impact_creator_impact_creator_name_and_more"),
     ]

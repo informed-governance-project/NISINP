@@ -260,7 +260,8 @@ class SectorRegulationWorkflow(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["sector_regulation", "position"], name="Unique_SectorRegulationWorkflowPosition"
+                fields=["sector_regulation", "position"],
+                name="Unique_SectorRegulationWorkflowPosition",
             ),
         ]
 

@@ -22,12 +22,12 @@ from .views import (
     download_incident_pdf,
     edit_impacts,
     edit_workflow,
-    review_workflow,
     get_edit_incident_timeline_form,
     get_form_list,
     get_incidents,
     get_next_workflow,
     get_regulator_incident_edit_form,
+    review_workflow,
 )
 
 urlpatterns = [
