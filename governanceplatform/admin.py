@@ -366,7 +366,7 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 for inline in inline_instances
                 if not isinstance(inline, SectorCompanyContactInline)
             ]
-        
+
         # Exclude SectorCompanyContactInline for RegulatorAdmin because if we go for user creation
         # it asks for regulators and that's not good
 
@@ -511,19 +511,27 @@ class userRegulatorInline(admin.TabularInline):
             if user_in_group(user, "PlatformAdmin"):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
-                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
-                        regulators=None)
-                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
-                        regulators=current_id)
+                    | Q(
+                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=None,
+                    )
+                    | Q(
+                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=current_id,
+                    )
                 )
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
-                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
-                        regulators=None)
-                    | Q(groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
-                        regulators=user.regulators.first())
+                    | Q(
+                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=None,
+                    )
+                    | Q(
+                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        regulators=user.regulators.first(),
+                    )
                 )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
