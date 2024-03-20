@@ -91,7 +91,7 @@ class Company(models.Model):
     country = models.CharField(
         max_length=200,
         null=True,
-        choices=CountryField().choices + [("", "Select Country")],
+        choices=CountryField().choices,
     )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email = models.CharField(
