@@ -32,6 +32,7 @@ NIS Incident Notification Platform
 
    prerequisites
    installation
+   update
    modules
    architecture
    api-v1
