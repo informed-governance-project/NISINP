@@ -88,7 +88,11 @@ class Company(models.Model):
         max_length=4, verbose_name=_("Identifier")
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("name"))
-    country = CountryField()
+    country = models.CharField(
+        max_length=200,
+        null=True,
+        choices=CountryField().choices + [("", "Select Country")],
+    )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email = models.CharField(
         max_length=100,
@@ -300,9 +304,7 @@ class CertUser(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["user", "cert"], name="unique_CertUser"
-            ),
+            models.UniqueConstraint(fields=["user", "cert"], name="unique_CertUser"),
         ]
         verbose_name = _("CERT user")
         verbose_name_plural = _("CERT users")
