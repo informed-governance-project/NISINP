@@ -10,7 +10,8 @@
 
 ## Description
 
-NISINP is part of the [NC3-LU](https://github.com/NC3-LU) Governance Platform.
+[NISINP](https://github.com/informed-governance-project/NISINP)
+is part of the [NC3-LU](https://github.com/NC3-LU) Governance Platform.
 
 
 ## Documentation
