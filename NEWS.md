@@ -1,5 +1,17 @@
-Governance Platform project news
-================================
+NISINP project news
+===================
+
+
+##  0.1.5 (2024-03-21)
+
+### Changes
+
+- RegulatorUser can now create only OperatorUser in the User tab. The admin has to be set in the companies view. This to prevent circular loop
+- Fix [#131](https://github.com/informed-governance-project/NISINP/issues/131)
+- Fix [#132](https://github.com/informed-governance-project/NISINP/issues/132)
+- Comment [#130](https://github.com/informed-governance-project/NISINP/issues/130)
+- Fix issue with platform admin to create regulators
+- Add a card at login to have better explanation for users
 
 
 ##  0.1.4 (2024-02-27)
@@ -21,10 +33,10 @@ Governance Platform project news
 - Put the country field in a dropdown in admin panel #53
 - Change the title of the comment's modal #108
 - Update dependencies
-- Add creator for some entities #54
-- Incident Report -> Impacts : don't show unsectorized impacts, and improve display #107
-- Fix issue on detection date #106
-- Send email to the regulator #104
+- Add creator for some entities [#54](https://github.com/informed-governance-project/NISINP/issues/54)
+- Incident Report -> Impacts : don't show unsectorized impacts, and improve display [#107](https://github.com/informed-governance-project/NISINP/issues/107)
+- Fix issue on detection date [#106](https://github.com/informed-governance-project/NISINP/issues/106)
+- Send email to the regulator [#104](https://github.com/informed-governance-project/NISINP/issues/104)
 - Email remove default signature and headers (in the theme repository)
 - Huge database structure modification to solve #50
   (**need to retest all the application (user/sector/companies)**)
