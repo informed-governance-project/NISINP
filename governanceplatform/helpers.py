@@ -99,13 +99,12 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     return False
 
 
-# check if the user is allowed to create an incident_workflow
+# check if the user is allowed to edit an incident_workflow
+# for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
-    # prevent cert to edit incident_workflow
+    # prevent platform admin
     if (
-        user_in_group(user, "CertAdmin")
-        or user_in_group(user, "CertUser")
-        or user_in_group(user, "PlatformAdmin")
+        user_in_group(user, "PlatformAdmin")
     ):
         return False
     # if it's the incident of the user he can create
