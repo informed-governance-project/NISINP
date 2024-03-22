@@ -252,23 +252,31 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
         #   -> GAZ
         # See MPTT
         if db_field.name == "sectors":
-            kwargs["queryset"] = (
-                Sector.objects.translated(get_language())
-                .annotate(
-                    full_name=Case(
-                        When(
-                            parent__isnull=False,
-                            then=Concat(
-                                "parent__translations__name",
+            language = get_language()
+            parents = Sector.objects.translated(language).filter(
+                    parent__isnull=True
+                ).values_list("id", "translations__name")
+            # put the conditions here to use the value of parents variable
+            whens = [
+                When(
+                    parent__id=key, then=Concat(
+                                Value(value),
                                 Value(" --> "),
                                 "translations__name",
                             ),
-                        ),
+                ) for key, value in parents
+            ]
+
+            queryset = (
+                Sector.objects.translated(language)
+                .annotate(
+                    full_name=Case(
+                        *whens,
                         default="translations__name",
                     )
-                )
-                .order_by("full_name")
+                ).order_by("full_name").distinct()
             )
+            kwargs["queryset"] = queryset
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
