@@ -288,6 +288,16 @@ def edit_workflow(request):
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
+    elif incident_workflow and can_edit_incident_report(user, incident_workflow.incident, company_id):
+        form_list = get_forms_list(
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            is_regulator=is_user_regulator(user),
+        )
+        request.incident_workflow = incident_workflow.id
+        return WorkflowWizardView.as_view(
+            form_list,
+        )(request)
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")

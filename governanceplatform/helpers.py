@@ -42,7 +42,17 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     if (
         user_in_group(user, "RegulatorUser")
         and Incident.objects.filter(
-            pk=incident.id, affected_services__sector__in=user.sectors.all()
+            pk=incident.id,
+            affected_services__sector__in=user.sectors.all(),
+            sector_regulation__regulator=user.regulators.first()
+        ).exists()
+    ):
+        return True
+    # RegulatorAdmin can access only incidents from accessible regulators.
+    if (
+        user_in_group(user, "RegulatorAdmin")
+        and Incident.objects.filter(
+            pk=incident.id, sector_regulation__regulator=user.regulators.first()
         ).exists()
     ):
         return True
@@ -107,7 +117,7 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # if he is the regulator admin of the incident
+    # if he is the regulator admin of the incident need to be link to his regulator
     if (
         user_in_group(user, "RegulatorAdmin")
         and incident.sector_regulation.regulator == user.regulators.first()
