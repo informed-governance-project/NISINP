@@ -140,7 +140,7 @@ and ``display name`` of the application:
 
 .. figure:: _static/sites-configuration.png
    :alt: Django application - Sites configuration.
-   :target: _static/app-models.png
+   :target: _static/sites-configuration.png
 
    Django application - Sites configuration.
 
