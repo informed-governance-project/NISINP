@@ -288,6 +288,16 @@ def edit_workflow(request):
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
+    elif incident_workflow and can_edit_incident_report(user, incident_workflow.incident, company_id):
+        form_list = get_forms_list(
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            is_regulator=is_user_regulator(user),
+        )
+        request.incident_workflow = incident_workflow.id
+        return WorkflowWizardView.as_view(
+            form_list,
+        )(request)
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
@@ -759,7 +769,7 @@ class FormWizardView(SessionWizardView):
         sector_regulations = sector_regulations | sector_regulations2
 
         for sector_regulation in sector_regulations:
-            incident, incident_created = Incident.objects.get_or_create(
+            incident = Incident.objects.create(
                 contact_lastname=data[0]["contact_lastname"],
                 contact_firstname=data[0]["contact_firstname"],
                 contact_title=data[0]["contact_title"],
@@ -779,7 +789,7 @@ class FormWizardView(SessionWizardView):
                 sector_regulation=sector_regulation,
                 incident_detection_date=detection_date_data,
             )
-            if incident_created:
+            if incident:
                 # check if the detection date is over
                 if sector_regulation.is_detection_date_needed:
                     sr_workflow = (
