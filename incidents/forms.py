@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.helpers import get_active_company_from_session
+from governanceplatform.helpers import get_active_company_from_session, table_exists
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
@@ -577,7 +577,12 @@ def construct_regulation_array(regulators):
 
 
 class RegulatorForm(forms.Form):
-    initial_data = [(k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()]
+    if table_exists("governanceplatform_regulator"):
+        initial_data = [
+            (k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()
+        ]
+    else:
+        initial_data = []
 
     # generic impact definitions
     regulators = forms.MultipleChoiceField(

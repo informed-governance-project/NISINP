@@ -1,9 +1,17 @@
 import secrets
 from typing import Optional
 
+from django.db import connection
+
 from incidents.models import Incident
 
 from .models import Company, User
+
+
+def table_exists(table_name: str) -> bool:
+    """Checks if a table exists."""
+    all_tables = connection.introspection.table_names()
+    return table_name in all_tables
 
 
 def generate_token():
