@@ -10,7 +10,7 @@ You can, optionnally, create a LXC container.
 
 .. code-block:: bash
 
-    $ lxc launch ubuntu:22.10 NISINP --storage your-storage
+    $ lxc launch ubuntu:23.10 NISINP --storage your-storage
     $ lxc exec NISINP -- /bin/bash
 
 
@@ -51,7 +51,7 @@ Create a database, database user:
     $ sudo -u postgres createuser <username>
     $ sudo -u postgres createdb <database>
     $ sudo -u postgres psql
-    psql (11.2 (Ubuntu 11.2-1))
+    psql (15.6 (Debian 15.6-0+deb12u1))
     Type "help" for help.
     postgres=# alter user <username> with encrypted password '<password>';
     ALTER ROLE
