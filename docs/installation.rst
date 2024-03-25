@@ -124,6 +124,17 @@ For the Django secret key (``SECRET_KEY``), you can for example do:
     9cf5c7b13e469e6f6a9403b33410589031cfe927df6471a1cbdef1d4deb57c37
 
 
+Create the PlatformAdmin user
+-----------------------------
+
+.. code-block:: bash
+
+    $ python manage.py createsuperuser
+
+This user will be able to create RegulatorAmin users via the Web interface
+of NISINP.
+
+
 Launch the Django application
 -----------------------------
 
