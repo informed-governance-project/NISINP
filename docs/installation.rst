@@ -10,8 +10,8 @@ You can, optionnally, create a LXC container.
 
 .. code-block:: bash
 
-    lxc launch ubuntu:22.10 NISINP --storage your-storage
-    lxc exec NISINP -- /bin/bash
+    $ lxc launch ubuntu:22.10 NISINP --storage your-storage
+    $ lxc exec NISINP -- /bin/bash
 
 
 Poetry
@@ -19,14 +19,14 @@ Poetry
 
 .. code-block:: bash
 
-    curl -sSL https://install.python-poetry.org | python3 -
+    $ curl -sSL https://install.python-poetry.org | python3 -
 
 
 at the end of the `~/.bashrc` file add the line:
 
 .. code-block:: bash
 
-    export PATH="/root/.local/bin:$PATH"
+    $ export PATH="/root/.local/bin:$PATH"
 
 
 PostgreSQL
@@ -37,11 +37,27 @@ GNU/Linux distribution.
 
 .. code-block:: bash
 
-    sudo apt-get install postgresql-15
-    sudo su postgres
-    psql
-    /password postgres
+    $ sudo apt-get install postgresql
+    $ sudo su postgres
+    $ psql
+    $ /password postgres
     # password
+
+
+Create a database, database user:
+
+.. code-block:: bash
+
+    $ sudo -u postgres createuser <username>
+    $ sudo -u postgres createdb <database>
+    $ sudo -u postgres psql
+    psql (11.2 (Ubuntu 11.2-1))
+    Type "help" for help.
+    postgres=# alter user <username> with encrypted password '<password>';
+    ALTER ROLE
+    postgres=# grant all privileges on database <database> to <username>;
+    GRANT
+    postgres=#
 
 
 NISINP
