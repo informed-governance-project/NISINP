@@ -134,6 +134,20 @@ Create the PlatformAdmin user
 This user will be able to create RegulatorAmin users via the Web interface
 of NISINP.
 
+The first PlatformAdmin user will also have to configure the ``domain name``
+and ``display name`` of the application:
+
+
+.. figure:: _static/sites-configuration.png
+   :alt: Django application - Sites configuration.
+   :target: _static/app-models.png
+
+   Django application - Sites configuration.
+
+
+This is necessary for the emails generated and sent by the platform, for example for
+the password recovery feature.
+
 
 Launch the Django application
 -----------------------------
