@@ -145,8 +145,9 @@ and ``display name`` of the application:
    Django application - Sites configuration.
 
 
-This is necessary for the emails generated and sent by the platform, for example for
-the password recovery feature.
+This step is essential for ensuring the proper functioning of the platform's email sending,
+such as for password recovery purposes, as well as for generating QR codes for
+two-factor authentication (2FA).
 
 
 Launch the Django application
