@@ -651,7 +651,8 @@ class SectorForm(forms.Form):
 
 
 def construct_sectors_array(regulations, regulators):
-    all_sectors = Sector.objects.all()
+    sector_regulations = SectorRegulation.objects.filter(regulation__in=regulations, regulator__in=regulators)
+    all_sectors = Sector.objects.filter(sectorregulation__in=sector_regulations)
     categs = dict()
 
     for sector in all_sectors:
