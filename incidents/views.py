@@ -1054,6 +1054,16 @@ class WorkflowWizardView(SessionWizardView):
                         ]
                     else:
                         self.incident.incident_starting_date = None
+                if (
+                    "incident_detection_date" in timeline_data
+                    and not self.incident.sector_regulation.is_detection_date_needed
+                ):
+                    if timeline_data["incident_detection_date"]:
+                        self.incident.incident_detection_date = timeline_data[
+                            "incident_detection_date"
+                        ]
+                    else:
+                        self.incident.incident_detection_date = None
             self.incident.save()
             # manage question
             save_answers(1, data, self.incident, self.workflow)
