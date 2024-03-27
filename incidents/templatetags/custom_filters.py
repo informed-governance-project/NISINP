@@ -138,7 +138,7 @@ def is_deadline_exceeded(report, incident):
                     incident.review_status = "OUT"
                     return _("Not delivered and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
-            dt = actual_time - incident.notification_date
+            dt = actual_time - incident.incident_notification_date
             if (
                 round(dt.seconds / 60 / 60, 0)
                 >= sr_workflow.delay_in_hours_before_deadline
