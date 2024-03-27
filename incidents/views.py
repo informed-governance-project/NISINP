@@ -1048,9 +1048,12 @@ class WorkflowWizardView(SessionWizardView):
             # TO DO : manage this modelform properly - Save timeline
             if timeline_data is not None:
                 if "incident_starting_date" in timeline_data:
-                    self.incident.incident_starting_date = timeline_data[
-                        "incident_starting_date"
-                    ]
+                    if timeline_data["incident_starting_date"]:
+                        self.incident.incident_starting_date = timeline_data[
+                            "incident_starting_date"
+                        ]
+                    else:
+                        self.incident.incident_starting_date = None
             self.incident.save()
             # manage question
             save_answers(1, data, self.incident, self.workflow)
