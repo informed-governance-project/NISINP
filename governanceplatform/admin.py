@@ -915,6 +915,16 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 else:
                     obj.groups.add(created)
 
+            # in PlatformAdmin we add by default platformadmin
+            # if we are not in a popup we create a platformAdmin
+            if user_in_group(user, "PlatformAdmin") and "to_field=id&_popup" not in request.get_full_path():
+                super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
+                if new_group:
+                    obj.groups.add(new_group)
+                else:
+                    obj.groups.add(created)
+
         super().save_model(request, obj, form, change)
 
 
