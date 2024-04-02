@@ -4,6 +4,8 @@ NISINP project news
 
 ##  0.1.6 (2024-04-02)
 
+### Changes
+
 - fix [#134](https://github.com/informed-governance-project/NISINP/issues/134)
 - fix [#135](https://github.com/informed-governance-project/NISINP/issues/135)
 - fix issue on regulator which cannot see or download incident [#127](https://github.com/informed-governance-project/NISINP/issues/127)
