@@ -2,16 +2,28 @@ NISINP project news
 ===================
 
 
+##  0.1.6 (2024-04-02)
+
+- fix [#134](https://github.com/informed-governance-project/NISINP/issues/134)
+- fix [#135](https://github.com/informed-governance-project/NISINP/issues/135)
+- fix issue on regulator which cannot see or download incident [#127](https://github.com/informed-governance-project/NISINP/issues/127)
+- fix an issue on save when the incident starting date is null
+- fix issue on the detection_date saving when it's not required by the workflow
+- fix issue when a report has notification date as condition
+- modifying request on sector to get only the sectors linked to the regulators and regulations, it's avoid to select a sector not linked to the workflow
+- fix [#52](https://github.com/informed-governance-project/NISINP/issues/52)
+
+
 ##  0.1.5 (2024-03-21)
 
 ### Changes
 
-- RegulatorUser can now create only OperatorUser in the User tab. The admin has to be set in the companies view. This to prevent circular loop
-- Fix [#131](https://github.com/informed-governance-project/NISINP/issues/131)
-- Fix [#132](https://github.com/informed-governance-project/NISINP/issues/132)
-- Comment [#130](https://github.com/informed-governance-project/NISINP/issues/130)
-- Fix issue with platform admin to create regulators
-- Add a card at login to have better explanation for users
+- regulatorUser can now create only OperatorUser in the User tab. The admin has to be set in the companies view. This to prevent circular loop
+- fix [#131](https://github.com/informed-governance-project/NISINP/issues/131)
+- fix [#132](https://github.com/informed-governance-project/NISINP/issues/132)
+- comment [#130](https://github.com/informed-governance-project/NISINP/issues/130)
+- fix issue with platform admin to create regulators
+- add a card at login to have better explanation for users
 
 
 ##  0.1.4 (2024-02-27)
