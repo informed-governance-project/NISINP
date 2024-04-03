@@ -8,6 +8,8 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
+from governanceplatform.models import Company
+
 from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
 from .helpers import user_in_group
 
@@ -98,10 +100,10 @@ def registration_view(request, *args, **kwargs):
 
 def select_company(request):
     if request.method == "POST":
-        form = SelectCompany(request.POST, companies=request.user.companies)
+        form = SelectCompany(request.POST, companies=request.user.companies.distinct())
 
         if form.is_valid() and request.user.is_authenticated:
-            user_company = request.user.companies.get(
+            user_company = Company.objects.get(
                 id=form.cleaned_data["select_company"].id
             )
             if user_company:
@@ -112,6 +114,6 @@ def select_company(request):
                 request, "The select company is not linked to the account."
             )
     else:
-        form = SelectCompany(companies=request.user.companies)
+        form = SelectCompany(companies=request.user.companies.distinct())
 
     return render(request, "registration/select_company.html", {"form": form})
