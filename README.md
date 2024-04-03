@@ -11,7 +11,15 @@
 ## Description
 
 [NISINP](https://github.com/informed-governance-project/NISINP)
-is part of the [NC3-LU](https://github.com/NC3-LU) Governance Platform.
+is part of the [NC3-LU](https://github.com/NC3-LU) Incident Notification Platform.
+
+
+A platform for national regulators and Operators of Essential Services (Energy, Transport, etc.)
+in the context of [NIS 2](https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2021)689333).
+Different regulations are supported.
+
+This project is lead by [NC3-LU](https://www.nc3.lu).
+Developed in partnership with [ILR.lu](https://web.ilr.lu) and [IBPT.be](https://www.ibpt.be).
 
 
 ## Documentation
