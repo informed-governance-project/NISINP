@@ -3,7 +3,7 @@
 {% load static %}
 {% load i18n %}
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE|default:'en_us' }}" class="h-100" data-bs-theme="dark">
+<html lang="{{ LANGUAGE_CODE|default:'en_us' }}" class="h-100">
     <head>
         <!-- Required meta tags -->
         <meta charset="utf-8">
@@ -63,7 +63,7 @@
     }
 
     if (getCookie("theme") == null) {
-        document.cookie = "theme=dark; path=/";
+        document.cookie = "theme=light; path=/";
     }
     document.documentElement.setAttribute('data-bs-theme', getCookie("theme"));
     document.getElementById('btnThemeSwitch').textContent = (getCookie("theme") == 'dark' ? 'Light' : 'Dark').concat(' theme');
