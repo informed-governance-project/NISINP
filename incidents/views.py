@@ -393,7 +393,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             incident_form.is_valid()
             response = {"id": incident.pk}
             for field_name, field_value in incident_form.cleaned_data.items():
-                if field_value:
+                if field_name and field_value is not None:
                     response[field_name] = field_value
                     setattr(incident, field_name, field_value)
                 else:
