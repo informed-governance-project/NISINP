@@ -353,10 +353,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     # RegulatorUser can access only incidents from accessible sectors.
     if (
-        user_in_group(request.user, "RegulatorUser")
-        and not Incident.objects.filter(
-            pk=incident_id, affected_sectors__in=request.user.sectors.all()
-        ).exists()
+        not can_edit_incident_report(request.user, Incident.objects.get(pk=incident_id))
     ):
         return HttpResponseRedirect("/incidents")
 
