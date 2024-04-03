@@ -136,7 +136,7 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         and incident.sector_regulation.regulator == user.regulators.first()
     ):
         sectors = [
-            sector for sector in incident.sectors if sector in user.regulators.sectors
+            sector for sector in incident.affected_sectors.all() if sector in user.get_sectors().all()
         ]
         if len(sectors) > 0:
             return True
