@@ -396,6 +396,10 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 if field_name and field_value is not None:
                     response[field_name] = field_value
                     setattr(incident, field_name, field_value)
+                    if field_name == 'incident_status' and field_value == 'CLOSE':
+                        if incident.sector_regulation.closing_email:
+                            send_email(incident.sector_regulation.closing_email, incident)
+
                 else:
                     response[field_name] = incident_form.initial[field_name]
                     setattr(
