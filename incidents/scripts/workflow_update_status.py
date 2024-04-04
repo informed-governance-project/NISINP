@@ -29,7 +29,7 @@ def run():
                 ):
                     dt = actual_time - incident_workflow.timestamp
                     if (
-                        math.floor(dt.seconds / 60 / 60)
+                        math.floor(dt.total_seconds() / 60 / 60)
                         == sector_regulation_workflow.delay_in_hours_before_deadline
                     ):
                         incident_workflow.review_status = "OUT"
@@ -41,7 +41,7 @@ def run():
                     if incident.incident_detection_date is not None:
                         dt = actual_time - incident.incident_detection_date
                         if (
-                            math.floor(dt.seconds / 60 / 60)
+                            math.floor(dt.total_seconds() / 60 / 60)
                             == sector_regulation_workflow.delay_in_hours_before_deadline
                         ):
                             incident_workflow.review_status = "OUT"
@@ -54,7 +54,7 @@ def run():
                     if prev_work is not False:
                         dt = actual_time - prev_work.timestamp
                         if (
-                            math.floor(dt.seconds / 60 / 60)
+                            math.floor(dt.total_seconds() / 60 / 60)
                             == sector_regulation_workflow.delay_in_hours_before_deadline
                         ):
                             incident_workflow.review_status = "OUT"
