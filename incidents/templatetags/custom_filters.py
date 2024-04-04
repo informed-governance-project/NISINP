@@ -43,6 +43,7 @@ def status_class(value):
 
 @register.simple_tag
 def get_review_status_name(value):
+    print(value)
     if value == "PASS":
         return _("Review passed")
     elif value == "FAIL":
@@ -132,7 +133,7 @@ def is_deadline_exceeded(report, incident):
             if incident.incident_detection_date is not None:
                 dt = actual_time - incident.incident_detection_date
                 if (
-                    round(dt.seconds / 60 / 60, 0)
+                    round(dt.total_seconds() / 60 / 60, 0)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
                     incident.review_status = "OUT"
@@ -140,7 +141,7 @@ def is_deadline_exceeded(report, incident):
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
-                round(dt.seconds / 60 / 60, 0)
+                round(dt.total_seconds() / 60 / 60, 0)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
                 incident.review_status = "OUT"
@@ -159,7 +160,7 @@ def is_deadline_exceeded(report, incident):
             if previous_incident_workflow is not None:
                 dt = actual_time - previous_incident_workflow.timestamp
                 if (
-                    round(dt.seconds / 60 / 60, 0)
+                    round(dt.total_seconds() / 60 / 60, 0)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
                     incident.review_status = "OUT"

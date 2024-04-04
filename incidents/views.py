@@ -814,10 +814,11 @@ class FormWizardView(SessionWizardView):
                     if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
                         dt = actual_time - incident.incident_detection_date
                         if (
-                            round(dt.seconds / 60 / 60, 0)
+                            round(dt.total_seconds() / 60 / 60, 0)
                             > sr_workflow.delay_in_hours_before_deadline
                         ):
-                            incident.review_status = "OUT"
+                            sr_workflow.review_status = "OUT"
+                            sr_workflow.save()
 
                 sec = sector_regulation.sectors.values_list("id", flat=True)
                 selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list(
