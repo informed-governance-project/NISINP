@@ -407,6 +407,7 @@ class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "sectors",
         "opening_email",
         "closing_email",
+        "report_status_changed_email",
     )
     filter_horizontal = [
         "sectors",

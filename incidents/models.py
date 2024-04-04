@@ -233,6 +233,14 @@ class SectorRegulation(TranslatableModel):
         default=None,
         related_name="closing_email",
     )
+    report_status_changed_email = models.ForeignKey(
+        Email,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="report_status_changed_email",
+    )
 
     class Meta:
         verbose_name_plural = "Incident notification workflows"

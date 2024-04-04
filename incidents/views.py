@@ -378,6 +378,8 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             if workflow_form.is_valid():
                 response = {"id": workflow.pk}
                 for field_name, field_value in workflow_form.cleaned_data.items():
+                    print(field_name)
+                    print(field_value)
                     if field_value:
                         response[field_name] = field_value
                         setattr(workflow, field_name, field_value)
@@ -388,6 +390,9 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                             field_name,
                             workflow_form.initial[field_name],
                         )
+                    if field_name == 'review_status':
+                        if incident.sector_regulation.report_status_changed_email:
+                            send_email(incident.sector_regulation.report_status_changed_email, incident)
                 workflow.save()
 
             return JsonResponse(response)
