@@ -378,8 +378,6 @@ def get_regulator_incident_edit_form(request, incident_id: int):
             if workflow_form.is_valid():
                 response = {"id": workflow.pk}
                 for field_name, field_value in workflow_form.cleaned_data.items():
-                    print(field_name)
-                    print(field_value)
                     if field_value:
                         response[field_name] = field_value
                         setattr(workflow, field_name, field_value)
