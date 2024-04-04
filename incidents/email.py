@@ -33,7 +33,7 @@ def replace_email_variables(content, incident):
 
 
 def send_html_email(subject, content, recipient_list):
-    email = EmailMessage(subject, content, EMAIL_SENDER, recipient_list)
+    email = EmailMessage(subject, content, EMAIL_SENDER, bcc=recipient_list)
     email.content_subtype = "html"
     email.send(fail_silently=True)
 
