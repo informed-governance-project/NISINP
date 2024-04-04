@@ -62,12 +62,25 @@ The Incident Notification Platform is developed and maintained by
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
-This document is intended to be a documentation for operators and users of the
-Incidents Notifications software (for the NIS 2 directive).
+The platform is dedicated to national regulators and Operators of Essential Services
+(Energy, Transport, etc.) in the context of
+`NIS 2 <https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2021)689333>`_.
+Different regulations are supported.
+
+This project is lead by `NC3-LU <https://www.nc3.lu>`_.
+Developed in partnership with `ILR.lu <https://web.irl.lu>`_ and
+`NC3-LU <https://www.ibpt.be>`_.
+
+.. figure:: _static/screenshot_incidents-page.png
+   :alt: Screenshot of the list of incidents from the regulator view.
+   :target: _static/screenshot_incidents-page.png
+
+   Screenshot of the list of incidents from the regulator view.
+
+This document is intended to be a documentation for operators and users of the platform.
 If you find errors or omission, please don't hesitate to submit
 `an issue <https://github.com/informed-governance-project/NISINP/issues/new?labels=documentation&template=bug_report.md>`_
 or open a pull request with a fix.
-
 
 
 Contact
