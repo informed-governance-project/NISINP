@@ -68,8 +68,8 @@ The platform is dedicated to national regulators and Operators of Essential Serv
 Different regulations are supported.
 
 This project is lead by `NC3-LU <https://www.nc3.lu>`_.
-Developed in partnership with `ILR.lu <https://web.irl.lu>`_ and
-`NC3-LU <https://www.ibpt.be>`_.
+Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
+`IBPT.be <https://www.ibpt.be>`_.
 
 .. figure:: _static/screenshot_incidents-page.png
    :alt: Screenshot of the list of incidents from the regulator view.
