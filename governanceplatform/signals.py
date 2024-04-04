@@ -55,7 +55,6 @@ def update_cert_user_groups(sender, instance, created, **kwargs):
 
     # Regulator Administrator permissions
     if instance.is_cert_administrator:
-        print("admin")
         set_cert_admin_permissions(user)
         return
     else:
@@ -86,7 +85,11 @@ def delete_user_groups(sender, instance, **kwargs):
             group = None
 
         if group and user.groups.filter(name=group_name).exists():
-            user.groups.remove(group)
+            # remove roles only if there is no linked company
+            if group_name == 'OperatorUser' and user.companies.count() < 1:
+                user.groups.remove(group)
+            if group_name == 'OperatorAdmin' and user.companies.count() < 1:
+                user.groups.remove(group)
 
     if not user.sectorcompanycontact_set.exists():
         user.is_staff = False
