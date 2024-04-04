@@ -75,7 +75,17 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # OperatorStaff and IncidentUser can access only their reports.
+    # OperatorUser can access incidents related to selected company and sectors
+    if (
+        user_in_group(user, "OperatorUser")
+        and Incident.objects.filter(
+            pk=incident.id,
+            company__id=company_id,
+            affected_sectors__in=user.sectors.all(),
+        ).exists()
+    ):
+        return True
+    # OperatorStaff and IncidentUser can access their reports.
     if (
         not is_user_regulator(user)
         and (user_in_group(user, "OperatorUser") or user_in_group(user, "IncidentUser"))
@@ -103,6 +113,16 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     # if it's the incident of the user he can create
     if incident.contact_user == user:
         return True
+    # if it's in his sector and user of the company
+    if (
+        user_in_group(user, "OperatorUser")
+        and Incident.objects.filter(
+            pk=incident.id,
+            company__id=company_id,
+            affected_sectors__in=user.sectors.all(),
+        ).exists()
+    ):
+        return True
     # if he is admin of the company he can create
     if (
         user_in_group(user, "OperatorAdmin")
@@ -122,6 +142,16 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         return False
     # if it's the incident of the user he can create
     if incident.contact_user == user:
+        return True
+    # if it's in his sector and user of the company
+    if (
+        user_in_group(user, "OperatorUser")
+        and Incident.objects.filter(
+            pk=incident.id,
+            company__id=company_id,
+            affected_sectors__in=user.sectors.all(),
+        ).exists()
+    ):
         return True
     # if he is admin of the company he can create
     if (

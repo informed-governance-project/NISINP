@@ -98,6 +98,15 @@ def get_incidents(request):
     elif is_cert_user_viewving_all_incident(user):
         incidents = Incident.objects.all().order_by("-incident_notification_date")
         f = IncidentFilter(request.GET, queryset=incidents)
+    elif user_in_group(user, "OperatorUser"):
+        # OperatorUser see his incident and the one oh his sectors for the company
+        query1 = incidents.filter(
+            company__id=request.session.get("company_in_use"),
+            affected_sectors__in=user.sectors.all()
+        )
+        query2 = incidents.filter(contact_user=user)
+        incidents = (query1 | query2).distinct()
+        f = IncidentFilter(request.GET, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
