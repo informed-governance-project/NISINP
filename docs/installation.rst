@@ -80,7 +80,6 @@ NISINP
     python manage.py migrate
     python manage.py collectstatic
     poetry manage.py compilemessages
-    python manage.py createsuperuser
 
 
 Theme
