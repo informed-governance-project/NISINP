@@ -38,10 +38,6 @@ GNU/Linux distribution.
 .. code-block:: bash
 
     $ sudo apt-get install postgresql
-    $ sudo su postgres
-    $ psql
-    $ /password postgres
-    # password
 
 
 Create a database, database user:
@@ -179,9 +175,47 @@ The best is to use the Python executable in the virtual environment.
 Apache
 ------
 
-The mod_wsgi package provides an Apache module that implements a WSGI compliant
+The ``mod_wsgi`` package provides an Apache module that implements a WSGI compliant
 interface for hosting Python based web applications on top of the Apache web
-server.
+server. Install Apache and this module.
+
+
+.. code-block:: bash
+
+        $ sudo apt install apache2 libapache2-mod-wsgi-py3
+
+
+.. note::
+
+    Only in the case you can not use the version of mod_wsgi from your
+    GNU/Linux distribution.
+
+    .. code-block:: bash
+
+        $ sudo apt install apache2 apache2-dev # apxs2
+        $ wget https://github.com/GrahamDumpleton/mod_wsgi/archive/refs/tags/5.0.0.tar.gz
+        $ tar -xzvf 5.0.0.tar.gz
+        $ cd mod_wsgi-5.0.0/
+        $ ./configure --with-apxs=/usr/bin/apxs2 --with-python=/home/<user>/.pyenv/shims/python
+        $ make
+        $ sudo make install
+
+
+    Then in ``/etc/apache2/apache2.conf`` add the lines:
+
+    .. code-block:: bash
+
+        LoadFile /home/<user>/.pyenv/versions/3.11.0/lib/libpython3.11.so
+        LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
+
+
+    Restart Apache:
+
+    .. code-block:: bash
+
+        sudo systemctl restart apache2.service
+
+
 
 For the next steps you must have a valid domain name.
 
@@ -189,37 +223,7 @@ For the next steps you must have a valid domain name.
 Example of VirtualHost configuration file
 `````````````````````````````````````````
 
-Only in the case you can not use the version of mod_wsgi from your
-GNU/Linux distribution.
-
-
-.. code-block:: bash
-
-    $ sudo apt install apache2 apache2-dev # apxs2
-    $ wget https://github.com/GrahamDumpleton/mod_wsgi/archive/refs/tags/5.0.0.tar.gz
-    $ tar -xzvf 5.0.0.tar.gz
-    $ cd mod_wsgi-5.0.0/
-    $ ./configure --with-apxs=/usr/bin/apxs2 --with-python=/home/<user>/.pyenv/shims/python
-    $ make
-    $ sudo make install
-
-
-Then in ``/etc/apache2/apache2.conf`` add the lines:
-
-.. code-block:: bash
-
-    LoadFile /home/<user>/.pyenv/versions/3.11.0/lib/libpython3.11.so
-    LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
-
-
-Restart Apache:
-
-.. code-block:: bash
-
-    sudo systemctl restart apache2.service
-
-
-Example of a VirtualHost for a reverse proxy server:
+VirtualHost for a reverse proxy server:
 
 
 .. code-block:: apacheconf
@@ -260,7 +264,7 @@ Example of a VirtualHost for a reverse proxy server:
     </VirtualHost>
 
 
-Then configure HTTPS properly. If you want to user Let's Encrypt:
+Then configure HTTPS properly. If you want to use Let's Encrypt:
 
 .. code-block:: bash
 
@@ -269,8 +273,20 @@ Then configure HTTPS properly. If you want to user Let's Encrypt:
     sudo a2enmod rewrite
     sudo systemctl restart apache2.service
 
+Verify that the certificate will be automatically updated:
 
-Example of a VirtualHost for the application:
+.. code-block:: bash
+
+    $ cat /etc/letsencrypt/renewal/incidents.serima.lu.conf
+    # Options used in the renewal process
+    [renewalparams]
+    account = <-account-id->
+    authenticator = apache
+    server = https://acme-v02.api.letsencrypt.org/directory
+
+
+
+VirtualHost for the application:
 
 .. code-block:: apacheconf
 
