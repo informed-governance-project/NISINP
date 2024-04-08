@@ -14,6 +14,14 @@ You can, optionnally, create a LXC container.
     $ lxc exec NISINP -- /bin/bash
 
 
+System packages
+---------------
+
+.. code-block:: bash
+
+    $ sudo apt install gettext curl npm postfix
+
+
 Poetry
 ------
 
@@ -188,7 +196,7 @@ server. Install Apache and this module.
 .. note::
 
     Only in the case you can not use the version of mod_wsgi from your
-    GNU/Linux distribution.
+    GNU/Linux distribution:
 
     .. code-block:: bash
 
