@@ -80,18 +80,18 @@
         {% for incident in incidents %}
         <tr>
                 {% timezone "Europe/Paris" %}
-                <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+                <td scope="row" class="table-group-divider">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
                 {% endtimezone %}
-                <td>{{ incident.sector_regulation.regulation }}</td>
-                <td>
+                <td class="table-group-divider">{{ incident.sector_regulation.regulation }}</td>
+                <td class="table-group-divider">
                     {% for field in incident.formsStatus %}
                         {% if field.name == "incident_id" %}
                         {% bootstrap_field field show_label=False wrapper_class="m-0" %}
                         {% endif %}
                     {% endfor %}
                 </td>
-                <td>{{ incident.company.identifier }}</td>
-                <td>
+                <td class="table-group-divider">{{ incident.company.identifier }}</td>
+                <td class="table-group-divider">
                     <ul class="m-0 p-0">
                         {% for sector in incident.affected_sectors.all %}
                             {% if sector.parent is None %}
@@ -103,7 +103,7 @@
                         {% endfor %}
                     </ul>
                 </td>
-                <td>
+                <td class="table-group-divider">
                     <ul class="m-0 p-0">
                         {% for sector in incident.affected_sectors.all %}
                             {% if sector.parent is not None %}
@@ -113,7 +113,7 @@
                         {% endfor %}
                     </ul>
                 </td>
-                <td>
+                <td class="table-group-divider">
                     <table class="table table-borderless table-sm m-0">
                         {% for report in incident.get_all_workflows %}
                         {% with filtered_workflows=incident|filter_workflows_forms:report %}
@@ -146,19 +146,19 @@
                         {% endfor %}
                     </table>
                 </td>
-                <td>
+                <td class="table-group-divider">
                     {% for field in incident.formsStatus %}
                         {% if field.name == "incident_status" %}
                         {% bootstrap_field field show_label=False wrapper_class="m-0" %}
                         {% endif %}
                     {% endfor %}
                 </td>
-                <td>{% for field in incident.formsStatus %}
+                <td class="table-group-divider">{% for field in incident.formsStatus %}
                         {% if field.name == "is_significative_impact" %}
                         {% bootstrap_field field show_label=False wrapper_class="d-flex align-items-center justify-content-center" %}
                         {% endif %}
                     {% endfor %}</td>
-                <td style="white-space: nowrap;">
+                <td class="table-group-divider" style="white-space: nowrap;">
                     <a href="{% url 'download_incident_pdf' incident.id %}">
                         <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
                     </a>

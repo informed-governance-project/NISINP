@@ -85,12 +85,12 @@
         {% for incident in incidents %}
         <tr>
             {% timezone "Europe/Paris" %}
-            <td scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+            <td class="table-group-divider" scope="row">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
             {% endtimezone %}
-            <td>{{ incident.incident_id }}</td>
-            <td>{{ incident.sector_regulation.regulator }}</td>
-            <td>{{ incident.sector_regulation.regulation }}</td>
-            <td>
+            <td class="table-group-divider">{{ incident.incident_id }}</td>
+            <td class="table-group-divider">{{ incident.sector_regulation.regulator }}</td>
+            <td class="table-group-divider">{{ incident.sector_regulation.regulation }}</td>
+            <td class="table-group-divider">
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
                         {% if sector.parent is None %}
@@ -102,7 +102,7 @@
                     {% endfor %}
                 </ul>
             </td>
-            <td>
+            <td class="table-group-divider">
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
                         {% if sector.parent is not None %}
@@ -112,7 +112,7 @@
                     {% endfor %}
                 </ul>
             </td>
-            <td>
+            <td class="table-group-divider">
                 <table class="table table-borderless table-sm m-0">
                     {% with completed_workflows=incident.get_workflows_completed %}
                     {% for report in incident.get_all_workflows %}
@@ -171,15 +171,15 @@
                     {% endwith %}
                 </table>
             </td>
-            <td>
+            <td class="table-group-divider">
                 {% if incident.is_significative_impact %}
                     <span class="bi bi-check-lg d-flex align-items-center justify-content-center"></span>
                 {% else %}
                     <span class="d-flex align-items-center justify-content-center">X</span>
                 {% endif %}
             </td>
-            <td>{{ incident.get_incident_status_display }}</td>
-            <td scope="col">
+            <td class="table-group-divider">{{ incident.get_incident_status_display }}</td>
+            <td scope="col" class="table-group-divider">
                 <a href="{% url 'download_incident_pdf' incident.id %}">
                     <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
                 </a>
