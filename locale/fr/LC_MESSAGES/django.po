@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-10 08:47+0200\n"
+"POT-Creation-Date: 2024-04-10 11:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,7 +177,8 @@ msgstr "Administrateur"
 
 #: governanceplatform/models.py:205
 msgid "Designates whether the user can log into this admin site."
-msgstr "Indique si l'utilisateur peut se connecter à l'interface d'administration"
+msgstr ""
+"Indique si l'utilisateur peut se connecter à l'interface d'administration"
 
 #: governanceplatform/models.py:256
 msgid "Contact person"
@@ -243,12 +244,44 @@ msgid ""
 "Insert a reference to find and track easily your incident (internal "
 "reference, CERT reference, etc.)"
 msgstr ""
-"Insérer une référence pour retrouver et suivre facilement votre incident (référence interne, "
-"référence CERT, etc.)"
+"Insérer une référence pour retrouver et suivre facilement votre incident "
+"(référence interne, référence CERT, etc.)"
 
 #: incidents/forms.py:503
 msgid "Insert any complaint has been filed with the police"
 msgstr "Insérer une plainte déposée auprès de la police"
+
+#: incidents/globals.py:45
+msgid "Closed"
+msgstr "Fermé"
+
+#: incidents/globals.py:46
+msgid "On-going"
+msgstr "En cours"
+
+#: incidents/globals.py:58 incidents/templatetags/custom_filters.py:56
+#: incidents/templatetags/custom_filters.py:169
+msgid "Not delivered"
+msgstr "Non remis"
+
+#: incidents/globals.py:59
+msgid "Delivered but not yet reviewed"
+msgstr "Remis mais pas encore revu"
+
+#: incidents/globals.py:60 incidents/templatetags/custom_filters.py:48
+msgid "Review passed"
+msgstr "Revue passée"
+
+#: incidents/globals.py:61 incidents/templatetags/custom_filters.py:50
+msgid "Review failed"
+msgstr "Revue échouée"
+
+#: incidents/globals.py:62 incidents/templatetags/custom_filters.py:54
+#: incidents/templatetags/custom_filters.py:140
+#: incidents/templatetags/custom_filters.py:148
+#: incidents/templatetags/custom_filters.py:167
+msgid "Not delivered and deadline exceeded"
+msgstr "Non remis et délai dépassé"
 
 #: incidents/models.py:68
 msgid "Question Category"
@@ -584,29 +617,9 @@ msgstr "Réponses"
 msgid "Incident report"
 msgstr "Rapport d'incident"
 
-#: incidents/templatetags/custom_filters.py:48
-msgid "Review passed"
-msgstr "Revue passée"
-
-#: incidents/templatetags/custom_filters.py:50
-msgid "Review failed"
-msgstr "Revue échouée"
-
 #: incidents/templatetags/custom_filters.py:52
 msgid "Delivered"
 msgstr "Remis"
-
-#: incidents/templatetags/custom_filters.py:54
-#: incidents/templatetags/custom_filters.py:140
-#: incidents/templatetags/custom_filters.py:148
-#: incidents/templatetags/custom_filters.py:167
-msgid "Not delivered and deadline exceeded"
-msgstr "Non remis et délai dépassé"
-
-#: incidents/templatetags/custom_filters.py:56
-#: incidents/templatetags/custom_filters.py:169
-msgid "Not delivered"
-msgstr "Non remis"
 
 #: incidents/views.py:188
 msgid "Missing data to create the incident report"
@@ -636,7 +649,8 @@ msgstr "Une erreur s'est produite lors de la génération du rapport."
 
 #: incidents/views.py:532
 msgid "The incidents reports per day have been reached. Try again tomorrow."
-msgstr "Le nombre de rapports d'incidents par jour a été atteint. Réessayez demain."
+msgstr ""
+"Le nombre de rapports d'incidents par jour a été atteint. Réessayez demain."
 
 #: incidents/views.py:643
 msgid "Please select at least 1 regulator"
@@ -761,19 +775,24 @@ msgstr "Activer l'authentification à deux facteurs"
 
 #: templates/two_factor/core/setup_complete.html:7
 msgid "Congratulations, you've successfully enabled two-factor authentication."
-msgstr "Félicitations, vous avez activé avec succès l'authentification à deux facteurs."
+msgstr ""
+"Félicitations, vous avez activé avec succès l'authentification à deux "
+"facteurs."
 
 #: templates/two_factor/core/setup_complete.html:12
 msgid "Two-Factor Authentication has been set.  Please log in again."
-msgstr "L'authentification à deux facteurs a été définie.  Veuillez vous connecter à nouveau."
+msgstr ""
+"L'authentification à deux facteurs a été définie.  Veuillez vous connecter à "
+"nouveau."
 
 #: templates/two_factor/core/setup_complete.html:14
 msgid ""
 "However, it might happen that you don't have access to your primary token "
 "device. To enable account recovery, add a phone number."
 msgstr ""
-"Cependant, il peut arriver que vous n'ayez pas accès à votre token principal"
-"Pour permettre la récupération du compte, ajoutez un numéro de téléphone."
+"Cependant, il peut arriver que vous n'ayez pas accès à votre token "
+"principalPour permettre la récupération du compte, ajoutez un numéro de "
+"téléphone."
 
 #: templates/two_factor/core/setup_complete.html:19
 msgid "Back to Account Security"

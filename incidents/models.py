@@ -574,7 +574,7 @@ class IncidentWorkflow(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
     review_status = models.CharField(
         max_length=5,
-        choices=REVIEW_STATUS,
+        choices=WORKFLOW_REVIEW_STATUS,
         blank=False,
         default=WORKFLOW_REVIEW_STATUS[0][0],
     )

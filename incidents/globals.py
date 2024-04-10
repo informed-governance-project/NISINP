@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 QUESTION_TYPES = [
     ("FREETEXT", "Freetext"),
     ("MULTI", "Multiple Choice"),
@@ -40,8 +42,8 @@ INCIDENT_EMAIL_TRIGGER_EVENT = [
 ]
 
 INCIDENT_STATUS = [
-    ("CLOSE", "Closed"),
-    ("GOING", "On-going"),
+    ("CLOSE", _("Closed")),
+    ("GOING", _("On-going")),
 ]
 
 REVIEW_STATUS = [
@@ -53,11 +55,11 @@ REVIEW_STATUS = [
 ]
 
 WORKFLOW_REVIEW_STATUS = [
-    ("UNDE", "Not delivered"),
-    ("DELIV", "Delivered but not yet reviewed"),
-    ("PASS", "Review passed"),
-    ("FAIL", "Review failed"),
-    ("OUT", "Not delivered and deadline exceeded"),
+    ("UNDE", _("Not delivered")),
+    ("DELIV", _("Delivered but not yet reviewed")),
+    ("PASS", _("Review passed")),
+    ("FAIL", _("Review failed")),
+    ("OUT", _("Not delivered and deadline exceeded")),
 ]
 
 # after this step the delay is running

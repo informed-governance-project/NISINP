@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-10 08:47+0200\n"
+"POT-Creation-Date: 2024-04-10 11:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -245,6 +245,38 @@ msgstr ""
 
 #: incidents/forms.py:503
 msgid "Insert any complaint has been filed with the police"
+msgstr ""
+
+#: incidents/globals.py:45
+msgid "Closed"
+msgstr ""
+
+#: incidents/globals.py:46
+msgid "On-going"
+msgstr ""
+
+#: incidents/globals.py:58 incidents/templatetags/custom_filters.py:56
+#: incidents/templatetags/custom_filters.py:169
+msgid "Not delivered"
+msgstr ""
+
+#: incidents/globals.py:59
+msgid "Delivered but not yet reviewed"
+msgstr ""
+
+#: incidents/globals.py:60 incidents/templatetags/custom_filters.py:48
+msgid "Review passed"
+msgstr ""
+
+#: incidents/globals.py:61 incidents/templatetags/custom_filters.py:50
+msgid "Review failed"
+msgstr ""
+
+#: incidents/globals.py:62 incidents/templatetags/custom_filters.py:54
+#: incidents/templatetags/custom_filters.py:140
+#: incidents/templatetags/custom_filters.py:148
+#: incidents/templatetags/custom_filters.py:167
+msgid "Not delivered and deadline exceeded"
 msgstr ""
 
 #: incidents/models.py:68
@@ -581,28 +613,8 @@ msgstr ""
 msgid "Incident report"
 msgstr ""
 
-#: incidents/templatetags/custom_filters.py:48
-msgid "Review passed"
-msgstr ""
-
-#: incidents/templatetags/custom_filters.py:50
-msgid "Review failed"
-msgstr ""
-
 #: incidents/templatetags/custom_filters.py:52
 msgid "Delivered"
-msgstr ""
-
-#: incidents/templatetags/custom_filters.py:54
-#: incidents/templatetags/custom_filters.py:140
-#: incidents/templatetags/custom_filters.py:148
-#: incidents/templatetags/custom_filters.py:167
-msgid "Not delivered and deadline exceeded"
-msgstr ""
-
-#: incidents/templatetags/custom_filters.py:56
-#: incidents/templatetags/custom_filters.py:169
-msgid "Not delivered"
 msgstr ""
 
 #: incidents/views.py:188
