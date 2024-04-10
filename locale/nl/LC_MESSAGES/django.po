@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-30 09:07+0000\n"
+"POT-Creation-Date: 2024-04-10 08:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,66 +17,764 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-#: governanceplatform/admin.py:15
+
+#: governanceplatform/admin.py:47 governanceplatform/context_processors.py:21
 msgid "Administration"
 msgstr ""
 
-#: governanceplatform/admin.py:120 governanceplatform/admin.py:203
-msgid "Contact Information"
+#: governanceplatform/admin.py:210
+msgid "Contact for sector"
 msgstr ""
 
-#: governanceplatform/admin.py:131 governanceplatform/admin.py:214
-msgid "Configuration Information"
+#: governanceplatform/admin.py:211
+msgid "Contacts for sectors"
 msgstr ""
 
-#: governanceplatform/models.py:17
-msgid "Sector"
-msgstr ""
-
-#: governanceplatform/models.py:18
+#: governanceplatform/admin.py:296 governanceplatform/admin.py:646
+#: governanceplatform/models.py:47 incidents/admin.py:166
+#: incidents/templates/cert/incidents.html:65
+#: incidents/templates/regulator/incidents.html:68 incidents/views.py:655
 msgid "Sectors"
 msgstr ""
 
-#: governanceplatform/models.py:29
-msgid "Service"
+#: governanceplatform/admin.py:339 governanceplatform/admin.py:737
+msgid "Contact Information"
 msgstr ""
 
-#: governanceplatform/models.py:30
-msgid "Services"
+#: governanceplatform/admin.py:350
+msgid "Configuration Information"
 msgstr ""
 
-#: governanceplatform/models.py:56
-msgid "Company"
+#: governanceplatform/admin.py:576
+msgid "Reset 2FA"
 msgstr ""
 
-#: governanceplatform/models.py:57
+#: governanceplatform/admin.py:585 governanceplatform/models.py:154
+#: incidents/views.py:653
+msgid "Regulators"
+msgstr ""
+
+#: governanceplatform/admin.py:604 governanceplatform/models.py:182
+msgid "CERT"
+msgstr ""
+
+#: governanceplatform/admin.py:623 governanceplatform/models.py:125
 msgid "Companies"
 msgstr ""
 
-#: templates/admin/base.html:17
-msgid "Log out"
+#: governanceplatform/admin.py:669
+msgid "Roles"
+msgstr ""
+
+#: governanceplatform/admin.py:1038 governanceplatform/models.py:309
+msgid "CERT user"
+msgstr ""
+
+#: governanceplatform/admin.py:1039 governanceplatform/models.py:310
+msgid "CERT users"
+msgstr ""
+
+#: governanceplatform/forms.py:27
+msgid "Role"
+msgstr ""
+
+#: governanceplatform/managers.py:15
+msgid "Users must have an email address"
+msgstr ""
+
+#: governanceplatform/managers.py:28
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: governanceplatform/models.py:16 governanceplatform/models.py:52
+#: incidents/templates/contact_form.html:7
+#: templates/home/privacy_policy.html:89
+msgid "Name"
+msgstr ""
+
+#: governanceplatform/models.py:23
+msgid "parent"
+msgstr ""
+
+#: governanceplatform/models.py:46 incidents/templates/incidents.html:72
+msgid "Sector"
+msgstr ""
+
+#: governanceplatform/models.py:60
+msgid "Service"
+msgstr ""
+
+#: governanceplatform/models.py:61
+msgid "Services"
+msgstr ""
+
+#: governanceplatform/models.py:72
+msgid "Functionality"
+msgstr ""
+
+#: governanceplatform/models.py:73
+msgid "Functionalities"
+msgstr ""
+
+#: governanceplatform/models.py:88
+msgid "Identifier"
+msgstr ""
+
+#: governanceplatform/models.py:90 governanceplatform/models.py:130
+#: governanceplatform/models.py:159
+msgid "name"
+msgstr ""
+
+#: governanceplatform/models.py:96 governanceplatform/models.py:132
+#: governanceplatform/models.py:161
+msgid "address"
+msgstr ""
+
+#: governanceplatform/models.py:102 governanceplatform/models.py:190
+msgid "email address"
+msgstr ""
+
+#: governanceplatform/models.py:124
+msgid "Company"
+msgstr ""
+
+#: governanceplatform/models.py:131 governanceplatform/models.py:160
+msgid "country"
+msgstr ""
+
+#: governanceplatform/models.py:134 governanceplatform/models.py:163
+msgid "email address for incident notification"
+msgstr ""
+
+#: governanceplatform/models.py:140 governanceplatform/models.py:169
+msgid "full name"
+msgstr ""
+
+#: governanceplatform/models.py:143 governanceplatform/models.py:172
+msgid "description"
+msgstr ""
+
+#: governanceplatform/models.py:146 governanceplatform/models.py:175
+msgid "Receive all incident"
+msgstr ""
+
+#: governanceplatform/models.py:153 incidents/templates/cert/incidents.html:62
+#: incidents/templates/incidents.html:70
+msgid "Regulator"
+msgstr ""
+
+#: governanceplatform/models.py:183
+msgid "CERTs"
+msgstr ""
+
+#: governanceplatform/models.py:193
+msgid "A user is already registered with this email address"
+msgstr ""
+
+#: governanceplatform/models.py:203
+msgid "Administrator"
+msgstr ""
+
+#: governanceplatform/models.py:205
+msgid "Designates whether the user can log into this admin site."
+msgstr ""
+
+#: governanceplatform/models.py:256
+msgid "Contact person"
+msgstr ""
+
+#: governanceplatform/models.py:259 governanceplatform/models.py:280
+#: governanceplatform/models.py:302
+msgid "is administrator"
+msgstr ""
+
+#: governanceplatform/models.py:268
+msgid "Sector contact"
+msgstr ""
+
+#: governanceplatform/models.py:269
+msgid "Sectors contact"
+msgstr ""
+
+#: governanceplatform/models.py:290
+msgid "Regulator user"
+msgstr ""
+
+#: governanceplatform/models.py:291
+msgid "Regulator users"
+msgstr ""
+
+#: governanceplatform/views.py:52
+msgid "Account has been successfully saved."
+msgstr ""
+
+#: incidents/admin.py:123
+msgid "predefined answer"
+msgstr ""
+
+#: incidents/admin.py:124
+msgid "predefined answers"
+msgstr ""
+
+#: incidents/admin.py:206 incidents/templates/incidents.html:71
+#: incidents/templates/regulator/incidents.html:65
+#: incidents/templates/report/questions_answers.html:3
+msgid "Regulation"
+msgstr ""
+
+#: incidents/admin.py:357
+msgid "sector regulation"
+msgstr ""
+
+#: incidents/admin.py:358
+msgid "sectors regulations"
+msgstr ""
+
+#: incidents/admin.py:390
+msgid "Incident Report"
+msgstr ""
+
+#: incidents/admin.py:391
+msgid "Incident reports"
+msgstr ""
+
+#: incidents/forms.py:492
+msgid ""
+"Insert a reference to find and track easily your incident (internal "
+"reference, CERT reference, etc.)"
+msgstr ""
+
+#: incidents/forms.py:503
+msgid "Insert any complaint has been filed with the police"
+msgstr ""
+
+#: incidents/models.py:68
+msgid "Question Category"
+msgstr ""
+
+#: incidents/models.py:69
+msgid "Question Categories"
+msgstr ""
+
+#: incidents/models.py:77
+msgid "Mandatory"
+msgstr ""
+
+#: incidents/models.py:166
+msgid "Impacts are needed"
+msgstr ""
+
+#: incidents/models.py:217
+msgid "Detection date needed"
+msgstr ""
+
+#: incidents/models.py:314
+msgid "Incident identifier"
+msgstr ""
+
+#: incidents/models.py:318 incidents/templates/regulator/incident_edit.html:31
+#: incidents/templates/report/cover.html:5
+msgid "Company name"
+msgstr ""
+
+#: incidents/models.py:335
+msgid "contact lastname"
+msgstr ""
+
+#: incidents/models.py:338
+msgid "contact firstname"
+msgstr ""
+
+#: incidents/models.py:340
+msgid "contact title"
+msgstr ""
+
+#: incidents/models.py:341
+msgid "contact email"
+msgstr ""
+
+#: incidents/models.py:343
+msgid "contact telephone"
+msgstr ""
+
+#: incidents/models.py:347
+msgid "technical lastname"
+msgstr ""
+
+#: incidents/models.py:350
+msgid "technical firstname"
+msgstr ""
+
+#: incidents/models.py:353
+msgid "technical title"
+msgstr ""
+
+#: incidents/models.py:356
+msgid "technical email"
+msgstr ""
+
+#: incidents/models.py:359
+msgid "technical telephone"
+msgstr ""
+
+#: incidents/models.py:381 incidents/templates/cert/incidents.html:74
+#: incidents/templates/incidents.html:80
+#: incidents/templates/regulator/incidents.html:77
+msgid "Significative impact"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:21
+#: incidents/templates/regulator/incidents.html:21
+msgid "Reported incidents"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:51
+#: incidents/templates/incidents.html:58
+#: incidents/templates/regulator/incidents.html:54
+msgid "Search"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:61
+#: incidents/templates/incidents.html:68
+#: incidents/templates/regulator/incidents.html:64
+msgid "Notification date"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:63
+#: incidents/templates/incidents.html:69
+#: incidents/templates/regulator/incidents.html:66
+msgid "Reference"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:64
+#: incidents/templates/regulator/incidents.html:67
+msgid "Operator"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:66
+#: incidents/templates/regulator/incidents.html:69
+msgid "Sub-sectors"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:69
+#: incidents/templates/incidents.html:76
+#: incidents/templates/regulator/incidents.html:72
+msgid "Report"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:70
+#: incidents/templates/incidents.html:77
+#: incidents/templates/regulator/incidents.html:73
+msgid "Status"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:73
+#: incidents/templates/incidents.html:81
+#: incidents/templates/regulator/incidents.html:76
+msgid "Incident status"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:75
+#: incidents/templates/regulator/incidents.html:78
+msgid "Actions"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:121
+#: incidents/templates/incidents.html:131
+#: incidents/templates/regulator/incidents.html:130
+msgid "Historic"
+msgstr ""
+
+#: incidents/templates/cert/incidents.html:186
+#: incidents/templates/incidents.html:219
+#: incidents/templates/regulator/incidents.html:198
+msgid "No incident"
+msgstr ""
+
+#: incidents/templates/contact_form.html:6
+msgid "Company information"
+msgstr ""
+
+#: incidents/templates/contact_form.html:12
+msgid "Person in charge of the incident notification"
+msgstr ""
+
+#: incidents/templates/contact_form.html:15
+#: incidents/templates/contact_form.html:44
+#: incidents/templates/regulator/incident_edit.html:62
+#: incidents/templates/regulator/incident_edit.html:80
+#: incidents/templates/report/contact.html:5
+#: incidents/templates/report/contact.html:12
+msgid "Firstname"
+msgstr ""
+
+#: incidents/templates/contact_form.html:18
+#: incidents/templates/contact_form.html:47
+#: incidents/templates/regulator/incident_edit.html:65
+#: incidents/templates/regulator/incident_edit.html:83
+#: incidents/templates/report/contact.html:6
+#: incidents/templates/report/contact.html:13
+msgid "Lastname"
+msgstr ""
+
+#: incidents/templates/contact_form.html:22
+#: incidents/templates/contact_form.html:51
+msgid "Job Title"
+msgstr ""
+
+#: incidents/templates/contact_form.html:26
+#: incidents/templates/contact_form.html:55
+#: incidents/templates/regulator/incident_edit.html:67
+#: incidents/templates/regulator/incident_edit.html:86
+#: incidents/templates/report/contact.html:7
+#: incidents/templates/report/contact.html:14
+msgid "Email"
+msgstr ""
+
+#: incidents/templates/contact_form.html:29
+#: incidents/templates/contact_form.html:58
+msgid "Telephone"
+msgstr ""
+
+#: incidents/templates/contact_form.html:36
+#: incidents/templates/regulator/incident_edit.html:74
+#: incidents/templates/report/contact.html:10
+msgid "Technical contact"
+msgstr ""
+
+#: incidents/templates/contact_form.html:38
+msgid "Is the same person in charge of technical aspect?"
+msgstr ""
+
+#: incidents/templates/contact_form.html:66
+msgid "References"
+msgstr ""
+
+#: incidents/templates/contact_form.html:67
+msgid "Optional"
+msgstr ""
+
+#: incidents/templates/edit_impacts.html:8
+msgid "Edit impacts"
+msgstr ""
+
+#: incidents/templates/edit_impacts.html:22
+#: incidents/templates/edit_incident_timeline.html:23
+#: incidents/templates/regulator/incident_edit.html:23
+msgid "Save"
+msgstr ""
+
+#: incidents/templates/edit_incident_timeline.html:8
+msgid "Edit timeline"
+msgstr ""
+
+#: incidents/templates/incidents.html:24
+msgid "Report an incident"
+msgstr ""
+
+#: incidents/templates/incidents.html:73
+msgid "Sub-sector"
+msgstr ""
+
+#: incidents/templates/incidents.html:82
+msgid "Review status"
+msgstr ""
+
+#: incidents/templates/incidents.html:83
+msgid "Action"
+msgstr ""
+
+#: incidents/templates/incidents.html:149 incidents/views.py:1028
+msgid "Comment"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:9
+msgid "Edit incident data"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:29
+msgid "Incident details"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:35
+#: incidents/templates/report/cover.html:13
+msgid "Incident notification datetime"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:39
+msgid "Final notification datetime"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:43
+#: incidents/templates/report/cover.html:9
+msgid "Incident reference"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:47
+#: incidents/templates/report/cover.html:21
+msgid "Complaint reference"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:51
+#: incidents/templates/report/cover.html:17
+msgid "Is impact significant"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:52
+#: incidents/templates/report/cover.html:18
+msgid "yes"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:52
+#: incidents/templates/report/cover.html:18
+msgid "no"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:56
+#: incidents/templates/report/contact.html:3
+msgid "Person in charge"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:59
+#: incidents/templates/regulator/incident_edit.html:77
+#: incidents/templates/report/contact.html:4
+#: incidents/templates/report/contact.html:11
+msgid "Title"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:70
+#: incidents/templates/regulator/incident_edit.html:89
+#: incidents/templates/report/contact.html:8
+#: incidents/templates/report/contact.html:15
+msgid "Phone number"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:93 incidents/views.py:654
+msgid "Regulations"
+msgstr ""
+
+#: incidents/templates/regulator/incident_edit.html:101
+msgid "Affected services"
+msgstr ""
+
+#: incidents/templates/report/contact.html:1
+msgid "Contact details"
+msgstr ""
+
+#: incidents/templates/report/questions_answers.html:1
+msgid "Incident report answers"
+msgstr ""
+
+#: incidents/templates/report/questions_answers.html:11
+msgid "Affected sectors"
+msgstr ""
+
+#: incidents/templates/report/questions_answers.html:27 incidents/views.py:1024
+msgid "Impacts"
+msgstr ""
+
+#: incidents/templates/report/questions_answers.html:36
+msgid "Answers"
+msgstr ""
+
+#: incidents/templates/report/template.html:9
+#: incidents/templates/report/template.html:11
+msgid "Incident report"
+msgstr ""
+
+#: incidents/templatetags/custom_filters.py:48
+msgid "Review passed"
+msgstr ""
+
+#: incidents/templatetags/custom_filters.py:50
+msgid "Review failed"
+msgstr ""
+
+#: incidents/templatetags/custom_filters.py:52
+msgid "Delivered"
+msgstr ""
+
+#: incidents/templatetags/custom_filters.py:54
+#: incidents/templatetags/custom_filters.py:140
+#: incidents/templatetags/custom_filters.py:148
+#: incidents/templatetags/custom_filters.py:167
+msgid "Not delivered and deadline exceeded"
+msgstr ""
+
+#: incidents/templatetags/custom_filters.py:56
+#: incidents/templatetags/custom_filters.py:169
+msgid "Not delivered"
+msgstr ""
+
+#: incidents/views.py:188
+msgid "Missing data to create the incident report"
+msgstr ""
+
+#: incidents/views.py:195 incidents/views.py:267
+msgid "Workflow not found"
+msgstr ""
+
+#: incidents/views.py:199 incidents/views.py:270
+msgid "Incident not found"
+msgstr ""
+
+#: incidents/views.py:203 incidents/views.py:210 incidents/views.py:247
+#: incidents/views.py:274 incidents/views.py:280 incidents/views.py:311
+#: incidents/views.py:500
+msgid "Forbidden"
+msgstr ""
+
+#: incidents/views.py:228 incidents/views.py:261 incidents/views.py:313
+msgid "No incident report found"
+msgstr ""
+
+#: incidents/views.py:510
+msgid "An error occurred when generating the report."
+msgstr ""
+
+#: incidents/views.py:532
+msgid "The incidents reports per day have been reached. Try again tomorrow."
+msgstr ""
+
+#: incidents/views.py:643
+msgid "Please select at least 1 regulator"
+msgstr ""
+
+#: incidents/views.py:652
+msgid "Contact"
+msgstr ""
+
+#: incidents/views.py:656
+msgid "Detection date"
+msgstr ""
+
+#: incidents/views.py:1021
+msgid "Timeline"
+msgstr ""
+
+#: templates/account/edit.html:6
+msgid "Account"
+msgstr ""
+
+#: templates/account/edit.html:8
+msgid "Account Edition"
 msgstr ""
 
 #: templates/admin/base_site.html:8
 msgid "Django administration"
 msgstr ""
 
-#: templates/home/privacy_policy.html:87
-msgid "Name"
+#: templates/admin/base_site.html:13
+msgid "Account Security"
 msgstr ""
 
-#: templates/home/privacy_policy.html:88
-msgid "Description"
+#: templates/admin/base_site.html:14
+msgid "Password change"
 msgstr ""
 
-#: templates/home/privacy_policy.html:89
-msgid "Content"
+#: templates/admin/base_site.html:16
+msgid "Return to User website"
+msgstr ""
+
+#: templates/admin/base_site.html:18
+msgid "Log out"
 msgstr ""
 
 #: templates/home/privacy_policy.html:90
+msgid "Description"
+msgstr ""
+
+#: templates/home/privacy_policy.html:91
+msgid "Content"
+msgstr ""
+
+#: templates/home/privacy_policy.html:92
 msgid "Maximum term"
 msgstr ""
 
 #: templates/registration/base.html:13
 msgid "Log in"
+msgstr ""
+
+#: templates/theme/templates/operateur/menu.html:4
+msgid "Security Objectives"
+msgstr ""
+
+#: templates/theme/templates/operateur/menu.html:7
+msgid "Dependencies"
+msgstr ""
+
+#: templates/theme/templates/operateur/menu.html:10
+msgid "Risk Management"
+msgstr ""
+
+#: templates/theme/templates/operateur/menu.html:13
+#: templates/theme/templates/regulator/menu.html:10
+msgid "Comunication"
+msgstr ""
+
+#: templates/theme/templates/operateur/menu.html:16
+msgid "Incident Notification"
+msgstr ""
+
+#: templates/theme/templates/parts/footer.html:22
+msgid "Terms of Service"
+msgstr ""
+
+#: templates/theme/templates/parts/footer.html:25
+msgid "Privacy Policy"
+msgstr ""
+
+#: templates/theme/templates/parts/footer.html:28
+msgid "Contact us"
+msgstr ""
+
+#: templates/theme/templates/registration/login.html:27
+msgid "Please login to your account"
+msgstr ""
+
+#: templates/theme/templates/registration/login.html:33
+msgid "Log In"
+msgstr ""
+
+#: templates/theme/templates/registration/login.html:35
+msgid "Forgot password?"
+msgstr ""
+
+#: templates/theme/templates/registration/login.html:38
+msgid "Anonymous notification"
+msgstr ""
+
+#: templates/theme/templates/regulator/menu.html:4
+msgid "Dashboard"
+msgstr ""
+
+#: templates/theme/templates/regulator/menu.html:7
+msgid "User Management"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:5
+msgid "Enable Two-Factor Authentication"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:7
+msgid "Congratulations, you've successfully enabled two-factor authentication."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:12
+msgid "Two-Factor Authentication has been set.  Please log in again."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:14
+msgid ""
+"However, it might happen that you don't have access to your primary token "
+"device. To enable account recovery, add a phone number."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:19
+msgid "Back to Account Security"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:21
+msgid "Add Phone Number"
 msgstr ""
