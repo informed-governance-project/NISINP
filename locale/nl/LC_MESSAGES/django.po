@@ -68,11 +68,11 @@ msgstr ""
 
 #: governanceplatform/admin.py:1038 governanceplatform/models.py:309
 msgid "CERT user"
-msgstr ""
+msgstr "utilisateur CERT
 
 #: governanceplatform/admin.py:1039 governanceplatform/models.py:310
 msgid "CERT users"
-msgstr ""
+msgstr "utilisateurs CERT"
 
 #: governanceplatform/forms.py:27
 msgid "Role"
@@ -128,7 +128,7 @@ msgstr ""
 #: governanceplatform/models.py:96 governanceplatform/models.py:132
 #: governanceplatform/models.py:161
 msgid "address"
-msgstr ""
+msgstr "adres"
 
 #: governanceplatform/models.py:102 governanceplatform/models.py:190
 msgid "email address"
@@ -140,15 +140,15 @@ msgstr ""
 
 #: governanceplatform/models.py:131 governanceplatform/models.py:160
 msgid "country"
-msgstr ""
+msgstr "land"
 
 #: governanceplatform/models.py:134 governanceplatform/models.py:163
 msgid "email address for incident notification"
-msgstr ""
+msgstr "email adres voor notificatie"
 
 #: governanceplatform/models.py:140 governanceplatform/models.py:169
 msgid "full name"
-msgstr ""
+msgstr "volledige naam"
 
 #: governanceplatform/models.py:143 governanceplatform/models.py:172
 msgid "description"
@@ -173,7 +173,7 @@ msgstr ""
 
 #: governanceplatform/models.py:203
 msgid "Administrator"
-msgstr ""
+msgstr "Administrateur"
 
 #: governanceplatform/models.py:205
 msgid "Designates whether the user can log into this admin site."
@@ -220,7 +220,7 @@ msgstr ""
 #: incidents/templates/regulator/incidents.html:65
 #: incidents/templates/report/questions_answers.html:3
 msgid "Regulation"
-msgstr ""
+msgstr "Regulatie"
 
 #: incidents/admin.py:357
 msgid "sector regulation"
