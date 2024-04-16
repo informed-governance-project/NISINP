@@ -20,3 +20,10 @@ Or manually:
     $ poetry run python manage.py collectstatic
     $ poetry run python manage.py migrate
     $ poetry run python manage.py compilemessages
+
+
+Finally, restart Apache:
+
+.. code-block:: bash
+
+    $ sudo systemctl restart apache2.service
