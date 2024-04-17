@@ -68,7 +68,7 @@ msgstr ""
 
 #: governanceplatform/admin.py:1038 governanceplatform/models.py:309
 msgid "CERT user"
-msgstr "utilisateur CERT
+msgstr "utilisateur CERT"
 
 #: governanceplatform/admin.py:1039 governanceplatform/models.py:310
 msgid "CERT users"
