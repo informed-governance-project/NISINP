@@ -136,10 +136,11 @@
                                 {% endif %}
                                 {% endwith %}
                             </td>
-                            <td id="workflow_review_status_{{filtered_workflows.instance.id}}" class="col-8 {% status_class filtered_workflows.initial.review_status %}">
                                 {% if filtered_workflows %}
+                                <td id="workflow_review_status_{{filtered_workflows.instance.id}}" class="col-8 {% status_class filtered_workflows.initial.review_status %}">
                                 {% bootstrap_field filtered_workflows.review_status show_label=False wrapper_class="m-0" %}
                                 {% else %}
+                                <td id="workflow_review_status_{{filtered_workflows.instance.id}}" class="col-8 {% status_class_without_incident_workflow report incident %}">
                                     {% is_deadline_exceeded report incident %}
                                 {% endif %}
                             </td>

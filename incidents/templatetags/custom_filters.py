@@ -36,14 +36,28 @@ def status_class(value):
     elif value == "DELIV":
         return "table-info"
     elif value == "OUT":
+        return "table-dark"
+    else:
         return "table-secondary"
+
+
+@register.simple_tag
+def status_class_without_incident_workflow(report, incident):
+    value = is_deadline_exceeded(report, incident)
+    if value == _("Review passed"):
+        return "table-success"
+    elif value == _("Review failed"):
+        return "table-danger"
+    elif value == _("Delivered"):
+        return "table-info"
+    elif value == _("Not delivered and deadline exceeded"):
+        return "table-dark"
     else:
         return "table-secondary"
 
 
 @register.simple_tag
 def get_review_status_name(value):
-    print(value)
     if value == "PASS":
         return _("Review passed")
     elif value == "FAIL":
@@ -136,7 +150,6 @@ def is_deadline_exceeded(report, incident):
                     round(dt.total_seconds() / 60 / 60, 0)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    incident.review_status = "OUT"
                     return _("Not delivered and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
@@ -144,7 +157,6 @@ def is_deadline_exceeded(report, incident):
                 round(dt.total_seconds() / 60 / 60, 0)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                incident.review_status = "OUT"
                 return _("Not delivered and deadline exceeded")
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
@@ -163,7 +175,6 @@ def is_deadline_exceeded(report, incident):
                     round(dt.total_seconds() / 60 / 60, 0)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    incident.review_status = "OUT"
                     return _("Not delivered and deadline exceeded")
 
     return _("Not delivered")

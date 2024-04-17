@@ -76,7 +76,7 @@ function getReviewStatusClass(reviewStatus) {
         case "DELIV":
             return "table-info";
         case "OUT":
-            return "table-secondary";
+            return "table-dark";
         default:
             return "";
     }

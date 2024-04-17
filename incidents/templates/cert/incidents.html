@@ -127,11 +127,12 @@
                                 {% endif %}
                                 {% endwith %}
                             </td>
-                            <td class="col-7 {% status_class filtered_workflows.initial.review_status %}">
-                                {% if filtered_workflows %}
-                                    {% get_review_status_name filtered_workflows.initial.review_status %}
+                                {% if filtered_workflows.get_review_status_display %}
+                                <td class="col-7 {% status_class filtered_workflows.review_status %}">
+                                {{ filtered_workflows.get_review_status_display }}
                                 {% else %}
-                                    {% is_deadline_exceeded report incident %}
+                                <td class="col-7 {% status_class_without_incident_workflow report incident %}">
+                                {% is_deadline_exceeded report incident %}
                                 {% endif %}
                             </td>
                         </tr>

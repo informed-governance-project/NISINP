@@ -160,10 +160,11 @@
                             </div>
                             {% endif %}
                         </td>
-                        <td class="col-7 {% status_class filtered_workflows.review_status %}">
                             {% if filtered_workflows.get_review_status_display %}
+                            <td class="col-7 {% status_class filtered_workflows.review_status %}">
                                 {{ filtered_workflows.get_review_status_display }}
                             {% else %}
+                            <td class="col-7 {% status_class_without_incident_workflow report incident %}">
                                 {% is_deadline_exceeded report incident %}
                             {% endif %}
                         </td>
