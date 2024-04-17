@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
+from django.db.models import Deferrable
 
 from .globals import (
     INCIDENT_EMAIL_TRIGGER_EVENT,
@@ -270,6 +271,7 @@ class SectorRegulationWorkflow(models.Model):
             models.UniqueConstraint(
                 fields=["sector_regulation", "position"],
                 name="Unique_SectorRegulationWorkflowPosition",
+                deferrable=Deferrable.DEFERRED,
             ),
         ]
 
