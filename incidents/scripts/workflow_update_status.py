@@ -3,6 +3,7 @@ import math
 from django.utils import timezone
 
 from incidents.models import Incident, SectorRegulationWorkflow
+from incidents.email import send_email
 
 
 # Script to run every hour
@@ -32,7 +33,9 @@ def run():
                         math.floor(dt.total_seconds() / 60 / 60)
                         == sector_regulation_workflow.delay_in_hours_before_deadline
                     ):
-                        incident_workflow.review_status = "OUT"
+                        if incident_workflow.review_status != "OUT":
+                            incident_workflow.review_status = "OUT"
+                            send_email(incident.sector_regulation.report_status_changed_email, incident)
                 # detection date
                 elif (
                     sector_regulation_workflow.trigger_event_before_deadline
@@ -44,7 +47,9 @@ def run():
                             math.floor(dt.total_seconds() / 60 / 60)
                             == sector_regulation_workflow.delay_in_hours_before_deadline
                         ):
-                            incident_workflow.review_status = "OUT"
+                            if incident_workflow.review_status != "OUT":
+                                incident_workflow.review_status = "OUT"
+                                send_email(incident.sector_regulation.report_status_changed_email, incident)
                 # previous incident_workflow
                 elif (
                     sector_regulation_workflow.trigger_event_before_deadline
@@ -57,4 +62,6 @@ def run():
                             math.floor(dt.total_seconds() / 60 / 60)
                             == sector_regulation_workflow.delay_in_hours_before_deadline
                         ):
-                            incident_workflow.review_status = "OUT"
+                            if incident_workflow.review_status != "OUT":
+                                incident_workflow.review_status = "OUT"
+                                send_email(incident.sector_regulation.report_status_changed_email, incident)
