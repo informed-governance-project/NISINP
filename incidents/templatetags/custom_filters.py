@@ -1,3 +1,5 @@
+import math
+
 from django import template
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -147,14 +149,14 @@ def is_deadline_exceeded(report, incident):
             if incident.incident_detection_date is not None:
                 dt = actual_time - incident.incident_detection_date
                 if (
-                    round(dt.total_seconds() / 60 / 60, 0)
+                    math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
                     return _("Not delivered and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
-                round(dt.total_seconds() / 60 / 60, 0)
+                math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
                 return _("Not delivered and deadline exceeded")
@@ -172,7 +174,7 @@ def is_deadline_exceeded(report, incident):
             if previous_incident_workflow is not None:
                 dt = actual_time - previous_incident_workflow.timestamp
                 if (
-                    round(dt.total_seconds() / 60 / 60, 0)
+                    math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
                     return _("Not delivered and deadline exceeded")
