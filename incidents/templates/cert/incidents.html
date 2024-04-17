@@ -113,7 +113,7 @@
                         <tr colspan="2">
                             <td class="col-5">
                                 <a class="{% if not filtered_workflows %}disabled-link{% endif %}"
-                                    href="{% if filtered_workflows %}{% url 'edit_workflow' %}?incident_workflow_id={{ filtered_workflows.instance.id }}{% endif %}">
+                                    href="{% if filtered_workflows %}{% url 'review_workflow' %}?incident_workflow_id={{ filtered_workflows.instance.id }}{% endif %}">
                                     {{ report }}
                                 </a><br/>
                                 {% with incident_workflows=incident|get_incident_workflow_by_workflow:report %}
