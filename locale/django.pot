@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-10 11:49+0200\n"
+"POT-Creation-Date: 2024-04-18 10:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,14 +237,22 @@ msgstr ""
 msgid "Incident reports"
 msgstr ""
 
-#: incidents/forms.py:492
+#: incidents/forms.py:493
 msgid ""
 "Insert a reference to find and track easily your incident (internal "
 "reference, CERT reference, etc.)"
 msgstr ""
 
-#: incidents/forms.py:503
+#: incidents/forms.py:504
 msgid "Insert any complaint has been filed with the police"
+msgstr ""
+
+#: incidents/forms.py:823 incidents/forms.py:837
+msgid "Timezone"
+msgstr ""
+
+#: incidents/forms.py:823 incidents/forms.py:837
+msgid "Date Format YYYY-MM-DD HH:MM"
 msgstr ""
 
 #: incidents/globals.py:45
@@ -255,8 +263,8 @@ msgstr ""
 msgid "On-going"
 msgstr ""
 
-#: incidents/globals.py:58 incidents/templatetags/custom_filters.py:56
-#: incidents/templatetags/custom_filters.py:169
+#: incidents/globals.py:58 incidents/templatetags/custom_filters.py:72
+#: incidents/templatetags/custom_filters.py:182
 msgid "Not delivered"
 msgstr ""
 
@@ -264,91 +272,94 @@ msgstr ""
 msgid "Delivered but not yet reviewed"
 msgstr ""
 
-#: incidents/globals.py:60 incidents/templatetags/custom_filters.py:48
+#: incidents/globals.py:60 incidents/templatetags/custom_filters.py:49
+#: incidents/templatetags/custom_filters.py:64
 msgid "Review passed"
 msgstr ""
 
-#: incidents/globals.py:61 incidents/templatetags/custom_filters.py:50
+#: incidents/globals.py:61 incidents/templatetags/custom_filters.py:51
+#: incidents/templatetags/custom_filters.py:66
 msgid "Review failed"
 msgstr ""
 
-#: incidents/globals.py:62 incidents/templatetags/custom_filters.py:54
-#: incidents/templatetags/custom_filters.py:140
-#: incidents/templatetags/custom_filters.py:148
-#: incidents/templatetags/custom_filters.py:167
+#: incidents/globals.py:62 incidents/templatetags/custom_filters.py:55
+#: incidents/templatetags/custom_filters.py:70
+#: incidents/templatetags/custom_filters.py:155
+#: incidents/templatetags/custom_filters.py:162
+#: incidents/templatetags/custom_filters.py:180
 msgid "Not delivered and deadline exceeded"
 msgstr ""
 
-#: incidents/models.py:68
+#: incidents/models.py:69
 msgid "Question Category"
 msgstr ""
 
-#: incidents/models.py:69
+#: incidents/models.py:70
 msgid "Question Categories"
 msgstr ""
 
-#: incidents/models.py:77
+#: incidents/models.py:78
 msgid "Mandatory"
 msgstr ""
 
-#: incidents/models.py:166
+#: incidents/models.py:167
 msgid "Impacts are needed"
 msgstr ""
 
-#: incidents/models.py:217
+#: incidents/models.py:218
 msgid "Detection date needed"
 msgstr ""
 
-#: incidents/models.py:314
+#: incidents/models.py:316
 msgid "Incident identifier"
 msgstr ""
 
-#: incidents/models.py:318 incidents/templates/regulator/incident_edit.html:31
+#: incidents/models.py:320 incidents/templates/regulator/incident_edit.html:31
 #: incidents/templates/report/cover.html:5
 msgid "Company name"
 msgstr ""
 
-#: incidents/models.py:335
+#: incidents/models.py:337
 msgid "contact lastname"
 msgstr ""
 
-#: incidents/models.py:338
+#: incidents/models.py:340
 msgid "contact firstname"
 msgstr ""
 
-#: incidents/models.py:340
+#: incidents/models.py:342
 msgid "contact title"
 msgstr ""
 
-#: incidents/models.py:341
+#: incidents/models.py:343
 msgid "contact email"
 msgstr ""
 
-#: incidents/models.py:343
+#: incidents/models.py:345
 msgid "contact telephone"
 msgstr ""
 
-#: incidents/models.py:347
+#: incidents/models.py:349
 msgid "technical lastname"
 msgstr ""
 
-#: incidents/models.py:350
+#: incidents/models.py:352
 msgid "technical firstname"
 msgstr ""
 
-#: incidents/models.py:353
+#: incidents/models.py:355
 msgid "technical title"
 msgstr ""
 
-#: incidents/models.py:356
+#: incidents/models.py:358
 msgid "technical email"
 msgstr ""
 
-#: incidents/models.py:359
+#: incidents/models.py:361
 msgid "technical telephone"
 msgstr ""
 
-#: incidents/models.py:381 incidents/templates/cert/incidents.html:74
+#: incidents/models.py:383 incidents/templates/cert/incidents.html:74
 #: incidents/templates/incidents.html:80
 #: incidents/templates/regulator/incidents.html:77
 msgid "Significative impact"
@@ -416,9 +427,9 @@ msgstr ""
 msgid "Historic"
 msgstr ""
 
-#: incidents/templates/cert/incidents.html:186
-#: incidents/templates/incidents.html:219
-#: incidents/templates/regulator/incidents.html:198
+#: incidents/templates/cert/incidents.html:187
+#: incidents/templates/incidents.html:220
+#: incidents/templates/regulator/incidents.html:199
 msgid "No incident"
 msgstr ""
 
@@ -613,7 +624,8 @@ msgstr ""
 msgid "Incident report"
 msgstr ""
 
-#: incidents/templatetags/custom_filters.py:52
+#: incidents/templatetags/custom_filters.py:53
+#: incidents/templatetags/custom_filters.py:68
 msgid "Delivered"
 msgstr ""
 

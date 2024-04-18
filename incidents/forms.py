@@ -7,6 +7,8 @@ from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.translation import gettext as _
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
@@ -14,6 +16,7 @@ from governanceplatform.helpers import get_active_company_from_session, table_ex
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
+from governanceplatform.settings import TIME_ZONE
 from .models import (  # Impact,
     Answer,
     Incident,
@@ -794,7 +797,6 @@ class ImpactForm(forms.Form):
 
 # let the user change the date of his incident
 class IncidenteDateForm(forms.ModelForm):
-    incident = None
 
     incident_notification_date = forms.DateTimeField(
         widget=DateTimePickerInput(
@@ -819,6 +821,12 @@ class IncidenteDateForm(forms.ModelForm):
             },
         ),
         required=False,
+        help_text=format_lazy(
+            "{} : {}, {}",
+            gettext_lazy("Timezone"),
+            TIME_ZONE,
+            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
+        ),
     )
 
     incident_starting_date = forms.DateTimeField(
@@ -832,6 +840,12 @@ class IncidenteDateForm(forms.ModelForm):
             },
         ),
         required=False,
+        help_text=format_lazy(
+            "{} : {}, {}",
+            gettext_lazy("Timezone"),
+            TIME_ZONE,
+            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
+        ),
     )
 
     def __init__(self, *args, **kwargs):
