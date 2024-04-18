@@ -799,7 +799,7 @@ class IncidenteDateForm(forms.ModelForm):
     incident_notification_date = forms.DateTimeField(
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
+                "format": "YYYY-MM-DD HH:mm",
             },
             attrs={
                 "data-bs-toggle": "tooltip",
@@ -811,8 +811,8 @@ class IncidenteDateForm(forms.ModelForm):
     incident_detection_date = forms.DateTimeField(
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
+                "format": "YYYY-MM-DD HH:mm",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
             },
             attrs={
                 "data-bs-toggle": "tooltip",
@@ -824,8 +824,8 @@ class IncidenteDateForm(forms.ModelForm):
     incident_starting_date = forms.DateTimeField(
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
+                "format": "YYYY-MM-DD HH:mm",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
             },
             attrs={
                 "data-bs-toggle": "tooltip",
