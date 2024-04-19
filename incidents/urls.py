@@ -20,6 +20,7 @@ from django.views.i18n import set_language
 from .views import (
     create_workflow,
     download_incident_pdf,
+    delete_incident,
     edit_impacts,
     edit_workflow,
     get_edit_incident_timeline_form,
@@ -59,6 +60,11 @@ urlpatterns = [
         "download-pdf/<int:incident_id>",
         download_incident_pdf,
         name="download_incident_pdf",
+    ),
+    path(
+        "delete/<int:incident_id>",
+        delete_incident,
+        name="delete_incident",
     ),
     path(
         r"incident_edit_date/<int:incident_id>",

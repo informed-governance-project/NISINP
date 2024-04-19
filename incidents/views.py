@@ -519,6 +519,37 @@ def download_incident_pdf(request, incident_id: int):
         return response
 
 
+@login_required
+@otp_required
+def delete_incident(request, incident_id: int):
+    user = request.user
+    incident = Incident.objects.get(pk=incident_id)
+    company_id = request.session.get("company_in_use")
+
+    if not can_create_incident_report(user, incident, company_id):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+    else:
+        try:
+            incident = Incident.objects.get(pk=incident_id)
+            if incident is not None:
+                if incident.workflows.count() == 0:
+                    incident.delete()
+                    messages.info(
+                        request, _("Incident has been deleted")
+                    )
+                else:
+                    messages.warning(
+                        request, _("This incident can't be deleted.")
+                    )
+        except Exception:
+            messages.warning(
+                request, _("An error occurred when deleting the incident.")
+            )
+            return redirect("incidents")
+        return redirect("incidents")
+
+
 def is_incidents_report_limit_reached(request):
     if request.user.is_authenticated:
         # if a user make too many declaration we prevent to save

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-18 10:05+0200\n"
+"POT-Creation-Date: 2024-04-19 12:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,7 +33,7 @@ msgstr ""
 #: governanceplatform/admin.py:296 governanceplatform/admin.py:646
 #: governanceplatform/models.py:47 incidents/admin.py:166
 #: incidents/templates/cert/incidents.html:65
-#: incidents/templates/regulator/incidents.html:68 incidents/views.py:655
+#: incidents/templates/regulator/incidents.html:68 incidents/views.py:686
 msgid "Sectors"
 msgstr ""
 
@@ -50,7 +50,7 @@ msgid "Reset 2FA"
 msgstr ""
 
 #: governanceplatform/admin.py:585 governanceplatform/models.py:154
-#: incidents/views.py:653
+#: incidents/views.py:684
 msgid "Regulators"
 msgstr ""
 
@@ -238,21 +238,21 @@ msgstr ""
 msgid "Incident reports"
 msgstr ""
 
-#: incidents/forms.py:493
+#: incidents/forms.py:495
 msgid ""
 "Insert a reference to find and track easily your incident (internal "
 "reference, CERT reference, etc.)"
 msgstr ""
 
-#: incidents/forms.py:504
+#: incidents/forms.py:506
 msgid "Insert any complaint has been filed with the police"
 msgstr ""
 
-#: incidents/forms.py:823 incidents/forms.py:837
+#: incidents/forms.py:826 incidents/forms.py:845
 msgid "Timezone"
 msgstr ""
 
-#: incidents/forms.py:823 incidents/forms.py:837
+#: incidents/forms.py:828 incidents/forms.py:847
 msgid "Date Format YYYY-MM-DD HH:MM"
 msgstr ""
 
@@ -429,7 +429,7 @@ msgid "Historic"
 msgstr ""
 
 #: incidents/templates/cert/incidents.html:187
-#: incidents/templates/incidents.html:220
+#: incidents/templates/incidents.html:228
 #: incidents/templates/regulator/incidents.html:199
 msgid "No incident"
 msgstr ""
@@ -527,7 +527,7 @@ msgstr ""
 msgid "Action"
 msgstr ""
 
-#: incidents/templates/incidents.html:149 incidents/views.py:1028
+#: incidents/templates/incidents.html:149 incidents/views.py:1059
 msgid "Comment"
 msgstr ""
 
@@ -592,7 +592,7 @@ msgstr ""
 msgid "Phone number"
 msgstr ""
 
-#: incidents/templates/regulator/incident_edit.html:93 incidents/views.py:654
+#: incidents/templates/regulator/incident_edit.html:93 incidents/views.py:685
 msgid "Regulations"
 msgstr ""
 
@@ -612,7 +612,7 @@ msgstr ""
 msgid "Affected sectors"
 msgstr ""
 
-#: incidents/templates/report/questions_answers.html:27 incidents/views.py:1024
+#: incidents/templates/report/questions_answers.html:27 incidents/views.py:1055
 msgid "Impacts"
 msgstr ""
 
@@ -644,7 +644,7 @@ msgstr ""
 
 #: incidents/views.py:203 incidents/views.py:210 incidents/views.py:247
 #: incidents/views.py:274 incidents/views.py:280 incidents/views.py:311
-#: incidents/views.py:500
+#: incidents/views.py:500 incidents/views.py:530
 msgid "Forbidden"
 msgstr ""
 
@@ -656,23 +656,35 @@ msgstr ""
 msgid "An error occurred when generating the report."
 msgstr ""
 
-#: incidents/views.py:532
+#: incidents/views.py:539
+msgid "Incident has been deleted"
+msgstr ""
+
+#: incidents/views.py:543
+msgid "This incident can't be deleted."
+msgstr ""
+
+#: incidents/views.py:547
+msgid "An error occurred when deleting the incident."
+msgstr ""
+
+#: incidents/views.py:563
 msgid "The incidents reports per day have been reached. Try again tomorrow."
 msgstr ""
 
-#: incidents/views.py:643
+#: incidents/views.py:674
 msgid "Please select at least 1 regulator"
 msgstr ""
 
-#: incidents/views.py:652
+#: incidents/views.py:683
 msgid "Contact"
 msgstr ""
 
-#: incidents/views.py:656
+#: incidents/views.py:687
 msgid "Detection date"
 msgstr ""
 
-#: incidents/views.py:1021
+#: incidents/views.py:1052
 msgid "Timeline"
 msgstr ""
 
