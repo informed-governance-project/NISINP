@@ -52,7 +52,8 @@ NIS Incident Notification Platform
    :maxdepth: 3
    :hidden:
 
-
+   ui_user
+   ui_administrator
 
 
 Presentation
