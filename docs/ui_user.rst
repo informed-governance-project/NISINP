@@ -2,7 +2,7 @@ User interface
 =====================
 
 log-in
------
+-------
 
 On this page you can log in or create an account in case you have to notify an incident and you don't have your credential.
 
@@ -16,8 +16,8 @@ If you have credentials and don't remember the password please use the link: 'Fo
 
 At the first login, you need to activate the 2FA.
 
-Notify an incident
------
+Notify an incident (available for concerned profiles)
+--------------------------------------------------------
 
 Once logged in you can notify an incident by clicking on the dedicated button 'report an incident'
 
@@ -29,7 +29,7 @@ Complete all the step until the last one, and the application will create the in
 
 
 Incident list view
------
+---------------------
 
 The default login page when you are a user is the incident list view. You can find here all your incident. 
 
