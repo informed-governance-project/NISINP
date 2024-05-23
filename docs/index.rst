@@ -48,7 +48,7 @@ NIS Incident Notification Platform
 
 
 .. toctree::
-   :caption: User interface
+   :caption: Application interface
    :maxdepth: 3
    :hidden:
 
