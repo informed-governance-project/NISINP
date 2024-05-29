@@ -245,6 +245,9 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
+    filter_horizontal = [
+        "sectors",
+    ]
 
     @admin.display(description="Sector")
     def get_sector_name(self, obj):
