@@ -128,6 +128,8 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Question
+        fields = ('id', 'label', 'tooltip', 'question_type', 'is_mandatory', 'position', 'category')
+        export_order = fields
 
 
 class PredefinedAnswerInline(TranslatableTabularInline):
@@ -314,7 +316,7 @@ class IncidentResource(resources.ModelResource):
 
 
 @admin.register(Incident, site=admin_site)
-class IncidentAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class IncidentAdmin(TranslatableAdmin):
     resource_class = IncidentResource
 
 
@@ -372,7 +374,7 @@ class WorkflowInline(admin.TabularInline):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class WorkflowAdmin(TranslatableAdmin):
     list_display = ["name"]
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
@@ -405,7 +407,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class SectorRegulationAdmin(TranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -452,7 +454,7 @@ class SectorRegulationWorkflowEmailResource(
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class SectorRegulationWorkflowEmailAdmin(TranslatableAdmin):
     list_display = [
         "regulation",
         "sector_regulation_workflow",
