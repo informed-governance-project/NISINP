@@ -27,14 +27,24 @@ from incidents.models import (
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
     predefined_answer = fields.Field(
         column_name="predefined_answer",
         attribute="predefined_answer",
     )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
+    question = fields.Field(
+        attribute="question",
+        column_name="question",
+        widget=TranslatedNameWidget(Question, field="label"),
+    )
 
     class Meta:
         model = PredefinedAnswer
+        fields = ('id', 'predefined_answer', 'question', 'position')
+        export_order = fields
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
@@ -69,6 +79,8 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = QuestionCategory
+        fields = ('id', 'label', 'position')
+        export_order = fields
 
 
 @admin.register(QuestionCategory, site=admin_site)
