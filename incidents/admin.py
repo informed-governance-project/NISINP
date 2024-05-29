@@ -338,6 +338,8 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Email
+        fields = ('id', 'name', 'subject', 'content')
+        export_order = fields
 
 
 @admin.register(Email, site=admin_site)
