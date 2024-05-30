@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.helpers import get_active_company_from_session, table_exists
+from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 
 from .globals import REGIONAL_AREA
@@ -580,23 +580,20 @@ def construct_regulation_array(regulators):
 
 
 class RegulatorForm(forms.Form):
-    if table_exists("governanceplatform_regulator"):
-        initial_data = [
-            (k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()
-        ]
-    else:
-        initial_data = []
-
     # generic impact definitions
     regulators = forms.MultipleChoiceField(
         required=True,
-        choices=initial_data,
+        choices=[],
         widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
         label="Send notification to:",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        try:
+            self.fields["regulators"].choices = [(k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()]
+        except Exception:
+            self.fields["regulators"].choices = []
 
     def get_selected_data(self):
         return self.fields["regulators"].initial
