@@ -105,3 +105,75 @@ or the date of the previous incident report.
 For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If one impact is ticked by the 
 person who submits the incident, the incident is qualified as "significative".
 
+
+Export and import 
+------------------
+
+Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 
+2 exports. Same for the import. 
+
+.. figure:: _static/ui_admin_export.png
+   :alt: import / export.
+   :target: _static/ui_admin_export.png
+
+   Import export.
+
+1. Button to import. When you click on import, you can choose the format of your file. And the view displayed you the available field to import. **If you want to create, it's preferable to don't put the id field**.
+After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**. 
+After that you have this view :
+
+.. figure:: _static/ui_admin_import.png
+   :alt: import view.
+   :target: _static/ui_admin_import.png
+
+   Import view.
+
+This view is summarizing the import, you can see the change. 
+
+2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available.
+After clicking on it, you can choose the format, the easiest is to choose ``xlsx``. 
+
+3. Search bar to reduce the exported list. 
+
+Questions of incident report
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To import or export question you need three models : ``predefined answers, question categories, questions``
+
+For importing you need to import in this order:
+
+1. Question categories
+2. Questions
+3. Predefined answers 
+
+If you want to create from scratch, you have to create a file of ``question categories`` mentioning:
+
+- ``label`` : the name of the category
+
+- ``position`` : position of the category, lower positions are shown in first during the incident report
+
+After you have to import the ``questions``:
+
+- ``label`` : The question itself
+- ``tooltip`` : If the question needs a tooltip
+- ``question_type`` : The type of the question, there are several types : 
+   - MULTI - multiple choice, 
+   - FREETEXT - free text question, 
+   - SO - single option choice,
+   - MT - multiple choice and free text, 
+   - ST - single choice and free text, 
+   - CL - Country list, 
+   - RL - Region list, 
+   - DATE - a date picker question. 
+- ``is_mandatory`` : if the question is mandatory, put True, if not put False 
+- ``position`` : position of the question inside the category, lower positions are shown in first during the incident report
+- ``category`` : label of the category in the language you want to import
+
+After you have to import the ``predefined answers``:
+
+- ``predefined_answer`` : The answer, for exemple Yes for a Yes/No question.
+- ``question`` : The label of the question in the language you want to import
+- ``position`` : position of the answer, lower positions are shown in first during the incident report
+
+You have now your database in one language if you want to import other language, you can now export the model (e.g. questions, question categories, etc.) you want to translate to get the IDs.
+You have to follow the same procedure than before but putting the id to the file to have an update instead of a creation. And remember to **import in the right language**.
