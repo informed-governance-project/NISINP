@@ -491,7 +491,6 @@ def get_edit_incident_timeline_form(request, incident_id: int):
 @login_required
 @otp_required
 def download_incident_pdf(request, incident_id: int):
-    target = request.headers.get("referer", "/")
     user = request.user
     incident = Incident.objects.get(pk=incident_id)
     company_id = request.session.get("company_in_use")
@@ -500,16 +499,13 @@ def download_incident_pdf(request, incident_id: int):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
     else:
-        if not can_redirect(target):
-            target = "/"
-
         try:
             pdf_report = get_pdf_report(incident, request)
         except Exception:
             messages.warning(
                 request, _("An error occurred when generating the report.")
             )
-            return HttpResponseRedirect(target)
+            return HttpResponseRedirect("/incidents")
 
         response = HttpResponse(pdf_report, content_type="application/pdf")
         response[
