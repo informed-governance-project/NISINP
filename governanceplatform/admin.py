@@ -10,7 +10,7 @@ from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
-from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
+from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
 from .helpers import user_in_group
@@ -19,14 +19,14 @@ from .models import (
     Cert,
     CertUser,
     Company,
-    Functionality,
-    OperatorType,
+    # Functionality,
+    # OperatorType,
     Regulation,
     Regulator,
     RegulatorUser,
     Sector,
     SectorCompanyContact,
-    Service,
+    # Service,
     User,
 )
 from .settings import SITE_NAME
@@ -86,6 +86,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
     class Meta:
         model = Sector
         export_order = ["id", "parent"]
+        exclude = ('creator', 'creator_name')
 
 
 @admin.register(Sector, site=admin_site)
@@ -142,49 +143,49 @@ class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
             super().save_model(request, obj, form, change)
 
 
-class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
+# class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
+#     id = fields.Field(
+#         column_name="id",
+#         attribute="id",
+#     )
 
-    name = fields.Field(
-        column_name="name",
-        attribute="name",
-    )
+#     name = fields.Field(
+#         column_name="name",
+#         attribute="name",
+#     )
 
-    acronym = fields.Field(
-        column_name="acronym",
-        attribute="acronym",
-    )
+#     acronym = fields.Field(
+#         column_name="acronym",
+#         attribute="acronym",
+#     )
 
-    sector = fields.Field(
-        column_name="sector",
-        attribute="sector",
-        widget=TranslatedNameWidget(Sector, field="name"),
-    )
+#     sector = fields.Field(
+#         column_name="sector",
+#         attribute="sector",
+#         widget=TranslatedNameWidget(Sector, field="name"),
+#     )
 
-    class Meta:
-        model = Service
-        export_order = ["sector"]
+#     class Meta:
+#         model = Service
+#         export_order = ["sector"]
 
 
-@admin.register(Service, site=admin_site)
-class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
-    list_display_links = ["acronym", "name"]
-    search_fields = ["translations__name"]
-    resource_class = ServiceResource
-    fields = ("name", "acronym", "sector")
-    ordering = ["sector"]
+# @admin.register(Service, site=admin_site)
+# class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
+#     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
+#     list_display_links = ["acronym", "name"]
+#     search_fields = ["translations__name"]
+#     resource_class = ServiceResource
+#     fields = ("name", "acronym", "sector")
+#     ordering = ["sector"]
 
-    @admin.display(description="Sector")
-    def get_sector_name(self, obj):
-        return obj.sector.name if not obj.sector.parent else obj.sector.parent
+#     @admin.display(description="Sector")
+#     def get_sector_name(self, obj):
+#         return obj.sector.name if not obj.sector.parent else obj.sector.parent
 
-    @admin.display(description="Sub-sector")
-    def get_subsector_name(self, obj):
-        return obj.sector.name if obj.sector.parent else None
+#     @admin.display(description="Sub-sector")
+#     def get_subsector_name(self, obj):
+#         return obj.sector.name if obj.sector.parent else None
 
 
 class CompanyResource(resources.ModelResource):
@@ -195,14 +196,10 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    sectors = fields.Field(
-        column_name="sectors",
-        attribute="sectors",
-        widget=ManyToManyWidget(Sector, field="name", separator=","),
-    )
 
     class Meta:
         model = Company
+        exclude = ('sector_contacts', 'types')
 
 
 class SectorCompanyContactInline(admin.TabularInline):
@@ -455,32 +452,31 @@ class UserResource(resources.ModelResource):
     companies = fields.Field(
         column_name="companies",
         attribute="companies",
-        widget=ManyToManyWidget(Company, field="name", separator=","),
+        widget=ManyToManyWidget(Company, field="name", separator="|"),
     )
-    regulators = fields.Field(
-        column_name="regulators",
-        attribute="regulators",
-        widget=ManyToManyWidget(Company, field="name", separator=","),
-    )
+    # regulators = fields.Field(
+    #     column_name="regulators",
+    #     attribute="regulators",
+    #     widget=ManyToManyWidget(Company, field="name", separator="|"),
+    # )
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=TranslatedNameM2MWidget(Sector, field="name", separator=","),
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator="|"),
     )
 
     class Meta:
         model = User
         import_id_fields = ("email",)
         skip_unchanged = True
-        fields = [
+        fields = (
             "first_name",
             "last_name",
             "email",
             "phone_number",
-            "regulators",
             "companies",
             "sectors",
-        ]
+        )
 
 
 class userRegulatorInline(admin.TabularInline):
@@ -928,53 +924,53 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         super().save_model(request, obj, form, change)
 
 
-class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
+# class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
+#     id = fields.Field(
+#         column_name="id",
+#         attribute="id",
+#     )
 
-    name = fields.Field(
-        column_name="name",
-        attribute="name",
-    )
-
-
-@admin.register(Functionality, site=admin_site)
-class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name"]
-    search_fields = ["translations__name"]
-    resource_class = FunctionalityResource
+#     name = fields.Field(
+#         column_name="name",
+#         attribute="name",
+#     )
 
 
-class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    type = fields.Field(
-        column_name="type",
-        attribute="type",
-    )
-
-    functionalities = fields.Field(
-        column_name="functionalities",
-        attribute="functionalities",
-        widget=ForeignKeyWidget(Functionality, field="name"),
-    )
-
-    class Meta:
-        model = Functionality
+# @admin.register(Functionality, site=admin_site)
+# class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+#     list_display = ["name"]
+#     search_fields = ["translations__name"]
+#     resource_class = FunctionalityResource
 
 
-@admin.register(OperatorType, site=admin_site)
-class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["type"]
-    search_fields = ["translations__type"]
-    resource_class = OperatorTypeResource
-    fields = ("type", "functionalities")
-    filter_horizontal = ["functionalities"]
+# class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
+#     id = fields.Field(
+#         column_name="id",
+#         attribute="id",
+#     )
+
+#     type = fields.Field(
+#         column_name="type",
+#         attribute="type",
+#     )
+
+#     functionalities = fields.Field(
+#         column_name="functionalities",
+#         attribute="functionalities",
+#         widget=ForeignKeyWidget(Functionality, field="name"),
+#     )
+
+#     class Meta:
+#         model = Functionality
+
+
+# @admin.register(OperatorType, site=admin_site)
+# class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
+#     list_display = ["type"]
+#     search_fields = ["translations__type"]
+#     resource_class = OperatorTypeResource
+#     fields = ("type", "functionalities")
+#     filter_horizontal = ["functionalities"]
 
 
 class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
