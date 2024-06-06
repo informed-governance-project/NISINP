@@ -177,3 +177,22 @@ After you have to import the ``predefined answers``:
 
 You have now your database in one language if you want to import other language, you can now export the model (e.g. questions, question categories, etc.) you want to translate to get the IDs.
 You have to follow the same procedure than before but putting the id to the file to have an update instead of a creation. And remember to **import in the right language**.
+
+Sectors
+~~~~~~~~
+
+For importing sectors you need to respect the following rules:
+
+- If your sector has a parent, **please put the parent before** in the file, the parent has to be imported before
+- If there is no parent, **don't let the field blank**, put ``NULL`` or ``-`` into the field. Blank field raise errors
+
+The fields are:
+
+- ``parent`` : if the question is mandatory, put True, if not put False 
+- ``name`` : position of the question inside the category, lower positions are shown in first during the incident report
+- ``acronym`` : label of the category in the language you want to import
+
+To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
+
+
+
