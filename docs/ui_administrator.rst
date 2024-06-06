@@ -188,9 +188,9 @@ For importing sectors you need to respect the following rules:
 
 The fields are:
 
-- ``parent`` : if the question is mandatory, put True, if not put False 
-- ``name`` : position of the question inside the category, lower positions are shown in first during the incident report
-- ``acronym`` : label of the category in the language you want to import
+- ``parent`` : the sector above (name in the same language) 
+- ``name`` : the name of the sector
+- ``acronym`` : acronym for the sector, used for the incident reference
 
 To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
 
