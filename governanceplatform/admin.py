@@ -198,6 +198,7 @@ class CompanyResource(resources.ModelResource):
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
 
     class Meta:
+        import_id_fields = ("identifier",)
         model = Company
         exclude = ('sector_contacts', 'types')
 
