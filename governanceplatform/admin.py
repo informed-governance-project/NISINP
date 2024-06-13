@@ -463,8 +463,37 @@ class UserResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=TranslatedNameM2MWidget(Sector, field="name", separator="|"),
+        widget=TranslatedNameM2MWidget(SectorCompanyContact, separator="|"),
     )
+
+    # override save_m2m to save the through table SectorCompanyContact
+    def save_m2m(self, obj, data, using_transactions, dry_run):
+        """
+        Saves m2m fields.
+
+        Model instance need to have a primary key value before
+        a many-to-many relationship can be used.
+        """
+
+        if (not using_transactions and dry_run) or self._meta.use_bulk:
+            # we don't have transactions and we want to do a dry_run
+            # OR use_bulk is enabled (m2m operations are not supported
+            # for bulk operations)
+            pass
+        else:
+            companies = None
+            sectors = None
+            if data['companies']:
+                data_companies = data['companies'].split('|')
+                companies = Company.objects.filter(name__in=data_companies)
+                data_sectors = data['sectors'].split('|')
+                sectors = Sector.objects.filter(translations__name__in=data_sectors)
+                print(obj.__dict__)
+                if sectors is not None and companies is not None:
+                    for company in companies:
+                        for sector in sectors:
+                            sc = SectorCompanyContact(user=obj, sector=sector, company=company)
+                            sc.save()
 
     class Meta:
         model = User
