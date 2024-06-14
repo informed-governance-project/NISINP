@@ -13,7 +13,7 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from .helpers import user_in_group
+from .helpers import user_in_group, instance_user_in_group
 from .mixins import TranslationUpdateMixin
 from .models import (
     Cert,
@@ -492,12 +492,28 @@ class UserResource(resources.ModelResource):
                 if sectors is not None and companies is not None:
                     for company in companies:
                         for sector in sectors:
-                            sc = SectorCompanyContact(user=obj, sector=sector, company=company)
-                            sc.save()
+                            if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
+                                sc = SectorCompanyContact(user=obj, sector=sector, company=company)
+                                sc.save()
+
+    # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        if (
+            instance_user_in_group(instance, "OperatorUser")
+            or instance_user_in_group(instance, "OperatorAdmin")
+            or instance_user_in_group(instance, "IncidentUser")
+            or instance.groups.all().count == 0
+        ):
+            pass
+        else:
+            return True
+
+        return super().skip_row(instance, original, row,
+                                import_validation_errors=import_validation_errors)
 
     class Meta:
         model = User
-        import_id_fields = ("email",)
+        import_id_fields = ('email',)
         skip_unchanged = True
         fields = (
             "first_name",
