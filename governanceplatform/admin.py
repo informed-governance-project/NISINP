@@ -446,8 +446,8 @@ class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 
 class UserResource(resources.ModelResource):
-    first_name = fields.Field(column_name="first_name", attribute="first_name")
-    last_name = fields.Field(column_name="last_name", attribute="last_name")
+    first_name = fields.Field(column_name="firstname", attribute="first_name")
+    last_name = fields.Field(column_name="lastname", attribute="last_name")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
     companies = fields.Field(
@@ -483,33 +483,40 @@ class UserResource(resources.ModelResource):
         else:
             companies = None
             sectors = None
-            if data['companies']:
-                data_companies = data['companies'].split('|')
-                companies = Company.objects.filter(name__in=data_companies)
-                data_sectors = data['sectors'].split('|')
-                sectors = Sector.objects.filter(translations__name__in=data_sectors)
-                print(obj.__dict__)
-                if sectors is not None and companies is not None:
-                    for company in companies:
-                        for sector in sectors:
-                            if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
-                                sc = SectorCompanyContact(user=obj, sector=sector, company=company)
-                                sc.save()
+            if 'companies' in data and 'sectors' in data:
+                if data['companies']:
+                    data_companies = data['companies'].split('|')
+                    companies = Company.objects.filter(name__in=data_companies)
+                    data_sectors = data['sectors'].split('|')
+                    sectors = Sector.objects.filter(translations__name__in=data_sectors)
+                    print(obj.__dict__)
+                    if sectors is not None and companies is not None:
+                        for company in companies:
+                            for sector in sectors:
+                                if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
+                                    sc = SectorCompanyContact(user=obj, sector=sector, company=company)
+                                    sc.save()
 
     # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
     def skip_row(self, instance, original, row, import_validation_errors=None):
-        if (
-            instance_user_in_group(instance, "OperatorUser")
-            or instance_user_in_group(instance, "OperatorAdmin")
-            or instance_user_in_group(instance, "IncidentUser")
-            or instance.groups.all().count == 0
-        ):
-            pass
-        else:
-            return True
+        if getattr(original, "pk") is not None:
+            if (
+                instance_user_in_group(instance, "OperatorUser")
+                or instance_user_in_group(instance, "OperatorAdmin")
+                or instance_user_in_group(instance, "IncidentUser")
+                or instance.groups.count() == 0
+            ):
+                pass
+            else:
+                return True
 
         return super().skip_row(instance, original, row,
                                 import_validation_errors=import_validation_errors)
+
+    # override to put by default IncidentUser group to user without group
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        if instance.groups.count() == 0:
+            instance.groups.add(Group.objects.get(name='IncidentUser'))
 
     class Meta:
         model = User
