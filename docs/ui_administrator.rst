@@ -222,6 +222,7 @@ The fields are the following:
 - ``phone_number`` : phone number of the user, for exemple +1 212-555-2368
 - ``sectors`` : sectors linked to the user. Company(ies) have to be present. If they are not present sectors are ignored
 - ``companies`` : companies linked to the user. Sector(s) have to be present. if they are not present companies are ignored 
+- ``administrator`` : True if the user has to be an administrator of the company else False.
 
 By default user without companies and sectors are categorized as ``IncidentUser``.
 

@@ -494,6 +494,11 @@ class UserResource(resources.ModelResource):
                             for sector in sectors:
                                 if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
                                     sc = SectorCompanyContact(user=obj, sector=sector, company=company)
+                                    if 'administrator' in data:
+                                        if data['administrator'] is True:
+                                            sc.is_company_administrator = True
+                                        elif data['administrator'] is False:
+                                            sc.is_company_administrator = False
                                     sc.save()
 
     # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
