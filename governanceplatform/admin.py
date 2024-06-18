@@ -489,7 +489,6 @@ class UserResource(resources.ModelResource):
                     companies = Company.objects.filter(name__in=data_companies)
                     data_sectors = data['sectors'].split('|')
                     sectors = Sector.objects.filter(translations__name__in=data_sectors)
-                    print(obj.__dict__)
                     if sectors is not None and companies is not None:
                         for company in companies:
                             for sector in sectors:
@@ -506,7 +505,7 @@ class UserResource(resources.ModelResource):
                 or instance_user_in_group(instance, "IncidentUser")
                 or instance.groups.count() == 0
             ):
-                pass
+                return False
             else:
                 return True
 
@@ -514,9 +513,11 @@ class UserResource(resources.ModelResource):
                                 import_validation_errors=import_validation_errors)
 
     # override to put by default IncidentUser group to user without group
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        if instance.groups.count() == 0:
-            instance.groups.add(Group.objects.get(name='IncidentUser'))
+    def after_import_row(self, row, row_result, row_number=None, **kwargs):
+        user = User.objects.get(pk=row_result.object_id)
+        if user.groups.count() == 0:
+            user.groups.add(Group.objects.get(name='IncidentUser').id)
+            user.save()
 
     class Meta:
         model = User
@@ -955,10 +956,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 else:
                     obj.groups.add(created)
 
-            # in RegulatorUser we can only add user for operators and default is OperatorUser
+            # in RegulatorUser we can only add user for operators and default is IncidentUser
+            # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
                 super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="OperatorUser")
+                new_group, created = Group.objects.get_or_create(name="IncidentUser")
                 if new_group:
                     obj.groups.add(new_group)
                 else:

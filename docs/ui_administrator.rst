@@ -194,5 +194,37 @@ The fields are:
 
 To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
 
+Companies
+~~~~~~~~~~
+
+The fields are the following: 
+
+- ``identifier`` : 4 digits identifier of the company
+- ``name`` : Name of the company
+- ``address`` : Address of the company
+- ``country`` : 2 letters country code following the ISO 3166-2. for exemple FR for France
+- ``email`` : generic email of the company 
+- ``phone_number`` : generic phone number of the company, for exemple +1 212-555-2368
+
+
+Users
+~~~~~~~~
+
+For importing users you need first to import the company or companies, they are linked and sector(s). You can only import ``OperatorUser``, ``OperatorAdmin``, ``IncidentUser``. 
+
+The system can't tolerate two users with the same email address. 
+
+The fields are the following: 
+
+- ``firstname`` : first name of the user
+- ``lastname`` : last name of the user
+- ``email`` : email of the users, it's the pivot to update a user
+- ``phone_number`` : phone number of the user, for exemple +1 212-555-2368
+- ``sectors`` : sectors linked to the user. Company(ies) have to be present. If they are not present sectors are ignored
+- ``companies`` : companies linked to the user. Sector(s) have to be present. if they are not present companies are ignored 
+
+By default user without companies and sectors are categorized as ``IncidentUser``.
+
+
 
 
