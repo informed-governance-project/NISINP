@@ -5,7 +5,7 @@ from django.db.models.functions import Concat
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
@@ -48,7 +48,7 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class PredefinedAnswerAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
         "question",
         "predefined_answer",
@@ -84,7 +84,7 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(QuestionCategory, site=admin_site)
-class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class QuestionCategoryAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = ["position", "label"]
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
@@ -140,7 +140,7 @@ class PredefinedAnswerInline(TranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class QuestionAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
     list_display_links = ["position", "category", "label"]
     search_fields = ["translations__label"]
@@ -234,7 +234,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class ImpactAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -346,7 +346,7 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class EmailAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
         "creator_name",
         "name",

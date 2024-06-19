@@ -90,7 +90,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class SectorAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
     search_fields = ["translations__name"]
@@ -319,7 +319,7 @@ class CompanySectorListFilter(SimpleListFilter):
 
 
 @admin.register(Company, site=admin_site)
-class CompanyAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
     list_display = [
         "name",
