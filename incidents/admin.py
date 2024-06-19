@@ -24,6 +24,7 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+from governanceplatform.widgets import TranslatedNameM2MWidget
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
@@ -171,9 +172,19 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    headline = fields.Field(
+        column_name="headline",
+        attribute="headline",
+    )
+    sectors = fields.Field(
+        column_name="sectors",
+        attribute="sectors",
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator="|"),
+    )
 
     class Meta:
         model = Impact
+        fields = ("id", "regulation", "headline", "sectors")
 
 
 class ImpactSectorListFilter(SimpleListFilter):
@@ -245,6 +256,8 @@ class ImpactAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAd
     fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
+    exclude = ["creator_name", "creator"]
+
     filter_horizontal = [
         "sectors",
     ]
