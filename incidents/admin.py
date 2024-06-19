@@ -167,6 +167,7 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
     regulation = fields.Field(
         column_name="regulation",
         attribute="regulation",
+        widget=TranslatedNameWidget(Regulation, field="label")
     )
     label = fields.Field(
         column_name="label",
