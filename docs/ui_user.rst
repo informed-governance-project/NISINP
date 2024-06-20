@@ -1,65 +1,235 @@
 User interface
 =====================
 
-log-in
--------
+The login page
+---------------
 
 On this page you can log in or create an account in case you have to notify an incident and you don't have your credential.
 
-.. figure:: _static/ui_user_login_page.png
+.. figure:: _static/SER_1.png
    :alt: Login page.
-   :target: _static/ui_user_login_page.png
+   :target: _static/SER_1.png
 
    Screenshot of the login page.
 
-If you have credentials and don't remember the password please use the link: 'Forgotten your password or username?'
+If you already have an account, please use the left pane and enter your credentials (email address and password) to log in. 
 
-At the first login, you need to activate the 2FA.
+In case you have forgotten your password or username, please click on the link below the 'Log in' button that says '**Forgotten your password or username?**'.
 
-Notify an incident (available for concerned profiles)
---------------------------------------------------------
+If you do not have an account, please click on the '**Sign Up**' link on the left pane, or use the right pane and click on the '**Create an account**' button. Both options will take you to the account creation page.
 
-Once logged in you can notify an incident by clicking on the dedicated button 'report an incident'
+Create an account
+------------------
 
-.. figure:: _static/ui_notify.png
+If you do not have an account yet, create one by using the '**Sign Up**' link on the left or the '**Create an account**' button on the right. Populate the required fields and provide a password you would like to use.
+
+Please note that the following password restrictions apply:
+
+* Your password can’t be too similar to your other personal information.
+* Your password must contain at least 8 characters.
+* Your password can’t be a commonly used password.
+* Your password can’t be entirely numeric.
+
+.. figure:: _static/SER_2.png
+   :alt: Create an account.
+   :target: _static/SER_2.png
+
+   Create an account
+
+Enable two-factor authentication
+---------------------------------
+
+Once you click on '**Register**', you are logged into the SERIMA Platform. Since this is your first login, the system suggests you enable two-factor authentication. Click on the button '**Enable Two-Factor Authentication**'.
+
+.. figure:: _static/SER_3.png
+   :alt: 2FA.
+   :target: _static/SER_3.png
+
+   2FA
+
+Follow the steps in the wizard to enable 2FA: first, click on the '**Next**' button.
+
+.. figure:: _static/SER_4.png
+   :alt: 2FA.
+   :target: _static/SER_4.png
+
+   2FA
+
+Then either use your smartphone and scan the QR code from the screen or use the long character set called TOTP Secret to set up TOTP in your authenticator or password manager manually. As the last step, please enter the token (a six-digit number) into the Token field and click '**Next**'.
+
+.. figure:: _static/SER_5.png
+   :alt: 2FA.
+   :target: _static/SER_5.png
+
+   2FA
+
+In case you have successfully enabled two-factor authentication, you are greeted with the below screen:
+
+.. figure:: _static/SER_6.png
+   :alt: 2FA.
+   :target: _static/SER_6.png
+
+   2FA
+
+Please click on the grey button and log in again. Provide your email address and password and click on '**Log in**'. Then, open your authenticator on your smartphone and type in the randomly generated Token and click '**Log in**'.
+
+.. figure:: _static/SER_7.png
+   :alt: 2FA.
+   :target: _static/SER_7.png
+
+   2FA
+
+As an '**Operator**' or '**User**', this is your main page where you land whenever you open this application. 
+Since this is your first login, there is no incident in the platform to show.
+
+.. figure:: _static/SER_8.png
+   :alt: Logged in.
+   :target: _static/SER_8.png
+
+The Platform is straightforward. Use the '**ILR SERIMA Platform**' link in the top-left corner to come back to the main page at any time. 
+
+In the top right-hand corner, you can see your name with a drop-down menu. If you click on the down-pointing arrow, the following dropdown menu appears:
+
+.. figure:: _static/SER_9_240.png
+   :alt: contextual menu.
+   :target: _static/SER_9_240.png
+
+* **Account**: you may change your first name, last name, and phone number.
+
+* **Security**: you can change your security settings. You can create backup tokens in case you do not have any device with you (you can access your account using backup tokens). You can also disable two-factor authentication, but this is strongly not recommended.
+
+* **Password**: you can change your password here. You must enter your old password and type in twice the new one you would like to use (please observe the restrictions on creating a new password).
+
+.. figure:: _static/SER_10_240.png
+   :alt: contextual menu darked.
+   :target: _static/SER_10_240.png
+
+* **Dark theme/Light theme**: you can switch between a dark and light background by using this link. 
+
+* **Log out**: use this link to log out from the application. In case you are not active, the system will log you out for security reasons.
+
+* **Language separator**: in the top right-hand corner, you can switch between English (en), French (fr) and Dutch (nl) languages.
+
+
+Report an incident 
+-------------------
+
+The main function of this platform is to make it possible for you to report incidents. To report an incident, click on the ’Report an incident’ button in the top right-hand corner:
+
+.. figure:: _static/SER_11.png
    :alt: notification button.
-   :target: _static/ui_notify.png
-
-Complete all the step until the last one, and the application will create the incident(s) depending of your inputs.
+   :target: _static/SER_11.png
 
 
-Incident list view for operators
-------------------------------------------
+Contact
+~~~~~~~~
 
-The default login page when you are a user is the incident list view. You can find here all your incident. 
+The '**Contact**' form appears. Please fill in the required fields, so the authorities to whom you are sending the incident report can get back to you. The form has three main parts:
 
-.. figure:: _static/ui_screenshot_incidents-page.png
-   :alt: Screenshot of the list of incidents from the user view.
-   :target: _static/ui_screenshot_incidents.png
+1. **Person in charge of the incident notification**: name, job title, email, telephone
+2. **Technical contact** (if the same person, please activate the slider, so it will be blue)
+3. **References** (Optional): Incident reference, Complaint reference
 
-   Screenshot of the list of incidents from the user view.
+The below screenshot is only a fictitious example for demonstration purposes:
 
-1. You can filter all your incident and expend/collapse the filters area
-2. This is one record for one incident, you can find all the information, status, and download a summary of the incident in PDF 
-3. In this example you can resubmit the early warning
-4. In this example you have already submitted an early warning and can consult it 
-5. You can fill the Initial assessment, the other steps are not accessible because you need to fill the previous one
+.. figure:: _static/SER_12.png
+   :alt: Contact form.
+   :target: _static/SER_12.png
 
-Incident list view for regulators
-------------------------------------------
+Regulators
+~~~~~~~~~~~~
 
-The default login page when you are a user is the incident list view. You can find here all the incidents that concerns you. 
+The next page is the '**Regulators**'. Here, you can choose among the list items to which regulator you want to report the incident. You may choose several regulators by putting a tick mark in the checkboxes in front of the list items:
 
-.. figure:: _static/screenshot_incidents-page.png
-   :alt: Screenshot of the list of incidents from the user view.
-   :target: _static/ui_screenshot_incidents.png
+.. figure:: _static/SER_13.png
+   :alt: Regulator form.
+   :target: _static/SER_13.png
 
-   Screenshot of the list of incidents from the regulator view.
+Regulations
+~~~~~~~~~~~~
 
-It's the same view as that of the operators, except you can directly edit some fields:
+The following step is to define which regulation/s you want to refer to. Again, you may choose both.
 
-- Reference of the incident
-- Report status
-- Incident status
-- significative impact
+.. figure:: _static/SER_14.png
+   :alt: Regulation form.
+   :target: _static/SER_14.png
 
+Sectors
+~~~~~~~~~
+
+Then you should define which sector is affected by the incident. The options are very straightforward and you may choose more sectors. As many sectors as you have marked, as many incidents will be created in the system.
+
+For demonstration purposes, let's choose two sectors (Energy-Electricity and Digital Infrastructure Telecommunications):
+
+.. figure:: _static/SER_15.png
+   :alt: Sector form.
+   :target: _static/SER_15.png
+
+Detection date
+~~~~~~~~~~~~~~~
+
+As the final step in the incident reporting process, you should provide the date and time of the incident. The easiest way to populate the required field is to click on the calendar icon (the field will be automatically populated with the date and time of detection).
+
+.. figure:: _static/SER_16.png
+   :alt: Detection date form.
+   :target: _static/SER_16.png
+
+If the detection date field is filled in correctly, click the '**Report**' button to complete the incident reporting process. You will be directed back to the main screen (Incident List View) where you can see the newly created incident reports.
+
+The table contains, on the one hand, the aspects that you filled in during the preparation of the incident report, as well as new columns: for example, the Significant impact, the Incident status, or the Action columns.
+
+.. figure:: _static/SER_17.png
+   :alt: Detection date form.
+   :target: _static/SER_17.png
+
+This is the page (**Incident List View**) where you can see the incident reports you sent and the information about them. If there are many incidents in the table, you can sort them in alphabetical order using the arrows at the top of the columns. Only one sorting aspect can be active at a time and the active aspect is shown by a darker grey triangle:
+
+.. figure:: _static/SER_18.png
+   :alt: Sort incident.
+   :target: _static/SER_18.png
+
+In case you see clickable links in the table (for instance ’NIS2 – Early Warning’ in the above screenshot), you may click on them for further information.
+
+Incident list view 
+-------------------
+
+The **Incident List View** is the main screen of the application: this is the view that summarizes the list of incidents created by the operator (or end user). It is in a table format with the following columns:
+
+.. figure:: _static/SER_27.png
+   :alt: Incident list view.
+   :target: _static/SER_27.png
+
+The description of the columns is as follows:
+
+.. figure:: _static/SER_28_table.png
+   :alt: Column description.
+   :target: _static/SER_28_table.png
+
+When you submit an incident, the system creates a reference. It is a human readable reference number editable by the regulator regarding the incident.
+
+Each incident is composed of one or several reports. Reports are different steps, depending on the options you choose when creating the incident. You have to fill in the first report and after you can unlock the second. Please note that once you fill in a report, you can see all the historic steps.
+
+Each report has a status: '**Not delivered**', '**Delivered but not yet reviewed**', '**Review passed**', '**Review failed**' and '**Not delivered and deadline exceeded**'.
+
+
+Search among incidents
+---------------------------
+
+The filter function of the platform can be very useful if there are many incidents and you want to filter among them according to different aspects to find the incident you are looking for.
+
+To make the filters visible, click on the down-pointing arrow at the right end of the filter field:
+
+.. figure:: _static/SER_26.png
+   :alt: Search among incidents
+   :target: _static/SER_26.png
+
+You can filter all your incidents and expand/collapse the filter area. The filter can be used with the following search fields:
+
+- **Incident identifier contains**: this is a free-word search engine that can be used to search among incident identifiers by character strings.
+- **Significative impact**: this field searches among the values of the Significative impact, which can have two values (yes or no). The '**X**' in the screenshot above corresponds to the value '**NO**' in the Significative Impact column.
+- **Incident status**: The Incident status is also a Boolean data type, it can take only two values: '**Closed**' or '**On-going**'.
+- **Affected sectors**: you can search among the affected sectors here, by clicking on the down-pointing arrow (a list of possible sectors appears, so you can search for a specific sector).
+
+.. figure:: _static/SER_25.png
+   :alt: Search among incidents
+   :target: _static/SER_25.png

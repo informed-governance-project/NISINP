@@ -194,6 +194,21 @@ The fields are:
 
 To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
 
+Impacts
+~~~~~~~~
+
+For importing impacts, all the reffered elements (regulation and sectors) should be present in the system.
+
+The fields are:
+
+- ``regulation`` : the regulation affected by the impact
+- ``label`` : description of the impact
+- ``headline`` : headline of the impacts
+- ``sectors`` : name of the sectors, to link the impact to one or several sectors, **|** is the separator
+
+To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
+
+
 Companies
 ~~~~~~~~~~
 
