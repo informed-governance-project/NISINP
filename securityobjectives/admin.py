@@ -49,10 +49,14 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="description",
         attribute="description",
     )
+    regulation = fields.Field(
+        column_name="regulation",
+        attribute="regulation",
+    )
 
     class Meta:
         model = Standard
-        fields = ('label', 'description')
+        fields = ('label', 'description', 'regulation')
 
 
 @admin.register(Standard, site=admin_site)
@@ -62,6 +66,19 @@ class StandardAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Translatable
         "label",
         "description",
     ]
+    exclude = ('regulator',)
+
+    # exclude standards which are not belonging to the user regulator
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        return queryset.filter(regulator=user.regulators.first())
+
+    # save by default the regulator
+    def save_model(self, request, obj, form, change):
+        user = request.user
+        obj.regulator = user.regulators.first()
+        super().save_model(request, obj, form, change)
 
 
 class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
@@ -127,4 +144,15 @@ class SecurityObejctiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Tra
         "unique_code",
         "position",
         "domain",
+        "get_standards",
     ]
+    exclude = ["is_archived"]
+    filter_horizontal = [
+        "standards",
+    ]
+
+    # filter only the standards that belongs to the regulators'user
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "standards":
+            kwargs["queryset"] = Standard.objects.filter(regulator=request.user.regulators.first())
+        return super(SecurityObejctiveAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)

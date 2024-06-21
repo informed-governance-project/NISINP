@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib import admin
 from parler.models import TranslatableModel, TranslatedFields
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Deferrable
@@ -31,7 +32,8 @@ class Standard(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
         description=models.TextField(),
     )
-    position = models.IntegerField(default=0)
+    regulator = models.ForeignKey("governanceplatform.regulator", on_delete=models.CASCADE)
+    regulation = models.ForeignKey("governanceplatform.regulation", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.label if self.label is not None else ""
@@ -70,6 +72,14 @@ class SecurityObejctive(TranslatableModel, models.Model):
 
     def __str__(self):
         return self.objective if self.objective is not None else ""
+
+    @admin.display(description="standards")
+    def get_standards(self):
+        standards = []
+        for standard in self.standards.all().distinct():
+            standards.append(standard.label)
+
+        return standards
 
 
 # link between security measure, SO and maturity
