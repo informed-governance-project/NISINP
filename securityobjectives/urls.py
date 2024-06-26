@@ -17,7 +17,15 @@ Including another URLconf
 from django.urls import path
 from django.views.i18n import set_language
 
+from .views import (
+    get_security_objectives,
+    get_form_list,
+)
+
 urlpatterns = [
     # Root
+    path("", get_security_objectives, name="securityobjectives"),
+    # SO declaration
+    path("so_declaration", get_form_list, name="so_declaration"),
     path("set-language/", set_language, name="set_language"),
 ]
