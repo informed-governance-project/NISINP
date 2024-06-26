@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import admin
 from parler.models import TranslatableModel, TranslatedFields
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Deferrable
 
@@ -47,7 +48,7 @@ class SecurityObejctive(TranslatableModel, models.Model):
     )
     position = models.IntegerField(default=0)
     unique_code = models.CharField(max_length=255, blank=True, default=None, null=True)
-    # when we want to delete a SO we need to check if it has been answered in yes, history instead of delete
+    # when we want to delete a SO we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(
         default=False, verbose_name=_("is archived")
     )
@@ -91,6 +92,53 @@ class SecurityMeasure(TranslatableModel):
         evidence=models.TextField(),
     )
     position = models.IntegerField(default=0)
+    # when we want to delete a Security Measure we need to check if it has been answered if yes, archived instead of delete
+    is_archived = models.BooleanField(
+        default=False, verbose_name=_("is archived")
+    )
 
     def __str__(self):
         return self.description if self.description is not None else ""
+
+
+# The answers of the operator
+class StandardAnswer(models.Model):
+    standard = models.ForeignKey(
+        Standard,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="standard",
+    )
+    standard_notification_date = models.DateTimeField(default=timezone.now)
+    is_reviewed = models.BooleanField(default=False, verbose_name=_("Reviewed"))
+    submitter_user = models.ForeignKey("governanceplatform.user", on_delete=models.SET_NULL, null=True)
+    submitter_company = models.ForeignKey("governanceplatform.company", on_delete=models.SET_NULL, null=True)
+    # to display in case we delete the user or the company
+    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator_company_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+
+
+# the answer of the operator by SM
+class SecurityMeasureAnswer(models.Model):
+    security_measure_notification_date = models.DateTimeField(default=timezone.now)
+    standard_answer = models.ForeignKey(
+        StandardAnswer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="standard_answer",
+    )
+    security_measure = models.ForeignKey(
+        SecurityMeasure,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="security_measure",
+    )
+    comment = models.TextField()
+    is_implemented = models.BooleanField(default=False, verbose_name=_("Implemented"))
+    review_comment = models.TextField()

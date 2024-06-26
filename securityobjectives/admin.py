@@ -10,7 +10,8 @@ from securityobjectives.models import (
     Domain,
     Standard,
     MaturityLevel,
-    SecurityObejctive
+    SecurityObejctive,
+    SecurityMeasure
 )
 
 
@@ -156,3 +157,44 @@ class SecurityObejctiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Tra
         if db_field.name == "standards":
             kwargs["queryset"] = Standard.objects.filter(regulator=request.user.regulators.first())
         return super(SecurityObejctiveAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+
+
+class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+    security_objective = fields.Field(
+        column_name="security_objective",
+        attribute="security_objective",
+        widget=TranslatedNameWidget(SecurityObejctive, field="label"),
+    )
+    maturity_level = fields.Field(
+        column_name="maturity_level",
+        attribute="maturity_level",
+        widget=TranslatedNameWidget(MaturityLevel, field="label"),
+    )
+    description = fields.Field(
+        column_name="description",
+        attribute="description",
+    )
+    evidence = fields.Field(
+        column_name="evidence",
+        attribute="evidence",
+    )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
+
+    class Meta:
+        model = SecurityObejctive
+        fields = ('security_objective', 'maturity_level', 'description', 'evidence')
+
+
+@admin.register(SecurityMeasure, site=admin_site)
+class SecurityMeasureAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+    resource_class = SecurityMeasureResource
+    list_display = [
+        "security_objective",
+        "description",
+        "evidence",
+        "position",
+    ]
