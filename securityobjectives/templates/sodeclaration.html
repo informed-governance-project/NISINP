@@ -1,5 +1,5 @@
 {% extends 'home/base.html' %}
-{% block bootstrap5_title %}{{ action }} an incident{% endblock %}
+{% block bootstrap5_title %}{{ action }} a Security Objective{% endblock %}
 {% load django_bootstrap5 %}
 {% load custom_filters %}
 {% load static %}
@@ -50,7 +50,7 @@
           {% endif %}
         {% endif %}
         {% if wizard.steps.last == wizard.steps.current %}
-          {% bootstrap_button button_type="submit" content="Notify"|translate %}
+          {% bootstrap_button button_type="submit" content="Create"|translate %}
         {% else %}
           {% bootstrap_button button_type="submit" content="Next"|translate  %}
         {% endif %}

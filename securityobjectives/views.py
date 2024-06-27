@@ -20,7 +20,7 @@ from .models import (
 from .forms import (
     get_forms_list,
 )
-from governanceplatform.models import Regulator
+from governanceplatform.models import Regulator, Regulation
 
 
 @login_required
@@ -40,7 +40,7 @@ def get_security_objectives(request):
     except EmptyPage:
         response = paginator.page(paginator.num_pages)
 
-    # add paggination to the regular incidents view.
+    # add paggination to the regular view.
     html_view = "securityobjectives.html"
     if is_user_regulator(request.user):
         html_view = "regulator/securityobjectives.html"
@@ -79,8 +79,10 @@ class FormWizardView(SessionWizardView):
         context["steps"] = [
             _("Regulators"),
             _("Regulations"),
+            _("Standards"),
         ]
-        context["action"] = "Create"
+        # used for the title of the page
+        context["action"] = "Declare"
 
         return context
 
@@ -90,9 +92,17 @@ class FormWizardView(SessionWizardView):
             step = self.steps.current
 
         if step == "1":
-            step1data = self.get_cleaned_data_for_step("0")
+            step0data = self.get_cleaned_data_for_step("0")
+            if step0data is None:
+                messages.warning(self.request, _("Please select 1 regulator"))
+
+        if step == "2":
+            step1data = self.get_cleaned_data_for_step("1")
             if step1data is None:
-                messages.warning(self.request, _("Please select at least 1 regulator"))
+                messages.warning(self.request, _("Please select 1 regulation"))
+            step0data = self.get_cleaned_data_for_step("0")
+            if step0data is None:
+                messages.warning(self.request, _("Please select 1 regulator"))
 
         form = super().get_form(step, data, files)
         return form
@@ -104,5 +114,18 @@ class FormWizardView(SessionWizardView):
                 ids = step0data.get("regulators", "")
                 regulators = Regulator.objects.filter(id__in=ids)
                 return self.initial_dict.get(step, {"regulators": regulators})
+
+        if step == "2":
+            regulators = None
+            regulations = None
+            step0data = self.get_cleaned_data_for_step("0")
+            if step0data:
+                ids = step0data.get("regulators", "")
+                regulators = Regulator.objects.filter(id__in=ids)
+            step1data = self.get_cleaned_data_for_step("1")
+            if step1data:
+                ids = step1data.get("regulations", "")
+                regulations = Regulation.objects.filter(id__in=ids)
+            return self.initial_dict.get(step, {"regulators": regulators, "regulations": regulations})
 
         return self.initial_dict.get(step, {})
