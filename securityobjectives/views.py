@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django_otp.decorators import otp_required
 from django.utils.translation import gettext as _
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from formtools.wizard.views import SessionWizardView
 from governanceplatform.helpers import (
     is_user_regulator,
+    get_active_company_from_session,
 )
 
 from governanceplatform.settings import (
@@ -15,7 +17,8 @@ from governanceplatform.settings import (
 )
 
 from .models import (
-    StandardAnswer
+    StandardAnswer,
+    Standard,
 )
 from .forms import (
     get_forms_list,
@@ -129,3 +132,32 @@ class FormWizardView(SessionWizardView):
             return self.initial_dict.get(step, {"regulators": regulators, "regulations": regulations})
 
         return self.initial_dict.get(step, {})
+
+    def done(self, form_list, **kwargs):
+        user = self.request.user
+        company = get_active_company_from_session(self.request)
+        data = [form.cleaned_data for form in form_list]
+        standards_id = []
+        if data[2].get("standard"):
+            for standard_data in data[2]["standard"]:
+                try:
+                    standard_id = int(standard_data)
+                    standards_id.append(standard_id)
+                except Exception:
+                    pass
+
+        for y in standards_id:
+            standard = None
+            standard = Standard.objects.get(id=y)
+            if standard is not None:
+                standardanswer = StandardAnswer.objects.create(
+                    standard=standard,
+                    is_reviewed=False,
+                    submitter_user=user,
+                    submitter_company=company,
+                    creator_name=user.first_name+' '+user.last_name,
+                    creator_company_name=company.identifier+':'+company.name
+                )
+                standardanswer.save()
+
+        return HttpResponseRedirect("/securityobjectives")
