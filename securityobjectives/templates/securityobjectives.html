@@ -41,21 +41,12 @@
                         <!-- {% bootstrap_form filter.form %} -->
                         <div class="row">
                             <div class="col-sm">
-                                {% bootstrap_field filter.form.incident_id show_label=True %}
-                            </div>
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.incident_status show_label=True %}
-                            </div>
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.is_significative_impact show_label=True %}
+                                {% bootstrap_field filter.form.is_reviewed show_label=True %}
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-sm">
-                                {% bootstrap_field filter.form.sector_regulation show_label=True %}
-                            </div>
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.affected_sectors show_label=True %}
+                                {% bootstrap_field filter.form.standard show_label=True %}
                             </div>
                         </div>
                         <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
@@ -65,30 +56,31 @@
         </div>
     </div>
 </div>
-<table id="incidents-table" class="table align-middle table-sm small">
+<table id="securityobjectives-table" class="table align-middle table-sm small">
     <thead>
         <tr>
             <th scope="col">{% translate "Notification date" %}</th>
-            <th scope="col">{% translate "Regulation" %}</th>
-            <th scope="col">{% translate "Reference" %}</th>
-            <th scope="col">{% translate "Operator" %}</th>
-            <th scope="col">{% translate "Sectors" %}</th>
-            <th scope="col">{% translate "Sub-sectors" %}</th>
-            <th scope="col"><table class="table table-borderless table-sm m-0">
-                <tr>
-                    <td>{% translate "Report" %}</td>
-                    <td>{% translate "Status" %}</td>
-                </tr>
-            </table></th>
-            <th scope="col">{% translate "Incident status" %}</th>
-            <th scope="col">{% translate "Significative impact" %}</th>
+            <th scope="col">{% translate "Standard" %}</th>
+            <th scope="col">{% translate "Submitter" %}</th>
+            <th scope="col">{% translate "Year" %}</th>
+            <th scope="col">{% translate "Completion" %}</th>
+            <th scope="col">{% translate "Status" %}</th>
             <th scope="col">{% translate "Actions" %}</th>
         </tr>
     </thead>
     <tbody>
         {% for standard in standard_answers %}
         <tr>
-
+            {% timezone "Europe/Paris" %}
+            <td class="table-group-divider">{{standard.standard_notification_date|date:"d M Y, H:i" }}</td>
+            {% endtimezone %}
+            <td class="table-group-divider">{{standard.standard.label}}</td>
+            <td class="table-group-divider">{{standard.creator_name}}</td>
+            <td class="table-group-divider">{{standard.year_of_submission}}</td>
+            <td class="table-group-divider"></td>
+            <td class="table-group-divider"></td>
+            <td class="table-group-divider"></td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>

@@ -118,6 +118,8 @@ class StandardAnswer(models.Model):
     # to display in case we delete the user or the company
     creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
     creator_company_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    # the year for the one
+    year_of_submission = models.PositiveIntegerField()
 
 
 # the answer of the operator by SM

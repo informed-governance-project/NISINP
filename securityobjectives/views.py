@@ -11,7 +11,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     get_active_company_from_session,
 )
-
+from .filters import StandardAnswerFilter
 from governanceplatform.settings import (
     SITE_NAME,
 )
@@ -42,8 +42,9 @@ def get_security_objectives(request):
         response = paginator.page(1)
     except EmptyPage:
         response = paginator.page(paginator.num_pages)
-
+    print(response)
     # add paggination to the regular view.
+    f = StandardAnswerFilter(request.GET, queryset=standards_answers)
     html_view = "securityobjectives.html"
     if is_user_regulator(request.user):
         html_view = "regulator/securityobjectives.html"
@@ -53,7 +54,7 @@ def get_security_objectives(request):
         context={
             "site_name": SITE_NAME,
             "paginator": paginator,
-            # "filter": f,
+            "filter": f,
             "standard_answers": response,
         },
     )
