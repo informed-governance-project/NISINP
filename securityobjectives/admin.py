@@ -10,8 +10,9 @@ from securityobjectives.models import (
     Domain,
     Standard,
     MaturityLevel,
-    SecurityObejctive,
-    SecurityMeasure
+    SecurityObjective,
+    SecurityMeasure,
+    SecurityObjectivesInStandard
 )
 
 
@@ -60,6 +61,10 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
         fields = ('label', 'description', 'regulation')
 
 
+class SecurityObjectiveInline(admin.TabularInline):
+    model = SecurityObjectivesInStandard
+
+
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     resource_class = StandardResource
@@ -68,6 +73,7 @@ class StandardAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Translatable
         "description",
     ]
     exclude = ('regulator',)
+    inlines = (SecurityObjectiveInline,)
 
     # exclude standards which are not belonging to the user regulator
     def get_queryset(self, request):
@@ -102,7 +108,7 @@ class MaturityLevelAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Transla
     ]
 
 
-class SecurityObejctiveResource(TranslationUpdateMixin, resources.ModelResource):
+class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
     objective = fields.Field(
         column_name="objective",
@@ -132,31 +138,26 @@ class SecurityObejctiveResource(TranslationUpdateMixin, resources.ModelResource)
     )
 
     class Meta:
-        model = SecurityObejctive
+        model = SecurityObjective
         fields = ('objective', 'description', 'unique_code', 'position', 'domain', 'standards')
 
 
-@admin.register(SecurityObejctive, site=admin_site)
-class SecurityObejctiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
-    resource_class = SecurityObejctiveResource
+@admin.register(SecurityObjective, site=admin_site)
+class SecurityObjectiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+    resource_class = SecurityObjectiveResource
     list_display = [
         "objective",
         "description",
         "unique_code",
-        "position",
         "domain",
-        "get_standards",
     ]
     exclude = ["is_archived"]
-    filter_horizontal = [
-        "standards",
-    ]
 
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "standards":
             kwargs["queryset"] = Standard.objects.filter(regulator=request.user.regulators.first())
-        return super(SecurityObejctiveAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+        return super(SecurityObjectiveAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
@@ -164,7 +165,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     security_objective = fields.Field(
         column_name="security_objective",
         attribute="security_objective",
-        widget=TranslatedNameWidget(SecurityObejctive, field="label"),
+        widget=TranslatedNameWidget(SecurityObjective, field="label"),
     )
     maturity_level = fields.Field(
         column_name="maturity_level",
@@ -185,7 +186,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     class Meta:
-        model = SecurityObejctive
+        model = SecurityObjective
         fields = ('security_objective', 'maturity_level', 'description', 'evidence')
 
 

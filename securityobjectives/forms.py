@@ -94,13 +94,18 @@ def construct_standard_array(regulators, regulations):
     return standards_to_select
 
 
-def get_forms_list(standard=None):
+def get_forms_list(standard_answer=None):
     category_tree = []
-    if standard is None:
+    if standard_answer is None:
         category_tree = [
             RegulatorForm,
             RegulationForm,
             StandardForm,
         ]
+    else:
+        security_objectives = standard_answer.standard.securityobjective_set
+        print(standard_answer)
+        print(standard_answer.standard)
+        print(security_objectives)
 
     return category_tree

@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib import admin
 from parler.models import TranslatableModel, TranslatedFields
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -27,26 +26,12 @@ class Domain(TranslatableModel):
         return self.label if self.label is not None else ""
 
 
-# Standard : A group of security objectives
-class Standard(TranslatableModel):
-    translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True),
-        description=models.TextField(),
-    )
-    regulator = models.ForeignKey("governanceplatform.regulator", on_delete=models.CASCADE)
-    regulation = models.ForeignKey("governanceplatform.regulation", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.label if self.label is not None else ""
-
-
-# SecurityObejctive (SO)
-class SecurityObejctive(TranslatableModel, models.Model):
+# SecurityObjective (SO)
+class SecurityObjective(TranslatableModel, models.Model):
     translations = TranslatedFields(
         objective=models.CharField(max_length=255, blank=True, default=None, null=True),
         description=models.TextField(),
     )
-    position = models.IntegerField(default=0)
     unique_code = models.CharField(max_length=255, blank=True, default=None, null=True)
     # when we want to delete a SO we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(
@@ -58,9 +43,8 @@ class SecurityObejctive(TranslatableModel, models.Model):
         null=True,
         blank=True,
         default=None,
-        related_name="domain",
+        related_name="securityobjective",
     )
-    standards = models.ManyToManyField(Standard)
 
     class Meta:
         constraints = [
@@ -74,18 +58,36 @@ class SecurityObejctive(TranslatableModel, models.Model):
     def __str__(self):
         return self.objective if self.objective is not None else ""
 
-    @admin.display(description="standards")
-    def get_standards(self):
-        standards = []
-        for standard in self.standards.all().distinct():
-            standards.append(standard.label)
 
-        return standards
+# Standard : A group of security objectives
+class Standard(TranslatableModel):
+    translations = TranslatedFields(
+        label=models.CharField(max_length=255, blank=True, default=None, null=True),
+        description=models.TextField(),
+    )
+    regulator = models.ForeignKey("governanceplatform.regulator", on_delete=models.CASCADE)
+    regulation = models.ForeignKey("governanceplatform.regulation", on_delete=models.CASCADE)
+    security_objectives = models.ManyToManyField(SecurityObjective, through="SecurityObjectivesInStandard")
+
+    def __str__(self):
+        return self.label if self.label is not None else ""
+
+
+class SecurityObjectivesInStandard(models.Model):
+    security_objective = models.ForeignKey(
+        SecurityObjective,
+        on_delete=models.CASCADE,
+    )
+    standard = models.ForeignKey(
+        Standard,
+        on_delete=models.CASCADE,
+    )
+    position = models.IntegerField(default=0)
 
 
 # link between security measure, SO and maturity
 class SecurityMeasure(TranslatableModel):
-    security_objective = models.ForeignKey(SecurityObejctive, on_delete=models.CASCADE)
+    security_objective = models.ForeignKey(SecurityObjective, on_delete=models.CASCADE)
     maturity_level = models.ForeignKey(MaturityLevel, on_delete=models.SET_NULL, null=True)
     translations = TranslatedFields(
         description=models.TextField(),
@@ -109,10 +111,11 @@ class StandardAnswer(models.Model):
         null=True,
         blank=True,
         default=None,
-        related_name="standard",
+        related_name="standardanswer",
     )
     standard_notification_date = models.DateTimeField(default=timezone.now)
     is_reviewed = models.BooleanField(default=False, verbose_name=_("Reviewed"))
+    is_finished = models.BooleanField(default=False, verbose_name=_("Finished"))
     submitter_user = models.ForeignKey("governanceplatform.user", on_delete=models.SET_NULL, null=True)
     submitter_company = models.ForeignKey("governanceplatform.company", on_delete=models.SET_NULL, null=True)
     # to display in case we delete the user or the company
@@ -131,7 +134,7 @@ class SecurityMeasureAnswer(models.Model):
         null=True,
         blank=True,
         default=None,
-        related_name="standard_answer",
+        related_name="securitymeasureanswers",
     )
     security_measure = models.ForeignKey(
         SecurityMeasure,
@@ -139,7 +142,7 @@ class SecurityMeasureAnswer(models.Model):
         null=True,
         blank=True,
         default=None,
-        related_name="security_measure",
+        related_name="securitymeasureanswers",
     )
     comment = models.TextField()
     is_implemented = models.BooleanField(default=False, verbose_name=_("Implemented"))

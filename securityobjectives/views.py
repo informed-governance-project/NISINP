@@ -42,7 +42,6 @@ def get_security_objectives(request):
         response = paginator.page(1)
     except EmptyPage:
         response = paginator.page(paginator.num_pages)
-    print(response)
     # add paggination to the regular view.
     f = StandardAnswerFilter(request.GET, queryset=standards_answers)
     html_view = "securityobjectives.html"
@@ -67,6 +66,17 @@ def get_form_list(request, form_list=None):
     if form_list is None:
         form_list = get_forms_list()
     return FormWizardView.as_view(
+        form_list,
+    )(request)
+
+
+@login_required
+@otp_required
+def create_so(request, form_list=None, standard_answer_id=None):
+    if form_list is None and standard_answer_id is not None:
+        standard_answer = StandardAnswer.objects.get(id=standard_answer_id)
+        form_list = get_forms_list(standard_answer=standard_answer)
+    return SOWizardView.as_view(
         form_list,
     )(request)
 
@@ -162,3 +172,9 @@ class FormWizardView(SessionWizardView):
                 standardanswer.save()
 
         return HttpResponseRedirect("/securityobjectives")
+
+
+class SOWizardView(SessionWizardView):
+    """Wizard to manage the different workflows."""
+
+    template_name = "sodeclaration.html"

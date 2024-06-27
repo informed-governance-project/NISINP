@@ -20,6 +20,7 @@ from django.views.i18n import set_language
 from .views import (
     get_security_objectives,
     get_form_list,
+    create_so,
 )
 
 urlpatterns = [
@@ -27,5 +28,7 @@ urlpatterns = [
     path("", get_security_objectives, name="securityobjectives"),
     # SO declaration
     path("so_declaration", get_form_list, name="so_declaration"),
+    # fill the SO
+    path(r"create_so/<int:standard_answer_id>", create_so, name="create_so"),
     path("set-language/", set_language, name="set_language"),
 ]
