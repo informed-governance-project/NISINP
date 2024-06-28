@@ -1,7 +1,11 @@
 from django import forms
 
 from governanceplatform.models import Regulation, Regulator
-from .models import Standard
+from .models import (
+    Standard,
+    # SecurityObjectivesInStandard,
+    StandardAnswer,
+)
 
 
 class RegulationForm(forms.Form):
@@ -94,6 +98,37 @@ def construct_standard_array(regulators, regulations):
     return standards_to_select
 
 
+class StandardAnswerForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = self.instance.id
+
+    class Meta:
+        model = StandardAnswer
+        fields = [
+            "id",
+            "year_of_submission",
+        ]
+
+
+class SecurityObjectiveAnswerForm(forms.Form):
+    standard = forms.ChoiceField(
+        required=True,
+        widget=forms.RadioSelect(attrs={"class": "multiple-selection"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        regulators = kwargs["initial"].get("regulators", None)
+        regulations = kwargs["initial"].get("regulations", None)
+        super().__init__(*args, **kwargs)
+
+        if regulators is not None and regulations is not None:
+            self.fields["standard"].choices = construct_standard_array(
+                regulators.all(),
+                regulations.all()
+            )
+
+
 def get_forms_list(standard_answer=None):
     category_tree = []
     if standard_answer is None:
@@ -103,9 +138,10 @@ def get_forms_list(standard_answer=None):
             StandardForm,
         ]
     else:
-        security_objectives = standard_answer.standard.securityobjective_set
-        print(standard_answer)
-        print(standard_answer.standard)
-        print(security_objectives)
-
+        # security_objectives = SecurityObjectivesInStandard.objects.filter(standard=standard_answer.standard)
+        # print(security_objectives)
+        category_tree = [
+            StandardAnswerForm,
+            SecurityObjectiveAnswerForm,
+        ]
     return category_tree

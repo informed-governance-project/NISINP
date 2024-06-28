@@ -178,3 +178,15 @@ class SOWizardView(SessionWizardView):
     """Wizard to manage the different workflows."""
 
     template_name = "sodeclaration.html"
+
+    def get_context_data(self, form, **kwargs):
+        context = super().get_context_data(form=form, **kwargs)
+
+        context["steps"] = [
+            _("Standard"),
+            _("SecurityObjective"),
+        ]
+        # used for the title of the page
+        context["action"] = "Declare"
+
+        return context
