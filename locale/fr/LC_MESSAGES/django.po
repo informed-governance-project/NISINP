@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-19 12:23+0200\n"
+"POT-Creation-Date: 2024-07-04 11:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,55 +22,55 @@ msgstr ""
 msgid "Administration"
 msgstr "Administration"
 
-#: governanceplatform/admin.py:210
+#: governanceplatform/admin.py:208
 msgid "Contact for sector"
 msgstr "Contact du secteur"
 
-#: governanceplatform/admin.py:211
+#: governanceplatform/admin.py:209
 msgid "Contacts for sectors"
 msgstr "Contacts des secteurs"
 
-#: governanceplatform/admin.py:296 governanceplatform/admin.py:646
-#: governanceplatform/models.py:47 incidents/admin.py:166
+#: governanceplatform/admin.py:294 governanceplatform/admin.py:701
+#: governanceplatform/models.py:47 incidents/admin.py:192
 #: incidents/templates/cert/incidents.html:65
-#: incidents/templates/regulator/incidents.html:68 incidents/views.py:686
+#: incidents/templates/regulator/incidents.html:68 incidents/views.py:682
 msgid "Sectors"
 msgstr "Secteurs"
 
-#: governanceplatform/admin.py:339 governanceplatform/admin.py:737
+#: governanceplatform/admin.py:337 governanceplatform/admin.py:792
 msgid "Contact Information"
 msgstr "Information du contact"
 
-#: governanceplatform/admin.py:350
+#: governanceplatform/admin.py:348
 msgid "Configuration Information"
 msgstr "Information de configuration"
 
-#: governanceplatform/admin.py:576
+#: governanceplatform/admin.py:631
 msgid "Reset 2FA"
 msgstr "Réinitialisation 2FA"
 
-#: governanceplatform/admin.py:585 governanceplatform/models.py:154
-#: incidents/views.py:684
+#: governanceplatform/admin.py:640 governanceplatform/models.py:154
+#: incidents/views.py:680
 msgid "Regulators"
 msgstr "Régulateurs"
 
-#: governanceplatform/admin.py:604 governanceplatform/models.py:182
+#: governanceplatform/admin.py:659 governanceplatform/models.py:182
 msgid "CERT"
 msgstr "CERT"
 
-#: governanceplatform/admin.py:623 governanceplatform/models.py:125
+#: governanceplatform/admin.py:678 governanceplatform/models.py:125
 msgid "Companies"
 msgstr "Compagnies"
 
-#: governanceplatform/admin.py:669
+#: governanceplatform/admin.py:724
 msgid "Roles"
 msgstr "Rôles"
 
-#: governanceplatform/admin.py:1038 governanceplatform/models.py:309
+#: governanceplatform/admin.py:1094 governanceplatform/models.py:309
 msgid "CERT user"
 msgstr "CERT operateur"
 
-#: governanceplatform/admin.py:1039 governanceplatform/models.py:310
+#: governanceplatform/admin.py:1095 governanceplatform/models.py:310
 msgid "CERT users"
 msgstr "CERT Operateurs"
 
@@ -209,33 +209,33 @@ msgstr "Utilisateurs du régulateur"
 msgid "Account has been successfully saved."
 msgstr "Le compte a été sauvegardé avec succès."
 
-#: incidents/admin.py:123
+#: incidents/admin.py:138
 msgid "predefined answer"
 msgstr "Réponse prédéfinie"
 
-#: incidents/admin.py:124
+#: incidents/admin.py:139
 msgid "predefined answers"
 msgstr "Réponses prédéfinies"
 
-#: incidents/admin.py:206 incidents/templates/incidents.html:71
+#: incidents/admin.py:232 incidents/templates/incidents.html:71
 #: incidents/templates/regulator/incidents.html:65
 #: incidents/templates/report/questions_answers.html:3
 msgid "Regulation"
 msgstr "Régulation"
 
-#: incidents/admin.py:357
+#: incidents/admin.py:390
 msgid "sector regulation"
 msgstr "Workflow de notification d'incident"
 
-#: incidents/admin.py:358
+#: incidents/admin.py:391
 msgid "sectors regulations"
 msgstr "Workflows de notification d'incident"
 
-#: incidents/admin.py:390
+#: incidents/admin.py:423
 msgid "Incident Report"
 msgstr "Rapport d'incident"
 
-#: incidents/admin.py:391
+#: incidents/admin.py:424
 msgid "Incident reports"
 msgstr "Rapports d'incidents"
 
@@ -251,11 +251,11 @@ msgstr ""
 msgid "Insert any complaint has been filed with the police"
 msgstr "Insérer une plainte déposée auprès de la police"
 
-#: incidents/forms.py:826 incidents/forms.py:845
+#: incidents/forms.py:823 incidents/forms.py:842
 msgid "Timezone"
 msgstr "Fuseau Horaire"
 
-#: incidents/forms.py:828 incidents/forms.py:847
+#: incidents/forms.py:825 incidents/forms.py:844
 msgid "Date Format YYYY-MM-DD HH:MM"
 msgstr "Format de date AAAA-MM-JJ HH:MM"
 
@@ -530,7 +530,7 @@ msgstr "Statut de revue"
 msgid "Action"
 msgstr "Action"
 
-#: incidents/templates/incidents.html:149 incidents/views.py:1059
+#: incidents/templates/incidents.html:149 incidents/views.py:1055
 msgid "Comment"
 msgstr "Commentaire"
 
@@ -595,7 +595,7 @@ msgstr "Titre"
 msgid "Phone number"
 msgstr "Numéro de téléphone"
 
-#: incidents/templates/regulator/incident_edit.html:93 incidents/views.py:685
+#: incidents/templates/regulator/incident_edit.html:93 incidents/views.py:681
 msgid "Regulations"
 msgstr "Régulations"
 
@@ -615,7 +615,7 @@ msgstr "Réponses aux rapports d'incidents"
 msgid "Affected sectors"
 msgstr "Secteurs affectés"
 
-#: incidents/templates/report/questions_answers.html:27 incidents/views.py:1055
+#: incidents/templates/report/questions_answers.html:27 incidents/views.py:1051
 msgid "Impacts"
 msgstr "Impacts"
 
@@ -647,7 +647,7 @@ msgstr "Incident non trouvé"
 
 #: incidents/views.py:203 incidents/views.py:210 incidents/views.py:247
 #: incidents/views.py:274 incidents/views.py:280 incidents/views.py:311
-#: incidents/views.py:500 incidents/views.py:530
+#: incidents/views.py:499 incidents/views.py:526
 msgid "Forbidden"
 msgstr "Interdit"
 
@@ -655,44 +655,44 @@ msgstr "Interdit"
 msgid "No incident report found"
 msgstr "Aucun rapport d'incident n'a été trouvé"
 
-#: incidents/views.py:510
+#: incidents/views.py:506
 msgid "An error occurred when generating the report."
 msgstr "Une erreur s'est produite lors de la génération du rapport."
 
-#: incidents/views.py:539
+#: incidents/views.py:535
 #, fuzzy
 #| msgid "Incident reference"
 msgid "Incident has been deleted"
 msgstr "L'incident a été supprimé"
 
-#: incidents/views.py:543
+#: incidents/views.py:539
 msgid "This incident can't be deleted."
 msgstr "Cet incident ne peut être supprimé"
 
-#: incidents/views.py:547
+#: incidents/views.py:543
 #, fuzzy
 #| msgid "An error occurred when generating the report."
 msgid "An error occurred when deleting the incident."
 msgstr "Une erreur s'est produite lors de la suppression de l'incident"
 
-#: incidents/views.py:563
+#: incidents/views.py:559
 msgid "The incidents reports per day have been reached. Try again tomorrow."
 msgstr ""
 "Le nombre de rapports d'incidents par jour a été atteint. Réessayez demain."
 
-#: incidents/views.py:674
+#: incidents/views.py:670
 msgid "Please select at least 1 regulator"
 msgstr "Veuillez sélectionner au moins 1 régulateur"
 
-#: incidents/views.py:683
+#: incidents/views.py:679
 msgid "Contact"
 msgstr "Contact"
 
-#: incidents/views.py:687
+#: incidents/views.py:683
 msgid "Detection date"
 msgstr "Date de détection"
 
-#: incidents/views.py:1052
+#: incidents/views.py:1048
 msgid "Timeline"
 msgstr "Chronologie"
 
@@ -739,63 +739,6 @@ msgstr "Durée maximale"
 #: templates/registration/base.html:13
 msgid "Log in"
 msgstr "Connection"
-
-#: templates/theme/templates/operateur/menu.html:4
-msgid "Security Objectives"
-msgstr "Objectifs de sécurité"
-
-#: templates/theme/templates/operateur/menu.html:7
-msgid "Dependencies"
-msgstr "Dépendances"
-
-#: templates/theme/templates/operateur/menu.html:10
-msgid "Risk Management"
-msgstr "Gestion de risques"
-
-#: templates/theme/templates/operateur/menu.html:13
-#: templates/theme/templates/regulator/menu.html:10
-msgid "Comunication"
-msgstr "Communication"
-
-#: templates/theme/templates/operateur/menu.html:16
-msgid "Incident Notification"
-msgstr "Notification d'incident"
-
-#: templates/theme/templates/parts/footer.html:22
-msgid "Terms of Service"
-msgstr "Conditions d'utilisation"
-
-#: templates/theme/templates/parts/footer.html:25
-msgid "Privacy Policy"
-msgstr "Politique de confidentialité"
-
-#: templates/theme/templates/parts/footer.html:28
-msgid "Contact us"
-msgstr "Contactez-nous"
-
-#: templates/theme/templates/registration/login.html:27
-msgid "Please login to your account"
-msgstr "Veuillez vous connecter à votre compte"
-
-#: templates/theme/templates/registration/login.html:33
-msgid "Log In"
-msgstr "Connection"
-
-#: templates/theme/templates/registration/login.html:35
-msgid "Forgot password?"
-msgstr "Mot de passe oublié ?"
-
-#: templates/theme/templates/registration/login.html:38
-msgid "Anonymous notification"
-msgstr "Notification anonyme"
-
-#: templates/theme/templates/regulator/menu.html:4
-msgid "Dashboard"
-msgstr "Tableau de bord"
-
-#: templates/theme/templates/regulator/menu.html:7
-msgid "User Management"
-msgstr "Gestion utilisateur"
 
 #: templates/two_factor/core/setup_complete.html:5
 msgid "Enable Two-Factor Authentication"
