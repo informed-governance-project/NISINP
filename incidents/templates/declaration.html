@@ -11,13 +11,12 @@
 
 <div class="card">
   <form action="" method="post">
+    {% csrf_token %}
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         {% for step in wizard.steps.all %}
         <li class="nav-item">
           {% with step_name=steps|index:step %}
-
-            {% csrf_token %}
             {% if step != wizard.steps.current %}
             {% bootstrap_button name="wizard_goto_step" button_type="submit" button_class="btn-light" value=step content=step_name %}
             {% else %}
@@ -29,7 +28,6 @@
       </ul>
     </div>
     <div class="card-body">
-        {% csrf_token %}
         {{ wizard.management_form }}
         {% if wizard.form.forms %}
           {{ wizard.form.management_form }}
