@@ -1,9 +1,12 @@
+import pytz
 from django.contrib import admin
 from django.db import models
+from django.db.models import Deferrable
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
-from django.db.models import Deferrable
+
+from governanceplatform.settings import TIME_ZONE
 
 from .globals import (
     INCIDENT_EMAIL_TRIGGER_EVENT,
@@ -314,6 +317,11 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
 class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
     incident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
+    incident_timezone = models.CharField(
+        max_length=50,
+        choices=[(tz, tz) for tz in pytz.all_timezones],
+        default=TIME_ZONE,
+    )
     incident_notification_date = models.DateTimeField(default=timezone.now)
     incident_detection_date = models.DateTimeField(blank=True, null=True)
     incident_starting_date = models.DateTimeField(blank=True, null=True)
