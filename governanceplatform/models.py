@@ -128,7 +128,12 @@ class Company(models.Model):
 # Regulator
 class Regulator(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
-    country = models.CharField(max_length=64, verbose_name=_("country"))
+    country = models.CharField(
+        max_length=200,
+        null=True,
+        choices=list(CountryField().choices),
+        verbose_name=_("country")
+    )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
         verbose_name=_("email address for incident notification"),
@@ -157,7 +162,12 @@ class Regulator(models.Model):
 # CERT
 class Cert(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
-    country = models.CharField(max_length=64, verbose_name=_("country"))
+    country = models.CharField(
+        max_length=200,
+        null=True,
+        choices=list(CountryField().choices),
+        verbose_name=_("country")
+    )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
         verbose_name=_("email address for incident notification"),
