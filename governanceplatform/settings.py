@@ -238,7 +238,7 @@ LOGIN_URL = "/account/login"
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "Europe/Paris"
+TIME_ZONE = "Europe/Luxembourg"
 USE_I18N = True
 USE_TZ = True
 SITE_ID = 1
@@ -328,7 +328,7 @@ BOOTSTRAP5 = {
     "success_css_class": "",
     # Enable or disable Bootstrap 5 server side validation classes
     # (separate from the indicator classes above).
-    "server_side_validation": True,
+    "server_side_validation": False,
     # Renderers (only set these if you have studied the source and understand the inner workings).
     "formset_renderers": {
         "default": "django_bootstrap5.renderers.FormsetRenderer",
