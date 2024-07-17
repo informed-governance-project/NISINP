@@ -54,6 +54,7 @@ from .models import (
     Answer,
     Incident,
     IncidentWorkflow,
+    LogReportRead,
     PredefinedAnswer,
     Question,
     SectorRegulation,
@@ -240,6 +241,11 @@ def review_workflow(request):
                 is_regulator=is_user_regulator(user),
             )
             request.incident_workflow = incident_workflow.id
+            # record who has seen the incident:
+            log = LogReportRead.objects.create(
+                user=user, incident_report=incident_workflow, action="READ"
+            )
+            log.save()
             return WorkflowWizardView.as_view(
                 form_list,
                 read_only=True,
@@ -507,6 +513,10 @@ def download_incident_pdf(request, incident_id: int):
     else:
         try:
             pdf_report = get_pdf_report(incident, request)
+            log = LogReportRead.objects.create(
+                user=user, incident=incident, action="DOWNLOAD"
+            )
+            log.save()
         except Exception:
             messages.warning(
                 request, _("An error occurred when generating the report.")

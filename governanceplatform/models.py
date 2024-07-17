@@ -22,12 +22,13 @@ class Sector(TranslatableModel):
         default=None,
         verbose_name=_("parent"),
     )
-    acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
+    acronym = models.CharField(verbose_name=_("Acronym"), max_length=4, null=True, blank=True, default=None)
 
     # name of the regulator who create the object
-    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator_name = models.CharField(verbose_name=_("Creator Name"), max_length=255, blank=True, default=None, null=True)
     creator = models.ForeignKey(
         "governanceplatform.regulator",
+        verbose_name=_("Creator"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -50,8 +51,8 @@ class Sector(TranslatableModel):
 # esssential services
 class Service(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    acronym = models.CharField(max_length=4, null=True, blank=True, default=None)
+    sector = models.ForeignKey(Sector, verbose_name=_("Sector"), on_delete=models.CASCADE)
+    acronym = models.CharField(verbose_name=_("Acronym"), max_length=4, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.name if self.name is not None else ""
@@ -63,7 +64,7 @@ class Service(TranslatableModel):
 
 # functionality (e.g, risk analysis, SO)
 class Functionality(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(max_length=100))
+    translations = TranslatedFields(name=models.CharField(verbose_name=_("Name"), max_length=100))
 
     def __str__(self):
         return self.name if self.name is not None else ""
@@ -75,8 +76,8 @@ class Functionality(TranslatableModel):
 
 # operator has type (critical, essential, etc.) who give access to functionalities
 class OperatorType(TranslatableModel):
-    translations = TranslatedFields(type=models.CharField(max_length=100))
-    functionalities = models.ManyToManyField(Functionality)
+    translations = TranslatedFields(type=models.CharField(verbose_name=_("Type"), max_length=100))
+    functionalities = models.ManyToManyField(Functionality, verbose_name=_("Functionalities"),)
 
     def __str__(self):
         return self.type if self.type is not None else ""
@@ -90,6 +91,7 @@ class Company(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(
         max_length=200,
+        verbose_name=_("Country"),
         null=True,
         choices=list(CountryField().choices),
     )
@@ -101,10 +103,10 @@ class Company(models.Model):
         default=None,
         verbose_name=_("email address"),
     )
-    phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
-    sector_contacts = models.ManyToManyField(Sector, through="SectorCompanyContact")
+    phone_number = PhoneNumberField(verbose_name=_("Phone number"), max_length=30, blank=True, default=None, null=True)
+    sector_contacts = models.ManyToManyField(Sector, through="SectorCompanyContact", verbose_name=_("Sector Contacts"),)
 
-    types = models.ManyToManyField(OperatorType)
+    types = models.ManyToManyField(OperatorType, verbose_name=_("Types"),)
 
     def __str__(self):
         return self.name
@@ -203,11 +205,11 @@ class User(AbstractUser, PermissionsMixin):
             "unique": _("A user is already registered with this email address"),
         },
     )
-    phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True)
-    companies = models.ManyToManyField(Company, through="SectorCompanyContact")
-    sectors = models.ManyToManyField(Sector, through="SectorCompanyContact")
-    regulators = models.ManyToManyField(Regulator, through="RegulatorUser")
-    certs = models.ManyToManyField(Cert, through="CertUser")
+    phone_number = PhoneNumberField(max_length=30, blank=True, default=None, null=True, verbose_name=_("Phone number"),)
+    companies = models.ManyToManyField(Company, through="SectorCompanyContact", verbose_name=_("Companies"),)
+    sectors = models.ManyToManyField(Sector, through="SectorCompanyContact", verbose_name=_("Sectors"),)
+    regulators = models.ManyToManyField(Regulator, through="RegulatorUser", verbose_name=_("Regulators"),)
+    certs = models.ManyToManyField(Cert, through="CertUser", verbose_name=_("Certs"),)
 
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
@@ -259,9 +261,9 @@ class User(AbstractUser, PermissionsMixin):
 
 
 class SectorCompanyContact(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name=_("Company"),)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"),)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, verbose_name=_("Sector"),)
     is_sector_contact = models.BooleanField(
         default=False, verbose_name=_("Contact person")
     )
@@ -284,8 +286,8 @@ class SectorCompanyContact(models.Model):
 
 # link between the admin regulator users and the regulators.
 class RegulatorUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    regulator = models.ForeignKey(Regulator, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"),)
+    regulator = models.ForeignKey(Regulator, on_delete=models.CASCADE, verbose_name=_("Regulator"),)
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
@@ -306,8 +308,8 @@ class RegulatorUser(models.Model):
 
 # link between the admin cert users and the cert.
 class CertUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    cert = models.ForeignKey(Cert, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("User"),)
+    cert = models.ForeignKey(Cert, on_delete=models.CASCADE, verbose_name=_("Cert"),)
     is_cert_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
@@ -326,9 +328,9 @@ class CertUser(models.Model):
 # Different regulation like NIS etc.
 class Regulation(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True)
+        label=models.CharField(max_length=255, blank=True, default=None, null=True, verbose_name=_("Label"),)
     )
-    regulators = models.ManyToManyField(Regulator, default=None, blank=True)
+    regulators = models.ManyToManyField(Regulator, default=None, blank=True, verbose_name=_("Regulators"),)
 
     @admin.display(description="regulators")
     def get_regulators(self):
