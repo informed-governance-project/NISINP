@@ -279,7 +279,7 @@ class QuestionForm(forms.Form):
             if answer is not None:
                 if answer != "":
                     initial_data = answer
-                    initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M:%S")
+                    initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M")
             self.fields[field_name] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
