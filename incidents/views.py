@@ -502,6 +502,24 @@ def get_edit_incident_timeline_form(request, incident_id: int):
 
 @login_required
 @otp_required
+def access_log(request, incident_id: int):
+    user = request.user
+    incident = Incident.objects.get(pk=incident_id)
+    company_id = request.session.get("company_in_use")
+
+    if not can_access_incident(user, incident, company_id):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+
+    log = LogReportRead.objects.filter(incident=incident)
+    context = {
+        "log": log,
+    }
+    return render(request, "edit_impacts.html", context)
+
+
+@login_required
+@otp_required
 def download_incident_pdf(request, incident_id: int):
     user = request.user
     incident = Incident.objects.get(pk=incident_id)
@@ -1049,7 +1067,7 @@ def save_answers(data=None, incident=None, workflow=None):
     """Save the answers."""
     prefix = "__question__"
     questions_data = {
-        key[len(prefix):]: value
+        key[len(prefix) :]: value
         for key, value in data.items()
         if key.startswith(prefix)
     }
