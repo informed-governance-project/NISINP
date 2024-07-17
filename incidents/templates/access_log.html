@@ -1,11 +1,50 @@
 {% extends 'home/base.html' %}
 {% load django_bootstrap5 %}
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
+    <div class="col">
         <h4>{{ _('Access log')}}</h4>
+        <table class="table align-middle table-sm small">
+            <thead>
+                <tr>
+                    <th scope="col">{% translate "Date" %}</th>
+                    <th scope="col">{% translate "User" %}</th>
+                    <th scope="col">{% translate "Document" %}</th>
+                    <th scope="col">{% translate "Action" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in log %}
+                <tr>
+                    {% timezone "Europe/Luxembourg" %}
+                    <td class="table-group-divider" scope="row">
+                        {{record.timestamp|date:"d M Y, H:i" }}
+                    </td>
+                    {% endtimezone %}
+                    <td class="table-group-divider" scope="row">
+                        {% if record.user %}
+                            {{record.user.get_full_name }}
+                        {% else %}
+                            {{record.user__full_name }}
+                        {% endif %}
+                    </td>
+                    <td class="table-group-divider" scope="row">
+                        {% if record.incident_report %}
+                        {% timezone "Europe/Luxembourg" %}
+                            {{ record.incident_report.workflow.name }} ({{ record.incident_report.timestamp|date:"d/m/Y H:i" }})
+                        {% endtimezone %}
+                        {% else %}
+                            {{record.incident.incident_id }}
+                        {% endif %}
+                    </td>
+                    <td class="table-group-divider" scope="row">{{record.action }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

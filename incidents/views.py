@@ -241,14 +241,6 @@ def review_workflow(request):
                 is_regulator=is_user_regulator(user),
             )
             request.incident_workflow = incident_workflow.id
-            # record who has seen the incident:
-            log = LogReportRead.objects.create(
-                user=user,
-                incident=incident_workflow.incident,
-                incident_report=incident_workflow,
-                action="READ",
-            )
-            log.save()
             return WorkflowWizardView.as_view(
                 form_list,
                 read_only=True,
@@ -304,14 +296,7 @@ def edit_workflow(request):
                 is_regulator=is_user_regulator(user),
             )
             request.incident_workflow = incident_workflow.id
-            # log user read
-            log = LogReportRead.objects.create(
-                user=user,
-                incident=incident_workflow.incident,
-                incident_report=incident_workflow,
-                action="READ",
-            )
-            log.save()
+
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
@@ -324,14 +309,7 @@ def edit_workflow(request):
             is_regulator=is_user_regulator(user),
         )
         request.incident_workflow = incident_workflow.id
-        # log regulator read
-        log = LogReportRead.objects.create(
-            user=user,
-            incident=incident_workflow.incident,
-            incident_report=incident_workflow,
-            action="READ",
-        )
-        log.save()
+
         return WorkflowWizardView.as_view(
             form_list,
         )(request)
@@ -550,10 +528,7 @@ def download_incident_pdf(request, incident_id: int):
     else:
         try:
             pdf_report = get_pdf_report(incident, request)
-            log = LogReportRead.objects.create(
-                user=user, incident=incident, action="DOWNLOAD"
-            )
-            log.save()
+            create_entry_log(user, incident, None, "DOWNLOAD")
         except Exception:
             messages.warning(
                 request, _("An error occurred when generating the report.")
@@ -869,11 +844,10 @@ class FormWizardView(SessionWizardView):
                     f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
                     f"{number_of_incident}_{date.today().year}"
                 )
-                log = LogReportRead.objects.create(
-                    user=user, incident=incident, action="CREATE"
-                )
-                log.save()
+
                 incident.save()
+
+                create_entry_log(user, incident, None, "COMMENT")
 
                 # send The email notification opening
                 if sector_regulation.opening_email is not None:
@@ -957,6 +931,21 @@ class WorkflowWizardView(SessionWizardView):
                 )
 
         return kwargs
+
+    def get(self, request, *args, **kwargs):
+        incident_workflow_id = request.GET.get("incident_workflow_id", None)
+        if incident_workflow_id:
+            company_id = request.session.get("company_in_use")
+            user = request.user
+            incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+            incident = incident_workflow.incident
+
+            if incident_workflow and can_access_incident(user, incident, company_id):
+                create_entry_log(
+                    user, incident_workflow.incident, incident_workflow, "READ"
+                )
+
+        return super().get(self, request, *args, **kwargs)
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:
@@ -1069,11 +1058,13 @@ class WorkflowWizardView(SessionWizardView):
 
             self.incident.save()
             # manage question
-            save_answers(data, self.incident, self.workflow)
+            incident_workflow = save_answers(data, self.incident, self.workflow)
+            create_entry_log(user, self.incident, incident_workflow, "CREATE")
+
             if email:
                 send_email(email, self.incident)
         # save the comment if the user is regulator
-        elif is_user_regulator(user):
+        elif is_user_regulator(user) and not self.read_only:
             incident_workflow = (
                 IncidentWorkflow.objects.all()
                 .filter(incident=self.incident, workflow=self.workflow)
@@ -1082,13 +1073,10 @@ class WorkflowWizardView(SessionWizardView):
             )
             incident_workflow.comment = data.get("comment", None)
             incident_workflow.save()
-            log = LogReportRead.objects.create(
-                user=user,
-                incident=incident_workflow.incident,
-                incident_report=incident_workflow,
-                action="COMMENT",
+            create_entry_log(
+                user, incident_workflow.incident, incident_workflow, "COMMENT"
             )
-            log.save()
+
         return HttpResponseRedirect("/incidents")
 
 
@@ -1153,6 +1141,8 @@ def save_answers(data=None, incident=None, workflow=None):
             )
             answer_object.predefined_answers.set(predefined_answers)
 
+    return incident_workflow
+
 
 def can_redirect(url: str) -> bool:
     """
@@ -1171,3 +1161,13 @@ def convert_to_utc(date, local_tz):
         local_dt = local_tz.localize(date.replace(tzinfo=None))
         return local_dt.astimezone(pytz.utc)
     return None
+
+
+def create_entry_log(user, incident, incident_report, action):
+    log = LogReportRead.objects.create(
+        user=user,
+        incident=incident,
+        incident_report=incident_report,
+        action=action,
+    )
+    log.save()
