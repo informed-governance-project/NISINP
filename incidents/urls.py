@@ -18,9 +18,10 @@ from django.urls import path
 from django.views.i18n import set_language
 
 from .views import (
+    access_log,
     create_workflow,
-    download_incident_pdf,
     delete_incident,
+    download_incident_pdf,
     edit_impacts,
     edit_workflow,
     get_edit_incident_timeline_form,
@@ -55,6 +56,11 @@ urlpatterns = [
         "incident/<int:incident_id>",
         get_regulator_incident_edit_form,
         name="regulator_incident_edit",
+    ),
+    path(
+        "access_log/<int:incident_id>",
+        access_log,
+        name="access_log",
     ),
     path(
         "download-pdf/<int:incident_id>",
