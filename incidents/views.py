@@ -4,12 +4,14 @@
 from datetime import date
 from urllib.parse import urlparse
 
+import pytz
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_countries import countries
@@ -31,6 +33,7 @@ from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
     SITE_NAME,
+    TIME_ZONE,
 )
 
 from .decorators import regulator_role_required
@@ -42,10 +45,8 @@ from .forms import (
     IncidenteDateForm,
     IncidentStatusForm,
     IncidentWorkflowForm,
-    QuestionForm,
     RegulationForm,
     RegulatorForm,
-    RegulatorIncidentWorkflowCommentForm,
     get_forms_list,
 )
 from .globals import REGIONAL_AREA
@@ -102,7 +103,7 @@ def get_incidents(request):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
             company__id=request.session.get("company_in_use"),
-            affected_sectors__in=user.sectors.all()
+            affected_sectors__in=user.sectors.all(),
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
@@ -297,7 +298,9 @@ def edit_workflow(request):
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
-    elif incident_workflow and can_edit_incident_report(user, incident_workflow.incident, company_id):
+    elif incident_workflow and can_edit_incident_report(
+        user, incident_workflow.incident, company_id
+    ):
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
@@ -361,9 +364,7 @@ def edit_impacts(request, incident_id=None):
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     # RegulatorUser can access only incidents from accessible sectors.
-    if (
-        not can_edit_incident_report(request.user, Incident.objects.get(pk=incident_id))
-    ):
+    if not can_edit_incident_report(request.user, Incident.objects.get(pk=incident_id)):
         return HttpResponseRedirect("/incidents")
 
     workflow_id = request.GET.get("workflow_id", None)
@@ -388,9 +389,12 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                             field_name,
                             workflow_form.initial[field_name],
                         )
-                    if field_name == 'review_status':
+                    if field_name == "review_status":
                         if incident.sector_regulation.report_status_changed_email:
-                            send_email(incident.sector_regulation.report_status_changed_email, incident)
+                            send_email(
+                                incident.sector_regulation.report_status_changed_email,
+                                incident,
+                            )
                 workflow.save()
 
             return JsonResponse(response)
@@ -408,9 +412,11 @@ def get_regulator_incident_edit_form(request, incident_id: int):
                 if field_name and field_value is not None:
                     response[field_name] = field_value
                     setattr(incident, field_name, field_value)
-                    if field_name == 'incident_status' and field_value == 'CLOSE':
+                    if field_name == "incident_status" and field_value == "CLOSE":
                         if incident.sector_regulation.closing_email:
-                            send_email(incident.sector_regulation.closing_email, incident)
+                            send_email(
+                                incident.sector_regulation.closing_email, incident
+                            )
 
                 else:
                     response[field_name] = incident_form.initial[field_name]
@@ -531,13 +537,9 @@ def delete_incident(request, incident_id: int):
             if incident is not None:
                 if incident.workflows.count() == 0:
                     incident.delete()
-                    messages.info(
-                        request, _("Incident has been deleted")
-                    )
+                    messages.info(request, _("Incident has been deleted"))
                 else:
-                    messages.warning(
-                        request, _("This incident can't be deleted.")
-                    )
+                    messages.warning(request, _("This incident can't be deleted."))
         except Exception:
             messages.warning(
                 request, _("An error occurred when deleting the incident.")
@@ -657,7 +659,7 @@ class FormWizardView(SessionWizardView):
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
         self.initial_dict = kwargs.pop("initial_dict")
-        return super().__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
         # active_company = get_active_company_from_session(self.request)
@@ -669,8 +671,7 @@ class FormWizardView(SessionWizardView):
             if step1data is None:
                 messages.warning(self.request, _("Please select at least 1 regulator"))
 
-        form = super().get_form(step, data, files)
-        return form
+        return super().get_form(step, data, files)
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
@@ -694,12 +695,7 @@ class FormWizardView(SessionWizardView):
         self.storage.set_step_data(self.steps.current, self.process_step(form1))
         self.storage.set_step_files(self.steps.current, self.process_step_files(form1))
 
-        self.storage.current_step = goto_step
-        form = self.get_form(
-            data=self.storage.get_step_data(self.steps.current),
-            files=self.storage.get_step_files(self.steps.current),
-        )
-        return self.render(form, **kwargs)
+        return super().render_goto_step(goto_step, **kwargs)
 
     def get_form_initial(self, step):
         if step == "2":
@@ -725,109 +721,52 @@ class FormWizardView(SessionWizardView):
         if is_incidents_report_limit_reached(self.request):
             return HttpResponseRedirect("/incidents")
 
-        data = [form.cleaned_data for form in form_list]
-
-        # prevent multi-record in the same session
-        # json_data = [json.dumps(form.cleaned_data, indent=4, sort_keys=True, default=str) for form in form_list]
-        # sha512 = hashlib.sha512()
-        # sha512.update(str(json_data).encode("utf-8"))
-
-        # if self.request.session.get('forbidden_data', None) is None:
-        #     self.request.session['forbidden_data'] = []
-
-        # hashed_form = sha512.hexdigest()
-        # if hashed_form in self.request.session['forbidden_data']:
-        #     messages.error(self.request, _("This incident has already been submitted"))
-        #     return HttpResponseRedirect("/incidents")
-        # else:
-        #     self.request.session['forbidden_data'].append(hashed_form)
-
         user = self.request.user
+        data = self.get_all_cleaned_data()
         company = get_active_company_from_session(self.request)
+        sectors_id = extract_ids(data.get("sectors", []))
+        regulators_id = extract_ids(data.get("regulators", []))
+        regulations_id = extract_ids(data.get("regulations", []))
 
-        sectors_id = []
-        detection_date_data = None
-        if len(data) > 3:
-            if data[3].get("sectors"):
-                for sector_data in data[3]["sectors"]:
-                    try:
-                        sector_id = int(sector_data)
-                        sectors_id.append(sector_id)
-                    except Exception:
-                        pass
-            if data[3].get("detection_date"):
-                detection_date_data = data[3]["detection_date"]
-        if len(data) > 4:
-            if data[4].get("detection_date"):
-                detection_date_data = data[4]["detection_date"]
-
-        regulations_id = []
-        for regulations_data in data[2]["regulations"]:
-            try:
-                regulation_id = int(regulations_data)
-                regulations_id.append(regulation_id)
-            except Exception:
-                pass
-
-        regulators_id = []
-        for regulators_data in data[1]["regulators"]:
-            try:
-                regulator_id = int(regulators_data)
-                regulators_id.append(regulator_id)
-            except Exception:
-                pass
-
-        # get sector_regulations where the sectors is specified
-        temps_ids = []
-        sector_regulations = SectorRegulation.objects.none()
-        if len(sectors_id) > 0:
-            sector_regulations = (
-                SectorRegulation.objects.all()
-                .filter(
-                    sectors__in=sectors_id,
-                    regulator__in=regulators_id,
-                    regulation__in=regulations_id,
-                )
-                .order_by()
-                .distinct()
-            )
-            temps_ids = sector_regulations.values_list("id", flat=True)
-
-        # add regulation without sector excluding the previous one
-        sector_regulations2 = (
-            SectorRegulation.objects.all()
-            .filter(
+        sector_regulations = (
+            SectorRegulation.objects.filter(
+                Q(sectors__in=sectors_id) | Q(sectors__isnull=True),
                 regulator__in=regulators_id,
                 regulation__in=regulations_id,
-                sectors__in=[],
             )
             .order_by()
             .distinct()
-            .exclude(id__in=temps_ids)
         )
 
-        sector_regulations = sector_regulations | sector_regulations2
+        incident_timezone = data.get("incident_timezone", TIME_ZONE)
+        incident_detection_date = data.get("detection_date", None)
+
+        if incident_detection_date:
+            local_tz = pytz.timezone(incident_timezone)
+            local_dt = local_tz.localize(incident_detection_date.replace(tzinfo=None))
+            incident_detection_date = local_dt.astimezone(pytz.utc)
 
         for sector_regulation in sector_regulations:
             incident = Incident.objects.create(
-                contact_lastname=data[0]["contact_lastname"],
-                contact_firstname=data[0]["contact_firstname"],
-                contact_title=data[0]["contact_title"],
-                contact_email=data[0]["contact_email"],
-                contact_telephone=data[0]["contact_telephone"],
+                contact_lastname=data.get("contact_lastname"),
+                contact_firstname=data.get("contact_firstname"),
+                contact_title=data.get("contact_title"),
+                contact_email=data.get("contact_email"),
+                contact_telephone=data.get("contact_telephone"),
                 # technical contact
-                technical_lastname=data[0]["technical_lastname"],
-                technical_firstname=data[0]["technical_firstname"],
-                technical_title=data[0]["technical_title"],
-                technical_email=data[0]["technical_email"],
-                technical_telephone=data[0]["technical_telephone"],
-                incident_reference=data[0]["incident_reference"],
-                complaint_reference=data[0]["complaint_reference"],
+                technical_lastname=data.get("technical_lastname"),
+                technical_firstname=data.get("technical_firstname"),
+                technical_title=data.get("technical_title"),
+                technical_email=data.get("technical_email"),
+                technical_telephone=data.get("technical_telephone"),
+                incident_reference=data.get("incident_reference"),
+                complaint_reference=data.get("complaint_reference"),
                 contact_user=user,
                 company=company,
-                company_name=company.name if company else data[0]["company_name"],
+                company_name=company.name if company else data.get("company_name"),
                 sector_regulation=sector_regulation,
-                incident_detection_date=detection_date_data,
+                incident_timezone=data.get("incident_timezone", TIME_ZONE),
+                incident_detection_date=incident_detection_date,
             )
             if incident:
                 # check if the detection date is over
@@ -840,9 +779,9 @@ class FormWizardView(SessionWizardView):
                         .order_by("position")
                         .first()
                     )
-                    actual_time = timezone.now()
+
                     if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
-                        dt = actual_time - incident.incident_detection_date
+                        dt = timezone.now() - incident.incident_detection_date
                         if (
                             round(dt.total_seconds() / 60 / 60, 0)
                             > sr_workflow.delay_in_hours_before_deadline
@@ -857,19 +796,18 @@ class FormWizardView(SessionWizardView):
                 affected_sectors = selected_sectors & sec
                 incident.affected_sectors.set(affected_sectors)
                 # incident reference
-                company_for_ref = ""
+
+                company_for_ref = (
+                    company.identifier if company else data.get("company_name", "")[:4]
+                )
                 sector_for_ref = ""
                 subsector_for_ref = ""
-                if company is None:
-                    company_for_ref = data[0]["company_name"][:4]
-                else:
-                    company_for_ref = company.identifier
 
                 for sector in sector_regulation.sectors.all():
                     if sector.id in sectors_id:
                         if subsector_for_ref == "":
                             subsector_for_ref = sector.acronym[:3]
-                            if sector.parent is not None:
+                            if sector.parent:
                                 sector_for_ref = sector.parent.acronym[:3]
 
                 incidents_per_company = (
@@ -881,16 +819,10 @@ class FormWizardView(SessionWizardView):
                 )
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (
-                    company_for_ref
-                    + "_"
-                    + sector_for_ref
-                    + "_"
-                    + subsector_for_ref
-                    + "_"
-                    + number_of_incident
-                    + "_"
-                    + str(date.today().year)
+                    f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
+                    f"{number_of_incident}_{date.today().year}"
                 )
+
                 incident.save()
 
                 # send The email notification opening
@@ -914,13 +846,14 @@ class WorkflowWizardView(SessionWizardView):
         self.read_only = read_only
         super().__init__(**kwargs)
 
-    def get_form(self, step=None, data=None, files=None):
+    def get_form_kwargs(self, step=None):
+        user = self.request.user
         if step is None:
             step = self.steps.current
+        kwargs = super().get_form_kwargs(step)
+
         position = int(step)
-        user = self.request.user
-        # Operator : Complete an existing workflow or see historic
-        # Regulator : See the report
+
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
                 pk=self.request.incident_workflow
@@ -928,44 +861,31 @@ class WorkflowWizardView(SessionWizardView):
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             if position == 0:
-                # TO DO : find a solution to manage modelform properly
-                tempdict = (
-                    self.request.POST.copy() if self.request.method == "POST" else None
-                )
-                if tempdict is not None and "incident_starting_date" not in tempdict:
-                    if self.storage.get_step_data(self.steps.current) is not None:
-                        tempdict["incident_starting_date"] = self.storage.get_step_data(
-                            self.steps.current
-                        ).get("incident_starting_date")
-                form = IncidenteDateForm(
-                    instance=self.incident_workflow.incident, data=tempdict
-                )
+                kwargs.update({"instance": self.incident})
             # Regulator case
             elif (
                 position == len(self.form_list) - 2
                 and self.workflow.is_impact_needed
                 and is_user_regulator(user)
             ):
-                form = ImpactForm(incident=self.incident, data=data)
+                kwargs.update({"incident": self.incident})
             elif position == len(self.form_list) - 1 and is_user_regulator(user):
-                form = RegulatorIncidentWorkflowCommentForm(
-                    instance=self.incident_workflow, data=data
-                )
+                kwargs.update({"instance": self.incident_workflow})
             # Operator case
             elif (
                 position == len(self.form_list) - 1
                 and self.workflow.is_impact_needed
                 and not is_user_regulator(user)
             ):
-                form = ImpactForm(incident=self.incident, data=data)
+                kwargs.update({"incident": self.incident})
             else:
                 # regulator pass directly the incident_workflow
-                form = QuestionForm(
-                    data,
-                    position=position - 1,
-                    incident_workflow=self.incident_workflow,
+                kwargs.update(
+                    {
+                        "position": position - 1,
+                        "incident_workflow": self.incident_workflow,
+                    }
                 )
-
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
             if not self.request.workflow:
@@ -974,29 +894,31 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow = self.request.workflow
 
             if position == 0:
-                # TO DO : find a solution to manage modelform properly
-                tempdict = (
-                    self.request.POST.copy() if self.request.method == "POST" else None
-                )
-                if tempdict is not None and "incident_starting_date" not in tempdict:
-                    if self.storage.get_step_data(self.steps.current) is not None:
-                        tempdict["incident_starting_date"] = self.storage.get_step_data(
-                            self.steps.current
-                        ).get("incident_starting_date")
-                form = IncidenteDateForm(instance=self.incident, data=tempdict)
+                kwargs.update({"instance": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
-                form = ImpactForm(incident=self.incident, data=data)
+                kwargs.update({"incident": self.incident})
             else:
-                form = QuestionForm(
-                    data,
-                    position=position - 1,
-                    workflow=self.workflow,
-                    incident=self.incident,
+                kwargs.update(
+                    {
+                        "position": position - 1,
+                        "workflow": self.workflow,
+                        "incident": self.incident,
+                    }
                 )
+
+        return kwargs
+
+    def get_form(self, step=None, data=None, files=None):
+        if step is None:
+            step = self.steps.current
+        position = int(step)
+        user = self.request.user
+        # Operator : Complete an existing workflow or see historic
+        # Regulator : See the report
+        form = super().get_form(step=step, data=data, files=files)
 
         # Read only for regulator except for last form (save comment)
         # Read only for operator review (read_only = True)
-        user = self.request.user
         if self.read_only:
             last_form_index = -1
         else:
@@ -1056,76 +978,71 @@ class WorkflowWizardView(SessionWizardView):
         return context
 
     def render_goto_step(self, goto_step, **kwargs):
-        form1 = self.get_form(
-            self.steps.current, data=self.request.POST, files=self.request.FILES
-        )
-
-        self.storage.set_step_data(self.steps.current, self.process_step(form1))
-        self.storage.set_step_files(self.steps.current, self.process_step_files(form1))
-
-        self.storage.current_step = goto_step
+        current_step = self.steps.current
         form = self.get_form(
-            data=self.storage.get_step_data(self.steps.current),
-            files=self.storage.get_step_files(self.steps.current),
+            current_step, data=self.request.POST, files=self.request.FILES
         )
-        return self.render(form, **kwargs)
+
+        if form.is_valid():
+            self.storage.set_step_data(current_step, self.process_step(form))
+            self.storage.set_step_files(current_step, self.process_step_files(form))
+
+        return super().render_goto_step(goto_step, **kwargs)
 
     def done(self, form_list, **kwargs):
         user = self.request.user
+        data = self.get_all_cleaned_data()
         if not is_user_regulator(user) and not self.read_only:
-            data = [form.cleaned_data for form in form_list]
-            if self.incident is None:
-                self.incident = Incident.objects.get(pk=self.request.incident)
-                self.incident.review_status = "DELIV"
-            else:
-                self.incident.review_status = "DELIV"
-
-            email = (
-                self.workflow.submission_email
-                if self.workflow.submission_email
-                else None
+            incident_timezone = data.get("incident_timezone", TIME_ZONE)
+            incident_starting_date = data.get("incident_starting_date", None)
+            incident_detection_date = data.get("incident_detection_date", None)
+            local_tz = pytz.timezone(incident_timezone)
+            email = self.workflow.submission_email or None
+            self.incident = self.incident or get_object_or_404(
+                Incident, pk=self.request.incident
             )
-            timeline_data = self.storage.get_step_data(self.steps.first)
-            # TO DO : manage this modelform properly - Save timeline
-            if timeline_data is not None:
-                if "incident_starting_date" in timeline_data:
-                    if timeline_data["incident_starting_date"]:
-                        self.incident.incident_starting_date = timeline_data[
-                            "incident_starting_date"
-                        ]
-                    else:
-                        self.incident.incident_starting_date = None
-                if (
-                    "incident_detection_date" in timeline_data
-                    and not self.incident.sector_regulation.is_detection_date_needed
-                ):
-                    if timeline_data["incident_detection_date"]:
-                        self.incident.incident_detection_date = timeline_data[
-                            "incident_detection_date"
-                        ]
-                    else:
-                        self.incident.incident_detection_date = None
+            self.incident.review_status = "DELIV"
+            self.incident.incident_timezone = incident_timezone
+
+            if incident_starting_date:
+                self.incident.incident_starting_date = convert_to_utc(
+                    incident_starting_date, local_tz
+                )
+
+            if (
+                incident_detection_date
+                and not self.incident.sector_regulation.is_detection_date_needed
+            ):
+                self.incident.incident_detection_date = convert_to_utc(
+                    incident_detection_date, local_tz
+                )
+
             self.incident.save()
             # manage question
-            save_answers(1, data, self.incident, self.workflow)
-            if email is not None:
+            save_answers(data, self.incident, self.workflow)
+            if email:
                 send_email(email, self.incident)
         # save the comment if the user is regulator
         elif is_user_regulator(user):
-            data = [form.cleaned_data for form in form_list]
             incident_workflow = (
                 IncidentWorkflow.objects.all()
                 .filter(incident=self.incident, workflow=self.workflow)
                 .order_by("-timestamp")
                 .first()
             )
-            incident_workflow.comment = data[len(data) - 1]["comment"]
+            incident_workflow.comment = data.get("comment", None)
             incident_workflow.save()
         return HttpResponseRedirect("/incidents")
 
 
-def save_answers(index=0, data=None, incident=None, workflow=None):
+def save_answers(data=None, incident=None, workflow=None):
     """Save the answers."""
+    prefix = "__question__"
+    questions_data = {
+        key[len(prefix) :]: value
+        for key, value in data.items()
+        if key.startswith(prefix)
+    }
 
     # We create a new incident workflow in all the case (history)
     incident_workflow = IncidentWorkflow.objects.create(
@@ -1134,55 +1051,50 @@ def save_answers(index=0, data=None, incident=None, workflow=None):
     incident_workflow.review_status = "DELIV"
     incident_workflow.save()
     # TO DO manage impact
-    offset_top = len(data)
     if workflow.is_impact_needed:
-        # impact are the last form
-        offset_top = offset_top - 1
-        incident_workflow.impacts.set(data[offset_top]["impacts"])
+        impacts = data.get("impacts", [])
+        incident_workflow.impacts.set(impacts)
+        incident = incident_workflow.incident
+        incident.is_significative_impact = False
 
-        if len(data[offset_top]["impacts"]) > 0:
-            incident = incident_workflow.incident
+        if len(impacts) > 0:
             incident.is_significative_impact = True
-            incident.save()
-        else:
-            incident = incident_workflow.incident
-            incident.is_significative_impact = False
-            incident.save()
 
-    for d in range(index, offset_top):
-        for key, value in data[d].items():
-            question_id = None
-            try:
-                question_id = int(key)
-            except Exception:
-                pass
-            if question_id is not None:
-                predefined_answers = []
-                question = Question.objects.get(pk=key)
-                if question.question_type == "FREETEXT":
-                    answer = value
-                elif question.question_type == "DATE":
-                    if value is not None:
-                        answer = value.strftime("%Y-%m-%d %H:%M:%S")
-                    else:
-                        answer = None
-                elif question.question_type == "CL" or question.question_type == "RL":
-                    answer = ""
-                    for val in value:
-                        answer += val + ","
-                    answer = answer
-                else:  # MULTI
-                    for val in value:
-                        predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
+        incident.save()
+
+    for key, value in questions_data.items():
+        question_id = None
+        try:
+            question_id = int(key)
+        except Exception:
+            pass
+        if question_id:
+            predefined_answers = []
+            question = Question.objects.get(pk=key)
+            if question.question_type == "FREETEXT":
+                answer = value
+            elif question.question_type == "DATE":
+                if value:
+                    answer = value.strftime("%Y-%m-%d %H:%M")
+                else:
                     answer = None
-                    if data[d].get(key + "_answer"):
-                        answer = data[d][key + "_answer"]
-                answer_object = Answer.objects.create(
-                    incident_workflow=incident_workflow,
-                    question=question,
-                    answer=answer,
-                )
-                answer_object.predefined_answers.set(predefined_answers)
+            elif question.question_type == "CL" or question.question_type == "RL":
+                answer = ""
+                for val in value:
+                    answer += val + ","
+                answer = answer
+            else:  # MULTI
+                for val in value:
+                    predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
+                answer = None
+                if questions_data.get(key + "_answer", None):
+                    answer = questions_data.get(key + "_answer")
+            answer_object = Answer.objects.create(
+                incident_workflow=incident_workflow,
+                question=question,
+                answer=answer,
+            )
+            answer_object.predefined_answers.set(predefined_answers)
 
 
 def can_redirect(url: str) -> bool:
@@ -1191,3 +1103,14 @@ def can_redirect(url: str) -> bool:
     """
     o = urlparse(url)
     return o.netloc in PUBLIC_URL
+
+
+def extract_ids(data: list) -> list:
+    return [int(item) for item in data if item.isdigit()]
+
+
+def convert_to_utc(date, local_tz):
+    if date:
+        local_dt = local_tz.localize(date.replace(tzinfo=None))
+        return local_dt.astimezone(pytz.utc)
+    return None
