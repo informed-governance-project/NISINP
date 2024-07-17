@@ -525,7 +525,7 @@ def access_log(request, incident_id: int):
     context = {
         "log": log,
     }
-    return render(request, "edit_impacts.html", context)
+    return render(request, "access_log.html", context)
 
 
 @login_required
