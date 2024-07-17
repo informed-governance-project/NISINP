@@ -1049,7 +1049,7 @@ def save_answers(data=None, incident=None, workflow=None):
     """Save the answers."""
     prefix = "__question__"
     questions_data = {
-        key[len(prefix) :]: value
+        key[len(prefix):]: value
         for key, value in data.items()
         if key.startswith(prefix)
     }
