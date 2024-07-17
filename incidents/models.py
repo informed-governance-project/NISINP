@@ -687,3 +687,36 @@ class Answer(models.Model):
     class meta:
         verbose_name_plural = _("Answer")
         verbose_name = _("Answers")
+
+
+# record who has read the reports
+class LogReportRead(models.Model):
+    user = models.ForeignKey(
+        "governanceplatform.User",
+        on_delete=models.SET_NULL,
+        verbose_name=_("User"),
+        null=True,
+    )
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    # save full name in case of the user is deleted to keep the name
+    user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    incident_report = models.ForeignKey(
+        IncidentWorkflow,
+        verbose_name=_("Incident report answered"),
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    incident = models.ForeignKey(
+        Incident,
+        verbose_name=_("Incident report answered"),
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    # the action performed e.g. : read, download
+    action = models.CharField(max_length=10, verbose_name=_("Action performed"))
+
+    def save(self, *args, **kwargs):
+        self.user_full_name = self.user.get_full_name()
+        super().save(*args, **kwargs)
