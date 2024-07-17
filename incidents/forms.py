@@ -2,28 +2,22 @@ from datetime import datetime
 from functools import partial
 from operator import is_not
 
+import pytz
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.translation import gettext as _
-from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
 from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
+from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
-from governanceplatform.settings import TIME_ZONE
-from .models import (  # Impact,
-    Answer,
-    Incident,
-    IncidentWorkflow,
-    Question,
-    SectorRegulation,
-)
+from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -591,7 +585,9 @@ class RegulatorForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
-            self.fields["regulators"].choices = [(k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()]
+            self.fields["regulators"].choices = [
+                (k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()
+            ]
         except Exception:
             self.fields["regulators"].choices = []
 
@@ -601,6 +597,14 @@ class RegulatorForm(forms.Form):
 
 # select the detection date
 class DetectionDateForm(forms.Form):
+    incident_timezone = forms.ChoiceField(
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "form-control"}),
+        required=False,
+        label=gettext_lazy("Select the incident time zone"),
+        initial=TIME_ZONE,
+    )
+
     detection_date = forms.DateTimeField(
         required=True,
         widget=DateTimePickerInput(
@@ -634,24 +638,10 @@ class SectorForm(forms.Form):
             self.fields["sectors"].required = False
 
 
-# OLD VERSION
-# # prepare an array of sectors
-# def construct_sectors_array(regulations, regulators):
-#     sectors_to_select = []
-#     sector_regulations = SectorRegulation.objects.all().filter(
-#         regulation__in=regulations, regulator__in=regulators
-#     )
-
-#     for sector_regulation in sector_regulations:
-#         for sector in sector_regulation.sectors.all():
-#             if [sector.id, sector.name] not in sectors_to_select:
-#                 sectors_to_select.append([sector.id, sector.name])
-
-#     return sectors_to_select
-
-
 def construct_sectors_array(regulations, regulators):
-    sector_regulations = SectorRegulation.objects.filter(regulation__in=regulations, regulator__in=regulators)
+    sector_regulations = SectorRegulation.objects.filter(
+        regulation__in=regulations, regulator__in=regulators
+    )
     all_sectors = Sector.objects.filter(sectorregulation__in=sector_regulations)
     categs = dict()
 
@@ -794,6 +784,13 @@ class ImpactForm(forms.Form):
 
 # let the user change the date of his incident
 class IncidenteDateForm(forms.ModelForm):
+    incident_timezone = forms.ChoiceField(
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "form-control"}),
+        required=False,
+        label=gettext_lazy("Select the incident time zone"),
+        initial=TIME_ZONE,
+    )
 
     incident_notification_date = forms.DateTimeField(
         widget=DateTimePickerInput(
@@ -818,12 +815,7 @@ class IncidenteDateForm(forms.ModelForm):
             },
         ),
         required=False,
-        help_text=format_lazy(
-            "{} : {}, {}",
-            gettext_lazy("Timezone"),
-            TIME_ZONE,
-            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
-        ),
+        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
     )
 
     incident_starting_date = forms.DateTimeField(
@@ -837,28 +829,54 @@ class IncidenteDateForm(forms.ModelForm):
             },
         ),
         required=False,
-        help_text=format_lazy(
-            "{} : {}, {}",
-            gettext_lazy("Timezone"),
-            TIME_ZONE,
-            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
-        ),
+        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = self.instance.id
-        self.incident = Incident.objects.get(id=self.id)
+        self.incident = self.instance
+
         self.fields["incident_notification_date"].disabled = True
-        if self.incident is not None:
-            self.fields[
-                "incident_detection_date"
-            ].disabled = self.incident.sector_regulation.is_detection_date_needed
+
+        if self.incident:
+            if self.incident.sector_regulation.is_detection_date_needed:
+                self.fields["incident_detection_date"].disabled = True
+                self.fields["incident_timezone"].disabled = True
+
+            if self.incident.incident_timezone:
+                if self.incident.incident_timezone != TIME_ZONE:
+                    self.fields["incident_timezone"].disabled = True
+
+                incident_timezone = pytz.timezone(self.incident.incident_timezone)
+                self.initial[
+                    "incident.incident_timezone"
+                ] = self.incident.incident_timezone
+
+                set_initial_datetime(
+                    self,
+                    "incident_notification_date",
+                    self.incident.incident_notification_date,
+                    incident_timezone,
+                )
+
+                set_initial_datetime(
+                    self,
+                    "incident_detection_date",
+                    self.incident.incident_detection_date,
+                    incident_timezone,
+                )
+                set_initial_datetime(
+                    self,
+                    "incident_starting_date",
+                    self.incident.incident_starting_date,
+                    incident_timezone,
+                )
 
     class Meta:
         model = Incident
         fields = [
             "id",
+            "incident_timezone",
             "incident_notification_date",
             "incident_detection_date",
             "incident_starting_date",
@@ -919,3 +937,10 @@ class IncidentStatusForm(forms.ModelForm):
             "incident_status": False,
             "is_significative_impact": False,
         }
+
+
+def set_initial_datetime(form, field_name, datetime_value, timezone):
+    if datetime_value:
+        form.initial[field_name] = datetime_value.astimezone(timezone).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
