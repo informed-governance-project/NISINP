@@ -243,7 +243,7 @@ def review_workflow(request):
             request.incident_workflow = incident_workflow.id
             # record who has seen the incident:
             log = LogReportRead.objects.create(
-                user=user, incident_report=incident_workflow, action="READ"
+                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
             )
             log.save()
             return WorkflowWizardView.as_view(
@@ -301,6 +301,11 @@ def edit_workflow(request):
                 is_regulator=is_user_regulator(user),
             )
             request.incident_workflow = incident_workflow.id
+            # log user read
+            log = LogReportRead.objects.create(
+                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
+            )
+            log.save()
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
@@ -313,6 +318,11 @@ def edit_workflow(request):
             is_regulator=is_user_regulator(user),
         )
         request.incident_workflow = incident_workflow.id
+        # log regulator read
+        log = LogReportRead.objects.create(
+                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
+            )
+        log.save()
         return WorkflowWizardView.as_view(
             form_list,
         )(request)
@@ -1060,6 +1070,10 @@ class WorkflowWizardView(SessionWizardView):
             )
             incident_workflow.comment = data.get("comment", None)
             incident_workflow.save()
+            log = LogReportRead.objects.create(
+                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="COMMENT"
+            )
+            log.save()
         return HttpResponseRedirect("/incidents")
 
 
