@@ -842,7 +842,10 @@ class FormWizardView(SessionWizardView):
                     f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
                     f"{number_of_incident}_{date.today().year}"
                 )
-
+                log = LogReportRead.objects.create(
+                    user=user, incident=incident, action="CREATE"
+                )
+                log.save()
                 incident.save()
 
                 # send The email notification opening
