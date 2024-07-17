@@ -243,7 +243,10 @@ def review_workflow(request):
             request.incident_workflow = incident_workflow.id
             # record who has seen the incident:
             log = LogReportRead.objects.create(
-                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
+                user=user,
+                incident=incident_workflow.incident,
+                incident_report=incident_workflow,
+                action="READ",
             )
             log.save()
             return WorkflowWizardView.as_view(
@@ -303,7 +306,10 @@ def edit_workflow(request):
             request.incident_workflow = incident_workflow.id
             # log user read
             log = LogReportRead.objects.create(
-                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
+                user=user,
+                incident=incident_workflow.incident,
+                incident_report=incident_workflow,
+                action="READ",
             )
             log.save()
             return WorkflowWizardView.as_view(
@@ -320,8 +326,11 @@ def edit_workflow(request):
         request.incident_workflow = incident_workflow.id
         # log regulator read
         log = LogReportRead.objects.create(
-                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="READ"
-            )
+            user=user,
+            incident=incident_workflow.incident,
+            incident_report=incident_workflow,
+            action="READ",
+        )
         log.save()
         return WorkflowWizardView.as_view(
             form_list,
@@ -521,7 +530,7 @@ def access_log(request, incident_id: int):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
-    log = LogReportRead.objects.filter(incident=incident)
+    log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
     context = {
         "log": log,
     }
@@ -1071,7 +1080,10 @@ class WorkflowWizardView(SessionWizardView):
             incident_workflow.comment = data.get("comment", None)
             incident_workflow.save()
             log = LogReportRead.objects.create(
-                user=user, incident=incident_workflow.incident, incident_report=incident_workflow, action="COMMENT"
+                user=user,
+                incident=incident_workflow.incident,
+                incident_report=incident_workflow,
+                action="COMMENT",
             )
             log.save()
         return HttpResponseRedirect("/incidents")
@@ -1081,7 +1093,7 @@ def save_answers(data=None, incident=None, workflow=None):
     """Save the answers."""
     prefix = "__question__"
     questions_data = {
-        key[len(prefix) :]: value
+        key[slice(len(prefix), None)]: value
         for key, value in data.items()
         if key.startswith(prefix)
     }
