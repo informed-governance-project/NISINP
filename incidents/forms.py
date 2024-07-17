@@ -162,11 +162,10 @@ class AuthenticationForm(OTPAuthenticationForm):
 
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
-    label = forms.CharField(widget=forms.HiddenInput(), required=False)
-
     # for dynamicly add question to forms
     def create_question(self, question, incident_workflow=None, incident=None):
         initial_data = []
+        field_name = "__question__" + str(question.id)
         if (
             question.question_type == "MULTI"
             or question.question_type == "MT"
@@ -202,7 +201,7 @@ class QuestionForm(forms.Form):
             for choice in question.predefinedanswer_set.all().order_by("position"):
                 choices.append([choice.id, choice])
             if question.question_type == "MULTI" or question.question_type == "MT":
-                self.fields[str(question.id)] = forms.MultipleChoiceField(
+                self.fields[field_name] = forms.MultipleChoiceField(
                     required=question.is_mandatory,
                     choices=choices,
                     widget=forms.CheckboxSelectMultiple(
@@ -215,7 +214,7 @@ class QuestionForm(forms.Form):
                     initial=initial_data,
                 )
             else:
-                self.fields[str(question.id)] = forms.MultipleChoiceField(
+                self.fields[field_name] = forms.MultipleChoiceField(
                     required=question.is_mandatory,
                     choices=choices,
                     widget=OtherCheckboxSelectMultiple(
@@ -246,7 +245,7 @@ class QuestionForm(forms.Form):
                 if len(answer) > 0:
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
-                self.fields[str(question.id) + "_answer"] = forms.CharField(
+                self.fields[field_name + "_answer"] = forms.CharField(
                     required=question.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
@@ -281,10 +280,10 @@ class QuestionForm(forms.Form):
                 if answer != "":
                     initial_data = answer
                     initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M:%S")
-            self.fields[str(question.id)] = forms.DateTimeField(
+            self.fields[field_name] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
-                        "format": "YYYY-MM-DD HH:mm:ss",
+                        "format": "YYYY-MM-DD HH:mm",
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     },
                     attrs={
@@ -295,7 +294,7 @@ class QuestionForm(forms.Form):
                 required=question.is_mandatory,
                 initial=initial_data,
             )
-            self.fields[str(question.id)].label = question.label
+            self.fields[field_name].label = question.label
         elif question.question_type == "FREETEXT":
             initial_data = ""
             if incident_workflow is not None:
@@ -319,7 +318,7 @@ class QuestionForm(forms.Form):
                     if answer != "":
                         initial_data = answer
 
-            self.fields[str(question.id)] = forms.CharField(
+            self.fields[field_name] = forms.CharField(
                 required=question.is_mandatory,
                 widget=forms.Textarea(
                     attrs={
@@ -355,7 +354,7 @@ class QuestionForm(forms.Form):
                 choices = countries
             else:
                 choices = REGIONAL_AREA
-            self.fields[str(question.id)] = forms.MultipleChoiceField(
+            self.fields[field_name] = forms.MultipleChoiceField(
                 choices=choices,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
@@ -609,7 +608,7 @@ class DetectionDateForm(forms.Form):
         required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
+                "format": "YYYY-MM-DD HH:mm",
                 "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
             },
             attrs={
@@ -942,5 +941,5 @@ class IncidentStatusForm(forms.ModelForm):
 def set_initial_datetime(form, field_name, datetime_value, timezone):
     if datetime_value:
         form.initial[field_name] = datetime_value.astimezone(timezone).strftime(
-            "%Y-%m-%d %H:%M:%S"
+            "%Y-%m-%d %H:%M"
         )
