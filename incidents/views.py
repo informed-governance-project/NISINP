@@ -71,6 +71,18 @@ def get_incidents(request):
     user = request.user
     incidents = Incident.objects.order_by("-incident_notification_date")
 
+    # Save filter params in user's session
+
+    if "reset" in request.GET:
+        if "filter_params" in request.session:
+            del request.session["filter_params"]
+        return redirect("incidents")
+
+    if request.GET:
+        request.session["filter_params"] = request.GET
+
+    filter_params = request.session.get("filter_params", request.GET)
+
     if is_user_regulator(user):
         # Filter incidents by regulator
 
@@ -92,14 +104,14 @@ def get_incidents(request):
                 instance=incident,
             )
 
-        f = IncidentFilter(request.GET, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(request.GET, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents)
     elif is_cert_user_viewving_all_incident(user):
         incidents = Incident.objects.all().order_by("-incident_notification_date")
-        f = IncidentFilter(request.GET, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
@@ -108,11 +120,11 @@ def get_incidents(request):
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
-        f = IncidentFilter(request.GET, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
-        f = IncidentFilter(request.GET, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents)
 
     if request.GET.get("incidentId"):
         # Search by incident id
@@ -145,6 +157,7 @@ def get_incidents(request):
             "paginator": paginator,
             "filter": f,
             "incidents": response,
+            "is_filtered": bool(filter_params),
         },
     )
 

@@ -9,7 +9,8 @@
 {% block bootstrap5_extra_script %}
 <script type="text/javascript" src="{% static 'npm_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'npm_components/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" />
-<script type="text/javascript" src="{% static 'npm_components/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script type="text/javascript"
+    src="{% static 'npm_components/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
 <script src='{% static "js/incidents_operator.js" %}'></script>
 <link rel="stylesheet" type="text/css" href="/static/npm_components/bootstrap-select/dist/css/bootstrap-select.css" />
 <script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
@@ -19,50 +20,57 @@
 
 {% block content %}
 {% settings_value "TIME_ZONE" as time_zone %}
-<div class="d-flex">
-    <div class="ms-auto">
+<div class="d-flex justify-content-between">
+    <div>
         <a role="button" class="btn btn-primary btn-sm" href="{% url 'declaration' %}">
             {% translate "Report an incident" %}
         </a>
     </div>
+    <div>
+        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
+            {% translate "Filter" %}
+            {% if is_filtered %}
+            <span>
+                ({% translate "Applied" %})
+            </span>
+            {% endif %}
+             <i class="bi bi-funnel-fill"></i>
+        </button>
+    </div>
 </div>
 
-{% if filter.qs %}
+
 <div class="my-2">
-    <div class="accordion" id="accordionFiltersForm">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="panelsStayOpen-headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="true" aria-controls="collapseFilters">
-                Filters
-                </button>
-            </h2>
-            <div id="collapseFilters" class="accordion-collapse collapse" data-bs-parent="#accordionFiltersForm">
-                <div class="accordion-body">
-                    <form method="get">
-                        <!-- {% bootstrap_form filter.form %} -->
-                        <div class="row">
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.incident_id show_label=True %}
-                            </div>
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.incident_status show_label=True %}
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.is_significative_impact show_label=True %}
-                            </div>
-                            <div class="col-sm">
-                                {% bootstrap_field filter.form.affected_sectors show_label=True %}
-                            </div>
-                        </div>
-                        <input class="btn btn-primary" type="submit" value='{{_("Search")}}' />
-                    </form>
+    <div id="collapseFilters" class="collapse">
+        <div class="accordion-body">
+            <form method="get">
+                <!-- {% bootstrap_form filter.form %} -->
+                <div class="row">
+                    <div class="col-6">
+                        {% bootstrap_field filter.form.incident_id show_label=True %}
+                    </div>
+                    <div class="col-6">
+                        {% bootstrap_field filter.form.incident_status show_label=True %}
+                    </div>
                 </div>
-            </div>
+                <div class="row">
+                    <div class="col-6">
+                        {% bootstrap_field filter.form.is_significative_impact show_label=True %}
+                    </div>
+                    <div class="col-6">
+                        {% bootstrap_field filter.form.affected_sectors show_label=True wrapper_class="affected-sector-filter" %}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <input class="btn btn-primary btn-sm" type="submit" value='{{_("Search")}}' />
+                    <button class="btn btn-danger btn-sm ms-2" type="submit" name="reset" value="true">{% translate "Reset" %}</button>
+                </div>
+
+            </form>
         </div>
     </div>
 </div>
+{% if filter.qs %}
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
@@ -72,12 +80,14 @@
             <th scope="col">{% translate "Regulation" %}</th>
             <th scope="col">{% translate "Sector" %}</th>
             <th scope="col">{% translate "Sub-sector" %}</th>
-            <th scope="col"><table class="table table-borderless table-sm m-0">
-                <tr>
-                    <td>{% translate "Report" %}</td>
-                    <td>{% translate "Status" %}</td>
-                </tr>
-            </table></th>
+            <th scope="col">
+                <table class="table table-borderless table-sm m-0">
+                    <tr>
+                        <td>{% translate "Report" %}</td>
+                        <td>{% translate "Status" %}</td>
+                    </tr>
+                </table>
+            </th>
             <th scope="col">{% translate "Significative impact" %}</th>
             <th scope="col">{% translate "Incident status" %}</th>
             <!-- <th scope="col">{% translate "Review status" %}</th> -->
@@ -95,22 +105,22 @@
             <td class="table-group-divider">
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
-                        {% if sector.parent is None %}
-                            {{ sector.name }}
-                        {% else %}
-                            {{ sector.parent }}
-                        {% endif %}
-                        <br/>
+                    {% if sector.parent is None %}
+                    {{ sector.name }}
+                    {% else %}
+                    {{ sector.parent }}
+                    {% endif %}
+                    <br />
                     {% endfor %}
                 </ul>
             </td>
             <td class="table-group-divider">
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
-                        {% if sector.parent is not None %}
-                            {{ sector.name }}
-                        {% endif %}
-                        <br/>
+                    {% if sector.parent is not None %}
+                    {{ sector.name }}
+                    {% endif %}
+                    <br />
                     {% endfor %}
                 </ul>
             </td>
@@ -121,51 +131,97 @@
                     {% with filtered_workflows=completed_workflows|filter_workflows:report.id %}
                     {% is_workflow_disabled incident.get_all_workflows completed_workflows report as workflow_disabled %}
                     <tr>
-                        <td class="col-5">
-                            <a class="{% if workflow_disabled %}disabled-link{% endif %}"
-                                href="{% if filtered_workflows %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}">
-                                {{ report }}
-                            </a><br/>
-                            {% with incident_workflows=incident|get_incident_workflow_by_workflow_operator:report %}
-                            {% if incident_workflows %}
-                            <span class="fw-bold">{{ _('Historic') }}:</span><br/>
-                                {% for incident_workflow in incident_workflows %}
-                                    <a href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}">
-                                    {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
-                                    </a><br/>
-                                {% endfor %}
-                            {% endif %}
-                            {% endwith %}
+                        <td class="col-6">
+                            <div class="col">
+                                <a class="{% if workflow_disabled %}disabled-link text-decoration-none{% endif %}"
+                                    href="{% if filtered_workflows %}{% url 'edit_workflow' %}{% else %}{% url 'create_workflow' %}{% endif %}?incident_id={{ incident.id }}&workflow_id={{ report.id }}">
+                                    {{ report }}
+                                </a>
+                                {% with incident_workflows=incident|get_incident_workflow_by_workflow_operator:report %}
+                                {% if incident_workflows %}
+                                <button class="btn text-secondary p-0 ps-1" data-bs-toggle="modal" data-bs-target="#report_versions_{{ report.id }}" title="Report versions">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <div class="modal fade modal-sm" id="report_versions_{{ report.id }}" data-bs-backdrop="static"
+                                    data-bs-keyboard="false" tabindex="-1" aria-labelledby="report_versions_label"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h4 class="modal-title" id="report_versions_label">
+                                                    {{ _('Report versions') }}
+                                                </h4>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <h5>{{ incident.incident_id }}</h5>
+                                                <h6>{{ report }}</h6>
+                                                <table class="table table-sm">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th scope="col">{% translate "Date" %}</th>
+                                                            <th scope="col">{% translate "Action" %}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for incident_workflow in incident_workflows %}
+                                                        {% timezone time_zone %}
+                                                        <tr>
+                                                            <td>
+                                                                {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
+                                                            </td>
+                                                            <td>
+                                                                <a class="btn text-primary" href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}" title="Review">
+                                                                    <i class="bi bi-binoculars"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        {% endtimezone %}
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
                         </td>
                         <td>
                             {% if filtered_workflows.comment is not None %}
-                            <button class="bi bi-chat-left" fill="currentColor" data-bs-toggle="modal" data-bs-target="#comment{{ filtered_workflows.id }}" >
+                            <button class="bi bi-chat-left" fill="currentColor" data-bs-toggle="modal"
+                                data-bs-target="#comment{{ filtered_workflows.id }}">
                             </button>
                             <!-- Modal -->
-                            <div class="modal fade" id="comment{{ filtered_workflows.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="comment{{ filtered_workflows.id }}" tabindex="-1"
+                                aria-labelledby="exampleModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Comment') }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">{{ _('Comment') }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {{ filtered_workflows.comment }}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
                                     </div>
-                                    <div class="modal-body">
-                                        {{ filtered_workflows.comment }}
-                                    </div>
-                                    <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
                                 </div>
                             </div>
                             {% endif %}
                         </td>
-                            {% if filtered_workflows.get_review_status_display %}
-                            <td class="col-7 {% status_class filtered_workflows.review_status %}">
-                                {{ filtered_workflows.get_review_status_display }}
+                        {% if filtered_workflows.get_review_status_display %}
+                        <td class="col-7 {% status_class filtered_workflows.review_status %}">
+                            {{ filtered_workflows.get_review_status_display }}
                             {% else %}
-                            <td class="col-7 {% status_class_without_incident_workflow report incident %}">
-                                {% is_deadline_exceeded report incident %}
+                        <td class="col-7 {% status_class_without_incident_workflow report incident %}">
+                            {% is_deadline_exceeded report incident %}
                             {% endif %}
                         </td>
                     </tr>
@@ -176,22 +232,25 @@
             </td>
             <td class="table-group-divider">
                 {% if incident.is_significative_impact %}
-                    <span class="bi bi-check-lg d-flex align-items-center justify-content-center"></span>
+                <span class="bi bi-check-lg d-flex align-items-center justify-content-center"></span>
                 {% endif %}
             </td>
             <td class="table-group-divider">{{ incident.get_incident_status_display }}</td>
             <td class="table-group-divider">
                 <div class="col d-flex align-items-center">
-                    <button class="btn text-secondary access_log p-0" data-incident-id="{{ incident.id }}" title="Access Log">
+                    <button class="btn text-secondary access_log p-0" data-incident-id="{{ incident.id }}"
+                        title="Access Log">
                         <i class="bi bi-file-earmark-person h4"></i>
                     </button>
-                    <a href="{% url 'download_incident_pdf' incident.id %}" class="text-decoration-none" title="Download">
+                    <a href="{% url 'download_incident_pdf' incident.id %}" class="text-decoration-none"
+                        title="Download">
                         <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
                     </a>
                     {% if incident.workflows.count == 0 %}
-                        <a href="{% url 'delete_incident' incident.id %}" alt="delete incident" class="text-decoration-none p-0" title="Delete">
-                            <i class="bi bi-file-earmark-x h4 text-danger"></i>
-                        </a>
+                    <a href="{% url 'delete_incident' incident.id %}" alt="delete incident"
+                        class="text-decoration-none p-0" title="Delete">
+                        <i class="bi bi-file-earmark-x h4 text-danger"></i>
+                    </a>
                     {% endif %}
                 </div>
 
@@ -203,29 +262,29 @@
     </tbody>
 </table>
 
-<div >
+<div>
     {% if incidents.has_other_pages %}
-        <ul class="pagination">
+    <ul class="pagination">
         {% if incidents.has_previous %}
-            <li><a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">&laquo;</a></li>
+        <li><a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">&laquo;</a>
+        </li>
         {% else %}
-            <li class="page-link disabled"><span>&laquo;</span></li>
+        <li class="page-link disabled"><span>&laquo;</span></li>
         {% endif %}
         {% for i in incidents.paginator.page_range %}
-            {% if incidents.number == i %}
-                <li class="page-link active"><span>{{ i }} <span class="sr-only">
-            </span></span></li>
-            {% else %}
-                <li class="page-link"><a href="?{% url_replace request 'page' i %}">{{ i }}</a></li>
-            {% endif %}
+        {% if incidents.number == i %}
+        <li class="page-link active">{{ i }}</li>
+        {% else %}
+        <li class="page-link"><a class="text-decoration-none" href="?{% url_replace request 'page' i %}">{{ i }}</a></li>
+        {% endif %}
         {% endfor %}
         {% if incidents.has_next %}
-            <li><a class="page-link" href="?{% url_replace request 'page' incidents.next_page_number %}">&raquo;</a></li>
+        <li><a class="page-link text-decoration-none" href="?{% url_replace request 'page' incidents.next_page_number %}">&raquo;</a></li>
         {% else %}
-            <li class="page-link disabled"><span>&raquo;</span></li>
+        <li class="page-link disabled"><span>&raquo;</span></li>
         {% endif %}
     </ul>
- {% endif %}
+    {% endif %}
 </div>
 {% else %}
 <p>{% translate "No incident" %}</p>
@@ -233,7 +292,8 @@
 
 <!-- Modal dialogs -->
 
-<div class="modal fade" id="access_log" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="access_log_label" aria-hidden="true">
+<div class="modal fade" id="access_log" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="access_log_label" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"></div>
 </div>
 
