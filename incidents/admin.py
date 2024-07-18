@@ -7,6 +7,9 @@ from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 
 from governanceplatform.admin import admin_site
 from governanceplatform.helpers import user_in_group
@@ -24,7 +27,80 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+from governanceplatform.models import (
+    User
+)
+
 from governanceplatform.widgets import TranslatedNameM2MWidget
+
+
+# get the id of a group by name
+def get_group_id(name=""):
+    try:
+        group_id = Group.objects.get(name=name).id
+    except ObjectDoesNotExist:
+        group_id = None
+
+    return group_id
+
+
+# filter by user
+class LogUserFilter(SimpleListFilter):
+    title = _("Users")
+    parameter_name = "user"
+
+    def lookups(self, request, model_admin):
+        PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
+        RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
+        RegulatorUserGroupId = get_group_id(name="RegulatorUser")
+        users = User.objects.filter(
+            groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId, RegulatorUserGroupId]
+        )
+        return [(user.id, user.email) for user in users]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(user=value)
+        return queryset
+
+
+# add a view to see the logs
+@admin.register(LogEntry, site=admin_site)
+class LogEntryAdmin(admin.ModelAdmin):
+    # to have a date-based drilldown navigation in the admin page
+    date_hierarchy = 'action_time'
+
+    # to filter the resultes by users, content types and action flags
+    list_filter = [
+        LogUserFilter,
+        'action_flag'
+    ]
+
+    # when searching the user will be able to search in both object_repr and change_message
+    search_fields = [
+        'object_repr',
+        'change_message'
+    ]
+
+    list_display = [
+        'action_time',
+        'user',
+        'content_type',
+        'action_flag',
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
