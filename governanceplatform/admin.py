@@ -766,6 +766,7 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
 class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = UserResource
     list_display = [
+        "is_active",
         "first_name",
         "last_name",
         "email",
@@ -787,7 +788,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     ]
     list_display_links = ("email", "first_name", "last_name")
     inlines = [userRegulatorInline, SectorCompanyContactInline]
-    fieldsets = [
+    standard_fieldsets = [
         (
             _("Contact Information"),
             {
@@ -799,11 +800,46 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             },
         ),
     ]
+    # add is_active for RegulatorAdmin
+    admin_fieldsets = [
+        (
+            _("Contact Information"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    ("first_name", "last_name"),
+                    ("email", "phone_number"),
+                    ("is_active")
+                ],
+            },
+        ),
+    ]
     actions = [reset_2FA]
 
     @admin.display(description="2FA", boolean=True)
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
+
+    def get_fieldsets(self, request, obj=None):
+        # RegulattorAdmin
+        if user_in_group(request.user, "RegulatorAdmin"):
+            current_id = request.resolver_match.kwargs["object_id"]
+            user = User.objects.get(pk=current_id)
+            if user and (
+                user_in_group(user, "RegulatorAdmin")
+                or user_in_group(user, "RegulatorUser")
+            ):
+                return self.admin_fieldsets
+        # PlatformAdmin
+        if user_in_group(request.user, "PlatformAdmin"):
+            current_id = request.resolver_match.kwargs["object_id"]
+            user = User.objects.get(pk=current_id)
+            if user and (
+                user_in_group(user, "RegulatorAdmin")
+                or user_in_group(user, "PlatformAdmin")
+            ):
+                return self.admin_fieldsets
+        return self.standard_fieldsets
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
@@ -877,18 +913,18 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             ]
 
         if user_in_group(request.user, "CertAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies", "get_regulators"]
+            fields_to_exclude = ["get_sectors", "get_companies", "get_regulators", "is_active"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
-            fields_to_exclude = ["get_regulators", "get_certs"]
+            fields_to_exclude = ["get_regulators", "get_certs", "is_active"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
-            fields_to_exclude = ["get_regulators", "get_certs"]
+            fields_to_exclude = ["get_regulators", "get_certs", "is_active"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -948,6 +984,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             return True
         return super().has_change_permission(request, obj)
 
+    def has_delete_permission(self, request, obj=None):
+        if obj:
+            if user_in_group(obj, "RegulatorUser") or user_in_group(obj, "RegulatorAdmin") or user_in_group(obj, "PlatformAdmin"):
+                return False
+        return True
+
     def save_model(self, request, obj, form, change):
         user = request.user
         if not change:
@@ -983,6 +1025,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         super().save_model(request, obj, form, change)
 
+    # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
+    def delete_model(self, request, obj):
+        if user_in_group(obj, "RegulatorUser"):
+            obj.is_active = False
+        else:
+            obj.delete()
 
 # class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
 #     id = fields.Field(
