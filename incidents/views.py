@@ -511,6 +511,7 @@ def access_log(request, incident_id: int):
     log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
     context = {
         "log": log,
+        "incident": incident,
     }
     return render(request, "access_log.html", context)
 

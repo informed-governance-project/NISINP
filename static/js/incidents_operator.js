@@ -21,3 +21,14 @@ $('#incidents-table').DataTable( {
         },
     ]
 });
+
+$(document).ready(function () {
+    $('.access_log').click(function() {
+        var $popup = $("#access_log");
+        var popup_url = 'access_log/' + $(this).data("incident-id");
+
+        $(".modal-dialog", $popup).load(popup_url, function () {
+            $popup.modal("show");
+        });
+    });
+});

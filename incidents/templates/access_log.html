@@ -1,14 +1,23 @@
-{% extends 'home/base.html' %}
 {% load django_bootstrap5 %}
 {% load i18n %}
 {% load tz %}
+{% load custom_filters %}
 
 {% block content %}
-<div class="row">
-    <div class="col">
-        <h4>{{ _('Access log')}}</h4>
-        <table class="table align-middle table-sm small">
-            <thead>
+{% settings_value "TIME_ZONE" as time_zone %}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title" id="access_log_label">
+            {% translate "Access log" %}
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <h6>{{ incident.incident_id }}</h6>
+        {% if log %}
+        <table class="table table-sm small">
+            <thead class="table-light">
                 <tr>
                     <th scope="col">{% translate "Date" %}</th>
                     <th scope="col">{% translate "User" %}</th>
@@ -18,33 +27,37 @@
             </thead>
             <tbody>
                 {% for record in log %}
+                {% timezone time_zone %}
                 <tr>
-                    {% timezone "Europe/Luxembourg" %}
-                    <td class="table-group-divider" scope="row">
+                    <td>
                         {{record.timestamp|date:"d M Y, H:i" }}
                     </td>
-                    {% endtimezone %}
-                    <td class="table-group-divider" scope="row">
+                    <td>
                         {% if record.user %}
-                            {{record.user.get_full_name }}
+                        {{record.user.get_full_name }}
                         {% else %}
-                            {{record.user__full_name }}
+                        {{record.user__full_name }}
                         {% endif %}
                     </td>
-                    <td class="table-group-divider" scope="row">
+                    <td>
                         {% if record.incident_report %}
-                        {% timezone "Europe/Luxembourg" %}
-                            {{ record.incident_report.workflow.name }} ({{ record.incident_report.timestamp|date:"d/m/Y H:i" }})
-                        {% endtimezone %}
+                        {{ record.incident_report.workflow.name }}
+                        ({{ record.incident_report.timestamp|date:"d/m/Y H:i" }})
                         {% else %}
-                            {{record.incident.incident_id }}
+                        {{record.incident.incident_id }}
                         {% endif %}
                     </td>
-                    <td class="table-group-divider" scope="row">{{record.action }}</td>
+                    <td>{{record.action }}</td>
                 </tr>
+                {% endtimezone %}
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <h2 class="text-center">
+            {% translate "No entries" %}
+        </h2>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
