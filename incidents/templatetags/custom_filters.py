@@ -1,6 +1,7 @@
 import math
 
 from django import template
+from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -231,3 +232,9 @@ def url_replace(request, field, value):
     d = request.GET.copy()
     d[field] = value
     return d.urlencode()
+
+
+# get settings value
+@register.simple_tag
+def settings_value(name):
+    return getattr(settings, name, "")
