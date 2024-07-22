@@ -42,32 +42,30 @@
 
 <div class="my-2">
     <div id="collapseFilters" class="collapse">
-        <div class="accordion-body">
-            <form method="get">
-                <!-- {% bootstrap_form filter.form %} -->
-                <div class="row">
-                    <div class="col-6">
-                        {% bootstrap_field filter.form.incident_id show_label=True %}
-                    </div>
-                    <div class="col-6">
-                        {% bootstrap_field filter.form.incident_status show_label=True %}
-                    </div>
+        <form method="get">
+            <!-- {% bootstrap_form filter.form %} -->
+            <div class="row">
+                <div class="col-6">
+                    {% bootstrap_field filter.form.incident_id show_label=True %}
                 </div>
-                <div class="row">
-                    <div class="col-6">
-                        {% bootstrap_field filter.form.is_significative_impact show_label=True %}
-                    </div>
-                    <div class="col-6">
-                        {% bootstrap_field filter.form.affected_sectors show_label=True wrapper_class="affected-sector-filter" %}
-                    </div>
+                <div class="col-6">
+                    {% bootstrap_field filter.form.incident_status show_label=True %}
                 </div>
-                <div class="d-flex justify-content-end">
-                    <input class="btn btn-primary btn-sm" type="submit" value='{{_("Search")}}' />
-                    <button class="btn btn-danger btn-sm ms-2" type="submit" name="reset" value="true">{% translate "Reset" %}</button>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    {% bootstrap_field filter.form.is_significative_impact show_label=True %}
                 </div>
+                <div class="col-6">
+                    {% bootstrap_field filter.form.affected_sectors show_label=True wrapper_class="affected-sector-filter" %}
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-danger btn-sm" type="submit" name="reset" value="true">{% translate "Reset" %}</button>
+                <input class="btn btn-primary btn-sm ms-2" type="submit" value='{{_("Search")}}' />
+            </div>
 
-            </form>
-        </div>
+        </form>
     </div>
 </div>
 {% if filter.qs %}
@@ -90,8 +88,7 @@
             </th>
             <th scope="col">{% translate "Significative impact" %}</th>
             <th scope="col">{% translate "Incident status" %}</th>
-            <!-- <th scope="col">{% translate "Review status" %}</th> -->
-            <th scope="col">{% translate "Action" %}</th>
+            <th scope="col">{% translate "Actions" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -219,10 +216,10 @@
                         {% if filtered_workflows.get_review_status_display %}
                         <td class="col-7 {% status_class filtered_workflows.review_status %}">
                             {{ filtered_workflows.get_review_status_display }}
-                            {% else %}
+                        {% else %}
                         <td class="col-7 {% status_class_without_incident_workflow report incident %}">
                             {% is_deadline_exceeded report incident %}
-                            {% endif %}
+                        {% endif %}
                         </td>
                     </tr>
                     {% endwith %}
@@ -253,8 +250,6 @@
                     </a>
                     {% endif %}
                 </div>
-
-
             </td>
         </tr>
         {% endtimezone %}
