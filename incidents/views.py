@@ -149,6 +149,9 @@ def get_incidents(request):
         html_view = "regulator/incidents.html"
     elif is_cert_user(request.user):
         html_view = "cert/incidents.html"
+
+    is_filtered = {k: v for k, v in filter_params.items() if k != "page"}
+
     return render(
         request,
         html_view,
@@ -157,7 +160,7 @@ def get_incidents(request):
             "paginator": paginator,
             "filter": f,
             "incidents": response,
-            "is_filtered": bool(filter_params),
+            "is_filtered": bool(is_filtered),
         },
     )
 
