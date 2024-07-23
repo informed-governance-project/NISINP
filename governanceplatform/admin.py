@@ -825,22 +825,10 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_fieldsets(self, request, obj=None):
         # RegulattorAdmin
         if user_in_group(request.user, "RegulatorAdmin"):
-            current_id = request.resolver_match.kwargs["object_id"]
-            user = User.objects.get(pk=current_id)
-            if user and (
-                user_in_group(user, "RegulatorAdmin")
-                or user_in_group(user, "RegulatorUser")
-            ):
-                return self.admin_fieldsets
+            return self.admin_fieldsets
         # PlatformAdmin
         if user_in_group(request.user, "PlatformAdmin"):
-            current_id = request.resolver_match.kwargs["object_id"]
-            user = User.objects.get(pk=current_id)
-            if user and (
-                user_in_group(user, "RegulatorAdmin")
-                or user_in_group(user, "PlatformAdmin")
-            ):
-                return self.admin_fieldsets
+            return self.admin_fieldsets
         return self.standard_fieldsets
 
     def get_inline_instances(self, request, obj=None):
