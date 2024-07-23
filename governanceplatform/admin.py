@@ -13,20 +13,17 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from .helpers import user_in_group, instance_user_in_group
+from .helpers import instance_user_in_group, user_in_group
 from .mixins import TranslationUpdateMixin
-from .models import (
+from .models import (  # Functionality,; OperatorType,; Service,
     Cert,
     CertUser,
     Company,
-    # Functionality,
-    # OperatorType,
     Regulation,
     Regulator,
     RegulatorUser,
     Sector,
     SectorCompanyContact,
-    # Service,
     User,
 )
 from .settings import SITE_NAME
@@ -86,7 +83,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
     class Meta:
         model = Sector
         export_order = ["id", "parent"]
-        exclude = ('creator', 'creator_name')
+        exclude = ("creator", "creator_name")
 
 
 @admin.register(Sector, site=admin_site)
@@ -200,7 +197,7 @@ class CompanyResource(resources.ModelResource):
     class Meta:
         import_id_fields = ("identifier",)
         model = Company
-        exclude = ('sector_contacts', 'types')
+        exclude = ("sector_contacts", "types")
 
 
 class SectorCompanyContactInline(admin.TabularInline):
@@ -483,21 +480,25 @@ class UserResource(resources.ModelResource):
         else:
             companies = None
             sectors = None
-            if 'companies' in data and 'sectors' in data:
-                if data['companies']:
-                    data_companies = data['companies'].split('|')
+            if "companies" in data and "sectors" in data:
+                if data["companies"]:
+                    data_companies = data["companies"].split("|")
                     companies = Company.objects.filter(name__in=data_companies)
-                    data_sectors = data['sectors'].split('|')
+                    data_sectors = data["sectors"].split("|")
                     sectors = Sector.objects.filter(translations__name__in=data_sectors)
                     if sectors is not None and companies is not None:
                         for company in companies:
                             for sector in sectors:
-                                if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
-                                    sc = SectorCompanyContact(user=obj, sector=sector, company=company)
-                                    if 'administrator' in data:
-                                        if data['administrator'] is True:
+                                if not SectorCompanyContact.objects.filter(
+                                    user=obj, sector=sector, company=company
+                                ).exists():
+                                    sc = SectorCompanyContact(
+                                        user=obj, sector=sector, company=company
+                                    )
+                                    if "administrator" in data:
+                                        if data["administrator"] is True:
                                             sc.is_company_administrator = True
-                                        elif data['administrator'] is False:
+                                        elif data["administrator"] is False:
                                             sc.is_company_administrator = False
                                     sc.save()
 
@@ -514,19 +515,20 @@ class UserResource(resources.ModelResource):
             else:
                 return True
 
-        return super().skip_row(instance, original, row,
-                                import_validation_errors=import_validation_errors)
+        return super().skip_row(
+            instance, original, row, import_validation_errors=import_validation_errors
+        )
 
     # override to put by default IncidentUser group to user without group
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
         user = User.objects.get(pk=row_result.object_id)
         if user.groups.count() == 0:
-            user.groups.add(Group.objects.get(name='IncidentUser').id)
+            user.groups.add(Group.objects.get(name="IncidentUser").id)
             user.save()
 
     class Meta:
         model = User
-        import_id_fields = ('email',)
+        import_id_fields = ("email",)
         skip_unchanged = True
         fields = (
             "first_name",
@@ -809,7 +811,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
-                    ("is_active")
+                    ("is_active"),
                 ],
             },
         ),
@@ -913,7 +915,12 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             ]
 
         if user_in_group(request.user, "CertAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies", "get_regulators", "is_active"]
+            fields_to_exclude = [
+                "get_sectors",
+                "get_companies",
+                "get_regulators",
+                "is_active",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -986,7 +993,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
     def has_delete_permission(self, request, obj=None):
         if obj:
-            if user_in_group(obj, "RegulatorUser") or user_in_group(obj, "RegulatorAdmin") or user_in_group(obj, "PlatformAdmin"):
+            if (
+                user_in_group(obj, "RegulatorUser")
+                or user_in_group(obj, "RegulatorAdmin")
+                or user_in_group(obj, "PlatformAdmin")
+            ):
                 return False
         return True
 
@@ -1015,7 +1026,10 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
             # in PlatformAdmin we add by default platformadmin
             # if we are not in a popup we create a platformAdmin
-            if user_in_group(user, "PlatformAdmin") and "to_field=id&_popup" not in request.get_full_path():
+            if (
+                user_in_group(user, "PlatformAdmin")
+                and "to_field=id&_popup" not in request.get_full_path()
+            ):
                 super().save_model(request, obj, form, change)
                 new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
                 if new_group:
@@ -1031,6 +1045,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             obj.is_active = False
         else:
             obj.delete()
+
 
 # class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
 #     id = fields.Field(
@@ -1092,7 +1107,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class RegulatorAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
