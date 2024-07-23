@@ -293,6 +293,7 @@ class QuestionForm(forms.Form):
                 ),
                 required=question.is_mandatory,
                 initial=initial_data,
+                help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
             )
             self.fields[field_name].label = question.label
         elif question.question_type == "FREETEXT":
