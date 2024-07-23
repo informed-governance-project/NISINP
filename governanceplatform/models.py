@@ -196,8 +196,16 @@ class Regulator(TranslatableModel):
 
 
 # CERT
-class Cert(models.Model):
-    name = models.CharField(max_length=64, verbose_name=_("name"))
+class Cert(TranslatableModel):
+    translations = TranslatedFields(
+        name=models.CharField(default="", max_length=64, verbose_name=_("name")),
+        full_name=models.TextField(
+            blank=True, default="", null=True, verbose_name=_("full name")
+        ),
+        description=models.TextField(
+            blank=True, default="", null=True, verbose_name=_("description")
+        ),
+    )
     country = models.CharField(
         max_length=200,
         null=True,
@@ -210,12 +218,6 @@ class Cert(models.Model):
         default=None,
         blank=True,
         null=True,
-    )
-    full_name = models.TextField(
-        blank=True, default="", null=True, verbose_name=_("full name")
-    )
-    description = models.TextField(
-        blank=True, default="", null=True, verbose_name=_("description")
     )
     is_receiving_all_incident = models.BooleanField(
         default=False, verbose_name=_("Receive all incident")

@@ -504,7 +504,7 @@ class UserResource(resources.ModelResource):
 
     # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
     def skip_row(self, instance, original, row, import_validation_errors=None):
-        if getattr(original, "pk") is not None:
+        if original.pk:
             if (
                 instance_user_in_group(instance, "OperatorUser")
                 or instance_user_in_group(instance, "OperatorAdmin")
@@ -1191,7 +1191,7 @@ class CertUserInline(admin.TabularInline):
 
 
 @admin.register(Cert, site=admin_site)
-class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+class CertAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = CertResource
