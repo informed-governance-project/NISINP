@@ -28,6 +28,14 @@ def update_permissions(apps, schema_editor):
         except Group.DoesNotExist:
             pass
 
+    def remove_old_permissions():
+        old_permissions = {
+            "cert": ["add", "change", "delete", "view"],
+            "certuser": ["add", "change", "delete", "view"],
+        }
+        group_old_permissions = permission_formatting(old_permissions)
+        Permission.objects.filter(codename__in=group_old_permissions).delete()
+
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
 
@@ -51,6 +59,7 @@ def update_permissions(apps, schema_editor):
     for group_name, permissions in groups_permissions.items():
         group_permissions = permission_formatting(permissions)
         add_group_permissions(group_name, group_permissions)
+        remove_old_permissions()
 
 
 class Migration(migrations.Migration):
