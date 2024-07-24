@@ -13,12 +13,14 @@ def create_new_permissions(apps, schema_editor):
     }
 
     for model, perms in new_permissions.items():
-        content_type = ContentType.objects.get(app_label="yourappname", model=model)
+        content_type = ContentType.objects.get(
+            app_label="governanceplatform", model=model
+        )
         for perm in perms:
             codename = f"{perm}_{model}"
             name = f"Can {perm} {model}"
             Permission.objects.get_or_create(
-                codename=codename, name=name, content_type=content_type
+                codename=codename, content_type=content_type, defaults={"name": name}
             )
 
 
