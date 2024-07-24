@@ -23,8 +23,8 @@ from governanceplatform.helpers import (
     can_create_incident_report,
     can_edit_incident_report,
     get_active_company_from_session,
-    is_cert_user,
-    is_cert_user_viewving_all_incident,
+    is_observer_user,
+    is_observer_user_viewving_all_incident,
     is_user_regulator,
     user_in_group,
 )
@@ -109,7 +109,7 @@ def get_incidents(request):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(filter_params, queryset=incidents)
-    elif is_cert_user_viewving_all_incident(user):
+    elif is_observer_user_viewving_all_incident(user):
         incidents = Incident.objects.all().order_by("-incident_notification_date")
         f = IncidentFilter(filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
@@ -147,8 +147,8 @@ def get_incidents(request):
     html_view = "incidents.html"
     if is_user_regulator(request.user):
         html_view = "regulator/incidents.html"
-    elif is_cert_user(request.user):
-        html_view = "cert/incidents.html"
+    elif is_observer_user(request.user):
+        html_view = "observer/incidents.html"
 
     is_filtered = {k: v for k, v in filter_params.items() if k != "page"}
 

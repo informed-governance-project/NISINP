@@ -19,13 +19,13 @@ At the first login, you need to activate the 2FA.
 Access to the administrator page
 -----------------------------------
 
-The following roles have access to the administrator interface: 
+The following roles have access to the administrator interface:
 
-- PlatformAdmin : create regulation, regulators, certs
+- PlatformAdmin : create regulation, regulators, observers
 - RegulatorAdmin : create the workflows for incidents, RegulatorUser for its regulator
 - RegulatorUser : create companies
 - OperatorAdmin : create OperatorUser for its company
-- CertAdmin : create CertUser for its CERT 
+- ObserverAdmin : create ObserverUser for its Observer entity
 
 .. figure:: _static/ui_admin_overview.png
    :alt: admin page.
@@ -35,14 +35,14 @@ The following roles have access to the administrator interface:
 
 The administrator page is composed of 3 parts:
 
-1. The navigation bar where you can change your account settings, language, also leaves the website and return on the user interface 
+1. The navigation bar where you can change your account settings, language, also leaves the website and return on the user interface
 2. A list of modules you have access and things you can modify, see, or delete
 3. A list of your recent changes on the application
 
 Standard list view
 ---------------------
 
-When clicking on an entity for example "Impacts" here, you list all the objects and you have different possible actions. 
+When clicking on an entity for example "Impacts" here, you list all the objects and you have different possible actions.
 
 .. figure:: _static/ui_standard_list.png
    :alt: edit page.
@@ -52,7 +52,7 @@ When clicking on an entity for example "Impacts" here, you list all the objects 
 
 1. For some entities, you can import/export in several formats (JSON, CSV, etc.)
 2. For some entities, you can filter the list depending of its attributes
-3. It's also possible to limit the number of displayed items with the search bar 
+3. It's also possible to limit the number of displayed items with the search bar
 4. Some group actions are also available, for that you need to tick the case corresponding to the entries you want to modify and select the appropriate action
 
 Standard add / change function
@@ -80,7 +80,7 @@ The RegulatorAdmin role is the one who defines the workflows for incident notifi
 To sum up, to create an incident workflow, you have to create first an item called ``incident notification workflow`` (e.g. NIS2, etc.).
 An incident notification workflow is composed of several steps called ``incident reports`` (e.g. Early Warning, initial assessment, etc.).
 Each workflow can have different ``questions``. A question belongs to a ``question category``, it helps for the rendering of the form for the user who submits the notification.
-A question can have ``predefined answers``, for example for multiple-choice question or yes/no question. **It's important to use one answer only for one question**. 
+A question can have ``predefined answers``, for example for multiple-choice question or yes/no question. **It's important to use one answer only for one question**.
 
 In addition to that there is an emailing system. The structure of the email has to be defined in the ``Email templates`` entity. Each email has a name, subject, and content.
 The content can be personalized with data from the database, for that you need to include the following tag:
@@ -94,23 +94,23 @@ Each ``incident notification workflow`` has:
 
 - opening email : Email sent when the incident is created
 - closing email : email sent when the incident is closed (by the regulator)
-- Report status changed email : when there is a change in the lifecycle of the incident, for example a submission of a new report. 
+- Report status changed email : when there is a change in the lifecycle of the incident, for example a submission of a new report.
 
-The three elements above reference an ``Email template`` that has to be defined. 
+The three elements above reference an ``Email template`` that has to be defined.
 
-Those email can be completed by the ``Emails for incident notification workflows``. For each incident reports (e.g. Early Warning), it's possible to send other emails 
+Those email can be completed by the ``Emails for incident notification workflows``. For each incident reports (e.g. Early Warning), it's possible to send other emails
 like reminder, for that in the ``Emails for incident notification workflows`` you can define emails which are sent with delay, the delay can start from the Notification Date of the report
 or the date of the previous incident report.
 
-For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If one impact is ticked by the 
+For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If one impact is ticked by the
 person who submits the incident, the incident is qualified as "significative".
 
 
-Export and import 
+Export and import
 ------------------
 
-Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 
-2 exports. Same for the import. 
+Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do
+2 exports. Same for the import.
 
 .. figure:: _static/ui_admin_export.png
    :alt: import / export.
@@ -119,7 +119,7 @@ Some model of the application can be exported and/or imported. The import / expo
    Import export.
 
 1. Button to import. When you click on import, you can choose the format of your file. And the view displayed you the available field to import. **If you want to create, it's preferable to don't put the id field**.
-After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**. 
+After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**.
 After that you have this view :
 
 .. figure:: _static/ui_admin_import.png
@@ -128,12 +128,12 @@ After that you have this view :
 
    Import view.
 
-This view is summarizing the import, you can see the change. 
+This view is summarizing the import, you can see the change.
 
 2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available.
-After clicking on it, you can choose the format, the easiest is to choose ``xlsx``. 
+After clicking on it, you can choose the format, the easiest is to choose ``xlsx``.
 
-3. Search bar to reduce the exported list. 
+3. Search bar to reduce the exported list.
 
 Questions of incident report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -144,7 +144,7 @@ For importing you need to import in this order:
 
 1. Question categories
 2. Questions
-3. Predefined answers 
+3. Predefined answers
 
 If you want to create from scratch, you have to create a file of ``question categories`` mentioning:
 
@@ -156,16 +156,16 @@ After you have to import the ``questions``:
 
 - ``label`` : The question itself
 - ``tooltip`` : If the question needs a tooltip
-- ``question_type`` : The type of the question, there are several types : 
-   - MULTI - multiple choice, 
-   - FREETEXT - free text question, 
+- ``question_type`` : The type of the question, there are several types :
+   - MULTI - multiple choice,
+   - FREETEXT - free text question,
    - SO - single option choice,
-   - MT - multiple choice and free text, 
-   - ST - single choice and free text, 
-   - CL - Country list, 
-   - RL - Region list, 
-   - DATE - a date picker question. 
-- ``is_mandatory`` : if the question is mandatory, put True, if not put False 
+   - MT - multiple choice and free text,
+   - ST - single choice and free text,
+   - CL - Country list,
+   - RL - Region list,
+   - DATE - a date picker question.
+- ``is_mandatory`` : if the question is mandatory, put True, if not put False
 - ``position`` : position of the question inside the category, lower positions are shown in first during the incident report
 - ``category`` : label of the category in the language you want to import
 
@@ -188,11 +188,11 @@ For importing sectors you need to respect the following rules:
 
 The fields are:
 
-- ``parent`` : the sector above (name in the same language) 
+- ``parent`` : the sector above (name in the same language)
 - ``name`` : the name of the sector
 - ``acronym`` : acronym for the sector, used for the incident reference
 
-To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
+To update fields, for example, to update translations you need to export first to have the id and put the id field into the file.
 
 Impacts
 ~~~~~~~~
@@ -206,41 +206,37 @@ The fields are:
 - ``headline`` : headline of the impacts
 - ``sectors`` : name of the sectors, to link the impact to one or several sectors, **|** is the separator
 
-To update fields, for example, to update translations you need to export first to have the id and put the id field into the file. 
+To update fields, for example, to update translations you need to export first to have the id and put the id field into the file.
 
 
 Companies
 ~~~~~~~~~~
 
-The fields are the following: 
+The fields are the following:
 
 - ``identifier`` : 4 digits identifier of the company
 - ``name`` : Name of the company
 - ``address`` : Address of the company
 - ``country`` : 2 letters country code following the ISO 3166-2. for exemple FR for France
-- ``email`` : generic email of the company 
+- ``email`` : generic email of the company
 - ``phone_number`` : generic phone number of the company, for exemple +1 212-555-2368
 
 
 Users
 ~~~~~~~~
 
-For importing users you need first to import the company or companies, they are linked and sector(s). You can only import ``OperatorUser``, ``OperatorAdmin``, ``IncidentUser``. 
+For importing users you need first to import the company or companies, they are linked and sector(s). You can only import ``OperatorUser``, ``OperatorAdmin``, ``IncidentUser``.
 
-The system can't tolerate two users with the same email address. 
+The system can't tolerate two users with the same email address.
 
-The fields are the following: 
+The fields are the following:
 
 - ``firstname`` : first name of the user
 - ``lastname`` : last name of the user
 - ``email`` : email of the users, it's the pivot to update a user
 - ``phone_number`` : phone number of the user, for exemple +1 212-555-2368
 - ``sectors`` : sectors linked to the user. Company(ies) have to be present. If they are not present sectors are ignored
-- ``companies`` : companies linked to the user. Sector(s) have to be present. if they are not present companies are ignored 
+- ``companies`` : companies linked to the user. Sector(s) have to be present. if they are not present companies are ignored
 - ``administrator`` : True if the user has to be an administrator of the company else False.
 
 By default user without companies and sectors are categorized as ``IncidentUser``.
-
-
-
-

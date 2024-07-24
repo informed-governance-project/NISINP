@@ -27,21 +27,23 @@ def user_in_group(user, group_name) -> bool:
 
 
 def instance_user_in_group(user_instance, group_name) -> bool:
-    return any(user_group.name == group_name for user_group in user_instance.groups.all())
+    return any(
+        user_group.name == group_name for user_group in user_instance.groups.all()
+    )
 
 
 def is_user_regulator(user: User) -> bool:
     return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorUser")
 
 
-def is_cert_user(user: User) -> bool:
-    return user_in_group(user, "CertAdmin") or user_in_group(user, "CertUser")
+def is_observer_user(user: User) -> bool:
+    return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
 
-def is_cert_user_viewving_all_incident(user: User) -> bool:
+def is_observer_user_viewving_all_incident(user: User) -> bool:
     return (
-        user_in_group(user, "CertAdmin") or user_in_group(user, "CertUser")
-    ) and user.certs.first().is_receiving_all_incident
+        user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
+    ) and user.observers.first().is_receiving_all_incident
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
@@ -54,12 +56,13 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     if (
         user_in_group(user, "RegulatorUser")
         and Incident.objects.filter(
-            pk=incident.id,
-            sector_regulation__regulator=user.regulators.first()
+            pk=incident.id, sector_regulation__regulator=user.regulators.first()
         ).exists()
     ):
         sectors = [
-            sector for sector in incident.affected_sectors.all() if sector in user.get_sectors().all()
+            sector
+            for sector in incident.affected_sectors.all()
+            if sector in user.get_sectors().all()
         ]
         if len(sectors) > 0:
             return True
@@ -96,8 +99,8 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
     ):
         return True
-    # CertUser access all incident if he is in a cert who can access all incident.
-    if is_cert_user_viewving_all_incident(user):
+    # ObserverUser access all incident if he is in a observer who can access all incident.
+    if is_observer_user_viewving_all_incident(user):
         return True
 
     return False
@@ -105,12 +108,12 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
 
 # check if the user is allowed to create an incident_workflow
 def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
-    # prevent regulator and cert to create incident_workflow
+    # prevent regulator and observer to create incident_workflow
     if (
         user_in_group(user, "RegulatorUser")
         or user_in_group(user, "RegulatorAdmin")
-        or user_in_group(user, "CertAdmin")
-        or user_in_group(user, "CertUser")
+        or user_in_group(user, "ObserverAdmin")
+        or user_in_group(user, "ObserverUser")
         or user_in_group(user, "PlatformAdmin")
     ):
         return False
@@ -140,9 +143,7 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
 # for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
     # prevent platform admin
-    if (
-        user_in_group(user, "PlatformAdmin")
-    ):
+    if user_in_group(user, "PlatformAdmin"):
         return False
     # if it's the incident of the user he can create
     if incident.contact_user == user:
@@ -175,7 +176,9 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         and incident.sector_regulation.regulator == user.regulators.first()
     ):
         sectors = [
-            sector for sector in incident.affected_sectors.all() if sector in user.get_sectors().all()
+            sector
+            for sector in incident.affected_sectors.all()
+            if sector in user.get_sectors().all()
         ]
         if len(sectors) > 0:
             return True

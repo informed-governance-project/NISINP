@@ -195,8 +195,8 @@ class Regulator(TranslatableModel):
         verbose_name_plural = _("Regulators")
 
 
-# CERT
-class Cert(TranslatableModel):
+# Observer
+class Observer(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(default="", max_length=64, verbose_name=_("name")),
         full_name=models.TextField(
@@ -227,8 +227,8 @@ class Cert(TranslatableModel):
         return self.name
 
     class Meta:
-        verbose_name = _("CERT")
-        verbose_name_plural = _("CERTs")
+        verbose_name = _("Observer")
+        verbose_name_plural = _("Observers")
 
 
 # define an abstract class which make  the difference between operator and regulator
@@ -263,10 +263,10 @@ class User(AbstractUser, PermissionsMixin):
         through="RegulatorUser",
         verbose_name=_("Regulators"),
     )
-    certs = models.ManyToManyField(
-        Cert,
-        through="CertUser",
-        verbose_name=_("Certs"),
+    observers = models.ManyToManyField(
+        Observer,
+        through="ObserverUser",
+        verbose_name=_("Observers"),
     )
 
     is_staff = models.BooleanField(
@@ -292,9 +292,9 @@ class User(AbstractUser, PermissionsMixin):
     def get_regulators(self):
         return [regulator.name for regulator in self.regulators.all()]
 
-    @admin.display(description="certs")
-    def get_certs(self):
-        return [cert.name for cert in self.certs.all()]
+    @admin.display(description="observers")
+    def get_observers(self):
+        return [observer.name for observer in self.observers.all()]
 
     @admin.display(description="Roles")
     def get_permissions_groups(self):
@@ -384,28 +384,30 @@ class RegulatorUser(models.Model):
         return ""
 
 
-# link between the admin cert users and the cert.
-class CertUser(models.Model):
+# link between the admin observer users and the observer entity.
+class ObserverUser(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name=_("User"),
     )
-    cert = models.ForeignKey(
-        Cert,
+    observer = models.ForeignKey(
+        Observer,
         on_delete=models.CASCADE,
-        verbose_name=_("Cert"),
+        verbose_name=_("Observer"),
     )
-    is_cert_administrator = models.BooleanField(
+    is_observer_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
     )
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["user", "cert"], name="unique_CertUser"),
+            models.UniqueConstraint(
+                fields=["user", "observer"], name="unique_ObserverUser"
+            ),
         ]
-        verbose_name = _("CERT user")
-        verbose_name_plural = _("CERT users")
+        verbose_name = _("Observer user")
+        verbose_name_plural = _("Observer users")
 
     def __str__(self):
         return ""
