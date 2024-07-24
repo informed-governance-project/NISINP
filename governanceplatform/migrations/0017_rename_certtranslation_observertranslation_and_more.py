@@ -17,7 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name="observer",
             options={
-                "default_permissions": (),
                 "verbose_name": "Observer",
                 "verbose_name_plural": "Observers",
             },
@@ -33,7 +32,6 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name="observeruser",
             options={
-                "default_permissions": (),
                 "verbose_name": "Observer user",
                 "verbose_name_plural": "Observer users",
             },

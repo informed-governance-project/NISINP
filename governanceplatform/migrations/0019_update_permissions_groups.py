@@ -3,6 +3,25 @@
 from django.db import migrations
 
 
+def create_new_permissions(apps, schema_editor):
+    Permission = apps.get_model("auth", "Permission")
+    ContentType = apps.get_model("contenttypes", "ContentType")
+
+    new_permissions = {
+        "observeruser": ["add", "change", "delete", "view"],
+        "observer": ["add", "change", "delete", "view"],
+    }
+
+    for model, perms in new_permissions.items():
+        content_type = ContentType.objects.get(app_label="yourappname", model=model)
+        for perm in perms:
+            codename = f"{perm}_{model}"
+            name = f"Can {perm} {model}"
+            Permission.objects.get_or_create(
+                codename=codename, name=name, content_type=content_type
+            )
+
+
 def update_permissions(apps, schema_editor):
     def permission_formatting(permissions):
         group_permissions = []
@@ -68,5 +87,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(create_new_permissions),
         migrations.RunPython(update_permissions),
     ]
