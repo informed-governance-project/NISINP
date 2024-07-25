@@ -28,7 +28,8 @@ from incidents.models import (
     Workflow,
 )
 from governanceplatform.models import (
-    User
+    User,
+    Regulator,
 )
 
 from governanceplatform.widgets import TranslatedNameM2MWidget
@@ -435,6 +436,51 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
         export_order = fields
 
 
+class EmailRegulatorListFilter(SimpleListFilter):
+    title = _("Regulator")
+    parameter_name = "creator_id"
+
+    def lookups(self, request, model_admin):
+        return [
+            (regulator.id, regulator.name)
+            for regulator in Regulator.objects.translated(get_language()).order_by(
+                "translations__name"
+            )
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(Q(creator_id=self.value()))
+
+
+class EmailTypeListFilter(SimpleListFilter):
+    title = _("Email Type")
+    parameter_name = ""
+
+    def lookups(self, request, model_admin):
+        return [
+            ('REMINDER', 'Reminder'),
+            ('OPEN', 'Opening Email'),
+            ('CLOSE', 'Closing Email'),
+            ('STATUS', 'Status changed'),
+        ]
+
+    def queryset(self, request, queryset):
+        emails_ids = None
+        if self.value() == 'REMINDER':
+            emails_ids = SectorRegulationWorkflowEmail.objects.values_list('email__id', flat=True)
+        elif self.value() == 'OPEN':
+            emails_ids = SectorRegulation.objects.values_list('opening_email__id', flat=True)
+        elif self.value() == 'CLOSE':
+            emails_ids = SectorRegulation.objects.values_list('closing_email__id', flat=True)
+        elif self.value() == 'STATUS':
+            emails_ids = SectorRegulation.objects.values_list('report_status_changed_email__id', flat=True)
+        if emails_ids is None:
+            return queryset
+        else:
+            return queryset.filter(pk__in=emails_ids)
+
+
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
@@ -444,6 +490,7 @@ class EmailAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdm
         "content",
     ]
     search_fields = ["translations__subject", "translations__content"]
+    list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
     fields = ("name", "subject", "content")
     resource_class = EmailResource
 
