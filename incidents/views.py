@@ -544,7 +544,7 @@ def download_incident_pdf(request, incident_id: int):
         return redirect("incidents")
     else:
         try:
-            pdf_report = get_pdf_report(incident, request)
+            pdf_report = get_pdf_report(incident, None, request)
             create_entry_log(user, incident, None, "DOWNLOAD")
         except Exception:
             messages.warning(
@@ -556,6 +556,35 @@ def download_incident_pdf(request, incident_id: int):
         response[
             "Content-Disposition"
         ] = f"attachment;filename=Incident_{incident_id}_{date.today()}.pdf"
+
+        return response
+
+
+@login_required
+@otp_required
+def download_incident_report_pdf(request, incident_workflow_id: int):
+    user = request.user
+    incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+    incident = incident_workflow.incident
+    company_id = request.session.get("company_in_use")
+
+    if not can_access_incident(user, incident, company_id):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+    else:
+        try:
+            pdf_report = get_pdf_report(incident, incident_workflow, request)
+            # create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
+        except Exception:
+            messages.warning(
+                request, _("An error occurred when generating the report.")
+            )
+            return HttpResponseRedirect("/incidents")
+
+        response = HttpResponse(pdf_report, content_type="application/pdf")
+        response[
+            "Content-Disposition"
+        ] = f"attachment;filename=Incident_{incident_workflow}_{date.today()}.pdf"
 
         return response
 

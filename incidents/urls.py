@@ -30,6 +30,7 @@ from .views import (
     get_next_workflow,
     get_regulator_incident_edit_form,
     review_workflow,
+    download_incident_report_pdf,
 )
 
 urlpatterns = [
@@ -66,6 +67,11 @@ urlpatterns = [
         "download-pdf/<int:incident_id>",
         download_incident_pdf,
         name="download_incident_pdf",
+    ),
+    path(
+        "download-incident-report-pdf/<int:incident_workflow_id>",
+        download_incident_report_pdf,
+        name="download_incident_report_pdf",
     ),
     path(
         "delete/<int:incident_id>",

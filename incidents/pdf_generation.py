@@ -7,12 +7,12 @@ from weasyprint import CSS, HTML
 
 from governanceplatform.settings import BASE_DIR
 
-from .models import Answer, Incident
+from .models import Answer, Incident, IncidentWorkflow
 
 
-def get_pdf_report(incident: Incident, request: HttpRequest):
+def get_pdf_report(incident: Incident, incident_workflow: IncidentWorkflow, request: HttpRequest):
     # TO DO : improve for more than 2 level ?
-    sectors: Dict[str, List(str)] = {}
+    sectors: Dict[str, List[str]] = {}
     for sector in incident.affected_sectors.all():
         if sector.parent:
             if sector.parent.name not in sectors:
@@ -24,7 +24,13 @@ def get_pdf_report(incident: Incident, request: HttpRequest):
 
     incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
     incident_workflows_impact: Dict[str, List[str]] = {}
-    for incident_workflow in incident.get_latest_incident_workflows():
+    # display for the full incident or just a report
+    if incident_workflow is None:
+        report_list = incident.get_latest_incident_workflows()
+    else:
+        report_list = [incident_workflow]
+
+    for incident_workflow in report_list:
         if incident_workflow.workflow.name not in incident_workflows_answer:
             incident_workflows_answer[incident_workflow.workflow.name] = dict()
         if incident_workflow.workflow.name not in incident_workflows_impact:
