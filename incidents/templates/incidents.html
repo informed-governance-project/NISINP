@@ -172,6 +172,9 @@
                                                                 <a class="btn text-primary" href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}" title="Review">
                                                                     <i class="bi bi-binoculars"></i>
                                                                 </a>
+                                                                <a class="btn text-primary" href="{% url 'download_incident_report_pdf' incident_workflow.id %}" title="Download">
+                                                                    <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
+                                                                </a>
                                                             </td>
                                                         </tr>
                                                         {% endtimezone %}
