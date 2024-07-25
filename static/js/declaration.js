@@ -17,3 +17,11 @@ for(selectpicker of selectpickers) {
         $('#'+id).selectpicker('val', values);
     }
 }
+$(document).ready(function () {
+    $(".incident_detection_date").parent().on("dp.change", function (e) {
+        if ( $('.incident_starting_date').parent().data("DateTimePicker")){
+            $('.incident_starting_date').parent().data("DateTimePicker").clear();
+            $('.incident_starting_date').parent().data("DateTimePicker").maxDate(e.date);
+        }
+    });
+});

@@ -409,3 +409,14 @@ PHONENUMBER_DB_FORMAT = "INTERNATIONAL"
 # TIMEOUT
 SESSION_SAVE_EVERY_REQUEST = True  # the timeout is extended at each action
 SESSION_COOKIE_AGE = config.SESSION_COOKIE_AGE
+
+BOOTSTRAP_DATEPICKER_PLUS = {
+    # Options for all input widgets
+    # More options: https://getdatepicker.com/4/Options/
+    "options": {
+        "sideBySide": True,
+        "format": "YYYY-MM-DD HH:mm",
+        "useStrict": True,
+        "useCurrent": False,
+    },
+}

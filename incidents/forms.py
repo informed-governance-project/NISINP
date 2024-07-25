@@ -283,7 +283,6 @@ class QuestionForm(forms.Form):
             self.fields[field_name] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
-                        "format": "YYYY-MM-DD HH:mm",
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     },
                     attrs={
@@ -609,11 +608,7 @@ class DetectionDateForm(forms.Form):
         required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
             },
         ),
     )
@@ -793,26 +788,13 @@ class IncidenteDateForm(forms.ModelForm):
     )
 
     incident_notification_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
-        ),
+        widget=DateTimePickerInput(),
         required=False,
     )
 
     incident_detection_date = forms.DateTimeField(
         widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
+            options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
         help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
@@ -820,13 +802,7 @@ class IncidenteDateForm(forms.ModelForm):
 
     incident_starting_date = forms.DateTimeField(
         widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
+            options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
         help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
@@ -839,38 +815,69 @@ class IncidenteDateForm(forms.ModelForm):
         self.fields["incident_notification_date"].disabled = True
 
         if self.incident:
+            i_timezone = (
+                self.incident.incident_timezone
+                if self.incident.incident_timezone
+                else TIME_ZONE
+            )
+            i_notification_date = (
+                self.incident.incident_notification_date
+                if self.incident.incident_notification_date
+                else None
+            )
+
+            i_detection_date = (
+                self.incident.incident_detection_date
+                if self.incident.incident_detection_date
+                else None
+            )
+            timezone = pytz.timezone(i_timezone)
+
+            if i_notification_date:
+                maxDate_notification = format_datetime_astimezone(
+                    i_notification_date, timezone
+                )
+                self.fields["incident_detection_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_notification
+
+                self.fields["incident_starting_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_notification
+
             if self.incident.sector_regulation.is_detection_date_needed:
+                maxDate_detection = format_datetime_astimezone(
+                    i_detection_date, timezone
+                )
+
+                self.fields["incident_starting_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_detection
                 self.fields["incident_detection_date"].disabled = True
                 self.fields["incident_timezone"].disabled = True
 
-            if self.incident.incident_timezone:
-                if self.incident.incident_timezone != TIME_ZONE:
-                    self.fields["incident_timezone"].disabled = True
+            if i_timezone != TIME_ZONE:
+                self.fields["incident_timezone"].disabled = True
 
-                incident_timezone = pytz.timezone(self.incident.incident_timezone)
-                self.initial[
-                    "incident.incident_timezone"
-                ] = self.incident.incident_timezone
+            set_initial_datetime(
+                self,
+                "incident_notification_date",
+                i_notification_date,
+                timezone,
+            )
 
-                set_initial_datetime(
-                    self,
-                    "incident_notification_date",
-                    self.incident.incident_notification_date,
-                    incident_timezone,
-                )
-
-                set_initial_datetime(
-                    self,
-                    "incident_detection_date",
-                    self.incident.incident_detection_date,
-                    incident_timezone,
-                )
-                set_initial_datetime(
-                    self,
-                    "incident_starting_date",
-                    self.incident.incident_starting_date,
-                    incident_timezone,
-                )
+            set_initial_datetime(
+                self,
+                "incident_detection_date",
+                i_detection_date,
+                timezone,
+            )
+            set_initial_datetime(
+                self,
+                "incident_starting_date",
+                self.incident.incident_starting_date,
+                timezone,
+            )
 
     class Meta:
         model = Incident
@@ -939,8 +946,10 @@ class IncidentStatusForm(forms.ModelForm):
         }
 
 
+def format_datetime_astimezone(datetime, timezone):
+    return datetime.astimezone(timezone).strftime("%Y-%m-%d %H:%M")
+
+
 def set_initial_datetime(form, field_name, datetime_value, timezone):
     if datetime_value:
-        form.initial[field_name] = datetime_value.astimezone(timezone).strftime(
-            "%Y-%m-%d %H:%M"
-        )
+        form.initial[field_name] = format_datetime_astimezone(datetime_value, timezone)
