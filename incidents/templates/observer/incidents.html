@@ -54,7 +54,9 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end">
-                <button class="btn btn-danger btn-sm" type="submit" name="reset" value="true">{% translate "Reset" %}</button>
+                <button class="btn btn-danger btn-sm" type="submit" name="reset" value="true">
+                    {% translate "Reset" %}
+                </button>
                 <input class="btn btn-primary btn-sm ms-2" type="submit" value='{{_("Search")}}' />
             </div>
 
@@ -126,12 +128,13 @@
                             </a>
                             {% with incident_workflows=incident|get_incident_workflow_by_workflow:report %}
                             {% if incident_workflows %}
-                            <button class="btn text-secondary p-0 ps-1" data-bs-toggle="modal" data-bs-target="#report_versions_{{ report.id }}" title="Report versions">
+                            <button class="btn text-secondary p-0 ps-1" data-bs-toggle="modal"
+                                data-bs-target="#report_versions_{{ report.id }}" title="Report versions">
                                 <i class="bi bi-clock-history"></i>
                             </button>
-                            <div class="modal fade modal-sm" id="report_versions_{{ report.id }}" data-bs-backdrop="static"
-                                data-bs-keyboard="false" tabindex="-1" aria-labelledby="report_versions_label"
-                                aria-hidden="true">
+                            <div class="modal fade modal-sm" id="report_versions_{{ report.id }}"
+                                data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                                aria-labelledby="report_versions_label" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header bg-primary text-white">
@@ -159,11 +162,16 @@
                                                             {{ incident_workflow.timestamp|date:"d/m/Y H:i"}}
                                                         </td>
                                                         <td>
-                                                            <a class="btn text-primary" href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}" title="Review">
+                                                            <a class="btn text-primary"
+                                                                href="{% url 'review_workflow' %}?incident_workflow_id={{ incident_workflow.id }}"
+                                                                title="Review">
                                                                 <i class="bi bi-binoculars"></i>
                                                             </a>
-                                                            <a class="btn text-primary" href="{% url 'download_incident_report_pdf' incident_workflow.id %}" title="Download">
-                                                                <img src="/static/images/pdf_file_icon.png" alt="download pdf" width="18" height="24">
+                                                            <a class="btn text-primary"
+                                                                href="{% url 'download_incident_report_pdf' incident_workflow.id %}"
+                                                                title="Download">
+                                                                <img src="/static/images/pdf_file_icon.png"
+                                                                    alt="download pdf" width="18" height="24">
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -204,8 +212,8 @@
             <td class="table-group-divider">
                 <div class="col d-flex align-items-center">
                     <button class="btn text-secondary access_log p-0" data-incident-id="{{ incident.id }}"
-                    title="Access Log">
-                    <i class="bi bi-file-earmark-person h4"></i>
+                        title="Access Log">
+                        <i class="bi bi-file-earmark-person h4"></i>
                     </button>
                     <a href="{% url 'download_incident_pdf' incident.id %}" class="text-decoration-none"
                         title="Download">
@@ -222,22 +230,40 @@
     {% if incidents.has_other_pages %}
     <ul class="pagination">
         {% if incidents.has_previous %}
-        <li><a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">&laquo;</a>
+        <li>
+            <a href="?{% url_replace request 'page' incidents.previous_page_number %}" class="page-link">
+                &laquo;
+            </a>
         </li>
         {% else %}
-        <li class="page-link disabled"><span>&laquo;</span></li>
+        <li class="page-link disabled">
+            <span>&laquo;</span>
+        </li>
         {% endif %}
         {% for i in incidents.paginator.page_range %}
         {% if incidents.number == i %}
-        <li class="page-link active">{{ i }}</li>
+        <li class="page-link active">
+            {{ i }}
+        </li>
         {% else %}
-        <li class="page-link"><a class="text-decoration-none" href="?{% url_replace request 'page' i %}">{{ i }}</a></li>
+        <li class="page-link">
+            <a class="text-decoration-none" href="?{% url_replace request 'page' i %}">
+                {{ i }}
+            </a>
+        </li>
         {% endif %}
         {% endfor %}
         {% if incidents.has_next %}
-        <li><a class="page-link text-decoration-none" href="?{% url_replace request 'page' incidents.next_page_number %}">&raquo;</a></li>
+        <li>
+            <a class="page-link text-decoration-none"
+                href="?{% url_replace request 'page' incidents.next_page_number %}">
+                &raquo;
+            </a>
+        </li>
         {% else %}
-        <li class="page-link disabled"><span>&raquo;</span></li>
+        <li class="page-link disabled">
+            <span>&raquo;</span>
+        </li>
         {% endif %}
     </ul>
     {% endif %}
