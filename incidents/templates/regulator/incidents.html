@@ -86,7 +86,7 @@
         {% for incident in incidents %}
         <tr>
             {% timezone time_zone %}
-            <td scope="row" class="table-group-divider">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
+            <td class="table-group-divider">{{incident.incident_notification_date|date:"d M Y, H:i" }}</td>
             <td class="table-group-divider">{{ incident.sector_regulation.regulation }}</td>
             <td class="table-group-divider">
                 {% for field in incident.formsStatus %}
@@ -202,11 +202,13 @@
                     {% endif %}
                 {% endfor %}
             </td>
-            <td class="table-group-divider">{% for field in incident.formsStatus %}
+            <td class="table-group-divider">
+                {% for field in incident.formsStatus %}
                     {% if field.name == "is_significative_impact" %}
                     {% bootstrap_field field show_label=False wrapper_class="d-flex align-items-center justify-content-center" %}
                     {% endif %}
-                {% endfor %}</td>
+                {% endfor %}
+            </td>
             <td class="table-group-divider">
                 <div class="col d-flex align-items-center">
                     <button class="btn text-secondary access_log p-0" data-incident-id="{{ incident.id }}"
@@ -224,7 +226,6 @@
         {% endfor %}
     </tbody>
 </table>
-
 <div>
     {% if incidents.has_other_pages %}
     <ul class="pagination">
