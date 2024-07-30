@@ -529,7 +529,7 @@ def access_log(request, incident_id: int):
         "log": log,
         "incident": incident,
     }
-    return render(request, "access_log.html", context)
+    return render(request, "modals/access_log.html", context)
 
 
 @login_required

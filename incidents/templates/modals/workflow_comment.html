@@ -1,0 +1,14 @@
+{% load django_bootstrap5 %}
+{% load i18n %}
+
+{% block content %}
+<div class="modal-content">
+    <div class="modal-header bg-primary text-white">
+        <h4 class="modal-title" id="exampleModalLabel">
+            {% translate "Comment" %}
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div id="modal-workflow-comment" class="modal-body"></div>
+</div>
+{% endblock %}

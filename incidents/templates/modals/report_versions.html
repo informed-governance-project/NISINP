@@ -1,0 +1,30 @@
+{% load django_bootstrap5 %}
+{% load i18n %}
+
+{% block content %}
+<div class="modal-content">
+    <div class="modal-header bg-primary text-white">
+        <h4 class="modal-title" id="report_versions_label">
+            {{ _('Report versions') }}
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <h5 id="modal-incident-ref"></h5>
+        <h6 id="modal-report-name"></h6>
+        <table class="table table-sm">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">{% translate "Date" %}</th>
+                    <th scope="col">{% translate "Action" %}</th>
+                </tr>
+            </thead>
+            <tbody id="modal-workflow-rows">
+                <!-- Table filled into -->
+                <!-- static/js/incidents.js -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

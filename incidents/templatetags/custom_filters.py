@@ -1,7 +1,9 @@
+import json
 import math
 
 from django import template
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -186,44 +188,48 @@ def is_deadline_exceeded(report, incident):
 # get the incident workflow by workflow and incident to see the historic for regulator
 @register.filter
 def get_incident_workflow_by_workflow(incident, workflow):
-    # we exclude the latest incident workflow
     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
         workflow
     )
+
     if latest_incident_workflow is None:
-        return (
-            IncidentWorkflow.objects.all()
-            .filter(incident=incident, workflow=workflow)
+        queryset = IncidentWorkflow.objects.filter(
+            incident=incident, workflow=workflow
+        ).order_by("-timestamp")
+    else:
+        queryset = (
+            IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
+            .exclude(id=latest_incident_workflow.id)
             .order_by("-timestamp")
         )
 
-    return (
-        IncidentWorkflow.objects.all()
-        .filter(incident=incident, workflow=workflow)
-        .exclude(id=latest_incident_workflow.id)
-        .order_by("-timestamp")
-    )
+    if not queryset:
+        return None
+
+    data = list(queryset.values("id", "timestamp"))
+    for item in data:
+        item["timestamp"] = item["timestamp"].isoformat()
+
+    return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 # get the incident workflow by workflow and incident to see the historic for operator
 @register.filter
 def get_incident_workflow_by_workflow_operator(incident, workflow):
-    # we exclude the latest incident workflow
-    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-        workflow
-    )
-    if latest_incident_workflow is None:
-        return (
-            IncidentWorkflow.objects.all()
-            .filter(incident=incident, workflow=workflow)
-            .order_by("-timestamp")
-        )
-
-    return (
+    queryset = (
         IncidentWorkflow.objects.all()
         .filter(incident=incident, workflow=workflow)
         .order_by("-timestamp")
     )
+
+    if not queryset:
+        return None
+
+    data = list(queryset.values("id", "timestamp"))
+    for item in data:
+        item["timestamp"] = item["timestamp"].isoformat()
+
+    return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 # replace a field in the URL, used for filter + pagination
