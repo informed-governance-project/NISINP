@@ -1,4 +1,37 @@
 $(document).ready(function () {
+    $('#incidents-table').DataTable( {
+        paging: false,
+        searching: false,
+        order: [[0, 'dsc']],
+        columnDefs: [
+            {
+                targets: 0,
+                type:'date'
+            },
+            {
+                targets: 1,
+                orderable: true,
+                type:'string'
+            },
+            {
+                targets: 6,
+                orderable: false,
+            },
+            {
+                targets: 7,
+                orderable: false,
+            },
+            {
+                targets: 8,
+                orderable: false,
+            },
+            {
+                targets: 9,
+                orderable: false,
+            },
+        ]
+    });
+
     $('.access_log').on( "click", function() {
         var $popup = $("#access_log");
         var popup_url = 'access_log/' + $(this).data("incident-id");

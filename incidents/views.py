@@ -144,7 +144,7 @@ def get_incidents(request):
         response = paginator.page(paginator.num_pages)
 
     # add paggination to the regular incidents view.
-    html_view = "incidents.html"
+    html_view = "operator/incidents.html"
     if is_user_regulator(request.user):
         html_view = "regulator/incidents.html"
     elif is_observer_user(request.user):
