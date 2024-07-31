@@ -35,6 +35,12 @@
                 <i class="bi bi-clock-history"></i>
             </button>
             {% endif %}
+            {% if filtered_workflows %}
+            <a class="btn text-secondary p-0 {% if not incident_workflows %}ps-1{% endif %} border-0" href="{% url 'download_incident_report_pdf' filtered_workflows.instance.id %}"
+                title="Download">
+                <i class="bi bi-filetype-pdf"></i>
+            </a>
+            {% endif %}
             {% endwith %}
         </td>
         {% if filtered_workflows.get_review_status_display %}
