@@ -10,7 +10,9 @@ from governanceplatform.settings import BASE_DIR
 from .models import Answer, Incident, IncidentWorkflow
 
 
-def get_pdf_report(incident: Incident, incident_workflow: IncidentWorkflow, request: HttpRequest):
+def get_pdf_report(
+    incident: Incident, incident_workflow: IncidentWorkflow, request: HttpRequest
+):
     # TO DO : improve for more than 2 level ?
     sectors: Dict[str, List[str]] = {}
     for sector in incident.affected_sectors.all():
@@ -58,7 +60,7 @@ def get_pdf_report(incident: Incident, incident_workflow: IncidentWorkflow, requ
         request=request,
     )
 
-    base_url = os.path.join(BASE_DIR, "incidents/templates/report")
+    base_url = os.path.join(BASE_DIR, "theme/templates/report")
     htmldoc = HTML(string=output_from_parsed_template, base_url=base_url)
 
     stylesheets = [
