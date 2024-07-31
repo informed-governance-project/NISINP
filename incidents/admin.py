@@ -554,6 +554,7 @@ class SectorRegulationAdmin(TranslatableAdmin):
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
+    save_as = True
 
     fields = (
         "name",
@@ -568,6 +569,21 @@ class SectorRegulationAdmin(TranslatableAdmin):
     filter_horizontal = [
         "sectors",
     ]
+
+    # prevent other regulator to save the current workflow but they can duplicate
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+        if object_id:
+            obj = SectorRegulation.objects.get(pk=object_id)
+            if obj.regulator != request.user.regulators.all().first():
+                extra_context["show_save"] = False
+                extra_context["show_save_and_continue"] = False
+        return super().change_view(
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
+        )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
