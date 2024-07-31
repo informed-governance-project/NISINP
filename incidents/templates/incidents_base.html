@@ -76,7 +76,7 @@
 <table id="incidents-table" class="table align-middle table-sm small">
     <thead>
         <tr>
-            <th scope="col">{% translate "Notification date" %}</th>
+            <th scope="col">{% translate "Incident notification date" %}</th>
             <th scope="col">{% translate "Reference" %}</th>
             <th scope="col">
                 {% if is_observer %}
@@ -93,7 +93,7 @@
                 {% endif %}
             </th>
             <th scope="col">{% translate "Sectors" %}</th>
-            <th scope="col">{% translate "Sub-sectors" %}</th>
+            <th scope="col">{% translate "Subsectors" %}</th>
             <th scope="col">
                 <table class="table table-borderless table-sm m-0">
                     <tr>
@@ -103,7 +103,7 @@
                 </table>
             </th>
             <th scope="col">{% translate "Incident status" %}</th>
-            <th scope="col">{% translate "Significative impact" %}</th>
+            <th scope="col">{% translate "Significant impact" %}</th>
             <th scope="col">{% translate "Actions" %}</th>
         </tr>
     </thead>
@@ -111,7 +111,7 @@
         {% for incident in incidents %}
         {% timezone time_zone %}
         <tr>
-            <td class="table-group-divider"> <!-- Notification date -->
+            <td class="table-group-divider"> <!-- NoIncident notification date -->
                 {{incident.incident_notification_date|date:"d M Y, H:i" }}
             </td>
             <td class="table-group-divider"> <!-- Reference -->
@@ -145,7 +145,7 @@
                     {% endfor %}
                 </ul>
             </td>
-            <td class="table-group-divider"> <!-- Sub-sectors -->
+            <td class="table-group-divider"> <!-- Subsectors -->
                 <ul class="m-0 p-0">
                     {% for sector in incident.affected_sectors.all %}
                     {% if sector.parent is not None %}

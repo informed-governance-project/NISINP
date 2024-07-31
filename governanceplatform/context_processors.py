@@ -19,7 +19,7 @@ def extra_content_for_all_templates(request):
     if user_in_group(user, "PlatformAdmin"):
         extra_data["is_only_admin"] = True
         extra_data["template_header"] = "admin/base_site.html"
-        extra_data["site_header"] = SITE_NAME + " " + _("Administration")
+        extra_data["site_header"] = SITE_NAME + " " + _("Settings")
         extra_data["site_title"] = SITE_NAME
 
     return extra_data

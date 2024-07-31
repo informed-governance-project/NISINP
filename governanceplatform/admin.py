@@ -41,7 +41,7 @@ def get_group_id(name=""):
 
 
 class CustomAdminSite(admin.AdminSite):
-    site_header = SITE_NAME + " " + _("Administration")
+    site_header = SITE_NAME + " " + _("Settings")
     site_title = SITE_NAME
 
     def admin_view(self, view, cacheable=False):
@@ -331,7 +331,7 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
     inlines = (SectorCompanyContactInline,)
     fieldsets = [
         (
-            _("Contact Information"),
+            _("Contact information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
@@ -342,7 +342,7 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
             },
         ),
         (
-            _("Configuration Information"),
+            _("Configuration information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
@@ -639,7 +639,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 
 class UserRegulatorsListFilter(SimpleListFilter):
-    title = _("Regulators")
+    title = _("Competent authorities")
     parameter_name = "regulators"
 
     def lookups(self, request, model_admin):
@@ -658,7 +658,7 @@ class UserRegulatorsListFilter(SimpleListFilter):
 
 
 class ObserverUsersListFilter(SimpleListFilter):
-    title = _("observer")
+    title = _("Observer")
     parameter_name = "observers"
 
     def lookups(self, request, model_admin):
@@ -797,7 +797,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     inlines = [userRegulatorInline, SectorCompanyContactInline]
     standard_fieldsets = [
         (
-            _("Contact Information"),
+            _("Contact information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
@@ -810,7 +810,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     # add is_active for RegulatorAdmin
     admin_fieldsets = [
         (
-            _("Contact Information"),
+            _("Contact information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [

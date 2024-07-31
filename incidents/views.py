@@ -243,7 +243,7 @@ def review_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
     if not incident_workflow_id:
-        messages.warning(request, _("No incident report found"))
+        messages.warning(request, _("No incident report could be found."))
         return redirect("incidents")
     user = request.user
     incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
@@ -276,7 +276,7 @@ def edit_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow = None
     if not workflow_id and not incident_id and not incident_workflow_id:
-        messages.warning(request, _("No incident report found"))
+        messages.warning(request, _("No incident report could be found."))
         return redirect("incidents")
     elif workflow_id and incident_id:
         incident = Incident.objects.filter(pk=incident_id).first()
@@ -332,7 +332,7 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.warning(request, _("No incident report found"))
+    messages.warning(request, _("No incident report could be found."))
     return redirect("incidents")
 
 
@@ -548,7 +548,7 @@ def download_incident_pdf(request, incident_id: int):
             create_entry_log(user, incident, None, "DOWNLOAD")
         except Exception:
             messages.warning(
-                request, _("An error occurred when generating the report.")
+                request, _("An error occurred while generating the report.")
             )
             return HttpResponseRedirect("/incidents")
 
@@ -577,7 +577,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
             # create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
         except Exception:
             messages.warning(
-                request, _("An error occurred when generating the report.")
+                request, _("An error occurred while generating the report.")
             )
             return HttpResponseRedirect("/incidents")
 
@@ -605,12 +605,12 @@ def delete_incident(request, incident_id: int):
             if incident is not None:
                 if incident.workflows.count() == 0:
                     incident.delete()
-                    messages.info(request, _("Incident has been deleted"))
+                    messages.info(request, _("The incident has been deleted."))
                 else:
-                    messages.warning(request, _("This incident can't be deleted."))
+                    messages.warning(request, _("The incident could not be deleted."))
         except Exception:
             messages.warning(
-                request, _("An error occurred when deleting the incident.")
+                request, _("An error occurred while deleting the incident.")
             )
             return redirect("incidents")
         return redirect("incidents")
@@ -626,7 +626,7 @@ def is_incidents_report_limit_reached(request):
             messages.warning(
                 request,
                 _(
-                    "The incidents reports per day have been reached. Try again tomorrow."
+                    "The daily limit of incident reports has been reached. Please try again tomorrow."
                 ),
             )
             return True
@@ -746,7 +746,7 @@ class FormWizardView(SessionWizardView):
 
         context["steps"] = [
             _("Contact"),
-            _("Regulators"),
+            ("Competent authorities"),
             _("Regulations"),
             _("Sectors"),
             _("Detection date"),

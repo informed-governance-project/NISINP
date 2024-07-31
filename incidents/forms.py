@@ -485,7 +485,8 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "Insert a reference to find and track easily your incident (internal reference, CERT reference, etc.)"
+                    "To make your incident easier to locate and track, please include a reference "
+                    "(e.g., an identifier, internal reference, CERT reference, etc.)."
                 ),
                 "data-bs-toggle": "tooltip",
             }
@@ -496,7 +497,9 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "title": _("Insert any complaint has been filed with the police"),
+                "title": _(
+                    "Insert a police report that you have filed with the police"
+                ),
                 "data-bs-toggle": "tooltip",
             }
         ),

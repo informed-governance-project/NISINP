@@ -20,7 +20,7 @@ class Sector(TranslatableModel):
         on_delete=models.CASCADE,
         blank=True,
         default=None,
-        verbose_name=_("parent"),
+        verbose_name=_("Parent"),
     )
     acronym = models.CharField(
         verbose_name=_("Acronym"), max_length=4, null=True, blank=True, default=None
@@ -105,7 +105,7 @@ class OperatorType(TranslatableModel):
 # operator are companies
 class Company(models.Model):
     identifier = models.CharField(
-        max_length=4, verbose_name=_("Identifier")
+        max_length=4, verbose_name=_("Acronym")
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(
@@ -120,7 +120,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name=_("email address"),
+        verbose_name=_("e-mail address"),
     )
     phone_number = PhoneNumberField(
         verbose_name=_("Phone number"),
@@ -178,21 +178,21 @@ class Regulator(TranslatableModel):
     )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
-        verbose_name=_("email address for incident notification"),
+        verbose_name=_("e-mail address for incident notification"),
         default=None,
         blank=True,
         null=True,
     )
     is_receiving_all_incident = models.BooleanField(
-        default=False, verbose_name=_("Receive all incident")
+        default=False, verbose_name=_("Receives all incidents")
     )
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = _("Regulator")
-        verbose_name_plural = _("Regulators")
+        verbose_name = _("Competent authority")
+        verbose_name_plural = _("Competent authorities")
 
 
 # Observer
@@ -214,13 +214,13 @@ class Observer(TranslatableModel):
     )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
-        verbose_name=_("email address for incident notification"),
+        verbose_name=_("e-mail address for incident notification"),
         default=None,
         blank=True,
         null=True,
     )
     is_receiving_all_incident = models.BooleanField(
-        default=False, verbose_name=_("Receive all incident")
+        default=False, verbose_name=_("Receives all incidents")
     )
 
     def __str__(self):
@@ -235,10 +235,10 @@ class Observer(TranslatableModel):
 class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(
-        verbose_name=_("email address"),
+        verbose_name=_("e-mail address"),
         unique=True,
         error_messages={
-            "unique": _("A user is already registered with this email address"),
+            "unique": _("An account with this email already exists"),
         },
     )
     phone_number = PhoneNumberField(
@@ -261,7 +261,7 @@ class User(AbstractUser, PermissionsMixin):
     regulators = models.ManyToManyField(
         Regulator,
         through="RegulatorUser",
-        verbose_name=_("Regulators"),
+        verbose_name=_("Competent authorities"),
     )
     observers = models.ManyToManyField(
         Observer,
@@ -272,7 +272,9 @@ class User(AbstractUser, PermissionsMixin):
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
+        help_text=_(
+            "Specifies whether a user can log in via the administration interface."
+        ),
     )
 
     USERNAME_FIELD = "email"
@@ -364,7 +366,7 @@ class RegulatorUser(models.Model):
     regulator = models.ForeignKey(
         Regulator,
         on_delete=models.CASCADE,
-        verbose_name=_("Regulator"),
+        verbose_name=_("Competent authority"),
     )
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
@@ -428,7 +430,7 @@ class Regulation(TranslatableModel):
         Regulator,
         default=None,
         blank=True,
-        verbose_name=_("Regulators"),
+        verbose_name=_("Competent authorities"),
     )
 
     @admin.display(description="regulators")

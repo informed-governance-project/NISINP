@@ -1,21 +1,21 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import Group
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Q, Value, When
 from django.db.models.functions import Concat
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
-from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
+from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
-from django.contrib.admin.models import LogEntry
-from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
 
 from governanceplatform.admin import admin_site
 from governanceplatform.helpers import user_in_group
 from governanceplatform.mixins import TranslationUpdateMixin
-from governanceplatform.models import Regulation, Sector
-from governanceplatform.widgets import TranslatedNameWidget
+from governanceplatform.models import Regulation, Regulator, Sector, User
+from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.models import (
     Email,
     Impact,
@@ -27,12 +27,6 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
-from governanceplatform.models import (
-    User,
-    Regulator,
-)
-
-from governanceplatform.widgets import TranslatedNameM2MWidget
 
 
 # get the id of a group by name
@@ -55,7 +49,11 @@ class LogUserFilter(SimpleListFilter):
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
         RegulatorUserGroupId = get_group_id(name="RegulatorUser")
         users = User.objects.filter(
-            groups__in=[PlatformAdminGroupId, RegulatorAdminGroupId, RegulatorUserGroupId]
+            groups__in=[
+                PlatformAdminGroupId,
+                RegulatorAdminGroupId,
+                RegulatorUserGroupId,
+            ]
         )
         return [(user.id, user.email) for user in users]
 
@@ -70,25 +68,19 @@ class LogUserFilter(SimpleListFilter):
 @admin.register(LogEntry, site=admin_site)
 class LogEntryAdmin(admin.ModelAdmin):
     # to have a date-based drilldown navigation in the admin page
-    date_hierarchy = 'action_time'
+    date_hierarchy = "action_time"
 
     # to filter the resultes by users, content types and action flags
-    list_filter = [
-        LogUserFilter,
-        'action_flag'
-    ]
+    list_filter = [LogUserFilter, "action_flag"]
 
     # when searching the user will be able to search in both object_repr and change_message
-    search_fields = [
-        'object_repr',
-        'change_message'
-    ]
+    search_fields = ["object_repr", "change_message"]
 
     list_display = [
-        'action_time',
-        'user',
-        'content_type',
-        'action_flag',
+        "action_time",
+        "user",
+        "content_type",
+        "action_flag",
     ]
 
     def has_add_permission(self, request):
@@ -121,12 +113,14 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = PredefinedAnswer
-        fields = ('id', 'predefined_answer', 'question', 'position')
+        fields = ("id", "predefined_answer", "question", "position")
         export_order = fields
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class PredefinedAnswerAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin
+):
     list_display = [
         "question",
         "predefined_answer",
@@ -157,12 +151,14 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = QuestionCategory
-        fields = ('id', 'label', 'position')
+        fields = ("id", "label", "position")
         export_order = fields
 
 
 @admin.register(QuestionCategory, site=admin_site)
-class QuestionCategoryAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class QuestionCategoryAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin
+):
     list_display = ["position", "label"]
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
@@ -206,7 +202,15 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Question
-        fields = ('id', 'label', 'tooltip', 'question_type', 'is_mandatory', 'position', 'category')
+        fields = (
+            "id",
+            "label",
+            "tooltip",
+            "question_type",
+            "is_mandatory",
+            "position",
+            "category",
+        )
         export_order = fields
 
 
@@ -244,7 +248,7 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
     regulation = fields.Field(
         column_name="regulation",
         attribute="regulation",
-        widget=TranslatedNameWidget(Regulation, field="label")
+        widget=TranslatedNameWidget(Regulation, field="label"),
     )
     label = fields.Field(
         column_name="label",
@@ -271,18 +275,22 @@ class ImpactSectorListFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         language = get_language()
-        parents = Sector.objects.translated(language).filter(
-                parent__isnull=True
-            ).values_list("id", "translations__name")
+        parents = (
+            Sector.objects.translated(language)
+            .filter(parent__isnull=True)
+            .values_list("id", "translations__name")
+        )
         # put the conditions here to use the value of parents variable
         whens = [
             When(
-                parent__id=key, then=Concat(
-                            Value(value),
-                            Value(" --> "),
-                            "translations__name",
-                        ),
-            ) for key, value in parents
+                parent__id=key,
+                then=Concat(
+                    Value(value),
+                    Value(" --> "),
+                    "translations__name",
+                ),
+            )
+            for key, value in parents
         ]
         return [
             (sector.id, sector.full_name)
@@ -368,18 +376,22 @@ class ImpactAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAd
         # See MPTT
         if db_field.name == "sectors":
             language = get_language()
-            parents = Sector.objects.translated(language).filter(
-                    parent__isnull=True
-                ).values_list("id", "translations__name")
+            parents = (
+                Sector.objects.translated(language)
+                .filter(parent__isnull=True)
+                .values_list("id", "translations__name")
+            )
             # put the conditions here to use the value of parents variable
             whens = [
                 When(
-                    parent__id=key, then=Concat(
-                                Value(value),
-                                Value(" --> "),
-                                "translations__name",
-                            ),
-                ) for key, value in parents
+                    parent__id=key,
+                    then=Concat(
+                        Value(value),
+                        Value(" --> "),
+                        "translations__name",
+                    ),
+                )
+                for key, value in parents
             ]
 
             queryset = (
@@ -389,7 +401,9 @@ class ImpactAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAd
                         *whens,
                         default="translations__name",
                     )
-                ).order_by("full_name").distinct()
+                )
+                .order_by("full_name")
+                .distinct()
             )
             kwargs["queryset"] = queryset
 
@@ -432,7 +446,7 @@ class EmailResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Email
-        fields = ('id', 'name', 'subject', 'content')
+        fields = ("id", "name", "subject", "content")
         export_order = fields
 
 
@@ -459,22 +473,30 @@ class EmailTypeListFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            ('REMINDER', 'Reminder'),
-            ('OPEN', 'Opening Email'),
-            ('CLOSE', 'Closing Email'),
-            ('STATUS', 'Status changed'),
+            ("REMINDER", "Reminder"),
+            ("OPEN", "Opening Email"),
+            ("CLOSE", "Closing Email"),
+            ("STATUS", "Status changed"),
         ]
 
     def queryset(self, request, queryset):
         emails_ids = None
-        if self.value() == 'REMINDER':
-            emails_ids = SectorRegulationWorkflowEmail.objects.values_list('email__id', flat=True)
-        elif self.value() == 'OPEN':
-            emails_ids = SectorRegulation.objects.values_list('opening_email__id', flat=True)
-        elif self.value() == 'CLOSE':
-            emails_ids = SectorRegulation.objects.values_list('closing_email__id', flat=True)
-        elif self.value() == 'STATUS':
-            emails_ids = SectorRegulation.objects.values_list('report_status_changed_email__id', flat=True)
+        if self.value() == "REMINDER":
+            emails_ids = SectorRegulationWorkflowEmail.objects.values_list(
+                "email__id", flat=True
+            )
+        elif self.value() == "OPEN":
+            emails_ids = SectorRegulation.objects.values_list(
+                "opening_email__id", flat=True
+            )
+        elif self.value() == "CLOSE":
+            emails_ids = SectorRegulation.objects.values_list(
+                "closing_email__id", flat=True
+            )
+        elif self.value() == "STATUS":
+            emails_ids = SectorRegulation.objects.values_list(
+                "report_status_changed_email__id", flat=True
+            )
         if emails_ids is None:
             return queryset
         else:
@@ -543,7 +565,7 @@ class SectorRegulationResource(resources.ModelResource):
 
 class SectorRegulationInline(admin.TabularInline):
     model = SectorRegulation.workflows.through
-    verbose_name = _("Incident Report")
+    verbose_name = _("Incident report")
     verbose_name_plural = _("Incident reports")
     extra = 0
 

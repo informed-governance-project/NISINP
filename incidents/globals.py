@@ -43,23 +43,23 @@ INCIDENT_EMAIL_TRIGGER_EVENT = [
 
 INCIDENT_STATUS = [
     ("CLOSE", _("Closed")),
-    ("GOING", _("On-going")),
+    ("GOING", _("In progress")),
 ]
 
 REVIEW_STATUS = [
-    ("UNDE", "Not delivered"),
-    ("DELIV", "Delivered but not yet reviewed"),
-    ("PASS", "Review passed"),
-    ("FAIL", "Review failed"),
-    ("OUT", "Not delivered and deadline exceeded"),
+    ("UNDE", _("Not submitted")),
+    ("DELIV", _("Submitted, but review not yet completed")),
+    ("PASS", _("Review passed")),
+    ("FAIL", _("Review failed")),
+    ("OUT", _("Not submitted and deadline exceeded")),
 ]
 
 WORKFLOW_REVIEW_STATUS = [
-    ("UNDE", _("Not delivered")),
-    ("DELIV", _("Delivered but not yet reviewed")),
+    ("UNDE", _("Not submitted")),
+    ("DELIV", _("Submitted, but review not yet completed")),
     ("PASS", _("Review passed")),
     ("FAIL", _("Review failed")),
-    ("OUT", _("Not delivered and deadline exceeded")),
+    ("OUT", _("Not submitted and deadline exceeded")),
 ]
 
 # after this step the delay is running

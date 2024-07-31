@@ -97,8 +97,8 @@ class QuestionCategory(TranslatableModel):
         return self.label if self.label is not None else ""
 
     class Meta:
-        verbose_name = _("Question Category")
-        verbose_name_plural = _("Question Categories")
+        verbose_name = _("Category of question")
+        verbose_name_plural = _("Categories of questions")
 
 
 # questions asked during the Incident notification process
@@ -314,7 +314,7 @@ class SectorRegulation(TranslatableModel):
         "governanceplatform.Sector", verbose_name=_("Sectors"), default=None, blank=True
     )
     is_detection_date_needed = models.BooleanField(
-        default=False, verbose_name=_("Detection date needed")
+        default=False, verbose_name=_("Incident detection date needed")
     )
     # email
     opening_email = models.ForeignKey(
@@ -465,28 +465,28 @@ class Incident(models.Model):
         default=None,
     )
     contact_lastname = models.CharField(
-        max_length=100, verbose_name=_("contact lastname")
+        max_length=100, verbose_name=_("contact last name")
     )
     contact_firstname = models.CharField(
-        max_length=100, verbose_name=_("contact firstname")
+        max_length=100, verbose_name=_("contact first name")
     )
     contact_title = models.CharField(max_length=100, verbose_name=_("contact title"))
-    contact_email = models.CharField(max_length=100, verbose_name=_("contact email"))
+    contact_email = models.CharField(max_length=100, verbose_name=_("contact e-mail"))
     contact_telephone = models.CharField(
         max_length=100, verbose_name=_("contact telephone")
     )
     # technical contact
     technical_lastname = models.CharField(
-        max_length=100, verbose_name=_("technical lastname")
+        max_length=100, verbose_name=_("technical last name")
     )
     technical_firstname = models.CharField(
-        max_length=100, verbose_name=_("technical firstname")
+        max_length=100, verbose_name=_("technical first name")
     )
     technical_title = models.CharField(
         max_length=100, verbose_name=_("technical title")
     )
     technical_email = models.CharField(
-        max_length=100, verbose_name=_("technical email")
+        max_length=100, verbose_name=_("technical e-mail")
     )
     technical_telephone = models.CharField(
         max_length=100, verbose_name=_("technical telephone")
@@ -523,7 +523,7 @@ class Incident(models.Model):
         default=None,
     )
     is_significative_impact = models.BooleanField(
-        default=False, verbose_name=_("Significative impact")
+        default=False, verbose_name=_("Significant impact")
     )
 
     # notification dispatching

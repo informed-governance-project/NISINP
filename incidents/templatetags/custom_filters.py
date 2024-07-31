@@ -53,9 +53,9 @@ def status_class_without_incident_workflow(report, incident):
         return "table-success"
     elif value == _("Review failed"):
         return "table-danger"
-    elif value == _("Delivered"):
+    elif value == _("Submitted"):
         return "table-info"
-    elif value == _("Not delivered and deadline exceeded"):
+    elif value == _("Not submitted and deadline exceeded"):
         return "table-dark"
     else:
         return "table-secondary"
@@ -68,11 +68,11 @@ def get_review_status_name(value):
     elif value == "FAIL":
         return _("Review failed")
     elif value == "DELIV":
-        return _("Delivered")
+        return _("Submitted")
     elif value == "OUT":
-        return _("Not delivered and deadline exceeded")
+        return _("Not submitted and deadline exceeded")
     else:
-        return _("Not delivered")
+        return _("Not submitted")
 
 
 @register.filter
@@ -155,14 +155,14 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not delivered and deadline exceeded")
+                    return _("Not submitted and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
                 math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                return _("Not delivered and deadline exceeded")
+                return _("Not submitted and deadline exceeded")
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
             and incident.get_previous_workflow(report) is not False
@@ -180,9 +180,9 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not delivered and deadline exceeded")
+                    return _("Not submitted and deadline exceeded")
 
-    return _("Not delivered")
+    return _("Not submitted")
 
 
 # get the incident workflow by workflow and incident to see the historic for regulator
