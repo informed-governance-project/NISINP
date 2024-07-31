@@ -110,7 +110,7 @@ class Company(models.Model):
     name = models.CharField(max_length=64, verbose_name=_("name"))
     country = models.CharField(
         max_length=200,
-        verbose_name=_("Country"),
+        verbose_name=_("country"),
         null=True,
         choices=list(CountryField().choices),
     )
@@ -132,7 +132,7 @@ class Company(models.Model):
     sector_contacts = models.ManyToManyField(
         Sector,
         through="SectorCompanyContact",
-        verbose_name=_("Sector Contacts"),
+        verbose_name=_("Sector contacts"),
     )
 
     types = models.ManyToManyField(
@@ -178,7 +178,7 @@ class Regulator(TranslatableModel):
     )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
-        verbose_name=_("e-mail address for incident notification"),
+        verbose_name=_("E-mail address for incident notification"),
         default=None,
         blank=True,
         null=True,
@@ -214,7 +214,7 @@ class Observer(TranslatableModel):
     )
     address = models.CharField(max_length=255, verbose_name=_("address"))
     email_for_notification = models.EmailField(
-        verbose_name=_("e-mail address for incident notification"),
+        verbose_name=_("E-mail address for incident notification"),
         default=None,
         blank=True,
         null=True,

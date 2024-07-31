@@ -127,7 +127,7 @@ class Question(TranslatableModel):
 
     # name of the regulator who create the object
     creator_name = models.CharField(
-        verbose_name=_("Creator Name"),
+        verbose_name=_("Creator name"),
         max_length=255,
         blank=True,
         default=None,
@@ -175,7 +175,7 @@ class PredefinedAnswer(TranslatableModel):
 
     # name of the regulator who create the object
     creator_name = models.CharField(
-        verbose_name=_("Creator Name"),
+        verbose_name=_("Creator name"),
         max_length=255,
         blank=True,
         default=None,
@@ -215,7 +215,7 @@ class Email(TranslatableModel, models.Model):
     )
     # name of the regulator who create the object
     creator_name = models.CharField(
-        verbose_name=_("Creator Name"),
+        verbose_name=_("Creator name"),
         max_length=255,
         blank=True,
         default=None,
@@ -270,7 +270,7 @@ class Workflow(TranslatableModel):
 
     # name of the regulator who create the object
     creator_name = models.CharField(
-        verbose_name=_("Creator Name"),
+        verbose_name=_("Creator name"),
         max_length=255,
         blank=True,
         default=None,
@@ -496,7 +496,7 @@ class Incident(models.Model):
         verbose_name=_("Incident reference"), max_length=255
     )
     complaint_reference = models.CharField(
-        verbose_name=_("Complaint reference"), max_length=255
+        verbose_name=_("Police report reference"), max_length=255
     )
 
     affected_services = models.ManyToManyField(

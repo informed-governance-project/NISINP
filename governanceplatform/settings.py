@@ -247,6 +247,7 @@ LANGUAGES = [
     ("en", "English"),
     ("fr", "Français"),
     ("nl", "Dutch"),
+    ("de", "German"),
 ]
 
 LOCALE_PATHS = [
@@ -354,6 +355,9 @@ PARLER_LANGUAGES = {
         {
             "code": "nl",
         },  # Dutch
+        {
+            "code": "de",
+        },  # German
     ),
     "default": {
         "fallbacks": ["en"],
