@@ -1,13 +1,18 @@
 # This file was generated from translations.xlsx
 msgid ""
 msgstr ""
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-07-31 15:48+0200\n"
-"PO-Revision-Date: 2024-07-31 15:45+0200\n"
+"PO-Revision-Date: 2024-08-01 10:12+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: de\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: xls-to-po 1.0\n"
+"X-Generator: Poedit 3.4.4\n"
 
 #: governanceplatform/admin.py:44 governanceplatform/context_processors.py:22
 msgid "Settings"
@@ -155,10 +160,8 @@ msgid "Phone number"
 msgstr "Telefonnummer"
 
 #: governanceplatform/models.py:135
-#, fuzzy
-#| msgid "Sector contact"
 msgid "Sector contacts"
-msgstr "Kontaktperson des Sektors"
+msgstr ""
 
 #: governanceplatform/models.py:140
 msgid "Types"
@@ -178,10 +181,8 @@ msgid "description"
 msgstr "Beschreibung"
 
 #: governanceplatform/models.py:181 governanceplatform/models.py:217
-#, fuzzy
-#| msgid "e-mail address for incident notification"
 msgid "E-mail address for incident notification"
-msgstr "E-Mail-Adresse für die Meldung eines Sicherheitsvorfalls"
+msgstr ""
 
 #: governanceplatform/models.py:187 governanceplatform/models.py:223
 msgid "Receives all incidents"
@@ -565,10 +566,8 @@ msgid "Incident reference"
 msgstr "Referenz des Vorfalls"
 
 #: incidents/models.py:499
-#, fuzzy
-#| msgid "Incident reference"
 msgid "Police report reference"
-msgstr "Referenz des Vorfalls"
+msgstr ""
 
 #: incidents/models.py:503
 msgid "Affected Service"
