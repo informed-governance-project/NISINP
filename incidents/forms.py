@@ -322,6 +322,7 @@ class QuestionForm(forms.Form):
                 required=question.is_mandatory,
                 widget=forms.Textarea(
                     attrs={
+                        "rows": 3,
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
                     }
