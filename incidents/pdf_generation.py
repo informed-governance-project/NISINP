@@ -1,11 +1,10 @@
 import os
 from typing import Dict, List
 
+from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
-
-from governanceplatform.settings import BASE_DIR
 
 from .models import Answer, Incident, IncidentWorkflow
 
@@ -49,7 +48,7 @@ def get_pdf_report(
             incident_workflows_impact[incident_workflow.workflow.name].append(impact)
     # Render the HTML file
 
-    static_theme_dir = os.path.join(BASE_DIR, "theme/static/")
+    static_theme_dir = settings.STATIC_THEME_DIR
 
     output_from_parsed_template = render_to_string(
         "report/template.html",
@@ -58,7 +57,6 @@ def get_pdf_report(
             "incident": incident,
             "incident_workflows_answer": incident_workflows_answer,
             "incident_workflows_impact": incident_workflows_impact,
-            "regulation": incident.sector_regulation.regulation,
             "sectors": sectors,
         },
         request=request,

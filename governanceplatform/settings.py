@@ -270,10 +270,11 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+STATIC_THEME_DIR = os.path.join(BASE_DIR, "theme/static")
 
 STATICFILES_DIRS = [
     STATIC_DIR,
-    "theme/static",
+    STATIC_THEME_DIR,
 ]
 
 # Used to get an access to the header on JS side.
