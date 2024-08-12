@@ -53,6 +53,8 @@ urlpatterns = [
     ),
     # Incident notification
     path("incidents/", include("incidents.urls"), name="incidents"),
+    # Report Wizard
+    path("reporting/", include("reporting.urls"), name="reporting"),
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service
