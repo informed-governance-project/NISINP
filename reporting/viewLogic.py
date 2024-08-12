@@ -1,107 +1,206 @@
 import base64
 import csv
 import json
+import os
 from io import BytesIO
 
 import plotly.graph_objects as go
+from django.conf import settings
+from django.http import HttpRequest
+from django.template.loader import render_to_string
+from weasyprint import CSS, HTML
+
+SO_SOPHISTICATION_LEVELS = [
+    "0 (n/a)",
+    "1 (basic)",
+    "2 (industry standard)",
+    "3 (state of the art)",
+]
+
+YEARS = [
+    "2022",
+    "2023",
+    "2024",
+]
+
+SO_CATEGORIES = [
+    "Gouvernance et gestion des risques",
+    "Sécurité des ressources humaines",
+    "Sécurité des systèmes et des installations",
+    "Gestion de l'opération",
+    "Gestion de l'incident",
+    "Gestion de la continuité des activités",
+    "Surveillance, audits et tests",
+    "Conscience des menaces",
+]
 
 
 def generate_bar_chart():
-    # Data
-    categories = [
-        "0 (n/a)",
-        "1 (basic)",
-        "2 (industry standard)",
-        "3 (state of the art)",
-    ]
     values_2019 = [1, 0, 18, 6]
     values_2020 = [0, 0, 21, 4]
     sector_avg_2019 = [1, 7, 15, 2]
     sector_avg_2020 = [1, 7, 15, 2]
 
-    # Create traces with text on bars
-    trace_2019 = go.Bar(
-        x=categories,
-        y=values_2019,
-        name="Operator (2019)",
-        marker_color="lightskyblue",
-        text=values_2019,
-        textposition="outside",
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
+            x=SO_SOPHISTICATION_LEVELS,
+            y=values_2019,
+            name="Operator (2019)",
+            marker_color="lightskyblue",
+            text=values_2019,
+            textposition="outside",
+        )
     )
 
-    trace_2020 = go.Bar(
-        x=categories,
-        y=values_2020,
-        name="Operator (2020)",
-        marker_color="royalblue",
-        text=values_2020,
-        textposition="outside",
+    fig.add_trace(
+        go.Bar(
+            x=SO_SOPHISTICATION_LEVELS,
+            y=values_2020,
+            name="Operator (2020)",
+            marker_color="royalblue",
+            text=values_2020,
+            textposition="outside",
+        )
     )
 
-    trace_sector_2019 = go.Bar(
-        x=categories,
-        y=sector_avg_2019,
-        name="Moyenne du secteur (2019)",
-        marker_color="lavenderblush",
-        text=sector_avg_2019,
-        textposition="outside",
+    fig.add_trace(
+        go.Bar(
+            x=SO_SOPHISTICATION_LEVELS,
+            y=sector_avg_2019,
+            name="Moyenne du secteur (2019)",
+            marker_color="lavenderblush",
+            text=sector_avg_2019,
+            textposition="outside",
+        )
     )
 
-    trace_sector_2020 = go.Bar(
-        x=categories,
-        y=sector_avg_2020,
-        name="Moyenne du secteur (2020)",
-        marker_color="hotpink",
-        text=sector_avg_2020,
-        textposition="outside",
+    fig.add_trace(
+        go.Bar(
+            x=SO_SOPHISTICATION_LEVELS,
+            y=sector_avg_2020,
+            name="Moyenne du secteur (2020)",
+            marker_color="hotpink",
+            text=sector_avg_2020,
+            textposition="outside",
+        )
     )
 
-    # Combine the traces
-    data = [trace_2019, trace_sector_2019, trace_2020, trace_sector_2020]
-
-    # Layout
-    layout = go.Layout(
+    fig.update_layout(
         barmode="group",
         bargroupgap=0.5,
         xaxis=dict(
-            showline=True,  # Show x-axis line
-            showgrid=False,  # Hide x-axis grid lines
-            zeroline=True,  # Hide x-axis zero line
-            linecolor="black",  # Color of the axis
+            linecolor="black",
         ),
         yaxis=dict(
-            showline=True,  # Show y-axis line
-            showgrid=True,  # Hide y-axis grid lines
-            zeroline=False,  # Hide y-axis zero line
+            showgrid=True,
             gridcolor="lightgray",
-            linecolor="black",  # Color of the axis line
+            linecolor="black",
         ),
-        plot_bgcolor="rgba(0,0,0,0)",  # Transparent plot area background
+        plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,
         legend=dict(
-            orientation="h",  # Horizontal legend
-            x=0.5,  # Center legend horizontally
-            y=-0.1,  # Position below the chart
-            xanchor="center",  # Align legend by its center
-            yanchor="top",  # Align legend by the top of its box
-            traceorder="normal",  # Order of traces in the legend
-            itemwidth=50,  # Width allocated to each item
-            valign="middle",  # Aligns items vertically in the middle
-            title_font_size=16,  # Font size of the legend title
+            orientation="h",
+            x=0.5,
+            y=-0.1,
+            xanchor="center",
+            yanchor="top",
+            traceorder="normal",
+            itemwidth=70,
+            valign="middle",
         ),
-        margin=dict(t=10, b=50),
+        margin=dict(l=0, r=0, t=0, b=50),
     )
 
-    fig = go.Figure(data=data, layout=layout)
+    graph = convert_graph_to_base64(fig)
 
-    # Save the chart to a BytesIO object
+    return graph
+
+
+def generate_radar_chart():
+    values_2023 = [2, 3, 2, 1, 2, 2, 2, 3, 2]
+    values_2024 = [3, 3, 2, 2, 3, 3, 3, 3, 3]
+    values_sector = [2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values_2023,
+            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
+            name="DummyLux 2023",
+            line=dict(color="orange"),
+            fillcolor="rgba(0,0,0,0)",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values_2024,
+            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
+            name="DummyLux 2024",
+            line=dict(color="blue"),
+            fillcolor="rgba(0,0,0,0)",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values_sector,
+            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
+            name="Secteur",
+            line=dict(color="green", dash="dash"),
+            fillcolor="rgba(0,0,0,0)",
+        )
+    )
+
+    fig.update_layout(
+        polar=dict(
+            bgcolor="white",
+            gridshape="linear",
+            radialaxis=dict(
+                visible=True,
+                range=[0, len(SO_SOPHISTICATION_LEVELS) - 1],
+                showticklabels=True,
+                gridcolor="lightgrey",
+                gridwidth=1,
+                angle=90,
+                tickangle=90,
+            ),
+            angularaxis=dict(
+                gridcolor="lightgrey",
+                tickmode="array",
+                showline=True,
+                linewidth=1,
+                linecolor="lightgrey",
+            ),
+        ),
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            x=0.5,
+            y=-0.1,
+            xanchor="center",
+            yanchor="top",
+            traceorder="normal",
+            itemwidth=70,
+            valign="middle",
+        ),
+    )
+
+    graph = convert_graph_to_base64(fig)
+
+    return graph
+
+
+def convert_graph_to_base64(fig):
     buffer = BytesIO()
     fig.write_image(buffer, format="png")
     buffer.seek(0)
     image_png = buffer.getvalue()
     buffer.close()
 
-    # Encode the image to base64
     graph = base64.b64encode(image_png)
     graph = graph.decode("utf-8")
 
@@ -112,7 +211,7 @@ def parsing_risk_data_json():
     # Constants
     INPUT_FILE = "MyPrint.json"
     OUTPUT_FILE = "output.csv"
-    LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
+    # LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
         1: "Reduction",
         2: "Denied",
@@ -217,3 +316,32 @@ def parsing_risk_data_json():
         csvwriter.writerows(csv_data)
 
     print("CSV file created")
+
+
+def get_pdf_report(request: HttpRequest):
+    # Render the HTML file
+
+    static_theme_dir = settings.STATIC_THEME_DIR
+    bar_chart = generate_bar_chart()
+    radar_chart = generate_radar_chart()
+    output_from_parsed_template = render_to_string(
+        "reporting/template.html",
+        {
+            "bar_chart": bar_chart,
+            "radar_chart": radar_chart,
+            "years": YEARS,
+            "sophistication_levels": SO_SOPHISTICATION_LEVELS,
+            "so_categories": SO_CATEGORIES,
+            "static_theme_dir": os.path.abspath(static_theme_dir),
+        },
+        request=request,
+    )
+
+    htmldoc = HTML(string=output_from_parsed_template, base_url=static_theme_dir)
+
+    stylesheets = [
+        CSS(os.path.join(static_theme_dir, "css/custom.css")),
+        CSS(os.path.join(static_theme_dir, "css/report.css")),
+    ]
+
+    return htmldoc.write_pdf(stylesheets=stylesheets)
