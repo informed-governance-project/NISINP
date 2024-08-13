@@ -13,9 +13,13 @@ def create_new_permissions(apps, schema_editor):
     }
 
     for model, perms in new_permissions.items():
-        content_type = ContentType.objects.get(
-            app_label="governanceplatform", model=model
-        )
+        try:
+            content_type = ContentType.objects.get(
+                app_label="governanceplatform", model=model
+            )
+        except ContentType.DoesNotExist:
+            continue
+
         for perm in perms:
             codename = f"{perm}_{model}"
             name = f"Can {perm} {model}"
