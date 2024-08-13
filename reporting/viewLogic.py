@@ -2,6 +2,8 @@ import base64
 import csv
 import json
 import os
+import random
+import textwrap
 from io import BytesIO
 
 import plotly.graph_objects as go
@@ -23,6 +25,16 @@ YEARS = [
     "2024",
 ]
 
+SO_COLOR_PALETTE = [
+    (0, "#F8696B"),
+    (0.5, "#FA9473"),
+    (1, "#FCBF7B"),
+    (1.5, "#FFEB84"),
+    (2, "#CCDD82"),
+    (2.5, "#98CE7F"),
+    (3, "#63BE7B"),
+]
+
 SO_CATEGORIES = [
     "Gouvernance et gestion des risques",
     "Sécurité des ressources humaines",
@@ -33,6 +45,57 @@ SO_CATEGORIES = [
     "Surveillance, audits et tests",
     "Conscience des menaces",
 ]
+
+SO_LIST = [
+    "SO1",
+    "SO2",
+    "SO3",
+    "SO4",
+    "SO5",
+    "SO6",
+    "SO7",
+    "SO8",
+    "SO9",
+    "SO10",
+    "SO11",
+    "SO12",
+    "SO13",
+    "SO14",
+    "SO15",
+    "SO16",
+    "SO17",
+    "SO18",
+    "SO19",
+    "SO20",
+    "SO21",
+    "SO22",
+    "SO23",
+    "SO24",
+    "SO25",
+    "SO26",
+    "SO27",
+    "SO28",
+    "SO29",
+]
+
+
+def get_data_by_so_categories():
+    data = {
+        "DummyLux 2023": [random.choice(range(4)) for _ in range(len(SO_CATEGORIES))],
+        "DummyLux 2024": [random.choice(range(4)) for _ in range(len(SO_CATEGORIES))],
+        "Secteur": [random.choice(range(4)) for _ in range(len(SO_CATEGORIES))],
+    }
+
+    return data
+
+
+def get_data_by_so_list():
+    data = {
+        "DummyLux 2023": [random.choice(range(4)) for _ in range(len(SO_LIST))],
+        "DummyLux 2024": [random.choice(range(4)) for _ in range(len(SO_LIST))],
+    }
+
+    return data
 
 
 def generate_bar_chart():
@@ -118,64 +181,42 @@ def generate_bar_chart():
     return graph
 
 
-def generate_radar_chart():
-    values_2023 = [2, 3, 2, 1, 2, 2, 2, 3, 2]
-    values_2024 = [3, 3, 2, 2, 3, 3, 3, 3, 3]
-    values_sector = [2, 2, 2, 2, 2, 2, 2, 2, 2]
-
+def generate_radar_chart(data, theta):
     fig = go.Figure()
+    max_line_length = 20
+    wrapped_labels = [
+        "<br>".join(textwrap.wrap(label, width=max_line_length)) for label in theta
+    ]
 
-    fig.add_trace(
-        go.Scatterpolar(
-            r=values_2023,
-            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
-            name="DummyLux 2023",
-            line=dict(color="orange"),
-            fillcolor="rgba(0,0,0,0)",
+    for name, values in data.items():
+        fig.add_trace(
+            go.Scatterpolar(
+                r=values + [values[0]],
+                theta=wrapped_labels + [wrapped_labels[0]],
+                name=name,
+                fillcolor="rgba(0,0,0,0)",
+            )
         )
-    )
-
-    fig.add_trace(
-        go.Scatterpolar(
-            r=values_2024,
-            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
-            name="DummyLux 2024",
-            line=dict(color="blue"),
-            fillcolor="rgba(0,0,0,0)",
-        )
-    )
-
-    fig.add_trace(
-        go.Scatterpolar(
-            r=values_sector,
-            theta=SO_CATEGORIES + [SO_CATEGORIES[0]],
-            name="Secteur",
-            line=dict(color="green", dash="dash"),
-            fillcolor="rgba(0,0,0,0)",
-        )
-    )
 
     fig.update_layout(
         polar=dict(
             bgcolor="white",
             gridshape="linear",
             radialaxis=dict(
-                visible=True,
                 range=[0, len(SO_SOPHISTICATION_LEVELS) - 1],
-                showticklabels=True,
                 gridcolor="lightgrey",
-                gridwidth=1,
                 angle=90,
                 tickangle=90,
             ),
             angularaxis=dict(
                 gridcolor="lightgrey",
                 tickmode="array",
-                showline=True,
-                linewidth=1,
                 linecolor="lightgrey",
+                rotation=90,
+                direction="clockwise",
             ),
         ),
+        plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,
         legend=dict(
             orientation="h",
@@ -187,7 +228,143 @@ def generate_radar_chart():
             itemwidth=70,
             valign="middle",
         ),
+        margin=dict(l=50, r=50, t=50, b=50),
     )
+
+    graph = convert_graph_to_base64(fig)
+
+    return graph
+
+
+def generate_colorbar():
+    # Define the levels and corresponding labels
+    levels = [0, 0.5, 1, 1.5, 2, 2.5, 3]
+    labels = [
+        "no measure or N/A",
+        "",
+        "basic",
+        "",
+        "industry standard",
+        "",
+        "state of the art",
+    ]
+
+    # Create a dummy trace to generate the color bar
+    fig = go.Figure(
+        data=go.Scatter(
+            x=[None],  # No actual data, this is a dummy trace
+            y=[None],
+            mode="markers",
+            marker=dict(
+                size=0,
+                color=[-0.1, 3],  # This will dictate the color bar range
+                colorscale=[
+                    [0.0, "#F8696B"],
+                    [0.17, "#FA9473"],
+                    [0.33, "#FCBF7B"],
+                    [0.5, "#FFEB84"],
+                    [0.67, "#CCDD82"],
+                    [0.83, "#98CE7F"],
+                    [1.0, "#63BE7B"],
+                ],
+                colorbar=dict(
+                    outlinecolor="#FFFFFF",
+                    outlinewidth=0.5,
+                    tickvals=levels,
+                    ticktext=labels,  # Use the labels for tick text
+                    orientation="h",  # Horizontal color bar
+                    x=0.5,  # Center the color bar
+                    y=0.5,
+                    xanchor="center",
+                    thickness=15,
+                    ypad=0,
+                ),
+            ),
+        )
+    )
+
+    annotations = [
+        dict(
+            x=0.02,
+            y="no measure or N/A",
+            text="0",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.19,
+            y="",
+            text="0.5",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.35,
+            y="basic",
+            text="1",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.5,
+            y="",
+            text="1.5",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.67,
+            y="industry standard",
+            text="2",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.83,
+            y="",
+            text="2.5",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+        dict(
+            x=0.98,
+            y="state of the art",
+            text="3",
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            xanchor="center",
+        ),
+    ]
+
+    # Add the annotations to the figure
+    fig.update_layout(annotations=annotations)
+
+    # Hide axis lines and ticks
+    fig.update_layout(
+        xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
+        yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
+        plot_bgcolor="rgba(0,0,0,0)",  # Transparent background
+        paper_bgcolor="rgba(0,0,0,0)",  # Transparent paper background
+        margin=dict(l=40, r=40, t=200, b=15),  # Adjust margins
+        height=50,
+    )
+
+    # Remove the grid and axis from the layout
+    fig.update_xaxes(visible=False)
+    fig.update_yaxes(visible=False)
 
     graph = convert_graph_to_base64(fig)
 
@@ -321,27 +498,33 @@ def parsing_risk_data_json():
 def get_pdf_report(request: HttpRequest):
     # Render the HTML file
 
-    static_theme_dir = settings.STATIC_THEME_DIR
+    static_dir = settings.STATIC_ROOT
     bar_chart = generate_bar_chart()
-    radar_chart = generate_radar_chart()
+    radar_chart_so_by_category = generate_radar_chart(
+        get_data_by_so_categories(), SO_CATEGORIES
+    )
+    radar_chart_so_list = generate_radar_chart(get_data_by_so_list(), SO_LIST)
+
     output_from_parsed_template = render_to_string(
         "reporting/template.html",
         {
             "bar_chart": bar_chart,
-            "radar_chart": radar_chart,
+            "radar_chart_so_by_category": radar_chart_so_by_category,
+            "radar_chart_so_list": radar_chart_so_list,
             "years": YEARS,
             "sophistication_levels": SO_SOPHISTICATION_LEVELS,
             "so_categories": SO_CATEGORIES,
-            "static_theme_dir": os.path.abspath(static_theme_dir),
+            "so_list": SO_LIST,
+            "colorbar": generate_colorbar(),
+            "static_dir": os.path.abspath(static_dir),
         },
         request=request,
     )
 
-    htmldoc = HTML(string=output_from_parsed_template, base_url=static_theme_dir)
-
+    htmldoc = HTML(string=output_from_parsed_template)
     stylesheets = [
-        CSS(os.path.join(static_theme_dir, "css/custom.css")),
-        CSS(os.path.join(static_theme_dir, "css/report.css")),
+        CSS(os.path.join(static_dir, "css/custom.css")),
+        CSS(os.path.join(static_dir, "css/report.css")),
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)

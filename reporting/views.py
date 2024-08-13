@@ -15,6 +15,6 @@ def report_generation(request):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    response["Content-Disposition"] = "attachment;filename=testing.pdf"
+    response["Content-Disposition"] = "attachment;filename=annual_report.pdf"
 
     return response
