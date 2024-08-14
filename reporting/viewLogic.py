@@ -6,11 +6,15 @@ import random
 import textwrap
 from io import BytesIO
 
+import plotly.colors as pc
 import plotly.graph_objects as go
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
+
+SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
+
 
 SO_SOPHISTICATION_LEVELS = [
     "0 (n/a)",
@@ -79,6 +83,15 @@ SO_LIST = [
 ]
 
 
+OPERATOR_SERVICES = [
+    "All services",
+    "Fixed data",
+    "Fixed voice",
+    "Mobile data",
+    "Mobile voice",
+]
+
+
 def get_data_by_so_categories():
     data = {
         "DummyLux 2023": [random.choice(range(4)) for _ in range(len(SO_CATEGORIES))],
@@ -98,57 +111,64 @@ def get_data_by_so_list():
     return data
 
 
-def generate_bar_chart():
-    values_2019 = [1, 0, 18, 6]
-    values_2020 = [0, 0, 21, 4]
-    sector_avg_2019 = [1, 7, 15, 2]
-    sector_avg_2020 = [1, 7, 15, 2]
+def get_data_so_average():
+    data = {
+        "Operator 2019": [1, 0, 18, 6],
+        "Operator 2020": [0, 0, 21, 4],
+        "Sector Avg 2019": [1, 7, 15, 2],
+        "Sector Avg 2020": [1, 7, 15, 2],
+    }
 
+    return data
+
+
+def get_data_risks_average():
+    data = {
+        "Operator 2019": [1.52, 1.42, 1.47, 1.6, 1.58],
+        "Operator 2020": [1.52, 1.41, 1.46, 1.6, 1.58],
+        "Sector Avg 2019": [2.49, 2.19, 2.33, 2.05, 1.78],
+        "Sector Avg 2020": [2.16, 2.19, 2.33, 2.05, 1.78],
+    }
+
+    return data
+
+
+def get_data_high_risks_average():
+    data = {
+        "Operator 2019": [0, 0, 0, 0, 0],
+        "Operator 2020": [0, 0, 0, 0, 0],
+        "Sector Avg 2019": [10.82, 11.06, 10.88, 8.62, 9.33],
+        "Sector Avg 2020": [8.95, 8.87, 8.83, 9.69, 9],
+    }
+
+    return data
+
+
+def get_data_evolution_highest_risks():
+    data = {
+        "DummyLux 2023": [18, 12, 12, 9, 8],
+        "DummyLux 2024": [12, 12, 3, 4, 8],
+    }
+
+    return data
+
+
+def generate_bar_chart(data, labels):
     fig = go.Figure()
+    labels = text_wrap(labels)
+    colors_palette = ["lightskyblue", "royalblue", "lavenderblush", "hotpink"]
 
-    fig.add_trace(
-        go.Bar(
-            x=SO_SOPHISTICATION_LEVELS,
-            y=values_2019,
-            name="Operator (2019)",
-            marker_color="lightskyblue",
-            text=values_2019,
-            textposition="outside",
+    for index, (name, values) in enumerate(data.items()):
+        fig.add_trace(
+            go.Bar(
+                x=labels,
+                y=values,
+                name=name,
+                marker_color=colors_palette[index],
+                text=values,
+                textposition="outside",
+            )
         )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=SO_SOPHISTICATION_LEVELS,
-            y=values_2020,
-            name="Operator (2020)",
-            marker_color="royalblue",
-            text=values_2020,
-            textposition="outside",
-        )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=SO_SOPHISTICATION_LEVELS,
-            y=sector_avg_2019,
-            name="Moyenne du secteur (2019)",
-            marker_color="lavenderblush",
-            text=sector_avg_2019,
-            textposition="outside",
-        )
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=SO_SOPHISTICATION_LEVELS,
-            y=sector_avg_2020,
-            name="Moyenne du secteur (2020)",
-            marker_color="hotpink",
-            text=sector_avg_2020,
-            textposition="outside",
-        )
-    )
 
     fig.update_layout(
         barmode="group",
@@ -181,18 +201,14 @@ def generate_bar_chart():
     return graph
 
 
-def generate_radar_chart(data, theta):
+def generate_radar_chart(data, labels):
     fig = go.Figure()
-    max_line_length = 20
-    wrapped_labels = [
-        "<br>".join(textwrap.wrap(label, width=max_line_length)) for label in theta
-    ]
-
+    labels = text_wrap(labels)
     for name, values in data.items():
         fig.add_trace(
             go.Scatterpolar(
                 r=values + [values[0]],
-                theta=wrapped_labels + [wrapped_labels[0]],
+                theta=labels + [labels[0]],
                 name=name,
                 fillcolor="rgba(0,0,0,0)",
             )
@@ -371,6 +387,18 @@ def generate_colorbar():
     return graph
 
 
+def text_wrap(text, max_line_length=20):
+    if isinstance(text, list):
+        text_wrapped = [
+            "<br>".join(textwrap.wrap(label, width=max_line_length)) for label in text
+        ]
+    elif isinstance(text, str):
+        text_wrapped = "<br>".join(textwrap.wrap(text, width=max_line_length))
+    else:
+        return None
+    return text_wrapped
+
+
 def convert_graph_to_base64(fig):
     buffer = BytesIO()
     fig.write_image(buffer, format="png")
@@ -496,26 +524,32 @@ def parsing_risk_data_json():
 
 
 def get_pdf_report(request: HttpRequest):
-    # Render the HTML file
-
     static_dir = settings.STATIC_ROOT
-    bar_chart = generate_bar_chart()
-    radar_chart_so_by_category = generate_radar_chart(
-        get_data_by_so_categories(), SO_CATEGORIES
-    )
-    radar_chart_so_list = generate_radar_chart(get_data_by_so_list(), SO_LIST)
+    charts = {
+        "colorbar": generate_colorbar(),
+        "security_measures_1": generate_bar_chart(
+            get_data_so_average(), SO_SOPHISTICATION_LEVELS
+        ),
+        "security_measures_5a": generate_radar_chart(
+            get_data_by_so_categories(), SO_CATEGORIES
+        ),
+        "security_measures_5b": generate_radar_chart(get_data_by_so_list(), SO_LIST),
+        "risks_1": generate_bar_chart(get_data_risks_average(), OPERATOR_SERVICES),
+        "risks_3": generate_bar_chart(get_data_high_risks_average(), OPERATOR_SERVICES),
+        "risks_4": generate_bar_chart(
+            get_data_evolution_highest_risks(), ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"]
+        ),
+    }
 
     output_from_parsed_template = render_to_string(
         "reporting/template.html",
         {
-            "bar_chart": bar_chart,
-            "radar_chart_so_by_category": radar_chart_so_by_category,
-            "radar_chart_so_list": radar_chart_so_list,
+            "charts": charts,
             "years": YEARS,
             "sophistication_levels": SO_SOPHISTICATION_LEVELS,
             "so_categories": SO_CATEGORIES,
             "so_list": SO_LIST,
-            "colorbar": generate_colorbar(),
+            "service_color_palette": SERVICES_COLOR_PALETTE,
             "static_dir": os.path.abspath(static_dir),
         },
         request=request,

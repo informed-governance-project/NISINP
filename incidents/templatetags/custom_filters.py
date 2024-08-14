@@ -254,3 +254,8 @@ def get_color(value):
         if rounded_value == threshold:
             return color
     return "#000000"  # default color if no match is found
+
+
+@register.filter
+def range_list(value):
+    return range(1, int(value) + 1)
