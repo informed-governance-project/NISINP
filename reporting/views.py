@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
@@ -43,7 +42,6 @@ def risk_analysis_submission(request):
         form = RiskAnalysisSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
             risk_analysis = form.save(commit=False)
-            risk_analysis.timestamp = timezone.now()
             # TO DO : manage the multiple company stuff
             risk_analysis.company = get_active_company_from_session(request)
             risk_analysis.save()
