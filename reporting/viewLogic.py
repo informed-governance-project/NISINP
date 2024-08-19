@@ -12,8 +12,11 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from weasyprint import CSS, HTML
+
+from reporting.models import ServiceStat, ThreatData, VulnerabilityData
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
 
@@ -414,11 +417,8 @@ def convert_graph_to_base64(fig):
     return graph
 
 
-def parsing_risk_data_json():
-    # Constants
-    INPUT_FILE = "MyPrint.json"
-    OUTPUT_FILE = "output.csv"
-    # LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
+def parsing_risk_data_json(risk_analysis_json):
+    LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
         1: "Reduction",
         2: "Denied",
@@ -426,28 +426,22 @@ def parsing_risk_data_json():
         4: "Shared",
         5: "Not treated",
     }
-    CSV_HEADER = [
-        "service_label",
-        "asset_label",
-        "impact_c",
-        "impact_i",
-        "impact_a",
-        "threat_label",
-        "threat_value",
-        "vulnerability_label",
-        "vulnerability_value",
-        "risk_c",
-        "risk_i",
-        "risk_a",
-        "max_risk",
-        "residual_risk",
-        "treatment",
-    ]
 
-    with open(INPUT_FILE, encoding="utf-8") as file:
-        data = json.load(file)
+    data = risk_analysis_json.data
 
-    csv_data = []
+    def create_translations(class_model, values):
+        new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
+
+        if not created:
+            return
+
+        for lang_index, lang_code in LANG_VALUES.items():
+            activate(lang_code)
+            new_object.set_current_language(lang_code)
+            new_object.name = values["label" + str(lang_index)]
+
+        new_object.save()
+        deactivate_all()
 
     def calculate_risk(impact, threat_value, vulnerability_value, factor):
         risk_value = impact * threat_value * vulnerability_value if factor else -1
@@ -461,12 +455,13 @@ def parsing_risk_data_json():
         risks = instance_data.get("risks", [])
         if risks:
             for risk in risks.values():
+                vulnerability_data = instance_data["vuls"][str(risk["vulnerability"])]
+                create_translations(VulnerabilityData, vulnerability_data)
                 threat_data = instance_data["threats"][str(risk["threat"])]
+                create_translations(ThreatData, threat_data)
                 threat_label = threat_data["label1"].strip()
                 threat_value = risk["threatRate"]
-                vulnerability_label = instance_data["vuls"][str(risk["vulnerability"])][
-                    "label1"
-                ].strip()
+                vulnerability_label = vulnerability_data["label1"].strip()
                 vulnerability_value = risk["vulnerabilityRate"]
 
                 risk_c = calculate_risk(
@@ -483,26 +478,6 @@ def parsing_risk_data_json():
                 residual_risk = risk["cacheTargetedRisk"]
                 treatment = TREATMENT_VALUES.get(risk["kindOfMeasure"], "Unknown")
 
-                csv_data.append(
-                    [
-                        service_label.strip(),
-                        asset_label,
-                        impact_c,
-                        impact_i,
-                        impact_a,
-                        threat_label,
-                        threat_value,
-                        vulnerability_label,
-                        vulnerability_value,
-                        risk_c,
-                        risk_i,
-                        risk_a,
-                        max_risk,
-                        residual_risk,
-                        treatment,
-                    ]
-                )
-
         # Process child instances recursively
         childrens = instance_data.get("children", [])
         if childrens:
@@ -514,15 +489,15 @@ def parsing_risk_data_json():
         instance = instance_data["instance"]
         if instance["root"] == 0 and instance["parent"] == 0:
             service_label = instance["name1"]
+            service_stat = ServiceStat(
+                service_name=service_label,
+                risk_analysis=risk_analysis_json,
+                treshold_for_high_risk=0,
+                high_risk_rate=0,
+                high_risk_average=0,
+            )
+            service_stat.save()
             extract_risks(service_label, instance_data)
-
-    # Write to CSV file
-    with open(OUTPUT_FILE, "w", newline="") as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(CSV_HEADER)
-        csvwriter.writerows(csv_data)
-
-    print("CSV file created")
 
 
 def get_pdf_report(request: HttpRequest):

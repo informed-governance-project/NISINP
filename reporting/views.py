@@ -8,7 +8,11 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from governanceplatform.helpers import get_active_company_from_session
-from reporting.viewLogic import get_pdf_report, validate_json_file
+from reporting.viewLogic import (
+    get_pdf_report,
+    parsing_risk_data_json,
+    validate_json_file,
+)
 
 from .forms import RiskAnalysisSubmissionForm
 
@@ -45,6 +49,8 @@ def risk_analysis_submission(request):
             # TO DO : manage the multiple company stuff
             risk_analysis.company = get_active_company_from_session(request)
             risk_analysis.save()
+
+            parsing_risk_data_json(risk_analysis)
 
             messages.success(request, _("Risk Analysis submitted successfully"))
 
