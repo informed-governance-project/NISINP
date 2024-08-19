@@ -48,11 +48,9 @@ def risk_analysis_submission(request):
             risk_analysis.company = get_active_company_from_session(request)
             risk_analysis.save()
 
-        else:
-            print("nonvalide")
-            print(form.errors)
-    else:
-        form = RiskAnalysisSubmissionForm()
+            messages.success(request, _("Risk Analysis submitted successfully"))
+
+    form = RiskAnalysisSubmissionForm()
 
     return render(
         request, "operator/reporting/risk_analysis_submission.html", {"form": form}
