@@ -1,15 +1,16 @@
+import uuid
+
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
+
 from .globals import RISK_TREATMENT
 
 
 # Store the JSON
 class RiskAnalysisJson(models.Model):
-    data = models.JSONField(
-        verbose_name=_("Data")
-    )
+    data = models.JSONField(verbose_name=_("Data"))
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
@@ -131,8 +132,9 @@ class VulnerabilityData(TranslatableModel):
             null=True,
         ),
     )
-    uuid = models.CharField(
-        max_length=32,
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
         verbose_name=_("uuid"),
     )
 
@@ -152,8 +154,9 @@ class ThreatData(TranslatableModel):
             null=True,
         ),
     )
-    uuid = models.CharField(
-        max_length=32,
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
         verbose_name=_("uuid"),
     )
 
@@ -210,9 +213,7 @@ class RecommendationData(models.Model):
         max_length=255,
         verbose_name=_("Recommendation name"),
     )
-    description = models.TextField(
-        verbose_name=_("Recommendation description")
-    )
+    description = models.TextField(verbose_name=_("Recommendation description"))
 
     class Meta:
         verbose_name_plural = _("Recommendations")
