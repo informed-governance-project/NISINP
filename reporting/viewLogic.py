@@ -9,8 +9,10 @@ from io import BytesIO
 import plotly.colors as pc
 import plotly.graph_objects as go
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 from weasyprint import CSS, HTML
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
@@ -562,3 +564,21 @@ def get_pdf_report(request: HttpRequest):
     ]
 
     return htmldoc.write_pdf(stylesheets=stylesheets)
+
+
+def validate_json_file(file):
+    if not file.name.endswith(".json"):
+        raise ValidationError(_("Uploaded file is not a JSON file."))
+
+    try:
+        json_data = json.load(file)
+    except json.JSONDecodeError:
+        raise ValidationError(_("Uploaded file contains invalid JSON."))
+
+    if not isinstance(json_data, dict):
+        raise ValidationError(_("JSON file must contain an object at the root."))
+
+    if "instances" not in json_data:
+        raise ValidationError(_("Missing 'instances' key in the JSON file."))
+
+    return json_data
