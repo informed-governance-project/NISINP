@@ -1,5 +1,4 @@
 import base64
-import csv
 import json
 import os
 import random
@@ -16,7 +15,7 @@ from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from weasyprint import CSS, HTML
 
-from reporting.models import ServiceStat, ThreatData, VulnerabilityData
+from reporting.models import RiskData, ServiceStat, ThreatData, VulnerabilityData
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
 
@@ -420,11 +419,11 @@ def convert_graph_to_base64(fig):
 def parsing_risk_data_json(risk_analysis_json):
     LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
-        1: "Reduction",
-        2: "Denied",
-        3: "Accepted",
-        4: "Shared",
-        5: "Not treated",
+        1: "REDUC",
+        2: "DENIE",
+        3: "ACCEP",
+        4: "SHARE",
+        5: "UNTRE",
     }
 
     data = risk_analysis_json.data
@@ -433,50 +432,62 @@ def parsing_risk_data_json(risk_analysis_json):
         new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
 
         if not created:
-            return
+            for lang_index, lang_code in LANG_VALUES.items():
+                activate(lang_code)
+                new_object.set_current_language(lang_code)
+                new_object.name = values["label" + str(lang_index)]
 
-        for lang_index, lang_code in LANG_VALUES.items():
-            activate(lang_code)
-            new_object.set_current_language(lang_code)
-            new_object.name = values["label" + str(lang_index)]
+            new_object.save()
+            deactivate_all()
 
-        new_object.save()
-        deactivate_all()
+        return new_object
 
     def calculate_risk(impact, threat_value, vulnerability_value, factor):
         risk_value = impact * threat_value * vulnerability_value if factor else -1
         return max(risk_value, -1)
 
     def extract_risks(service_label, instance_data):
-        instance = instance_data["instance"]
-        asset_label = instance["name1"].strip()
-        impact_c, impact_i, impact_a = instance["c"], instance["i"], instance["d"]
+        # instance = instance_data["instance"]
+        # asset_label = instance["name1"].strip()
+        # impact_c, impact_i, impact_a = instance["c"], instance["i"], instance["d"]
 
         risks = instance_data.get("risks", [])
         if risks:
             for risk in risks.values():
                 vulnerability_data = instance_data["vuls"][str(risk["vulnerability"])]
-                create_translations(VulnerabilityData, vulnerability_data)
                 threat_data = instance_data["threats"][str(risk["threat"])]
-                create_translations(ThreatData, threat_data)
-                threat_label = threat_data["label1"].strip()
+                new_vulnerability = create_translations(
+                    VulnerabilityData, vulnerability_data
+                )
+                new_threat = create_translations(ThreatData, threat_data)
                 threat_value = risk["threatRate"]
-                vulnerability_label = vulnerability_data["label1"].strip()
                 vulnerability_value = risk["vulnerabilityRate"]
 
-                risk_c = calculate_risk(
-                    impact_c, threat_value, vulnerability_value, threat_data["c"]
-                )
-                risk_i = calculate_risk(
-                    impact_i, threat_value, vulnerability_value, threat_data["i"]
-                )
-                risk_a = calculate_risk(
-                    impact_a, threat_value, vulnerability_value, threat_data["a"]
-                )
+                # risk_c = calculate_risk(
+                #     impact_c, threat_value, vulnerability_value, threat_data["c"]
+                # )
+                # risk_i = calculate_risk(
+                #     impact_i, threat_value, vulnerability_value, threat_data["i"]
+                # )
+                # risk_a = calculate_risk(
+                #     impact_a, threat_value, vulnerability_value, threat_data["a"]
+                # )
 
                 max_risk = risk["cacheMaxRisk"]
                 residual_risk = risk["cacheTargetedRisk"]
                 treatment = TREATMENT_VALUES.get(risk["kindOfMeasure"], "Unknown")
+
+                new_risk = RiskData(
+                    service=service_stat,
+                    threat=new_threat,
+                    threat_value=threat_value,
+                    vulnerability=new_vulnerability,
+                    vulnerability_value=vulnerability_value,
+                    risk_level_value=max_risk,
+                    residual_risk_level_value=residual_risk,
+                    risk_treatment=treatment,
+                )
+                new_risk.save()
 
         # Process child instances recursively
         childrens = instance_data.get("children", [])
