@@ -192,6 +192,18 @@ class RiskData(models.Model):
     max_risk = models.FloatField(
         verbose_name=_("Maximum risk"),
     )
+    risk_c = models.FloatField(
+        verbose_name=_("Confidentility risk"),
+        default=-1,
+    )
+    risk_i = models.FloatField(
+        verbose_name=_("Integrity risk"),
+        default=-1,
+    )
+    risk_a = models.FloatField(
+        verbose_name=_("Availability risk"),
+        default=-1,
+    )
 
     class Meta:
         verbose_name_plural = _("Risks")
