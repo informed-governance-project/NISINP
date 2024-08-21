@@ -17,7 +17,9 @@ from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from weasyprint import CSS, HTML
 
-from reporting.models import (  # AssetData,
+from reporting.models import (
+    AssetData,
+    RecommendationData,
     RiskData,
     ServiceStat,
     ThreatData,
@@ -435,14 +437,14 @@ def parsing_risk_data_json(risk_analysis_json):
 
     data = risk_analysis_json.data
 
-    def create_translations(class_model, values):
+    def create_translations(class_model, values, field_name):
         new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
 
-        if not created:
+        if created:
             for lang_index, lang_code in LANG_VALUES.items():
                 activate(lang_code)
                 new_object.set_current_language(lang_code)
-                new_object.name = values["label" + str(lang_index)]
+                new_object.name = values[field_name + str(lang_index)]
 
             new_object.save()
             deactivate_all()
@@ -459,7 +461,7 @@ def parsing_risk_data_json(risk_analysis_json):
 
         return str(new_uuid)
 
-    def extract_risks(service_label, instance_data):
+    def extract_risks(instance_data):
         instance = instance_data["instance"]
         instance["uuid"] = generate_combined_uuid(
             [instance["asset"], instance["object"], instance["parent_uuid"]]
@@ -467,72 +469,108 @@ def parsing_risk_data_json(risk_analysis_json):
 
         risks = instance_data.get("risks", [])
         if risks:
-            # new_asset = create_translations(AssetData, instance)
-            # new_asset.impact_c = instance["c"]
-            # new_asset.impact_i = instance["i"]
-            # new_asset.impact_a = instance["d"]
+            new_asset = create_translations(AssetData, instance, "name")
             for risk in risks.values():
+                risk_amv_uuid = (
+                    risk["amv"]
+                    if risk["amv"]
+                    else risk["threat"] + risk["vulnerability"]
+                )
+                risk_uuid = generate_combined_uuid([instance["uuid"], risk_amv_uuid])
                 vulnerability_data = instance_data["vuls"][str(risk["vulnerability"])]
                 threat_data = instance_data["threats"][str(risk["threat"])]
                 new_vulnerability = create_translations(
-                    VulnerabilityData, vulnerability_data
+                    VulnerabilityData, vulnerability_data, "label"
                 )
-                new_threat = create_translations(ThreatData, threat_data)
+                new_threat = create_translations(ThreatData, threat_data, "label")
                 threat_value = risk["threatRate"]
                 vulnerability_value = risk["vulnerabilityRate"]
 
-                # risk_c = calculate_risk(
-                #     impact_c, threat_value, vulnerability_value, threat_data["c"]
-                # )
-                # risk_i = calculate_risk(
-                #     impact_i, threat_value, vulnerability_value, threat_data["i"]
-                # )
-                # risk_a = calculate_risk(
-                #     impact_a, threat_value, vulnerability_value, threat_data["a"]
-                # )
+                impact_c = instance["c"]
+                impact_i = instance["i"]
+                impact_a = instance["d"]
+
+                risk_c = calculate_risk(
+                    impact_c, threat_value, vulnerability_value, threat_data["c"]
+                )
+                risk_i = calculate_risk(
+                    impact_i, threat_value, vulnerability_value, threat_data["i"]
+                )
+                risk_a = calculate_risk(
+                    impact_a, threat_value, vulnerability_value, threat_data["a"]
+                )
 
                 max_risk = risk["cacheMaxRisk"]
                 residual_risk = risk["cacheTargetedRisk"]
                 treatment = TREATMENT_VALUES.get(risk["kindOfMeasure"], "Unknown")
 
+                recommendations = instance_data.get("recos", [])
+                risks_recommendations = (
+                    recommendations.get(str(risk["id"]), []) if recommendations else []
+                )
+
                 new_risk = RiskData(
+                    uuid=risk_uuid,
                     service=service_stat,
+                    asset=new_asset,
                     threat=new_threat,
                     threat_value=threat_value,
                     vulnerability=new_vulnerability,
                     vulnerability_value=vulnerability_value,
-                    risk_level_value=max_risk,
                     residual_risk_level_value=residual_risk,
                     risk_treatment=treatment,
+                    max_risk=max_risk,
+                    risk_c=risk_c,
+                    risk_i=risk_i,
+                    risk_a=risk_a,
+                    impact_c=impact_c,
+                    impact_i=impact_i,
+                    impact_a=impact_a,
                 )
                 new_risk.save()
+
+                if risks_recommendations:
+                    for recommendation in risks_recommendations.values():
+                        (
+                            new_recommendation,
+                            created,
+                        ) = RecommendationData.objects.get_or_create(
+                            uuid=recommendation["uuid"],
+                            defaults={
+                                "code": recommendation["code"],
+                                "description": recommendation["description"],
+                                "due_date": recommendation["duedate"],
+                                "status": recommendation["status"],
+                            },
+                        )
+                        new_risk.recommendations.add(new_recommendation)
 
         # Process child instances recursively
         childrens = instance_data.get("children", [])
         if childrens:
             for child_data in childrens.values():
                 child_data["instance"]["parent_uuid"] = instance["uuid"]
-                extract_risks(service_label, child_data)
+                extract_risks(child_data)
 
     # Extract the root instances and process them
     for instance_data in data["instances"].values():
         instance = instance_data["instance"]
         if instance["root"] == 0 and instance["parent"] == 0:
-            service_label = instance["name1"]
+            instance["uuid"] = generate_combined_uuid(
+                [instance["asset"], instance["object"]]
+            )
+            new_service_asset = create_translations(AssetData, instance, "name")
             service_stat = ServiceStat(
+                service=new_service_asset,
                 risk_analysis=risk_analysis_json,
                 threshold_for_high_risk=0,
                 high_risk_rate=0,
                 high_risk_average=0,
             )
-            service_stat.set_current_language("fr")
-            service_stat.name = service_label
             service_stat.save()
 
-            instance_data["instance"]["parent_uuid"] = generate_combined_uuid(
-                [instance["asset"], instance["object"]]
-            )
-            extract_risks(service_label, instance_data)
+            instance_data["instance"]["parent_uuid"] = instance["uuid"]
+            extract_risks(instance_data)
 
 
 def get_pdf_report(request: HttpRequest):
