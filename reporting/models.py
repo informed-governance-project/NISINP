@@ -86,18 +86,6 @@ class AssetData(TranslatableModel):
         unique=True,
         verbose_name=_("uuid"),
     )
-    impact_c = models.FloatField(
-        verbose_name=_("Confidentility impact"),
-        default=-1,
-    )
-    impact_i = models.FloatField(
-        verbose_name=_("Integrity impact"),
-        default=-1,
-    )
-    impact_a = models.FloatField(
-        verbose_name=_("Availability impact"),
-        default=-1,
-    )
 
     class Meta:
         verbose_name_plural = _("Asset")
@@ -150,6 +138,11 @@ class ThreatData(TranslatableModel):
 
 # Store the risk data
 class RiskData(models.Model):
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        verbose_name=_("uuid"),
+    )
     service = models.ForeignKey(
         ServiceStat,
         on_delete=models.CASCADE,
@@ -204,6 +197,21 @@ class RiskData(models.Model):
         verbose_name=_("Availability risk"),
         default=-1,
     )
+    impact_c = models.FloatField(
+        verbose_name=_("Confidentility impact"),
+        default=-1,
+    )
+    impact_i = models.FloatField(
+        verbose_name=_("Integrity impact"),
+        default=-1,
+    )
+    impact_a = models.FloatField(
+        verbose_name=_("Availability impact"),
+        default=-1,
+    )
+    recommendations = models.ManyToManyField(
+        "RecommendationData", verbose_name=_("recommendations")
+    )
 
     class Meta:
         verbose_name_plural = _("Risks")
@@ -231,3 +239,92 @@ class RecommendationData(models.Model):
     class Meta:
         verbose_name_plural = _("Recommendations")
         verbose_name = _("Recommendation")
+
+
+# store the configuration
+class ReportConfiguration(models.Model):
+    company = models.ForeignKey(
+        "governanceplatform.Company",
+        on_delete=models.CASCADE,
+        verbose_name=_("Company"),
+    )
+    threshold_for_high_risk = models.FloatField(
+        verbose_name=_("High risk rate threshold"),
+    )
+    number_of_year_considered = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of year considered"),
+    )
+    high_risk_number_for_top = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of high risks for top"),
+    )
+    threat_number_for_top = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of threats for top"),
+    )
+    vulnerability_number_for_top = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of vulnerabilities for top"),
+    )
+    asset_number_for_top = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of assets for top"),
+    )
+    asset_recommendation_for_top = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of recommendations for top"),
+    )
+
+    class Meta:
+        verbose_name_plural = _("Configurations")
+        verbose_name = _("Configuration")
+
+
+# recommendation for observation
+class ObservationRecommendation(TranslatableModel):
+    translations = TranslatedFields(
+        description=models.TextField(
+            verbose_name=_("description"),
+            blank=True,
+            default=None,
+            null=True,
+        ),
+    )
+    code = models.CharField(
+        max_length=255,
+        verbose_name=_("Recommendation name"),
+    )
+
+    class Meta:
+        verbose_name_plural = _("Recommendations for observation")
+        verbose_name = _("Recommendation for observation")
+
+
+# observation of regulator
+class Observation(models.Model):
+    risk_analysis = models.ForeignKey(
+        RiskAnalysisJson,
+        on_delete=models.CASCADE,
+        verbose_name=_("Risk Analysis"),
+    )
+    observation_recommendations = models.ManyToManyField(
+        ObservationRecommendation, verbose_name=_("Observation recommendations"), through="ObservationRecommendationSelection"
+    )
+
+    class Meta:
+        verbose_name_plural = _("Observations")
+        verbose_name = _("Observation")
+
+
+class ObservationRecommendationSelection(models.Model):
+    ObservationRecommendation = models.ForeignKey(
+        ObservationRecommendation,
+        on_delete=models.CASCADE,
+        verbose_name=_("Recommendation for observation"),
+    )
+    Observation = models.ForeignKey(
+        Observation,
+        on_delete=models.CASCADE,
+        verbose_name=_("Observation"),
+    )
+    introduction_date = models.DateTimeField(verbose_name=_("Introduction date"), default=timezone.now)
+    introducer = models.ForeignKey(
+        "governanceplatform.User",
+        on_delete=models.CASCADE,
+        verbose_name=_("Introducer"),
+    )
