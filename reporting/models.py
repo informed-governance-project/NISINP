@@ -228,7 +228,7 @@ class RecommendationData(models.Model):
     status = models.BooleanField(
         default=False, verbose_name=_("Status of the recommendation")
     )
-    due_date = models.DateTimeField(verbose_name=_("Due date"))
+    due_date = models.DateTimeField(verbose_name=_("Due date"), null=True)
 
     class Meta:
         verbose_name_plural = _("Recommendations")
