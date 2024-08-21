@@ -106,7 +106,7 @@ class ThreatData(TranslatableModel):
 
 
 # Store the stat for each service in a risk analysis
-class ServiceStat(TranslatableModel):
+class ServiceStat(models.Model):
     service = models.ForeignKey(
         AssetData,
         on_delete=models.CASCADE,
@@ -136,7 +136,6 @@ class ServiceStat(TranslatableModel):
 class RiskData(models.Model):
     uuid = models.UUIDField(
         default=uuid.uuid4,
-        unique=True,
         verbose_name=_("uuid"),
     )
     service = models.ForeignKey(
