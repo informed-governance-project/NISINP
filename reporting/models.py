@@ -151,7 +151,7 @@ class RiskData(models.Model):
     asset = models.ForeignKey(
         AssetData,
         on_delete=models.CASCADE,
-        verbose_name=_("Threat"),
+        verbose_name=_("Asset"),
     )
     threat = models.ForeignKey(
         ThreatData,
@@ -169,11 +169,9 @@ class RiskData(models.Model):
     vulnerability_value = models.FloatField(
         verbose_name=_("Vulnerability value"),
     )
-    risk_level_value = models.FloatField(
-        verbose_name=_("Risk level value"),
-    )
     residual_risk_level_value = models.FloatField(
         verbose_name=_("Residual risk level value"),
+        default=-1,
     )
     risk_treatment = models.CharField(
         max_length=5,
@@ -184,6 +182,7 @@ class RiskData(models.Model):
     )
     max_risk = models.FloatField(
         verbose_name=_("Maximum risk"),
+        default=-1,
     )
     risk_c = models.FloatField(
         verbose_name=_("Confidentility risk"),
@@ -303,7 +302,9 @@ class Observation(models.Model):
         verbose_name=_("Risk Analysis"),
     )
     observation_recommendations = models.ManyToManyField(
-        ObservationRecommendation, verbose_name=_("Observation recommendations"), through="ObservationRecommendationSelection"
+        ObservationRecommendation,
+        verbose_name=_("Observation recommendations"),
+        through="ObservationRecommendationSelection",
     )
 
     class Meta:
@@ -322,7 +323,9 @@ class ObservationRecommendationSelection(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Observation"),
     )
-    introduction_date = models.DateTimeField(verbose_name=_("Introduction date"), default=timezone.now)
+    introduction_date = models.DateTimeField(
+        verbose_name=_("Introduction date"), default=timezone.now
+    )
     introducer = models.ForeignKey(
         "governanceplatform.User",
         on_delete=models.CASCADE,
