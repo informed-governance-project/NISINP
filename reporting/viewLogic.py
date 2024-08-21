@@ -3,7 +3,9 @@ import json
 import os
 import random
 import textwrap
+import uuid
 from io import BytesIO
+from typing import List
 
 import plotly.colors as pc
 import plotly.graph_objects as go
@@ -15,7 +17,12 @@ from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from weasyprint import CSS, HTML
 
-from reporting.models import RiskData, ServiceStat, ThreatData, VulnerabilityData
+from reporting.models import (  # AssetData,
+    RiskData,
+    ServiceStat,
+    ThreatData,
+    VulnerabilityData,
+)
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
 
@@ -446,13 +453,24 @@ def parsing_risk_data_json(risk_analysis_json):
         risk_value = impact * threat_value * vulnerability_value if factor else -1
         return max(risk_value, -1)
 
+    def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
+        combined = "".join(str(i_uuid) for i_uuid in array_uuid)
+        new_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, combined)
+
+        return str(new_uuid)
+
     def extract_risks(service_label, instance_data):
-        # instance = instance_data["instance"]
-        # asset_label = instance["name1"].strip()
-        # impact_c, impact_i, impact_a = instance["c"], instance["i"], instance["d"]
+        instance = instance_data["instance"]
+        instance["uuid"] = generate_combined_uuid(
+            [instance["asset"], instance["object"], instance["parent_uuid"]]
+        )
 
         risks = instance_data.get("risks", [])
         if risks:
+            # new_asset = create_translations(AssetData, instance)
+            # new_asset.impact_c = instance["c"]
+            # new_asset.impact_i = instance["i"]
+            # new_asset.impact_a = instance["d"]
             for risk in risks.values():
                 vulnerability_data = instance_data["vuls"][str(risk["vulnerability"])]
                 threat_data = instance_data["threats"][str(risk["threat"])]
@@ -493,6 +511,7 @@ def parsing_risk_data_json(risk_analysis_json):
         childrens = instance_data.get("children", [])
         if childrens:
             for child_data in childrens.values():
+                child_data["instance"]["parent_uuid"] = instance["uuid"]
                 extract_risks(service_label, child_data)
 
     # Extract the root instances and process them
@@ -501,13 +520,18 @@ def parsing_risk_data_json(risk_analysis_json):
         if instance["root"] == 0 and instance["parent"] == 0:
             service_label = instance["name1"]
             service_stat = ServiceStat(
-                service_name=service_label,
                 risk_analysis=risk_analysis_json,
-                treshold_for_high_risk=0,
+                threshold_for_high_risk=0,
                 high_risk_rate=0,
                 high_risk_average=0,
             )
+            service_stat.set_current_language("fr")
+            service_stat.name = service_label
             service_stat.save()
+
+            instance_data["instance"]["parent_uuid"] = generate_combined_uuid(
+                [instance["asset"], instance["object"]]
+            )
             extract_risks(service_label, instance_data)
 
 
