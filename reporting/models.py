@@ -39,37 +39,6 @@ class SectorStatistic(models.Model):
         verbose_name = _("Sector stat")
 
 
-# Store the stat for each service in a risk analysis
-class ServiceStat(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(
-            verbose_name=_("Name"),
-            max_length=255,
-            blank=True,
-            default=None,
-            null=True,
-        ),
-    )
-    risk_analysis = models.ForeignKey(
-        RiskAnalysisJson,
-        on_delete=models.CASCADE,
-        verbose_name=_("Risk Analysis"),
-    )
-    threshold_for_high_risk = models.FloatField(
-        verbose_name=_("High risk rate threshold"),
-    )
-    high_risk_rate = models.FloatField(
-        verbose_name=_("High risk rate"),
-    )
-    high_risk_average = models.FloatField(
-        verbose_name=_("Average high risk"),
-    )
-
-    class Meta:
-        verbose_name_plural = _("Risk analysis stats")
-        verbose_name = _("Risk analysis stat")
-
-
 # store asset
 class AssetData(TranslatableModel):
     translations = TranslatedFields(
@@ -134,6 +103,33 @@ class ThreatData(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Threats")
         verbose_name = _("Threat")
+
+
+# Store the stat for each service in a risk analysis
+class ServiceStat(TranslatableModel):
+    service = models.ForeignKey(
+        AssetData,
+        on_delete=models.CASCADE,
+        verbose_name=_("Asset"),
+    )
+    risk_analysis = models.ForeignKey(
+        RiskAnalysisJson,
+        on_delete=models.CASCADE,
+        verbose_name=_("Risk Analysis"),
+    )
+    threshold_for_high_risk = models.FloatField(
+        verbose_name=_("High risk rate threshold"),
+    )
+    high_risk_rate = models.FloatField(
+        verbose_name=_("High risk rate"),
+    )
+    high_risk_average = models.FloatField(
+        verbose_name=_("Average high risk"),
+    )
+
+    class Meta:
+        verbose_name_plural = _("Risk analysis stats")
+        verbose_name = _("Risk analysis stat")
 
 
 # Store the risk data
