@@ -462,25 +462,34 @@ def parsing_risk_data_json(risk_analysis_json):
 
         return str(new_uuid)
 
+    def create_service_stat(service_data):
+        new_service_asset = create_translations(AssetData, service_data, "name")
+        new_service_stat, created = ServiceStat.objects.get_or_create(
+            service=new_service_asset,
+            risk_analysis=risk_analysis_json,
+        )
+        return new_service_stat
+
+    def update_average(current_avg, treated_risks, new_risks_values):
+        if len(new_risks_values) > 0:
+            total_risks = treated_risks + len(new_risks_values)
+            weighted_sum = (current_avg * treated_risks) + sum(new_risks_values)
+            return weighted_sum / total_risks
+        return current_avg
+
     def extract_risks(instance_data):
         instance = instance_data["instance"]
         instance["uuid"] = generate_combined_uuid(
             [instance["asset"], instance["object"], instance["parent_uuid"]]
         )
-
         risks = instance_data.get("risks", [])
+
         if risks:
+            max_risk_values = []
+            treatment_values = []
+            residual_risk_values = []
+            service_stat = create_service_stat(root_service_data)
             new_asset = create_translations(AssetData, instance, "name")
-            treatment_values = [risk["kindOfMeasure"] for risk in risks.values()]
-            treatment_counts = Counter(treatment_values)
-            service_stat.total_risks += len(risks)
-            service_stat.total_untreated_risks += treatment_counts.get(5, 0)
-            service_stat.total_treated_risks += len(risks) - treatment_counts.get(5, 0)
-            service_stat.total_reduced_risks += treatment_counts.get(1, 0)
-            service_stat.total_denied_risks += treatment_counts.get(2, 0)
-            service_stat.total_accepted_risks += treatment_counts.get(3, 0)
-            service_stat.total_shared_risks += treatment_counts.get(4, 0)
-            service_stat.save()
 
             for risk in risks.values():
                 risk_amv_uuid = (
@@ -513,9 +522,13 @@ def parsing_risk_data_json(risk_analysis_json):
                 )
 
                 max_risk = risk["cacheMaxRisk"]
+                if max_risk != -1 and risk["kindOfMeasure"] != 5:
+                    max_risk_values.append(max_risk)
                 residual_risk = risk["cacheTargetedRisk"]
+                if residual_risk != -1 and risk["kindOfMeasure"] != 5:
+                    residual_risk_values.append(residual_risk)
                 treatment = TREATMENT_VALUES.get(risk["kindOfMeasure"], "Unknown")
-
+                treatment_values.append(risk["kindOfMeasure"])
                 recommendations = instance_data.get("recos", [])
                 risks_recommendations = (
                     recommendations.get(str(risk["id"]), []) if recommendations else []
@@ -557,6 +570,27 @@ def parsing_risk_data_json(risk_analysis_json):
                         )
                         new_risk.recommendations.add(new_recommendation)
 
+            treatment_counts = Counter(treatment_values)
+
+            service_stat.avg_current_risks = update_average(
+                service_stat.avg_current_risks,
+                service_stat.total_treated_risks,
+                max_risk_values,
+            )
+            service_stat.avg_residual_risks = update_average(
+                service_stat.avg_residual_risks,
+                service_stat.total_treated_risks,
+                residual_risk_values,
+            )
+            service_stat.total_risks += len(risks)
+            service_stat.total_untreated_risks += treatment_counts.get(5, 0)
+            service_stat.total_treated_risks += len(risks) - treatment_counts.get(5, 0)
+            service_stat.total_reduced_risks += treatment_counts.get(1, 0)
+            service_stat.total_denied_risks += treatment_counts.get(2, 0)
+            service_stat.total_accepted_risks += treatment_counts.get(3, 0)
+            service_stat.total_shared_risks += treatment_counts.get(4, 0)
+            service_stat.save()
+
         # Process child instances recursively
         childrens = instance_data.get("children", [])
         if childrens:
@@ -567,17 +601,12 @@ def parsing_risk_data_json(risk_analysis_json):
     # Extract the root instances and process them
     for instance_data in data["instances"].values():
         instance = instance_data["instance"]
-        if instance["root"] == 0 and instance["parent"] == 0:
+        root_childrens = instance_data.get("children", [])
+        if instance["root"] == 0 and instance["parent"] == 0 and root_childrens:
             instance["uuid"] = generate_combined_uuid(
                 [instance["asset"], instance["object"]]
             )
-            new_service_asset = create_translations(AssetData, instance, "name")
-            service_stat = ServiceStat(
-                service=new_service_asset,
-                risk_analysis=risk_analysis_json,
-            )
-            service_stat.save()
-
+            root_service_data = instance
             instance_data["instance"]["parent_uuid"] = instance["uuid"]
             extract_risks(instance_data)
 
