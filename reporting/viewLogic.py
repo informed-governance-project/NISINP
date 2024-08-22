@@ -4,6 +4,7 @@ import os
 import random
 import textwrap
 import uuid
+from collections import Counter
 from io import BytesIO
 from typing import List
 
@@ -470,6 +471,17 @@ def parsing_risk_data_json(risk_analysis_json):
         risks = instance_data.get("risks", [])
         if risks:
             new_asset = create_translations(AssetData, instance, "name")
+            treatment_values = [risk["kindOfMeasure"] for risk in risks.values()]
+            treatment_counts = Counter(treatment_values)
+            service_stat.total_risks += len(risks)
+            service_stat.total_untreated_risks += treatment_counts.get(5, 0)
+            service_stat.total_treated_risks += len(risks) - treatment_counts.get(5, 0)
+            service_stat.total_reduced_risks += treatment_counts.get(1, 0)
+            service_stat.total_denied_risks += treatment_counts.get(2, 0)
+            service_stat.total_accepted_risks += treatment_counts.get(3, 0)
+            service_stat.total_shared_risks += treatment_counts.get(4, 0)
+            service_stat.save()
+
             for risk in risks.values():
                 risk_amv_uuid = (
                     risk["amv"]
@@ -563,9 +575,6 @@ def parsing_risk_data_json(risk_analysis_json):
             service_stat = ServiceStat(
                 service=new_service_asset,
                 risk_analysis=risk_analysis_json,
-                threshold_for_high_risk=0,
-                high_risk_rate=0,
-                high_risk_average=0,
             )
             service_stat.save()
 
