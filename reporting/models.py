@@ -112,19 +112,51 @@ class ServiceStat(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Asset"),
     )
+
     risk_analysis = models.ForeignKey(
         RiskAnalysisJson,
         on_delete=models.CASCADE,
         verbose_name=_("Risk Analysis"),
     )
-    threshold_for_high_risk = models.FloatField(
-        verbose_name=_("High risk rate threshold"),
+
+    total_risks = models.FloatField(verbose_name=_("Total of all risks"), default=0)
+
+    total_untreated_risks = models.FloatField(
+        verbose_name=_("Total of untreated risks"), default=0
     )
-    high_risk_rate = models.FloatField(
-        verbose_name=_("High risk rate"),
+
+    total_treated_risks = models.FloatField(
+        verbose_name=_("Total of treated risks"), default=0
     )
-    high_risk_average = models.FloatField(
-        verbose_name=_("Average high risk"),
+
+    total_reduced_risks = models.FloatField(
+        verbose_name=_("Total of reduced risks"), default=0
+    )
+
+    total_denied_risks = models.FloatField(
+        verbose_name=_("Total of denied risks"), default=0
+    )
+
+    total_accepted_risks = models.FloatField(
+        verbose_name=_("Total of accepted risks"), default=0
+    )
+
+    total_shared_risks = models.FloatField(
+        verbose_name=_("Total of shared risks"), default=0
+    )
+
+    high_risk_rate = models.FloatField(verbose_name=_("High risk rate"), default=0)
+
+    avg_high_risk = models.FloatField(
+        verbose_name=_("Average of high risks"), default=0
+    )
+
+    avg_current_risks = models.FloatField(
+        verbose_name=_("Average of current risks"), default=0
+    )
+
+    avg_residual_risks = models.FloatField(
+        verbose_name=_("Average of residual risks"), default=0
     )
 
     class Meta:
