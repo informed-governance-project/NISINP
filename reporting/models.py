@@ -145,10 +145,12 @@ class ServiceStat(models.Model):
         verbose_name=_("Total of shared risks"), default=0
     )
 
-    high_risk_rate = models.FloatField(verbose_name=_("High risk rate"), default=0)
+    total_high_risks_treated = models.FloatField(
+        verbose_name=_("Total high risks treated"), default=0
+    )
 
-    avg_high_risk = models.FloatField(
-        verbose_name=_("Average of high risks"), default=0
+    avg_high_risk_treated = models.FloatField(
+        verbose_name=_("Average high risks treated"), default=0
     )
 
     avg_current_risks = models.FloatField(
