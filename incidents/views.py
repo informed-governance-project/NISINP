@@ -1019,12 +1019,13 @@ class WorkflowWizardView(SessionWizardView):
                 ):
                     initial = ""
                     COUNTRY_DICT = dict(countries)
+                    REGIONAL_DICT = dict(REGIONAL_AREA)
                     for val in form.fields[field].initial:
                         if val != "":
                             if val in COUNTRY_DICT:
                                 initial = initial + COUNTRY_DICT[val] + " - "
-                            elif val in REGIONAL_AREA:
-                                initial = initial + COUNTRY_DICT[val] + " - "
+                            elif val in REGIONAL_DICT:
+                                initial = initial + REGIONAL_DICT[val] + " - "
                             else:
                                 initial = initial + val + " - "
                     new_field = forms.CharField(
