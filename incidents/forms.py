@@ -350,7 +350,6 @@ class QuestionForm(forms.Form):
             if answer is not None:
                 # initial_data = list(filter(partial(is_not, ""), answer))
                 initial_data = list(filter(None, answer.split(",")))
-                print(initial_data)
 
             if question.question_type == "CL":
                 choices = countries

@@ -549,6 +549,15 @@ class userRegulatorInline(admin.TabularInline):
         "sectors",
     ]
 
+    def get_queryset(self, request):
+        qs = super(userRegulatorInline, self).get_queryset(request)
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return qs.filter(is_regulator_administrator=True)
+        else:
+            return qs
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
             user = request.user
@@ -571,7 +580,7 @@ class userRegulatorInline(admin.TabularInline):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
-                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        groups__in=[RegulatorAdminGroupId],
                         regulators=None,
                     )
                     | Q(
@@ -584,7 +593,7 @@ class userRegulatorInline(admin.TabularInline):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
-                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        groups__in=[RegulatorAdminGroupId],
                         regulators=None,
                     )
                     | Q(
@@ -621,7 +630,7 @@ class userRegulatorInline(admin.TabularInline):
                 "is_regulator_administrator"
             ].widget = forms.HiddenInput()
             formset.form.base_fields["is_regulator_administrator"].initial = True
-            # TO remove the sector choice for regulator admin
+            # TO DO : remove the sector choice for regulator admin
             # formset.form.base_fields[
             #     "sectors"
             # ].widget = forms.HiddenInput()
