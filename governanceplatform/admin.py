@@ -882,18 +882,20 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorAdmin"):
-            if obj and not user_in_group(obj, "RegulatorUser"):
+            if (obj and user_in_group(obj, "RegulatorUser")) or (obj and user_in_group(obj, "RegulatorAdmin")):
                 inline_instances = [
                     inline
                     for inline in inline_instances
-                    if not isinstance(inline, (userRegulatorInline))
+                    if isinstance(inline, (userRegulatorInline))
+                ]
+            elif (obj and user_in_group(obj, "OperatorUser")) or (obj and user_in_group(obj, "OperatorAdmin")):
+                inline_instances = [
+                    inline
+                    for inline in inline_instances
+                    if isinstance(inline, (SectorCompanyContactInline))
                 ]
             else:
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (SectorCompanyContactInline))
-                ]
+                inline_instances = []
 
         # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorUser"):
