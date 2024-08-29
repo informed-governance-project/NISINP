@@ -13,7 +13,12 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
-from .helpers import instance_user_in_group, user_in_group
+from .helpers import (
+    instance_user_in_group,
+    is_user_operator,
+    is_user_regulator,
+    user_in_group,
+)
 from .mixins import TranslationUpdateMixin
 from .models import (  # Functionality,; OperatorType,; Service,
     Company,
@@ -206,6 +211,7 @@ class SectorCompanyContactInline(admin.TabularInline):
     verbose_name_plural = _("Contacts for sectors")
     extra = 0
     min_num = 1
+    max_num = 1
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector":
@@ -275,16 +281,30 @@ class SectorCompanyContactInline(admin.TabularInline):
         return super().has_add_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
-        if obj == request.user:
+        user = request.user
+
+        if obj and user_in_group(user, "RegulatorAdmin") and is_user_operator(obj):
+            return False
+
+        if obj == user:
             return False
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        if obj == request.user:
+        user = request.user
+
+        if obj and user_in_group(user, "RegulatorAdmin") and is_user_operator(obj):
+            return False
+
+        if obj == user:
             return False
         elif user_in_group(request.user, "RegulatorUser"):
             return True
         return super().has_delete_permission(request, obj)
+
+
+class SectorCompanyContactMultipleInline(SectorCompanyContactInline):
+    max_num = None
 
 
 class CompanySectorListFilter(SimpleListFilter):
@@ -328,7 +348,7 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
     ]
     list_filter = [CompanySectorListFilter]
     search_fields = ["name"]
-    inlines = (SectorCompanyContactInline,)
+    inlines = (SectorCompanyContactMultipleInline,)
     fieldsets = [
         (
             _("Contact information"),
@@ -355,23 +375,23 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude SectorCompanyContactInline for OperatorAdmin because if we go for user creation
+        # Exclude SectorCompanyContactMultipleInline for OperatorAdmin because if we go for user creation
         # it asks company and that's not good
         if obj and user_in_group(user, "OperatorAdmin"):
             inline_instances = [
                 inline
                 for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactInline)
+                if not isinstance(inline, SectorCompanyContactMultipleInline)
             ]
 
-        # Exclude SectorCompanyContactInline for RegulatorAdmin because if we go for user creation
+        # Exclude SectorCompanyContactMultipleInline for RegulatorAdmin because if we go for user creation
         # it asks for regulators and that's not good
 
         if user_in_group(user, "RegulatorAdmin"):
             inline_instances = [
                 inline
                 for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactInline)
+                if not isinstance(inline, SectorCompanyContactMultipleInline)
             ]
 
         # if not obj and user_in_group(user, "RegulatorUser"):
@@ -544,13 +564,14 @@ class userRegulatorInline(admin.TabularInline):
     model = RegulatorUser
     extra = 0
     min_num = 1
+    max_num = 1
 
     filter_horizontal = [
         "sectors",
     ]
 
     def get_queryset(self, request):
-        qs = super(userRegulatorInline, self).get_queryset(request)
+        qs = super().get_queryset(request)
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -593,7 +614,7 @@ class userRegulatorInline(admin.TabularInline):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
-                        groups__in=[RegulatorAdminGroupId],
+                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
                         regulators=None,
                     )
                     | Q(
@@ -636,6 +657,10 @@ class userRegulatorInline(admin.TabularInline):
             # ].widget = forms.HiddenInput()
         formset.empty_permitted = False
         return formset
+
+
+class userRegulatorMultipleInline(userRegulatorInline):
+    max_num = None
 
 
 # reset the 2FA we delete the TOTP devices
@@ -740,10 +765,11 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
         user = request.user
 
         if user_in_group(user, "RegulatorAdmin"):
-            groups = groups.exclude(name__in=[
-                "PlatformAdmin",
-                "ObserverAdmin",
-                "ObserverUser",
+            groups = groups.exclude(
+                name__in=[
+                    "PlatformAdmin",
+                    "ObserverAdmin",
+                    "ObserverUser",
                 ]
             )
 
@@ -887,13 +913,13 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
         if user_in_group(request.user, "RegulatorAdmin"):
-            if (obj and user_in_group(obj, "RegulatorUser")) or (obj and user_in_group(obj, "RegulatorAdmin")):
+            if obj and is_user_regulator(obj):
                 inline_instances = [
                     inline
                     for inline in inline_instances
                     if isinstance(inline, (userRegulatorInline))
                 ]
-            elif (obj and user_in_group(obj, "OperatorUser")) or (obj and user_in_group(obj, "OperatorAdmin")):
+            elif obj and is_user_operator(obj):
                 inline_instances = [
                     inline
                     for inline in inline_instances
@@ -989,13 +1015,13 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.exclude(groups__in=[
-                PlatformAdminGroupId,
-                observerUserGroupId,
-                observerAdminGroupId
-                ]).filter(
-                Q(regulators=user.regulators.first()) | Q(regulators=None)
-            )
+            return queryset.exclude(
+                groups__in=[
+                    PlatformAdminGroupId,
+                    observerUserGroupId,
+                    observerAdminGroupId,
+                ]
+            ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
@@ -1029,7 +1055,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 user_in_group(obj, "RegulatorUser")
                 or user_in_group(obj, "RegulatorAdmin")
                 or user_in_group(obj, "PlatformAdmin")
-            ):
+            ) and obj.logentry_set.all().count() > 0:
                 return False
         return True
 
@@ -1043,18 +1069,21 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 obj.observers.add(user.observers.first())
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
-            # in RegulatorUser we can only add user for operators and default is IncidentUser
+            # in RegulatorAdmin we can only add user for regulator and default is RegulatorUser
+            if user_in_group(user, "RegulatorAdmin"):
+                super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
+                if new_group:
+                    obj.groups.add(new_group)
+
+            # in RegulatorUser we can only add user for operators and default is OperatorUser
             # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
                 super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="IncidentUser")
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
             # in PlatformAdmin we add by default platformadmin
             # if we are not in a popup we create a platformAdmin
@@ -1066,8 +1095,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
         super().save_model(request, obj, form, change)
 
@@ -1153,7 +1180,7 @@ class RegulatorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (userRegulatorInline,)
+    inlines = (userRegulatorMultipleInline,)
 
     def has_add_permission(self, request, obj=None):
         user = request.user
@@ -1192,7 +1219,7 @@ class ObserverUserInline(admin.TabularInline):
     min_num = 0
 
     def get_queryset(self, request):
-        qs = super(ObserverUserInline, self).get_queryset(request)
+        qs = super().get_queryset(request)
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -1230,7 +1257,7 @@ class ObserverUserInline(admin.TabularInline):
                     | Q(
                         groups__in=[ObserverAdminGroupID, ObserverUserGroupID],
                         regulators=user.regulators.first(),
-                        )
+                    )
                 )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
