@@ -740,7 +740,12 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
         user = request.user
 
         if user_in_group(user, "RegulatorAdmin"):
-            groups = groups.exclude(name__in=["PlatformAdmin"])
+            groups = groups.exclude(name__in=[
+                "PlatformAdmin",
+                "ObserverAdmin",
+                "ObserverUser",
+                ]
+            )
 
         if user_in_group(user, "PlatformAdmin"):
             groups = groups.exclude(
@@ -948,6 +953,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
+        if user_in_group(request.user, "RegulatorAdmin"):
+            fields_to_exclude = ["get_observers"]
+            list_display = [
+                field for field in list_display if field not in fields_to_exclude
+            ]
         if user_in_group(request.user, "OperatorAdmin"):
             fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
             list_display = [
@@ -979,7 +989,11 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.exclude(groups__in=[PlatformAdminGroupId]).filter(
+            return queryset.exclude(groups__in=[
+                PlatformAdminGroupId,
+                observerUserGroupId,
+                observerAdminGroupId
+                ]).filter(
                 Q(regulators=user.regulators.first()) | Q(regulators=None)
             )
         # Regulator User
