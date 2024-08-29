@@ -85,11 +85,21 @@ def delete_user_groups(sender, instance, **kwargs):
             group = None
 
         if group and user.groups.filter(name=group_name).exists():
-            # remove roles only if there is no linked company
-            if group_name == "OperatorUser" and user.companies.count() < 1:
-                user.groups.remove(group)
+            # remove roles only if there is no linked company/regulator
             if group_name == "OperatorAdmin" and user.companies.count() < 1:
                 user.groups.remove(group)
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
+                if new_group:
+                    user.groups.add(new_group)
+
+                user.is_active = False
+
+            if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
+                user.groups.remove(group)
+                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
+                if new_group:
+                    user.groups.add(new_group)
+                user.is_active = False
 
     if not user.sectorcompanycontact_set.exists():
         user.is_staff = False
