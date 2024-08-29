@@ -584,7 +584,7 @@ class userRegulatorInline(admin.TabularInline):
                         regulators=None,
                     )
                     | Q(
-                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        groups__in=[RegulatorAdminGroupId],
                         regulators=current_id,
                     )
                 )
@@ -1175,33 +1175,62 @@ class ObserverUserInline(admin.TabularInline):
     extra = 0
     min_num = 0
 
+    def get_queryset(self, request):
+        qs = super(ObserverUserInline, self).get_queryset(request)
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return qs.filter(is_observer_administrator=True)
+        else:
+            return qs
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
+            ObserverAdminGroupID = get_group_id(name="ObserverAdmin")
+            ObserverUserGroupID = get_group_id(name="ObserverUser")
+            user = request.user
             # current_id of the parent, here a Observer
             current_id = None
-            if request.resolver_match.kwargs.get("object_id"):
-                current_id = request.resolver_match.kwargs["object_id"]
-            query1 = User.objects.filter(
-                regulators=None,
-                companies=None,
-                sectors=None,
-                is_staff=False,
-                is_superuser=False,
-                sectorcompanycontact=None,
-                groups=None,
-                observers=None,
-            )
-            query_union = query1
-            if current_id is not None:
-                query2 = User.objects.filter(
-                    observers=current_id,
-                    regulators=None,
-                    companies=None,
-                    sectors=None,
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(groups=None)
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        regulators=None,
+                    )
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        regulators=current_id,
+                    )
                 )
-                query_union = query1.union(query2)
-            kwargs["queryset"] = User.objects.filter(id__in=query_union.values("id"))
+            # Observer Admin
+            if user_in_group(user, "ObserverAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(groups=None)
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        regulators=None,
+                    )
+                    | Q(
+                        groups__in=[ObserverAdminGroupID, ObserverUserGroupID],
+                        regulators=user.regulators.first(),
+                        )
+                )
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if (
+            user_in_group(request.user, "PlatformAdmin")
+            and "is_observer_administrator" in formset.form.base_fields
+        ):
+            formset.form.base_fields[
+                "is_observer_administrator"
+            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_observer_administrator"].initial = True
+        formset.empty_permitted = False
+        return formset
 
 
 @admin.register(Observer, site=admin_site)
