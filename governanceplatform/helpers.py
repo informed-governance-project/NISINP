@@ -36,6 +36,10 @@ def is_user_regulator(user: User) -> bool:
     return user_in_group(user, "RegulatorAdmin") or user_in_group(user, "RegulatorUser")
 
 
+def is_user_operator(user: User) -> bool:
+    return user_in_group(user, "OperatorAdmin") or user_in_group(user, "OperatorUser")
+
+
 def is_observer_user(user: User) -> bool:
     return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
@@ -48,7 +52,11 @@ def is_observer_user_viewving_all_incident(user: User) -> bool:
 
 def get_active_company_from_session(request) -> Optional[Company]:
     company_in_use = request.session.get("company_in_use")
-    return request.user.companies.filter(id=company_in_use).first() if company_in_use else None
+    return (
+        request.user.companies.filter(id=company_in_use).first()
+        if company_in_use
+        else None
+    )
 
 
 def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
