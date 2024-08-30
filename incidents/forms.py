@@ -16,7 +16,7 @@ from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
 
-from .globals import REGIONAL_AREA
+from theme.globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
 
 
