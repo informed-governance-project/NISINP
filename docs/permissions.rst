@@ -1,8 +1,8 @@
 Permissions and roles
 =====================
 
-Roles
------
+Summary
+----------
 
 The available roles are:
 
@@ -11,6 +11,15 @@ The available roles are:
 - RegulatorUser
 - OperatorAdmin
 - OperatorUser
+- ObserverUser
+- ObserverAdmin
+
+
+Permissions 
+--------------------
+
+PlatformAdmin (Django super admin)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The first PlatformAdmin user must be created with the Django command:
 
@@ -22,6 +31,30 @@ The first PlatformAdmin user must be created with the Django command:
 This user will be able to create RegulatorAdmin users and able
 to configure the ``Site`` section of the Django application.
 
+This user can create Observer and Regulator and linked to that ObserverAdmin et RegulatorAdmin. 
 
-Incident module members permissions
------------------------------------
+RegulatorAdmin
+~~~~~~~~~~~~~~~~
+The RegulatorAdmin can create other RegulatorAdmin, or RegulatorUser for his entity. 
+The RegulatorAdmin has also the responsibility to define the different incident notification workflows. 
+
+ObserverAdmin
+~~~~~~~~~~~~~~~~
+The ObserverAdmin can create other ObserverAdmin, or ObserverUser for his entity. 
+
+
+RegulatorUser
+~~~~~~~~~~~~~~~~
+The RegulatorUser can create company and create an OperatorAdmin who is the administrator of the company (operator)
+
+OperatorAdmin
+~~~~~~~~~~~~~~~~
+
+OperatorAdmin creates OperatorUser for his company. 
+
+OperatorUser and ObserverUser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+They have no administration role. 
+
+
