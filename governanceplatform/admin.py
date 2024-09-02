@@ -998,7 +998,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
-        RegulatorUserGroupId = get_group_id(name="RegulatorUser")
         observerAdminGroupId = get_group_id(name="ObserverAdmin")
         observerUserGroupId = get_group_id(name="ObserverUser")
 
@@ -1008,7 +1007,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 groups__in=[
                     PlatformAdminGroupId,
                     RegulatorAdminGroupId,
-                    RegulatorUserGroupId,
                     observerUserGroupId,
                     observerAdminGroupId,
                 ]
