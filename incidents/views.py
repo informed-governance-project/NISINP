@@ -49,7 +49,7 @@ from .forms import (
     RegulatorForm,
     get_forms_list,
 )
-from .globals import REGIONAL_AREA
+from theme.globals import REGIONAL_AREA
 from .models import (
     Answer,
     Incident,

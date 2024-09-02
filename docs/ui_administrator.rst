@@ -77,10 +77,22 @@ Creation of workflow for incident notification
 
 The RegulatorAdmin role is the one who defines the workflows for incident notification.
 
-To sum up, to create an incident workflow, you have to create first an item called ``incident notification workflow`` (e.g. NIS2, etc.).
-An incident notification workflow is composed of several steps called ``incident reports`` (e.g. Early Warning, initial assessment, etc.).
-Each workflow can have different ``questions``. A question belongs to a ``question category``, it helps for the rendering of the form for the user who submits the notification.
-A question can have ``predefined answers``, for example for multiple-choice question or yes/no question. **It's important to use one answer only for one question**.
+Here, the standard way to create a workflow:
+
+1.   You have to create first an item called ``incident notification workflow`` (e.g. NIS2, etc.).
+
+2.   You have to create the different steps of your workflow. The steps are called ``incident reports`` (e.g. Early Warning, initial assessment, etc.).
+
+3.   Now you have to link ``incident reports`` with  ``incident notification workflow``, for that go on ``incident notification workflow`` and choose the incident reports. The position defines the sequence of apparition.
+
+4.   For each incident report you have to create ``questions``. A question belongs to a ``question category``. The  ``question category`` can be created directly in the question form. You have to create the category only one time, after you can reuse it. 
+
+   .. note:: The ``question category`` helps for the rendering of the form for the user who submits the notification. There are different types of question, some types of question (e.g. Multiple choice, Single choice, etc.) can have ``predefined answers``. 
+
+   .. caution::  **It's important to use one answer only for one question**. You can create the predefined answer directly in the question form.**If you want to translate in several language, you must first fill one language, click on "save and continue editing" and go to the other language, if you don't do that you will loose the content for the predefined answer**.
+
+5.   Your incident workflow is now done.
+
 
 In addition to that there is an emailing system. The structure of the email has to be defined in the ``Email templates`` entity. Each email has a name, subject, and content.
 The content can be personalized with data from the database, for that you need to include the following tag:
