@@ -375,31 +375,12 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude SectorCompanyContactMultipleInline for OperatorAdmin because if we go for user creation
-        # it asks company and that's not good
-        if obj and user_in_group(user, "OperatorAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactMultipleInline)
-            ]
-
-        # Exclude SectorCompanyContactMultipleInline for RegulatorAdmin because if we go for user creation
-        # it asks for regulators and that's not good
-
-        if user_in_group(user, "RegulatorAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactMultipleInline)
-            ]
-
-        # if not obj and user_in_group(user, "RegulatorUser"):
-        #     inline_instances = [
-        #         inline
-        #         for inline in inline_instances
-        #         if not isinstance(inline, SectorCompanyContactInline)
-        #     ]
+        # Exclude SectorCompanyContactMultipleInline for RegulatorAdmin / OperatorAdmin
+        # because if we go for user creation it asks company and that's not good
+        if user_in_group(user, "RegulatorAdmin") or user_in_group(
+            user, "OperatorAdmin"
+        ):
+            inline_instances = []
 
         return inline_instances
 
@@ -834,7 +815,6 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
-    inlines = [userRegulatorInline, SectorCompanyContactInline]
     standard_fieldsets = [
         (
             _("Contact information"),
@@ -892,64 +872,37 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
+        user = request.user
 
-        # Exclude SectorCompanyContactInline, userRegulatorInline for the logged-in user
-        if obj and obj == request.user:
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(
-                    inline, (SectorCompanyContactInline, userRegulatorInline)
-                )
-            ]
+        # Exclude all inlines for the logged-in user
+        if obj and obj == user:
+            return []
 
-        # Exclude userRegulatorInline for PlatformAdmin group
-        if obj and user_in_group(obj, "PlatformAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, userRegulatorInline)
-            ]
+        # PlatformAdmin inlines
+        if user_in_group(user, "PlatformAdmin"):
+            inline_instances = []
 
-        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
-        if user_in_group(request.user, "RegulatorAdmin"):
+        # RegulatorAdmin inlines
+        if user_in_group(user, "RegulatorAdmin"):
             if obj and is_user_regulator(obj):
+                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
+            if obj and is_user_operator(obj):
                 inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if isinstance(inline, (userRegulatorInline))
-                ]
-            elif obj and is_user_operator(obj):
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if isinstance(inline, (SectorCompanyContactInline))
-                ]
-            else:
-                inline_instances = []
-
-        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
-        if user_in_group(request.user, "RegulatorUser"):
-            if obj and not user_in_group(obj, "RegulatorUser"):
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (userRegulatorInline))
-                ]
-            else:
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (SectorCompanyContactInline))
+                    SectorCompanyContactInline(self.model, self.admin_site)
                 ]
 
-        # platform admin just create user and manage observeruser and regulatoruser entity
-        if user_in_group(request.user, "PlatformAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, (userRegulatorInline))
-            ]
+        # RegulatorUser inlines
+        if user_in_group(user, "RegulatorUser"):
+            if obj and user_in_group(obj, "RegulatorUser"):
+                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
+            if obj and user_in_group(obj, "OperatorAdmin"):
+                inline_instances = [
+                    SectorCompanyContactInline(self.model, self.admin_site)
+                ]
+
+        # OperatorAdmin inlines
+        if user_in_group(user, "OperatorAdmin"):
+            inline_instances = [SectorCompanyContactInline(self.model, self.admin_site)]
 
         return inline_instances
 
@@ -1023,14 +976,16 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         # Regulator User
         if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
-                groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                    observerUserGroupId,
-                    observerAdminGroupId,
-                    None,
-                ],
-            ).filter(~Q(groups=None))
+                Q(groups=None)
+                | Q(
+                    groups__in=[
+                        PlatformAdminGroupId,
+                        RegulatorAdminGroupId,
+                        observerUserGroupId,
+                        observerAdminGroupId,
+                    ]
+                ),
+            ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
         # Observer Admin
         if user_in_group(user, "ObserverAdmin"):
             return queryset.filter(Q(observers=user.observers.first()))
