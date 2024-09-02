@@ -624,18 +624,15 @@ class userRegulatorInline(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        if (
-            user_in_group(request.user, "PlatformAdmin")
-            and "is_regulator_administrator" in formset.form.base_fields
-        ):
-            formset.form.base_fields[
-                "is_regulator_administrator"
-            ].widget = forms.HiddenInput()
-            formset.form.base_fields["is_regulator_administrator"].initial = True
-            # TO DO : remove the sector choice for regulator admin
-            # formset.form.base_fields[
-            #     "sectors"
-            # ].widget = forms.HiddenInput()
+        if user_in_group(request.user, "PlatformAdmin"):
+            if "is_regulator_administrator" in formset.form.base_fields:
+                formset.form.base_fields[
+                    "is_regulator_administrator"
+                ].widget = forms.HiddenInput()
+                formset.form.base_fields["is_regulator_administrator"].initial = True
+            if "sectors" in formset.form.base_fields:
+                formset.form.base_fields.pop("sectors", None)
+
         formset.empty_permitted = False
         return formset
 
