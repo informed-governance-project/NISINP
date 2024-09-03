@@ -1117,7 +1117,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
+    list_display = ["name", "full_name", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
     fields = (
@@ -1127,7 +1127,6 @@ class RegulatorAdmin(ImportExportModelAdmin, TranslatableAdmin):
         "country",
         "address",
         "email_for_notification",
-        "is_receiving_all_incident",
     )
 
     inlines = (userRegulatorMultipleInline,)

@@ -183,9 +183,6 @@ class Regulator(TranslatableModel):
         blank=True,
         null=True,
     )
-    is_receiving_all_incident = models.BooleanField(
-        default=False, verbose_name=_("Receives all incidents")
-    )
 
     def __str__(self):
         return self.name
