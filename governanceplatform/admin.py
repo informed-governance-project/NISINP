@@ -845,7 +845,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
         return bool(user_has_device(obj))
 
     def get_fieldsets(self, request, obj=None):
-        # RegulattorAdmin
+        # RegulatorAdmin
         if user_in_group(request.user, "RegulatorAdmin"):
             if "object_id" in request.resolver_match.kwargs:
                 current_id = request.resolver_match.kwargs["object_id"]
@@ -1181,18 +1181,12 @@ class ObserverUserInline(admin.TabularInline):
             ObserverAdminGroupID = get_group_id(name="ObserverAdmin")
             ObserverUserGroupID = get_group_id(name="ObserverUser")
             user = request.user
-            # current_id of the parent, here a Observer
-            current_id = None
             if user_in_group(user, "PlatformAdmin"):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
                         groups__in=[ObserverAdminGroupID],
-                        regulators=None,
-                    )
-                    | Q(
-                        groups__in=[ObserverAdminGroupID],
-                        regulators=current_id,
+                        observers=None,
                     )
                 )
             # Observer Admin
@@ -1201,11 +1195,11 @@ class ObserverUserInline(admin.TabularInline):
                     Q(groups=None)
                     | Q(
                         groups__in=[ObserverAdminGroupID],
-                        regulators=None,
+                        observers=None,
                     )
                     | Q(
                         groups__in=[ObserverAdminGroupID, ObserverUserGroupID],
-                        regulators=user.regulators.first(),
+                        observers=user.observers.first(),
                     )
                 )
 
