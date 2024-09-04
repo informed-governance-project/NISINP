@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 
+from django.utils.translation import gettext_lazy
+
 try:
     from governanceplatform import config  # type: ignore
 except ImportError:  # pragma: no cover
@@ -245,8 +247,8 @@ SITE_ID = 1
 
 LANGUAGES = [
     ("en", "English"),
-    ("fr", "Français"),
-    ("nl", "Dutch"),
+    ("fr", "French"),
+    ("nl", gettext_lazy("Dutch")),
     ("de", "German"),
 ]
 
