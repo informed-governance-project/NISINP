@@ -8,7 +8,7 @@ from django.db.models.functions import Concat
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
-from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from import_export.admin import ExportActionModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.admin import admin_site
@@ -119,7 +119,7 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(PredefinedAnswer, site=admin_site)
 class PredefinedAnswerAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin
+    ExportActionModelAdmin, TranslatableAdmin
 ):
     list_display = [
         "question",
@@ -157,7 +157,7 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin
+    ExportActionModelAdmin, TranslatableAdmin
 ):
     list_display = ["position", "label"]
     search_fields = ["translations__label"]
@@ -222,7 +222,7 @@ class PredefinedAnswerInline(TranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class QuestionAdmin(ExportActionModelAdmin, TranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
     list_display_links = ["position", "category", "label"]
     search_fields = ["translations__label"]
@@ -331,7 +331,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class ImpactAdmin(ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -504,7 +504,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class EmailAdmin(ExportActionModelAdmin, TranslatableAdmin):
     list_display = [
         "creator_name",
         "name",
