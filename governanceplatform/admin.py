@@ -11,8 +11,9 @@ from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from parler.admin import TranslatableAdmin
+from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
+from .forms import CustomTranslatableAdminForm
 from .helpers import (
     instance_user_in_group,
     is_user_operator,
@@ -57,6 +58,14 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
+class CustomTranslatableAdmin(TranslatableAdmin):
+    form = CustomTranslatableAdminForm
+
+
+class CustomTranslatableTabularInline(TranslatableTabularInline):
+    form = CustomTranslatableAdminForm
+
+
 @admin.register(Site, site=admin_site)
 class SiteAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
@@ -92,7 +101,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ExportActionModelAdmin, TranslatableAdmin):
+class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
     search_fields = ["translations__name"]
@@ -173,7 +182,7 @@ class SectorAdmin(ExportActionModelAdmin, TranslatableAdmin):
 
 
 # @admin.register(Service, site=admin_site)
-# class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class ServiceAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
 #     list_display_links = ["acronym", "name"]
 #     search_fields = ["translations__name"]
@@ -1069,7 +1078,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
 
 # @admin.register(Functionality, site=admin_site)
-# class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class FunctionalityAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["name"]
 #     search_fields = ["translations__name"]
 #     resource_class = FunctionalityResource
@@ -1097,7 +1106,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
 
 # @admin.register(OperatorType, site=admin_site)
-# class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class OperatorTypeAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["type"]
 #     search_fields = ["translations__type"]
 #     resource_class = OperatorTypeResource
@@ -1116,7 +1125,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(TranslatableAdmin):
+class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
@@ -1220,7 +1229,7 @@ class ObserverUserInline(admin.TabularInline):
 
 
 @admin.register(Observer, site=admin_site)
-class ObserverAdmin(TranslatableAdmin):
+class ObserverAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = ObserverResource
@@ -1289,7 +1298,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulation, site=admin_site)
-class RegulationAdmin(TranslatableAdmin):
+class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label", "get_regulators"]
     search_fields = ["translations__label"]
     resource_class = RegulationResource

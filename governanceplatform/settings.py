@@ -362,10 +362,6 @@ PARLER_LANGUAGES = {
             "code": "de",
         },  # German
     ),
-    "default": {
-        "fallbacks": ["en"],
-        "hide_untranslated": False,
-    },
 }
 
 COUNTRIES_FIRST = [

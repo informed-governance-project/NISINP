@@ -9,9 +9,12 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
-from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
-from governanceplatform.admin import admin_site
+from governanceplatform.admin import (
+    CustomTranslatableAdmin,
+    CustomTranslatableTabularInline,
+    admin_site,
+)
 from governanceplatform.helpers import user_in_group
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
@@ -118,9 +121,7 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(
-    ExportActionModelAdmin, TranslatableAdmin
-):
+class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "question",
         "predefined_answer",
@@ -156,9 +157,7 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(QuestionCategory, site=admin_site)
-class QuestionCategoryAdmin(
-    ExportActionModelAdmin, TranslatableAdmin
-):
+class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["position", "label"]
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
@@ -214,12 +213,12 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         export_order = fields
 
 
-class PredefinedAnswerInline(TranslatableTabularInline):
+class PredefinedAnswerInline(CustomTranslatableTabularInline):
     model = PredefinedAnswer
     verbose_name = _("predefined answer")
     verbose_name_plural = _("predefined answers")
     extra = 0
-    exclude = ['creator', 'creator_name']
+    exclude = ["creator", "creator_name"]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -229,7 +228,7 @@ class PredefinedAnswerInline(TranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ExportActionModelAdmin, TranslatableAdmin):
+class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
     list_display_links = ["position", "category", "label"]
     search_fields = ["translations__label"]
@@ -338,7 +337,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ExportActionModelAdmin, TranslatableAdmin):
+class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -431,7 +430,7 @@ class IncidentResource(resources.ModelResource):
 
 
 @admin.register(Incident, site=admin_site)
-class IncidentAdmin(TranslatableAdmin):
+class IncidentAdmin(CustomTranslatableAdmin):
     resource_class = IncidentResource
 
 
@@ -511,7 +510,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ExportActionModelAdmin, TranslatableAdmin):
+class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "creator_name",
         "name",
@@ -545,7 +544,7 @@ class WorkflowInline(admin.TabularInline):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(TranslatableAdmin):
+class WorkflowAdmin(CustomTranslatableAdmin):
     list_display = ["name"]
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
@@ -578,7 +577,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(TranslatableAdmin):
+class SectorRegulationAdmin(CustomTranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -641,7 +640,7 @@ class SectorRegulationWorkflowEmailResource(
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(TranslatableAdmin):
+class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "sector_regulation_workflow",
