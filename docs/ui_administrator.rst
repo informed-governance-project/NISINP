@@ -118,34 +118,34 @@ For each couple regulation/sector(s), it's possible to define an ``impact``, the
 person who submits the incident, the incident is qualified as "significative".
 
 
-Export and import
-------------------
+.. Export and import
+.. ------------------
 
-Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do
-2 exports. Same for the import.
+.. Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do
+.. 2 exports. Same for the import.
 
-.. figure:: _static/ui_admin_export.png
-   :alt: import / export.
-   :target: _static/ui_admin_export.png
+.. .. figure:: _static/ui_admin_export.png
+..    :alt: import / export.
+..    :target: _static/ui_admin_export.png
 
-   Import export.
+..    Import export.
 
-1. Button to import. When you click on import, you can choose the format of your file. And the view displayed you the available field to import. **If you want to create, it's preferable to don't put the id field**.
-After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**.
-After that you have this view :
+.. 1. Button to import. When you click on import, you can choose the format of your file. And the view displayed you the available field to import. **If you want to create, it's preferable to don't put the id field**.
+.. After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**.
+.. After that you have this view :
 
-.. figure:: _static/ui_admin_import.png
-   :alt: import view.
-   :target: _static/ui_admin_import.png
+.. .. figure:: _static/ui_admin_import.png
+..    :alt: import view.
+..    :target: _static/ui_admin_import.png
 
-   Import view.
+..    Import view.
 
-This view is summarizing the import, you can see the change.
+.. This view is summarizing the import, you can see the change.
 
-2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available.
-After clicking on it, you can choose the format, the easiest is to choose ``xlsx``.
+.. 2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available.
+.. After clicking on it, you can choose the format, the easiest is to choose ``xlsx``.
 
-3. Search bar to reduce the exported list.
+.. 3. Search bar to reduce the exported list.
 
 Questions of incident report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

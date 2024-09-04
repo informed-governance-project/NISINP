@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
 from import_export import fields, resources
-from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
 
@@ -92,7 +92,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class SectorAdmin(ExportActionModelAdmin, TranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
     search_fields = ["translations__name"]
@@ -336,7 +336,7 @@ class CompanySectorListFilter(SimpleListFilter):
 
 
 @admin.register(Company, site=admin_site)
-class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
+class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
     list_display = [
         "name",
@@ -788,7 +788,7 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
 
 
 @admin.register(User, site=admin_site)
-class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
+class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = UserResource
     list_display = [
         "is_active",
@@ -1116,7 +1116,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class RegulatorAdmin(TranslatableAdmin):
     list_display = ["name", "full_name", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
@@ -1220,7 +1220,7 @@ class ObserverUserInline(admin.TabularInline):
 
 
 @admin.register(Observer, site=admin_site)
-class ObserverAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class ObserverAdmin(TranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = ObserverResource
@@ -1289,7 +1289,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulation, site=admin_site)
-class RegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class RegulationAdmin(TranslatableAdmin):
     list_display = ["label", "get_regulators"]
     search_fields = ["translations__label"]
     resource_class = RegulationResource
