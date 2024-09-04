@@ -219,6 +219,13 @@ class PredefinedAnswerInline(TranslatableTabularInline):
     verbose_name = _("predefined answer")
     verbose_name_plural = _("predefined answers")
     extra = 0
+    exclude = ['creator', 'creator_name']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_id = request.user.regulators.all().first().id
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Question, site=admin_site)
