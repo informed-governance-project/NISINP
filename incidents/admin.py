@@ -280,37 +280,21 @@ class ImpactSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        language = get_language()
-        parents = (
-            Sector.objects.translated(language)
-            .filter(parent__isnull=True)
-            .values_list("id", "translations__name")
-        )
-        # put the conditions here to use the value of parents variable
-        whens = [
-            When(
-                parent__id=key,
-                then=Concat(
-                    Value(value),
-                    Value(" --> "),
-                    "translations__name",
-                ),
-            )
-            for key, value in parents
-        ]
-        return [
-            (sector.id, sector.full_name)
-            for sector in (
-                Sector.objects.translated(get_language())
-                .annotate(
-                    full_name=Case(
-                        *whens,
-                        default="translations__name",
-                    )
+        sectors = Sector.objects.all()
+        sectors_list = []
+
+        for sector in sectors:
+            sector_name = sector.safe_translation_getter("name", any_language=True)
+            if sector_name and sector.parent:
+                sector_parent_name = sector.parent.safe_translation_getter(
+                    "name", any_language=True
                 )
-                .order_by("full_name")
-            )
-        ]
+                sectors_list.append(
+                    (sector.id, sector_parent_name + " --> " + sector_name)
+                )
+            elif sector_name and sector.parent is None:
+                sectors_list.append((sector.id, sector_name))
+        return sorted(sectors_list, key=lambda item: item[1])
 
     def queryset(self, request, queryset):
         if self.value():
@@ -359,9 +343,13 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         sectors = []
         for sector in obj.sectors.all():
             if not sector.parent:
-                sectors.append(sector.name)
+                sectors.append(
+                    sector.safe_translation_getter("name", any_language=True)
+                )
             else:
-                sectors.append(sector.parent.name)
+                sectors.append(
+                    sector.parent.safe_translation_getter("name", any_language=True)
+                )
         return sectors
 
     @admin.display(description="Sub-sector")
@@ -369,7 +357,9 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         sectors = []
         for sector in obj.sectors.all():
             if sector.parent:
-                sectors.append(sector.name)
+                sectors.append(
+                    sector.safe_translation_getter("name", any_language=True)
+                )
             else:
                 sectors.append("")
         return sectors

@@ -60,7 +60,8 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation if label_translation else ""
 
     class Meta:
         verbose_name_plural = _("Impact")
@@ -94,7 +95,8 @@ class QuestionCategory(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation if label_translation else ""
 
     class Meta:
         verbose_name = _("Category of question")
@@ -150,7 +152,8 @@ class Question(TranslatableModel):
         ]
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation if label_translation else ""
 
     class Meta:
         verbose_name_plural = _("Question")
@@ -191,7 +194,10 @@ class PredefinedAnswer(TranslatableModel):
     )
 
     def __str__(self):
-        return self.predefined_answer if self.predefined_answer is not None else ""
+        predefined_answer_translation = self.safe_translation_getter(
+            "predefined_answer"
+        )
+        return predefined_answer_translation if predefined_answer_translation else ""
 
     class Meta:
         verbose_name_plural = _("Question - predefined answers")
@@ -251,13 +257,6 @@ class Workflow(TranslatableModel):
     )
     questions = models.ManyToManyField(Question, verbose_name=_("Questions"))
 
-    def __str__(self):
-        return self.name if self.name is not None else ""
-
-    class Meta:
-        verbose_name_plural = _("Incident reports")
-        verbose_name = _("Incident report")
-
     submission_email = models.ForeignKey(
         Email,
         verbose_name=_("Submision e-mail"),
@@ -284,6 +283,14 @@ class Workflow(TranslatableModel):
         blank=True,
         default=None,
     )
+
+    def __str__(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation else ""
+
+    class Meta:
+        verbose_name_plural = _("Incident reports")
+        verbose_name = _("Incident report")
 
 
 # link between a regulation and a regulator,
@@ -350,7 +357,8 @@ class SectorRegulation(TranslatableModel):
         verbose_name = _("Incident notification workflow")
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation else ""
 
 
 # link between sector regulation and workflows
@@ -391,7 +399,11 @@ class SectorRegulationWorkflow(models.Model):
         verbose_name = _("Links between workflorw and report")
 
     def __str__(self):
-        return self.workflow.name if self.workflow is not None else ""
+        return (
+            self.workflow.safe_translation_getter("name", any_language=True)
+            if self.workflow
+            else ""
+        )
 
 
 # for emailing during each workflow
@@ -428,7 +440,10 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         verbose_name = _("Email for Incident notification workflow")
 
     def __str__(self):
-        return self.headline if self.headline is not None else ""
+        headline_translation = self.safe_translation_getter(
+            "headline", any_language=True
+        )
+        return headline_translation if headline_translation else ""
 
     def regulation(self):
         return self.sector_regulation_workflow.sector_regulation.regulation

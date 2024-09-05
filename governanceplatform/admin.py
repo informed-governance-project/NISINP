@@ -329,12 +329,16 @@ class CompanySectorListFilter(SimpleListFilter):
 
         sectors_list = []
         for sector in sectors:
-            if sector.name is not None and sector.parent is not None:
-                sectors_list.append(
-                    (sector.id, sector.parent.name + " --> " + sector.name)
+            sector_name = sector.safe_translation_getter("name", any_language=True)
+            if sector_name and sector.parent:
+                sector_parent_name = sector.parent.safe_translation_getter(
+                    "name", any_language=True
                 )
-            elif sector.name is not None and sector.parent is None:
-                sectors_list.append((sector.id, sector.name))
+                sectors_list.append(
+                    (sector.id, sector_parent_name + " --> " + sector_name)
+                )
+            elif sector_name and sector.parent is None:
+                sectors_list.append((sector.id, sector_name))
         return sorted(sectors_list, key=lambda item: item[1])
 
     def queryset(self, request, queryset):
@@ -669,7 +673,10 @@ class UserRegulatorsListFilter(SimpleListFilter):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             regulators = Regulator.objects.all()
-        return [(regulator.id, regulator.name) for regulator in regulators]
+        return [
+            (regulator.id, regulator.safe_translation_getter("name", any_language=True))
+            for regulator in regulators
+        ]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -688,7 +695,10 @@ class ObserverUsersListFilter(SimpleListFilter):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             observers = Observer.objects.all()
-        return [(observer.id, observer.name) for observer in observers]
+        return [
+            (observer.id, observer.safe_translation_getter("name", any_language=True))
+            for observer in observers
+        ]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -734,7 +744,20 @@ class UserSectorListFilter(SimpleListFilter):
         if user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
 
-        return [(sector.id, sector.name) for sector in sectors]
+        sectors_list = []
+
+        for sector in sectors:
+            sector_name = sector.safe_translation_getter("name", any_language=True)
+            if sector_name and sector.parent:
+                sector_parent_name = sector.parent.safe_translation_getter(
+                    "name", any_language=True
+                )
+                sectors_list.append(
+                    (sector.id, sector_parent_name + " --> " + sector_name)
+                )
+            elif sector_name and sector.parent is None:
+                sectors_list.append((sector.id, sector_name))
+        return sorted(sectors_list, key=lambda item: item[1])
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -1190,12 +1213,19 @@ class ObserverUserInline(admin.TabularInline):
             ObserverAdminGroupID = get_group_id(name="ObserverAdmin")
             ObserverUserGroupID = get_group_id(name="ObserverUser")
             user = request.user
+            current_id = None
+            if "object_id" in request.resolver_match.kwargs:
+                current_id = request.resolver_match.kwargs["object_id"]
             if user_in_group(user, "PlatformAdmin"):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
                         groups__in=[ObserverAdminGroupID],
                         observers=None,
+                    )
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        observers=current_id,
                     )
                 )
             # Observer Admin

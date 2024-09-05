@@ -44,10 +44,12 @@ class Sector(TranslatableModel):
     )
 
     def __str__(self):
-        if self.name is not None and self.parent is not None:
-            return self.parent.name + " --> " + self.name
-        elif self.name is not None and self.parent is None:
-            return self.name
+        name = self.safe_translation_getter("name", any_language=True)
+        if name and self.parent:
+            parent_name = self.parent.safe_translation_getter("name", any_language=True)
+            return parent_name + " --> " + name
+        elif name and self.parent is None:
+            return name
         else:
             return ""
 
@@ -67,7 +69,8 @@ class Service(TranslatableModel):
     )
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation else ""
 
     class Meta:
         verbose_name = _("Service")
@@ -81,7 +84,8 @@ class Functionality(TranslatableModel):
     )
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation else ""
 
     class Meta:
         verbose_name = _("Functionality")
@@ -99,7 +103,8 @@ class OperatorType(TranslatableModel):
     )
 
     def __str__(self):
-        return self.type if self.type is not None else ""
+        type_translation = self.safe_translation_getter("type", any_language=True)
+        return type_translation if type_translation else ""
 
 
 # operator are companies
@@ -185,7 +190,8 @@ class Regulator(TranslatableModel):
     )
 
     def __str__(self):
-        return self.name
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation is not None else ""
 
     class Meta:
         verbose_name = _("Competent authority")
@@ -221,7 +227,8 @@ class Observer(TranslatableModel):
     )
 
     def __str__(self):
-        return self.name
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation if name_translation else ""
 
     class Meta:
         verbose_name = _("Observer")
@@ -289,11 +296,17 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description="regulators")
     def get_regulators(self):
-        return [regulator.name for regulator in self.regulators.all()]
+        return [
+            regulator.safe_translation_getter("name", any_language=True)
+            for regulator in self.regulators.all()
+        ]
 
     @admin.display(description="observers")
     def get_observers(self):
-        return [observer.name for observer in self.observers.all()]
+        return [
+            observer.safe_translation_getter("name", any_language=True)
+            for observer in self.observers.all()
+        ]
 
     @admin.display(description="Roles")
     def get_permissions_groups(self):
@@ -432,7 +445,11 @@ class Regulation(TranslatableModel):
 
     @admin.display(description="regulators")
     def get_regulators(self):
-        return [regulator.name for regulator in self.regulators.all()]
+        return [
+            regulator.safe_translation_getter("name", any_language=True)
+            for regulator in self.regulators.all()
+        ]
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation if label_translation else ""

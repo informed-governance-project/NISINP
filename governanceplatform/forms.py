@@ -116,7 +116,7 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if self.instance.pk:
+        if self.instance.pk and self.FALLBACK_LANGUAGE not in self.data:
             if not self.instance.has_translation(self.FALLBACK_LANGUAGE):
                 self.add_default_translation_error()
         elif self.FALLBACK_LANGUAGE not in self.data:
