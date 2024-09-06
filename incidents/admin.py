@@ -30,6 +30,7 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+from governanceplatform.globals import ACTION_FLAG_CHOICES
 
 
 # get the id of a group by name
@@ -83,7 +84,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         "action_time",
         "user",
         "content_type",
-        "action_flag",
+        "_action_flag",
     ]
 
     def has_add_permission(self, request):
@@ -97,6 +98,10 @@ class LogEntryAdmin(admin.ModelAdmin):
 
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
+
+    @admin.display(description=_("action_flag"))
+    def _action_flag(self, obj):
+        return ACTION_FLAG_CHOICES[obj.action_flag][1]
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
