@@ -32,7 +32,7 @@ def add_log_for_connection(sender, user, request, **kwargs):
             content_type_id=ContentType.objects.get_for_model(User).pk,
             object_id=user.id,
             object_repr=user.email,
-            action_flag=4,
+            action_flag=5,
         )
 
 

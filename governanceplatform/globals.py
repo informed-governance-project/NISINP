@@ -8,11 +8,11 @@ VIEW = 4
 CONNECTION = 5
 DECONNECTION = 6
 
-ACTION_FLAG_CHOICES = [
-    (ADDITION, _('Addition')),
-    (CHANGE, _('Change')),
-    (DELETION, _('Deletion')),
-    (VIEW, _('View')),
-    (CONNECTION, _('Connection')),
-    (DECONNECTION, _('Deconnection')),
-]
+ACTION_FLAG_CHOICES = {
+    ADDITION: _('Addition'),
+    CHANGE: _('Change'),
+    DELETION: _('Deletion'),
+    # VIEW: _('View'),
+    CONNECTION: _('Logged in'),
+    # DECONNECTION: _('Logged out'),
+}

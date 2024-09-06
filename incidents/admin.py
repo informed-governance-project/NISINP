@@ -68,6 +68,21 @@ class LogUserFilter(SimpleListFilter):
         return queryset
 
 
+# filter by action
+class ActionFlagFilter(SimpleListFilter):
+    title = _("Action flag")
+    parameter_name = "action_flag"
+
+    def lookups(self, request, model_admin):
+        return [(af, ACTION_FLAG_CHOICES[af]) for af in ACTION_FLAG_CHOICES]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(action_flag=value)
+        return queryset
+
+
 # add a view to see the logs
 @admin.register(LogEntry, site=admin_site)
 class LogEntryAdmin(admin.ModelAdmin):
@@ -75,7 +90,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = "action_time"
 
     # to filter the resultes by users, content types and action flags
-    list_filter = [LogUserFilter, "action_flag"]
+    list_filter = [LogUserFilter, ActionFlagFilter]
 
     # when searching the user will be able to search in both object_repr and change_message
     search_fields = ["object_repr", "change_message"]
@@ -99,9 +114,9 @@ class LogEntryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
-    @admin.display(description=_("action_flag"))
+    @admin.display(description=_("action flag"))
     def _action_flag(self, obj):
-        return ACTION_FLAG_CHOICES[obj.action_flag][1]
+        return ACTION_FLAG_CHOICES[obj.action_flag]
 
 
 class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
