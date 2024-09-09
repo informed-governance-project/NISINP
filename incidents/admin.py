@@ -603,7 +603,7 @@ class WorkflowInline(admin.TabularInline):
 
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(CustomTranslatableAdmin):
-    list_display = ["name"]
+    list_display = ["name", "is_impact_needed", "submission_email"]
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
     inlines = (WorkflowInline,)
