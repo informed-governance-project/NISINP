@@ -71,9 +71,7 @@ class Impact(TranslatableModel):
 # category for the question (to order)
 class QuestionCategory(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(
-            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
-        )
+        label=models.CharField(verbose_name=_("Label"), max_length=255)
     )
     position = models.IntegerField(verbose_name=_("Position"))
 
@@ -210,15 +208,10 @@ class Email(TranslatableModel, models.Model):
         subject=models.CharField(
             verbose_name=_("Subject"),
             max_length=255,
-            blank=True,
-            default=None,
-            null=True,
         ),
         content=models.TextField(verbose_name=_("Content")),
     )
-    name = models.CharField(
-        verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-    )
+    name = models.CharField(verbose_name=_("Name"), max_length=255)
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -248,9 +241,7 @@ class Email(TranslatableModel, models.Model):
 # 1 Workflow for N recommendation ?
 class Workflow(TranslatableModel):
     translations = TranslatedFields(
-        name=models.CharField(
-            verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-        )
+        name=models.CharField(verbose_name=_("Name"), max_length=255)
     )
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts are needed")
@@ -299,9 +290,7 @@ class Workflow(TranslatableModel):
 class SectorRegulation(TranslatableModel):
     translations = TranslatedFields(
         # for exemple NIS for energy sector
-        name=models.CharField(
-            verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-        )
+        name=models.CharField(verbose_name=_("Name"), max_length=255)
     )
     regulation = models.ForeignKey(
         "governanceplatform.Regulation",
@@ -409,13 +398,7 @@ class SectorRegulationWorkflow(models.Model):
 # for emailing during each workflow
 class SectorRegulationWorkflowEmail(TranslatableModel):
     translations = TranslatedFields(
-        headline=models.CharField(
-            verbose_name=_("Headline"),
-            max_length=255,
-            blank=True,
-            default=None,
-            null=True,
-        ),
+        headline=models.CharField(verbose_name=_("Headline"), max_length=255),
     )
 
     sector_regulation_workflow = models.ForeignKey(
