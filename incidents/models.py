@@ -61,7 +61,7 @@ class Impact(TranslatableModel):
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation if label_translation else ""
+        return label_translation or ""
 
     class Meta:
         verbose_name_plural = _("Impact")
@@ -96,7 +96,7 @@ class QuestionCategory(TranslatableModel):
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation if label_translation else ""
+        return label_translation or ""
 
     class Meta:
         verbose_name = _("Category of question")
@@ -153,7 +153,7 @@ class Question(TranslatableModel):
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation if label_translation else ""
+        return label_translation or ""
 
     class Meta:
         verbose_name_plural = _("Question")
@@ -197,7 +197,7 @@ class PredefinedAnswer(TranslatableModel):
         predefined_answer_translation = self.safe_translation_getter(
             "predefined_answer"
         )
-        return predefined_answer_translation if predefined_answer_translation else ""
+        return predefined_answer_translation or ""
 
     class Meta:
         verbose_name_plural = _("Question - predefined answers")
@@ -237,7 +237,7 @@ class Email(TranslatableModel, models.Model):
     )
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        return self.name or ""
 
     class Meta:
         verbose_name_plural = _("Email templates")
@@ -286,7 +286,7 @@ class Workflow(TranslatableModel):
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation if name_translation else ""
+        return name_translation or ""
 
     class Meta:
         verbose_name_plural = _("Incident reports")
@@ -358,7 +358,7 @@ class SectorRegulation(TranslatableModel):
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation if name_translation else ""
+        return name_translation or ""
 
 
 # link between sector regulation and workflows
@@ -443,7 +443,7 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         headline_translation = self.safe_translation_getter(
             "headline", any_language=True
         )
-        return headline_translation if headline_translation else ""
+        return headline_translation or ""
 
     def regulation(self):
         return self.sector_regulation_workflow.sector_regulation.regulation

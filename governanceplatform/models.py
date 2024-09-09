@@ -85,7 +85,7 @@ class Functionality(TranslatableModel):
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation if name_translation else ""
+        return name_translation or ""
 
     class Meta:
         verbose_name = _("Functionality")
@@ -104,7 +104,7 @@ class OperatorType(TranslatableModel):
 
     def __str__(self):
         type_translation = self.safe_translation_getter("type", any_language=True)
-        return type_translation if type_translation else ""
+        return type_translation or ""
 
 
 # operator are companies
@@ -191,7 +191,7 @@ class Regulator(TranslatableModel):
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation if name_translation is not None else ""
+        return name_translation or ""
 
     class Meta:
         verbose_name = _("Competent authority")
@@ -228,7 +228,7 @@ class Observer(TranslatableModel):
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation if name_translation else ""
+        return name_translation or ""
 
     class Meta:
         verbose_name = _("Observer")
@@ -452,4 +452,4 @@ class Regulation(TranslatableModel):
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation if label_translation else ""
+        return label_translation or ""
