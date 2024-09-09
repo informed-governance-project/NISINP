@@ -152,6 +152,10 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     resource_class = PredefinedAnswerResource
     exclude = ["creator_name", "creator"]
 
+    # Hidden from register models list
+    def has_module_permission(self, request):
+        return False
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.creator_name = request.user.regulators.all().first().name
@@ -183,6 +187,10 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     resource_class = QuestionCategoryResource
     ordering = ["position"]
     exclude = ["creator_name", "creator"]
+
+    # Hidden from register models list
+    def has_module_permission(self, request):
+        return False
 
     def save_model(self, request, obj, form, change):
         if not change:
