@@ -1,0 +1,19 @@
+{% extends 'home/base.html' %}
+{% load i18n %}
+{% block bootstrap5_title %}{% translate "500 Server Error" %}{% endblock %}
+{% block content %}
+<div class="d-flex container my-4">
+    <div class="card col-6 m-auto">
+        <div class="card-body">
+            <div class="text-danger text-center">
+                <h1 class="m-0 display-1">500</h1>
+                <h1>{% translate "Server Error" %}</h1>
+            </div>
+            <div class="m-4">
+                <h3>{% translate "Sorry, something went wrong on our end." %}</h3>
+                <h3>{% translate "Please try again later." %}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
