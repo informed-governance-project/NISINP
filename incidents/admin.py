@@ -251,8 +251,8 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
     model = PredefinedAnswer
-    verbose_name = _("predefined answer")
-    verbose_name_plural = _("predefined answers")
+    verbose_name = _("answer choice")
+    verbose_name_plural = _("answer choices")
     extra = 0
     exclude = ["creator", "creator_name"]
 
@@ -373,13 +373,33 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "headline",
     ]
     search_fields = ["translations__label", "regulation__translations__label"]
-    fields = ("regulation", "sectors", "headline", "label")
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
     exclude = ["creator_name", "creator"]
-
-    filter_horizontal = [
-        "sectors",
+    filter_horizontal = ("sectors",)
+    fieldsets = [
+        (
+            _("Basic information"),
+            {
+                "classes": ["wide", "extrapretty"],
+                "fields": ["label", "headline"],
+            },
+        ),
+        (
+            _("Oversight"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "regulation",
+                ],
+            },
+        ),
+        (
+            _("Sectors"),
+            {
+                "fields": ["sectors"],
+            },
+        ),
     ]
 
     @admin.display(description="Sector")
@@ -576,8 +596,8 @@ class WorkflowResource(resources.ModelResource):
 
 class WorkflowInline(admin.TabularInline):
     model = Workflow.sectorregulation_set.through
-    verbose_name = _("sector regulation")
-    verbose_name_plural = _("sectors regulations")
+    verbose_name = _("Incident notification workflow")
+    verbose_name_plural = _("Incident notification workflows")
     extra = 0
 
 
@@ -587,11 +607,32 @@ class WorkflowAdmin(CustomTranslatableAdmin):
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
     inlines = (WorkflowInline,)
-    fields = ("name", "questions", "is_impact_needed", "submission_email")
-    filter_horizontal = [
-        "questions",
-    ]
+    filter_horizontal = ("questions",)
     exclude = ["creator_name", "creator"]
+    fieldsets = [
+        (
+            _("Basic information"),
+            {
+                "classes": ["wide", "extrapretty"],
+                "fields": ["name", "is_impact_needed"],
+            },
+        ),
+        (
+            _("Email Notification"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "submission_email",
+                ],
+            },
+        ),
+        (
+            _("Questions"),
+            {
+                "fields": ["questions"],
+            },
+        ),
+    ]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -625,19 +666,45 @@ class SectorRegulationAdmin(CustomTranslatableAdmin):
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
     save_as = True
-
-    fields = (
-        "name",
-        "regulation",
-        "regulator",
-        "is_detection_date_needed",
-        "sectors",
-        "opening_email",
-        "closing_email",
-        "report_status_changed_email",
-    )
-    filter_horizontal = [
-        "sectors",
+    filter_horizontal = ("sectors",)
+    fieldsets = [
+        (
+            _("Basic information"),
+            {
+                "classes": ["wide", "extrapretty"],
+                "fields": [
+                    "name",
+                    "is_detection_date_needed",
+                ],
+            },
+        ),
+        (
+            _("Oversight"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "regulation",
+                    "regulator",
+                ],
+            },
+        ),
+        (
+            _("Sectors"),
+            {
+                "fields": ["sectors"],
+            },
+        ),
+        (
+            _("Email Notification"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "opening_email",
+                    "closing_email",
+                    "report_status_changed_email",
+                ],
+            },
+        ),
     ]
 
     # prevent other regulator to save the current workflow but they can duplicate
