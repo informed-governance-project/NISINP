@@ -384,8 +384,8 @@ class SectorRegulationWorkflow(models.Model):
                 deferrable=Deferrable.DEFERRED,
             ),
         ]
-        verbose_name_plural = _("Link between workflorw and report")
-        verbose_name = _("Links between workflorw and report")
+        verbose_name_plural = _("Link between workflow and report")
+        verbose_name = _("Links between workflow and report")
 
     def __str__(self):
         return (
@@ -403,7 +403,7 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
 
     sector_regulation_workflow = models.ForeignKey(
         SectorRegulationWorkflow,
-        verbose_name=_("Link between workflorw and report"),
+        verbose_name=_("Link between workflow and report"),
         on_delete=models.CASCADE,
     )
     email = models.ForeignKey(Email, verbose_name=_("E-mail"), on_delete=models.CASCADE)
