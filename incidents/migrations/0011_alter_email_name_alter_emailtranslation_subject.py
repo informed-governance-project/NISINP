@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
             model_name="email",
             name="name",
             field=models.CharField(
-                default="[MISSING_TRANSLATION", max_length=255, verbose_name="Name"
+                default="[MISSING_TRANSLATION]", max_length=255, verbose_name="Name"
             ),
             preserve_default=False,
         ),
