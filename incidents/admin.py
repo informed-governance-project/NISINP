@@ -15,6 +15,7 @@ from governanceplatform.admin import (
     CustomTranslatableTabularInline,
     admin_site,
 )
+from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import user_in_group
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
@@ -30,7 +31,6 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
-from governanceplatform.globals import ACTION_FLAG_CHOICES
 
 
 # get the id of a group by name
@@ -432,16 +432,13 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         super().save_model(request, obj, form, change)
 
 
-class IncidentResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    class Meta:
-        model = Incident
-
-
 @admin.register(Incident, site=admin_site)
-class IncidentAdmin(CustomTranslatableAdmin):
-    resource_class = IncidentResource
+class IncidentAdmin(admin.ModelAdmin):
+    list_display = [
+        "incident_id",
+        "company",
+        "incident_status",
+    ]
 
 
 class EmailResource(TranslationUpdateMixin, resources.ModelResource):
