@@ -547,7 +547,6 @@ class EmailTypeListFilter(SimpleListFilter):
 @admin.register(Email, site=admin_site)
 class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
-        "creator_name",
         "name",
         "subject",
         "content",
