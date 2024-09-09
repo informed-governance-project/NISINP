@@ -22,9 +22,7 @@ class Sector(TranslatableModel):
         default=None,
         verbose_name=_("Parent"),
     )
-    acronym = models.CharField(
-        verbose_name=_("Acronym"), max_length=4, null=True, blank=True, default=None
-    )
+    acronym = models.CharField(verbose_name=_("Acronym"), max_length=4)
 
     # name of the regulator who create the object
     creator_name = models.CharField(
@@ -64,9 +62,7 @@ class Service(TranslatableModel):
     sector = models.ForeignKey(
         Sector, verbose_name=_("Sector"), on_delete=models.CASCADE
     )
-    acronym = models.CharField(
-        verbose_name=_("Acronym"), max_length=4, null=True, blank=True, default=None
-    )
+    acronym = models.CharField(verbose_name=_("Acronym"), max_length=4)
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
@@ -430,9 +426,6 @@ class Regulation(TranslatableModel):
     translations = TranslatedFields(
         label=models.CharField(
             max_length=255,
-            blank=True,
-            default=None,
-            null=True,
             verbose_name=_("Label"),
         )
     )
