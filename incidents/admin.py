@@ -158,7 +158,11 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -194,7 +198,11 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -250,7 +258,11 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -272,7 +284,11 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -435,7 +451,11 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -539,7 +559,11 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -572,7 +596,11 @@ class WorkflowAdmin(CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = request.user.regulators.all().first().name
+            obj.creator_name = (
+                request.user.regulators.all()
+                .first()
+                .safe_translation_getter("name", any_language=True)
+            )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
