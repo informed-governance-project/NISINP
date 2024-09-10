@@ -25,6 +25,7 @@ from governanceplatform.helpers import (
     get_active_company_from_session,
     is_observer_user,
     is_observer_user_viewving_all_incident,
+    is_user_operator,
     is_user_regulator,
     user_in_group,
 )
@@ -35,6 +36,7 @@ from governanceplatform.settings import (
     SITE_NAME,
     TIME_ZONE,
 )
+from theme.globals import REGIONAL_AREA
 
 from .decorators import regulator_role_required
 from .email import send_email
@@ -49,7 +51,6 @@ from .forms import (
     RegulatorForm,
     get_forms_list,
 )
-from theme.globals import REGIONAL_AREA
 from .models import (
     Answer,
     Incident,
@@ -525,6 +526,8 @@ def access_log(request, incident_id: int):
         return redirect("incidents")
 
     log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
+    if is_user_operator(user):
+        log = log.exclude(user__regulatoruser__isnull=False)
     context = {
         "log": log,
         "incident": incident,
