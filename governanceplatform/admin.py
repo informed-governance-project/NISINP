@@ -1049,7 +1049,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 user_in_group(obj, "RegulatorUser")
                 or user_in_group(obj, "RegulatorAdmin")
                 or user_in_group(obj, "PlatformAdmin")
-                # or user_in_group(obj, "OperatorAdmin")
+                or user_in_group(obj, "OperatorAdmin")
             ) and obj.logentry_set.all().count() > 0:
                 return False
         return True
