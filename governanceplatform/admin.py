@@ -311,6 +311,18 @@ class SectorCompanyContactInline(admin.TabularInline):
             return True
         return super().has_delete_permission(request, obj)
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Observer Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                sector__in=user.sectors.all().distinct(),
+                company__in=user.companies.all().filter(sectorcompanycontact__is_company_administrator=True).distinct()
+            )
+
+        return queryset
+
 
 class SectorCompanyContactMultipleInline(SectorCompanyContactInline):
     max_num = None
@@ -1037,7 +1049,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 user_in_group(obj, "RegulatorUser")
                 or user_in_group(obj, "RegulatorAdmin")
                 or user_in_group(obj, "PlatformAdmin")
-                or user_in_group(obj, "OperatorAdmin")
+                # or user_in_group(obj, "OperatorAdmin")
             ) and obj.logentry_set.all().count() > 0:
                 return False
         return True
