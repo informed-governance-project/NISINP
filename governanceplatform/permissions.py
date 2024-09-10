@@ -116,7 +116,7 @@ def set_operator_admin_permissions(user):
         is_staff=True,
         group_name="OperatorAdmin",
         permissions={
-            "user": ["add", "change", "delete"],
+            "user": ["add", "change"],
             "sectorcompanycontact": ["add", "change", "delete"],
             "company": ["change"],
         },
