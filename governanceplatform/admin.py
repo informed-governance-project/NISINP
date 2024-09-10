@@ -314,7 +314,7 @@ class SectorCompanyContactInline(admin.TabularInline):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        # Observer Admin
+        # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
                 sector__in=user.sectors.all().distinct(),
