@@ -73,16 +73,17 @@ def get_pdf_report(
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
-    category_label = answer.question.category.label
+    category_label = answer.question_options.category.label
+    question_label = answer.question_options.question.label
     if category_label not in preliminary_questions_answers:
         preliminary_questions_answers[category_label] = {}
-    if answer.question.label not in preliminary_questions_answers[category_label]:
-        preliminary_questions_answers[category_label][answer.question.label] = []
+    if question_label not in preliminary_questions_answers[category_label]:
+        preliminary_questions_answers[category_label][question_label] = []
     for predefined_answer in answer.predefined_answers.all():
-        preliminary_questions_answers[category_label][answer.question.label].append(
+        preliminary_questions_answers[category_label][question_label].append(
             predefined_answer.predefined_answer
         )
-    if not preliminary_questions_answers[category_label][answer.question.label]:
-        preliminary_questions_answers[category_label][answer.question.label].append(
+    if not preliminary_questions_answers[category_label][question_label]:
+        preliminary_questions_answers[category_label][question_label].append(
             answer.answer
         )
