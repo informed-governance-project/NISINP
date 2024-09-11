@@ -1047,7 +1047,7 @@ class WorkflowWizardView(SessionWizardView):
         if self.workflow is not None:
             context["action"] = "Edit"
             context["steps"] = []
-            questions_options = self.workflow.questionsoptions_set.all()
+            questions_options = self.workflow.questionoptions_set.all()
             categories = set()
             for question in questions_options:
                 categories.add(question.category)
