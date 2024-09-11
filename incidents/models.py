@@ -861,6 +861,12 @@ class PredefinedAnswerOptions(models.Model):
     )
     position = models.IntegerField(verbose_name=_("Position"))
 
+    def __str__(self):
+        predefined_answer_translation = self.predefined_answer.safe_translation_getter(
+            "predefined_answer"
+        )
+        return predefined_answer_translation or ""
+
 
 # answers
 class Answer(models.Model):
