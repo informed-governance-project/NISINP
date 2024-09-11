@@ -15,9 +15,9 @@ from django_otp.forms import OTPAuthenticationForm
 from governanceplatform.helpers import get_active_company_from_session
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
-
 from theme.globals import REGIONAL_AREA
-from .models import Answer, Incident, IncidentWorkflow, Question, SectorRegulation
+
+from .models import Answer, Incident, IncidentWorkflow, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -163,46 +163,38 @@ class AuthenticationForm(OTPAuthenticationForm):
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
     # for dynamicly add question to forms
-    def create_question(self, question, incident_workflow=None, incident=None):
+    def create_question(self, question_option, incident_workflow=None, incident=None):
         initial_data = []
-        field_name = "__question__" + str(question.id)
+        field_name = "__question__" + str(question_option.id)
+        question = question_option.question
+        question_type = question_option.question.question_type
+
         if (
-            question.question_type == "MULTI"
-            or question.question_type == "MT"
-            or question.question_type == "SO"
-            or question.question_type == "ST"
+            question_type == "MULTI"
+            or question_type == "MT"
+            or question_type == "SO"
+            or question_type == "ST"
         ):
             initial_answer = ""
             input_type = "checkbox"
             choices = []
-            if question.question_type == "SO" or question.question_type == "ST":
+            if question_type == "SO" or question_type == "ST":
                 input_type = "radio"
-            if incident_workflow is not None:
-                initial_data = list(
-                    filter(
-                        partial(is_not, None),
-                        Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(question=question, incident_workflow=incident_workflow)
-                        .order_by("-timestamp"),
-                    )
-                )
-            elif incident is not None:
-                initial_data = list(
-                    filter(
-                        partial(is_not, None),
-                        Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(
-                            question=question,
-                            incident_workflow=incident.get_latest_incident_workflow(),
-                        )
-                        .order_by("-timestamp"),
-                    )
-                )
-            for choice in question.predefinedanswer_set.all().order_by("position"):
+            if incident_workflow:
+                pass
+            elif incident:
+                incident_workflow = incident.get_latest_incident_workflow()
+
+            initial_data = list(
+                Answer.objects.values_list("predefined_answer_options", flat=True)
+                .filter(question=question, incident_workflow=incident_workflow)
+                .order_by("-timestamp")
+            )
+            for choice in question_option.predefined_answers.all():
                 choices.append([choice.id, choice])
-            if question.question_type == "MULTI" or question.question_type == "MT":
+            if question_type == "MULTI" or question_type == "MT":
                 self.fields[field_name] = forms.MultipleChoiceField(
-                    required=question.is_mandatory,
+                    required=question_option.is_mandatory,
                     choices=choices,
                     widget=forms.CheckboxSelectMultiple(
                         attrs={
@@ -215,7 +207,7 @@ class QuestionForm(forms.Form):
                 )
             else:
                 self.fields[field_name] = forms.MultipleChoiceField(
-                    required=question.is_mandatory,
+                    required=question_option.is_mandatory,
                     choices=choices,
                     widget=OtherCheckboxSelectMultiple(
                         input_type=input_type,
@@ -228,7 +220,7 @@ class QuestionForm(forms.Form):
                     initial=initial_data,
                 )
 
-            if question.question_type == "MT" or question.question_type == "ST":
+            if question_type == "MT" or question_type == "ST":
                 if incident_workflow is not None:
                     answer = Answer.objects.values_list("answer", flat=True).filter(
                         question=question, incident_workflow=incident_workflow
@@ -257,7 +249,7 @@ class QuestionForm(forms.Form):
                     ),
                     label="Add precision",
                 )
-        elif question.question_type == "DATE":
+        elif question_type == "DATE":
             initial_data = ""
             answer = None
             if incident_workflow is not None:
@@ -295,7 +287,7 @@ class QuestionForm(forms.Form):
                 help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
             )
             self.fields[field_name].label = question.label
-        elif question.question_type == "FREETEXT":
+        elif question_type == "FREETEXT":
             initial_data = ""
             if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
@@ -330,7 +322,7 @@ class QuestionForm(forms.Form):
                 initial=str(initial_data),
                 label=question.label,
             )
-        elif question.question_type == "CL" or question.question_type == "RL":
+        elif question_type == "CL" or question_type == "RL":
             initial_data = ""
             if incident_workflow is not None:
                 answer = (
@@ -363,40 +355,33 @@ class QuestionForm(forms.Form):
             )
 
     def __init__(self, *args, **kwargs):
-        position = -1
-        workflow = None
-        incident_workflow = None
-        incident = None
-        if "position" in kwargs:
-            position = kwargs.pop("position")
-        if "workflow" in kwargs:
-            workflow = kwargs.pop("workflow")
-        if "incident_workflow" in kwargs:
-            incident_workflow = kwargs.pop("incident_workflow")
-        if "incident" in kwargs:
-            incident = kwargs.pop("incident")
+        position = kwargs.pop("position", -1)
+        workflow = kwargs.pop("workflow", None)
+        incident_workflow = kwargs.pop("incident_workflow", None)
+        incident = kwargs.pop("incident", None)
         super().__init__(*args, **kwargs)
 
-        if workflow is not None:
-            questions = workflow.questions.all()
-        if incident_workflow is not None:
-            questions = incident_workflow.workflow.questions.all()
-        categories = set()
+        if incident_workflow:
+            workflow = incident_workflow.workflow
 
-        for question in questions:
-            categories.add(question.category)
-        categories = list(categories)
-        categories.sort(key=lambda x: x.position)
-        category = categories[position]
-
-        subquestion = (
-            Question.objects.all()
-            .filter(category=category, id__in=questions.values("id"))
-            .order_by("position")
+        categories = (
+            workflow.questionoptions_set.select_related("category")
+            .values_list("category__questioncategoryoptions__id", flat=True)
+            .distinct()
+            .order_by("category__questioncategoryoptions__position")
         )
 
-        for question in subquestion:
-            self.create_question(question, incident_workflow, incident)
+        if position >= len(categories):
+            raise ValueError("Position exceeds available categories.")
+
+        category = categories[position]
+
+        category_question_options = workflow.questionoptions_set.filter(
+            category__id=category
+        )
+
+        for question_option in category_question_options:
+            self.create_question(question_option, incident_workflow, incident)
 
 
 # the first question for preliminary notification
@@ -672,23 +657,16 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         ]
     else:
         category_tree.append(IncidenteDateForm)
-        impact_needed = False
         if workflow is None:
             workflow = incident.get_next_step()
-            if workflow.is_impact_needed:
-                impact_needed = True
-            categories = set()
-            for question in workflow.questions.all():
-                categories.add(question.category)
-        else:
-            if workflow.is_impact_needed:
-                impact_needed = True
-            categories = set()
-            for question in workflow.questions.all():
-                categories.add(question.category)
+        categories = (
+            workflow.questionoptions_set.select_related("category")
+            .values_list("category__questioncategoryoptions__id", flat=True)
+            .distinct()
+        )
         for _category in categories:
             category_tree.append(QuestionForm)
-        if impact_needed:
+        if workflow.is_impact_needed:
             category_tree.append(ImpactForm)
         if is_regulator:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
