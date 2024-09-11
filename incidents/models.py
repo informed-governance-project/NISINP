@@ -202,6 +202,11 @@ class PredefinedAnswer(TranslatableModel):
         verbose_name = _("Question - predefined answer")
 
 
+class QuestionCategoryOptions(models.Model):
+    question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
+    position = models.IntegerField(verbose_name=_("Position"))
+
+
 # Email sent from regulator to operator
 class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
@@ -800,27 +805,6 @@ class IncidentWorkflow(models.Model):
         return False
 
 
-# answers
-class Answer(models.Model):
-    incident_workflow = models.ForeignKey(
-        IncidentWorkflow,
-        verbose_name=_("Incident report answered"),
-        on_delete=models.CASCADE,
-    )
-    question = models.ForeignKey(
-        Question, verbose_name=_("Question"), on_delete=models.CASCADE
-    )
-    answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
-    predefined_answers = models.ManyToManyField(
-        PredefinedAnswer, verbose_name=_("Predefined answer"), blank=True
-    )
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
-
-    class meta:
-        verbose_name_plural = _("Answer")
-        verbose_name = _("Answers")
-
-
 # record who has read the reports
 class LogReportRead(models.Model):
     user = models.ForeignKey(
@@ -852,3 +836,59 @@ class LogReportRead(models.Model):
     def save(self, *args, **kwargs):
         self.user_full_name = self.user.get_full_name()
         super().save(*args, **kwargs)
+
+
+class QuestionOptions(models.Model):
+    report = models.ForeignKey(
+        Workflow, on_delete=models.CASCADE, null=True, blank=True
+    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
+    position = models.IntegerField(verbose_name=_("Position"))
+    category = models.ForeignKey(
+        QuestionCategory, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    def __str__(self):
+        question_translation = self.question.safe_translation_getter("label")
+        return question_translation or ""
+
+
+class PredefinedAnswerOptions(models.Model):
+    predefined_answer = models.ForeignKey(PredefinedAnswer, on_delete=models.CASCADE)
+    question_options = models.ForeignKey(
+        QuestionOptions, on_delete=models.CASCADE, related_name="predefined_answers"
+    )
+    position = models.IntegerField(verbose_name=_("Position"))
+
+
+# answers
+class Answer(models.Model):
+    incident_workflow = models.ForeignKey(
+        IncidentWorkflow,
+        verbose_name=_("Incident report answered"),
+        on_delete=models.CASCADE,
+    )
+    question = models.ForeignKey(
+        Question, verbose_name=_("Question"), on_delete=models.CASCADE
+    )
+    answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
+    predefined_answers = models.ManyToManyField(
+        PredefinedAnswer, verbose_name=_("Predefined answer"), blank=True
+    )
+
+    question_options = models.ForeignKey(
+        QuestionOptions,
+        verbose_name=_("Question options"),
+        on_delete=models.CASCADE,
+        null=True,
+    )
+
+    predefined_answer_options = models.ManyToManyField(
+        PredefinedAnswerOptions, verbose_name=_("Predefined answer options"), blank=True
+    )
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+
+    class meta:
+        verbose_name_plural = _("Answer")
+        verbose_name = _("Answers")

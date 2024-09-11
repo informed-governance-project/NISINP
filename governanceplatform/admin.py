@@ -11,6 +11,7 @@ from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
+from nested_admin import NestedModelAdmin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from .forms import CustomTranslatableAdminForm
@@ -58,7 +59,7 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
-class CustomTranslatableAdmin(TranslatableAdmin):
+class CustomTranslatableAdmin(NestedModelAdmin, TranslatableAdmin):
     form = CustomTranslatableAdminForm
 
 

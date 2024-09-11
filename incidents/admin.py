@@ -9,6 +9,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
+from nested_admin import NestedTabularInline
 
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
@@ -25,8 +26,11 @@ from incidents.models import (
     Impact,
     Incident,
     PredefinedAnswer,
+    PredefinedAnswerOptions,
     Question,
     QuestionCategory,
+    QuestionCategoryOptions,
+    QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflowEmail,
     Workflow,
@@ -249,6 +253,23 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         export_order = fields
 
 
+class PredefinedAnswerOptionsInline(NestedTabularInline):
+    model = PredefinedAnswerOptions
+    verbose_name = _("Answer choice option")
+    verbose_name_plural = _("Answer choice options")
+    extra = 0
+    classes = ["collapse"]
+
+
+class QuestionOptionsInline(NestedTabularInline):
+    model = QuestionOptions
+    verbose_name = _("Question Option")
+    verbose_name_plural = _("Question Options")
+    ordering = ["position"]
+    extra = 0
+    inlines = [PredefinedAnswerOptionsInline]
+
+
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
     model = PredefinedAnswer
     verbose_name = _("answer choice")
@@ -280,7 +301,7 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "label",
         "tooltip",
     ]
-    inlines = (PredefinedAnswerInline,)
+    inlines = (QuestionOptionsInline,)
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -291,6 +312,40 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             )
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
+
+
+@admin.register(QuestionOptions, site=admin_site)
+class QuestionOptionsAdmin(admin.ModelAdmin):
+    list_display = ["position", "question", "is_mandatory", "category"]
+    list_display_links = ["position", "question"]
+    ordering = ["position"]
+    fields = [
+        ("position", "is_mandatory"),
+        "question",
+        "category",
+    ]
+
+
+@admin.register(PredefinedAnswerOptions, site=admin_site)
+class PredefinedAnswerOptionsAdmin(admin.ModelAdmin):
+    list_display = ["question_options", "position", "predefined_answer"]
+    list_display_links = ["question_options", "position", "predefined_answer"]
+    ordering = ["question_options", "position"]
+    fields = [
+        "predefined_answer",
+        "question_options",
+        "position",
+    ]
+
+
+@admin.register(QuestionCategoryOptions, site=admin_site)
+class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
+    list_display = ["question_category", "position"]
+    list_display_links = ["position", "question_category"]
+    fields = [
+        "question_category",
+        "position",
+    ]
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
@@ -606,8 +661,7 @@ class WorkflowAdmin(CustomTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email"]
     search_fields = ["translations__name"]
     resource_class = WorkflowResource
-    inlines = (WorkflowInline,)
-    filter_horizontal = ("questions",)
+    inlines = (QuestionOptionsInline,)
     exclude = ["creator_name", "creator"]
     fieldsets = [
         (
@@ -624,12 +678,6 @@ class WorkflowAdmin(CustomTranslatableAdmin):
                 "fields": [
                     "submission_email",
                 ],
-            },
-        ),
-        (
-            _("Questions"),
-            {
-                "fields": ["questions"],
             },
         ),
     ]
