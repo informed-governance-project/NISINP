@@ -56,8 +56,8 @@ from .models import (
     Incident,
     IncidentWorkflow,
     LogReportRead,
-    PredefinedAnswer,
-    Question,
+    PredefinedAnswerOptions,
+    QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
@@ -1047,9 +1047,9 @@ class WorkflowWizardView(SessionWizardView):
         if self.workflow is not None:
             context["action"] = "Edit"
             context["steps"] = []
-            questions = self.workflow.questions
+            questions_options = self.workflow.questionsoptions_set.all()
             categories = set()
-            for question in questions.all():
+            for question in questions_options:
                 categories.add(question.category)
             categ_list = []
             for category in categories:
@@ -1164,32 +1164,33 @@ def save_answers(data=None, incident=None, workflow=None):
         except Exception:
             pass
         if question_id:
-            predefined_answers = []
-            question = Question.objects.get(pk=key)
-            if question.question_type == "FREETEXT":
+            predefined_answer_options = []
+            question_option = QuestionOptions.objects.get(pk=key)
+            if question_option.question.question_type == "FREETEXT":
                 answer = value
-            elif question.question_type == "DATE":
+            elif question_option.question.question_type == "DATE":
                 if value:
                     answer = value.strftime("%Y-%m-%d %H:%M")
                 else:
                     answer = None
-            elif question.question_type == "CL" or question.question_type == "RL":
+            elif question_option.question.question_type == "CL" or question_option.question.question_type == "RL":
                 answer = ""
                 for val in value:
                     answer += val + ","
                 answer = answer
             else:  # MULTI
                 for val in value:
-                    predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
+                    predefined_answer_options.append(PredefinedAnswerOptions.objects.get(pk=val))
                 answer = None
                 if questions_data.get(key + "_answer", None):
                     answer = questions_data.get(key + "_answer")
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
-                question=question,
+                question_options=question_option,
+                question=question_option.question,
                 answer=answer,
             )
-            answer_object.predefined_answers.set(predefined_answers)
+            answer_object.predefined_answers.set(predefined_answer_options)
 
     return incident_workflow
 
