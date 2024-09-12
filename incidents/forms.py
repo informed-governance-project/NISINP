@@ -549,19 +549,19 @@ class RegulationForm(forms.Form):
 
 # prepare an array of regulations
 def construct_regulation_array(regulators):
-    regulations_to_select = []
     regulations_id = (
         SectorRegulation.objects.all()
         .filter(regulator__in=regulators)
         .values_list("regulation", flat=True)
     )
 
-    regulations = Regulation.objects.all().filter(id__in=regulations_id)
+    regulations = (
+        Regulation.objects.all()
+        .filter(id__in=regulations_id)
+        .values_list("id", "translations__label")
+    )
 
-    for regulation in regulations:
-        regulations_to_select.append([regulation.id, regulation.label])
-
-    return regulations_to_select
+    return regulations
 
 
 class RegulatorForm(forms.Form):
@@ -577,7 +577,12 @@ class RegulatorForm(forms.Form):
         super().__init__(*args, **kwargs)
         try:
             self.fields["regulators"].choices = [
-                (k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()
+                (
+                    k.id,
+                    f"{k.safe_translation_getter('name', any_language=True)} \
+                    {k.safe_translation_getter('full_name', any_language=True)}",
+                )
+                for k in Regulator.objects.all()
             ]
         except Exception:
             self.fields["regulators"].choices = []
@@ -629,21 +634,29 @@ def construct_sectors_array(regulations, regulators):
     sector_regulations = SectorRegulation.objects.filter(
         regulation__in=regulations, regulator__in=regulators
     )
-    all_sectors = Sector.objects.filter(sectorregulation__in=sector_regulations)
-    categs = dict()
+    all_sectors = (
+        Sector.objects.filter(sectorregulation__in=sector_regulations)
+        .distinct()
+        .order_by("parent")
+    )
+
+    categs = {}
 
     for sector in all_sectors:
-        if sector.parent is not None:
-            if not categs.get(sector.parent.name):
-                categs[sector.parent.name] = [[sector.id, sector]]
-            else:
-                categs[sector.parent.name].append([sector.id, sector])
+        if sector.parent:
+            parent_name = (
+                sector.parent.safe_translation_getter("name", any_language=True)
+                if sector.parent
+                else sector.safe_translation_getter("name", any_language=True)
+            )
+            categs.setdefault(parent_name, []).append([sector.id, sector])
         else:
-            if not categs.get(sector.name):
-                categs[sector.name] = []
-    final_categs = []
-    for sector, list_of_options in categs.items():
-        final_categs.append([sector, list_of_options])
+            if not categs.get(
+                sector.safe_translation_getter("name", any_language=True)
+            ):
+                categs.setdefault(None, []).append([sector.id, sector])
+
+    final_categs = [[None, options] for _sector, options in categs.items()]
 
     return final_categs
 
