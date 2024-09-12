@@ -909,6 +909,13 @@ class IncidentWorkflowForm(forms.ModelForm):
 
 
 class IncidentStatusForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super(IncidentStatusForm, self).clean()
+        # prevent is_significative_impact to go FALSE when we change an other field
+        if len(cleaned_data) > 1:
+            cleaned_data['is_significative_impact'] = self.instance.is_significative_impact
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
