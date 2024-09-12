@@ -14,6 +14,7 @@ from nested_admin import NestedTabularInline
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
     CustomTranslatableTabularInline,
+    NestedTranslatableAdmin,
     admin_site,
 )
 from governanceplatform.globals import ACTION_FLAG_CHOICES
@@ -289,7 +290,7 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
     list_display = ["position", "category", "label", "get_predefined_answers"]
     list_display_links = ["position", "category", "label"]
     search_fields = ["translations__label"]
@@ -657,7 +658,7 @@ class WorkflowInline(admin.TabularInline):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(CustomTranslatableAdmin):
+class WorkflowAdmin(NestedTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email"]
     search_fields = ["translations__name"]
     resource_class = WorkflowResource

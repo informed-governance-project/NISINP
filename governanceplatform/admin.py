@@ -59,7 +59,11 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
-class CustomTranslatableAdmin(NestedModelAdmin, TranslatableAdmin):
+class CustomTranslatableAdmin(TranslatableAdmin):
+    form = CustomTranslatableAdminForm
+
+
+class NestedTranslatableAdmin(NestedModelAdmin, CustomTranslatableAdmin):
     form = CustomTranslatableAdminForm
 
 
