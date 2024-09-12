@@ -559,6 +559,7 @@ def construct_regulation_array(regulators):
         Regulation.objects.all()
         .filter(id__in=regulations_id)
         .values_list("id", "translations__label")
+        .distinct("id")
     )
 
     return regulations
