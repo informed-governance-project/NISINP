@@ -856,9 +856,7 @@ class QuestionOptions(models.Model):
 
 class PredefinedAnswerOptions(models.Model):
     predefined_answer = models.ForeignKey(PredefinedAnswer, on_delete=models.CASCADE)
-    question_options = models.ForeignKey(
-        QuestionOptions, on_delete=models.CASCADE, related_name="predefined_answers"
-    )
+    question_options = models.ForeignKey(QuestionOptions, on_delete=models.CASCADE)
     position = models.IntegerField(verbose_name=_("Position"))
 
     def __str__(self):

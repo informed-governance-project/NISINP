@@ -6,6 +6,7 @@ def migrate_data(apps, schema_editor):
     Workflow = apps.get_model("incidents", "Workflow")
     Question = apps.get_model("incidents", "Question")
     Answer = apps.get_model("incidents", "Answer")
+    IncidentWorkflow = apps.get_model("incidents", "IncidentWorkflow")
     QuestionOptions = apps.get_model("incidents", "QuestionOptions")
     PredefinedAnswer = apps.get_model("incidents", "PredefinedAnswer")
     PredefinedAnswerOptions = apps.get_model("incidents", "PredefinedAnswerOptions")
@@ -33,11 +34,6 @@ def migrate_data(apps, schema_editor):
             category=question.category,
         )
 
-        # Update existing Answer records to use the new fields
-        Answer.objects.filter(question=question).update(
-            question_options=question_option
-        )
-
         # Migrate PredefinedAnswer data to PredefinedAnswerOptions
         for predefined_answer in PredefinedAnswer.objects.filter(question=question):
             PredefinedAnswerOptions.objects.create(
@@ -45,8 +41,18 @@ def migrate_data(apps, schema_editor):
                 question_options=question_option,
                 position=predefined_answer.position,
             )
-        # Update predefined_answer_options M2M field in Answer
-        for answer in Answer.objects.filter(question=question):
+
+    # Update existing Answer records to use the new fields
+    for answer in Answer.objects.all():
+        try:
+            incident_workflow = IncidentWorkflow.objects.get(
+                pk=answer.incident_workflow_id
+            )
+            question_option = QuestionOptions.objects.get(
+                question=answer.question, report=incident_workflow.workflow
+            )
+            answer.question_options = question_option
+
             for predefined_answer in answer.predefined_answers.all():
                 answer.predefined_answer_options.set(
                     PredefinedAnswerOptions.objects.filter(
@@ -54,6 +60,9 @@ def migrate_data(apps, schema_editor):
                         predefined_answer=predefined_answer,
                     )
                 )
+            answer.save()  # Save the instance after updating the field
+        except (IncidentWorkflow.DoesNotExist, QuestionOptions.DoesNotExist):
+            pass
 
     # Migrate QuestionCategory data to QuestionCategoryOptions
     for category in QuestionCategory.objects.all():
