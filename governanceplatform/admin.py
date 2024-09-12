@@ -618,8 +618,7 @@ class userRegulatorInline(admin.TabularInline):
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = User.objects.filter(
-                    Q(groups=None)
-                    | Q(
+                    Q(
                         groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
                         regulators=None,
                     )
@@ -1244,8 +1243,7 @@ class ObserverUserInline(admin.TabularInline):
             # Observer Admin
             if user_in_group(user, "ObserverAdmin"):
                 kwargs["queryset"] = User.objects.filter(
-                    Q(groups=None)
-                    | Q(
+                    Q(
                         groups__in=[ObserverAdminGroupID],
                         observers=None,
                     )
