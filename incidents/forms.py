@@ -187,10 +187,13 @@ class QuestionForm(forms.Form):
 
             initial_data = list(
                 Answer.objects.values_list("predefined_answer_options", flat=True)
-                .filter(question=question, incident_workflow=incident_workflow)
+                .filter(
+                    question_options__question=question,
+                    incident_workflow=incident_workflow,
+                )
                 .order_by("-timestamp")
             )
-            for choice in question_option.predefined_answers.all():
+            for choice in question_option.predefinedansweroptions_set.all():
                 choices.append([choice.id, choice])
             if question_type == "MULTI" or question_type == "MT":
                 self.fields[field_name] = forms.MultipleChoiceField(
