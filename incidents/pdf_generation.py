@@ -15,13 +15,15 @@ def get_pdf_report(
     # TO DO : improve for more than 2 level ?
     sectors: Dict[str, List[str]] = {}
     for sector in incident.affected_sectors.all():
+        sector_name = sector.safe_translation_getter("name", any_language=True)
         if sector.parent:
-            if sector.parent.name not in sectors:
-                sectors[sector.parent.name] = []
-            sectors[sector.parent.name].append(sector.name)
+            parent_name = sector.parent.safe_translation_getter(
+                "name", any_language=True
+            )
+            sectors.setdefault(parent_name, []).append(sector_name)
         else:
-            if sector.name not in sectors:
-                sectors[sector.name] = []
+            if sector_name not in sectors:
+                sectors[sector_name] = []
 
     incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
     incident_workflows_impact: Dict[str, List[str]] = {}
@@ -32,20 +34,21 @@ def get_pdf_report(
         report_list = [incident_workflow]
 
     for incident_workflow in report_list:
-        if incident_workflow.workflow.name not in incident_workflows_answer:
-            incident_workflows_answer[incident_workflow.workflow.name] = dict()
-        if incident_workflow.workflow.name not in incident_workflows_impact:
-            incident_workflows_impact[incident_workflow.workflow.name] = []
+        workflow_name = incident_workflow.workflow.safe_translation_getter(
+            "name", any_language=True
+        )
+        incident_workflows_answer.setdefault(workflow_name, dict())
+        incident_workflows_impact.setdefault(workflow_name, [])
 
-        answers = Answer.objects.all().filter(incident_workflow=incident_workflow)
-        for answer in answers.all():
+        answers = Answer.objects.filter(incident_workflow=incident_workflow)
+        for answer in answers:
             populate_questions_answers(
                 answer,
-                incident_workflows_answer[incident_workflow.workflow.name],
+                incident_workflows_answer[workflow_name],
             )
         # impacts
-        for impact in incident_workflow.impacts.all():
-            incident_workflows_impact[incident_workflow.workflow.name].append(impact)
+        incident_workflows_impact[workflow_name].extend(incident_workflow.impacts.all())
+
     # Render the HTML file
 
     static_theme_dir = settings.STATIC_THEME_DIR
@@ -73,17 +76,20 @@ def get_pdf_report(
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
-    category_label = answer.question_options.category.label
-    question_label = answer.question_options.question.label
-    if category_label not in preliminary_questions_answers:
-        preliminary_questions_answers[category_label] = {}
-    if question_label not in preliminary_questions_answers[category_label]:
-        preliminary_questions_answers[category_label][question_label] = []
-    for predefined_answer in answer.predefined_answers.all():
-        preliminary_questions_answers[category_label][question_label].append(
-            predefined_answer.predefined_answer
-        )
-    if not preliminary_questions_answers[category_label][question_label]:
-        preliminary_questions_answers[category_label][question_label].append(
-            answer.answer
-        )
+    category_label = answer.question_options.category.safe_translation_getter(
+        "label", any_language=True
+    )
+    question_label = answer.question_options.question.safe_translation_getter(
+        "label", any_language=True
+    )
+    question_dict = preliminary_questions_answers.setdefault(category_label, {})
+    answer_list = question_dict.setdefault(question_label, [])
+
+    predefined_answers = [
+        pa.predefined_answer for pa in answer.predefined_answer_options.all()
+    ]
+
+    if predefined_answers:
+        answer_list.extend(predefined_answers)
+    else:
+        answer_list.append(answer.answer)
