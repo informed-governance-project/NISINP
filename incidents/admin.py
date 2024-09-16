@@ -163,11 +163,7 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -203,11 +199,7 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -280,11 +272,7 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -306,11 +294,7 @@ class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -384,17 +368,8 @@ class ImpactSectorListFilter(SimpleListFilter):
         sectors_list = []
 
         for sector in sectors:
-            sector_name = sector.safe_translation_getter("name", any_language=True)
-            if sector_name and sector.parent:
-                sector_parent_name = sector.parent.safe_translation_getter(
-                    "name", any_language=True
-                )
-                sectors_list.append(
-                    (sector.id, sector_parent_name + " --> " + sector_name)
-                )
-            elif sector_name and sector.parent is None:
-                sectors_list.append((sector.id, sector_name))
-        return sorted(sectors_list, key=lambda item: item[1])
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         if self.value():
@@ -462,26 +437,21 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def get_sector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
-            if not sector.parent:
-                sectors.append(
-                    sector.safe_translation_getter("name", any_language=True)
-                )
-            else:
-                sectors.append(
-                    sector.parent.safe_translation_getter("name", any_language=True)
-                )
+            sector_name = (
+                sector.parent.get_safe_translation()
+                if sector.parent
+                else sector.get_safe_translation()
+            )
+            sectors.append(sector_name)
+
         return sectors
 
     @admin.display(description="Sub-sector")
     def get_subsector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
-            if sector.parent:
-                sectors.append(
-                    sector.safe_translation_getter("name", any_language=True)
-                )
-            else:
-                sectors.append("")
+            sector_name = sector.get_safe_translation() if sector.parent else ""
+            sectors.append(sector_name)
         return sectors
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -527,11 +497,7 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -634,11 +600,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 
@@ -685,11 +647,7 @@ class WorkflowAdmin(NestedTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
+            obj.creator_name = request.user.regulators.all().first()
             obj.creator_id = request.user.regulators.all().first().id
         super().save_model(request, obj, form, change)
 

@@ -579,11 +579,11 @@ class RegulatorForm(forms.Form):
         try:
             self.fields["regulators"].choices = [
                 (
-                    k.id,
-                    f"{k.safe_translation_getter('name', any_language=True)} \
-                    {k.safe_translation_getter('full_name', any_language=True)}",
+                    regulator.id,
+                    f"{regulator.safe_translation_getter('name', any_language=True)} \
+                    {regulator.safe_translation_getter('full_name', any_language=True)}",
                 )
-                for k in Regulator.objects.all()
+                for regulator in Regulator.objects.all()
             ]
         except Exception:
             self.fields["regulators"].choices = []
@@ -644,22 +644,21 @@ def construct_sectors_array(regulations, regulators):
     categs = {}
 
     for sector in all_sectors:
+        sector_name = sector.get_safe_translation()
+
         if sector.parent:
-            parent_name = (
-                sector.parent.safe_translation_getter("name", any_language=True)
-                if sector.parent
-                else sector.safe_translation_getter("name", any_language=True)
-            )
-            categs.setdefault(parent_name, []).append([sector.id, sector])
+            parent_name = sector.parent.get_safe_translation()
+            categs.setdefault(parent_name, []).append([sector.id, sector_name])
         else:
-            if not categs.get(
-                sector.safe_translation_getter("name", any_language=True)
-            ):
-                categs.setdefault(None, []).append([sector.id, sector])
+            if not categs.get(sector_name):
+                categs.setdefault(sector_name, []).append([sector.id, sector_name])
 
-    final_categs = [[None, options] for _sector, options in categs.items()]
+    final_categs = [
+        [sector, sorted(options, key=lambda item: item[1])]
+        for sector, options in categs.items()
+    ]
 
-    return final_categs
+    return sorted(final_categs, key=lambda item: item[0])
 
 
 def get_forms_list(incident=None, workflow=None, is_regulator=False):

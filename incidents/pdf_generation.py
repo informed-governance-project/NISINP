@@ -14,12 +14,12 @@ def get_pdf_report(
 ):
     # TO DO : improve for more than 2 level ?
     sectors: Dict[str, List[str]] = {}
+
     for sector in incident.affected_sectors.all():
-        sector_name = sector.safe_translation_getter("name", any_language=True)
+        sector_name = sector.get_safe_translation()
+
         if sector.parent:
-            parent_name = sector.parent.safe_translation_getter(
-                "name", any_language=True
-            )
+            parent_name = sector.parent.get_safe_translation()
             sectors.setdefault(parent_name, []).append(sector_name)
         else:
             if sector_name not in sectors:
@@ -34,9 +34,7 @@ def get_pdf_report(
         report_list = [incident_workflow]
 
     for incident_workflow in report_list:
-        workflow_name = incident_workflow.workflow.safe_translation_getter(
-            "name", any_language=True
-        )
+        workflow_name = incident_workflow.workflow
         incident_workflows_answer.setdefault(workflow_name, dict())
         incident_workflows_impact.setdefault(workflow_name, [])
 
@@ -76,12 +74,8 @@ def get_pdf_report(
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
-    category_label = answer.question_options.category.safe_translation_getter(
-        "label", any_language=True
-    )
-    question_label = answer.question_options.question.safe_translation_getter(
-        "label", any_language=True
-    )
+    category_label = answer.question_options.category
+    question_label = answer.question_options.question
     question_dict = preliminary_questions_answers.setdefault(category_label, {})
     answer_list = question_dict.setdefault(question_label, [])
 

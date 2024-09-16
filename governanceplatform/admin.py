@@ -334,17 +334,8 @@ class CompanySectorListFilter(SimpleListFilter):
 
         sectors_list = []
         for sector in sectors:
-            sector_name = sector.safe_translation_getter("name", any_language=True)
-            if sector_name and sector.parent:
-                sector_parent_name = sector.parent.safe_translation_getter(
-                    "name", any_language=True
-                )
-                sectors_list.append(
-                    (sector.id, sector_parent_name + " --> " + sector_name)
-                )
-            elif sector_name and sector.parent is None:
-                sectors_list.append((sector.id, sector_name))
-        return sorted(sectors_list, key=lambda item: item[1])
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -678,10 +669,7 @@ class UserRegulatorsListFilter(SimpleListFilter):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             regulators = Regulator.objects.all()
-        return [
-            (regulator.id, regulator.safe_translation_getter("name", any_language=True))
-            for regulator in regulators
-        ]
+        return [(regulator.id, regulator) for regulator in regulators]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -700,10 +688,7 @@ class ObserverUsersListFilter(SimpleListFilter):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             observers = Observer.objects.all()
-        return [
-            (observer.id, observer.safe_translation_getter("name", any_language=True))
-            for observer in observers
-        ]
+        return [(observer.id, observer) for observer in observers]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -752,17 +737,8 @@ class UserSectorListFilter(SimpleListFilter):
         sectors_list = []
 
         for sector in sectors:
-            sector_name = sector.safe_translation_getter("name", any_language=True)
-            if sector_name and sector.parent:
-                sector_parent_name = sector.parent.safe_translation_getter(
-                    "name", any_language=True
-                )
-                sectors_list.append(
-                    (sector.id, sector_parent_name + " --> " + sector_name)
-                )
-            elif sector_name and sector.parent is None:
-                sectors_list.append((sector.id, sector_name))
-        return sorted(sectors_list, key=lambda item: item[1])
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         value = self.value()

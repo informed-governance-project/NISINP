@@ -41,11 +41,15 @@ class Sector(TranslatableModel):
         default=None,
     )
 
+    def get_safe_translation(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
+
     def __str__(self):
         name = self.safe_translation_getter("name", any_language=True)
         if name and self.parent:
             parent_name = self.parent.safe_translation_getter("name", any_language=True)
-            return parent_name + " --> " + name
+            return parent_name + " → " + name
         elif name and self.parent is None:
             return name
         else:
