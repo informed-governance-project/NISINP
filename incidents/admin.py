@@ -118,6 +118,9 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        # if obj is not None and obj.user:
+        #     if not LogEntry.objects.all().filter(user=obj.user).exists():
+        #         return True
         return False
 
     def has_view_permission(self, request, obj=None):

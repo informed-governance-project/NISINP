@@ -578,7 +578,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
     else:
         try:
             pdf_report = get_pdf_report(incident, incident_workflow, request)
-            # create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
+            create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
         except Exception:
             messages.warning(
                 request, _("An error occurred while generating the report.")

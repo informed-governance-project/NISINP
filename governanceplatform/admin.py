@@ -316,6 +316,20 @@ class SectorCompanyContactInline(admin.TabularInline):
             return True
         return super().has_delete_permission(request, obj)
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                sector__in=user.sectors.all().distinct(),
+                company__in=user.companies.all()
+                .filter(sectorcompanycontact__is_company_administrator=True)
+                .distinct(),
+            )
+
+        return queryset
+
 
 class SectorCompanyContactMultipleInline(SectorCompanyContactInline):
     max_num = None
@@ -602,8 +616,7 @@ class userRegulatorInline(admin.TabularInline):
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = User.objects.filter(
-                    Q(groups=None)
-                    | Q(
+                    Q(
                         groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
                         regulators=None,
                     )
@@ -967,12 +980,15 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
-                groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                    observerUserGroupId,
-                    observerAdminGroupId,
-                ]
+                Q(groups=None)
+                | Q(
+                    groups__in=[
+                        PlatformAdminGroupId,
+                        RegulatorAdminGroupId,
+                        observerUserGroupId,
+                        observerAdminGroupId,
+                    ]
+                )
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
@@ -1213,8 +1229,7 @@ class ObserverUserInline(admin.TabularInline):
             # Observer Admin
             if user_in_group(user, "ObserverAdmin"):
                 kwargs["queryset"] = User.objects.filter(
-                    Q(groups=None)
-                    | Q(
+                    Q(
                         groups__in=[ObserverAdminGroupID],
                         observers=None,
                     )
