@@ -226,13 +226,14 @@ class QuestionForm(forms.Form):
             if question_type == "MT" or question_type == "ST":
                 if incident_workflow is not None:
                     answer = Answer.objects.values_list("answer", flat=True).filter(
-                        question=question, incident_workflow=incident_workflow
+                        question_options__question=question,
+                        incident_workflow=incident_workflow,
                     )
                 elif incident is not None:
                     answer = (
                         Answer.objects.values_list("answer", flat=True)
                         .filter(
-                            question=question,
+                            question_options__question=question,
                             incident_workflow=incident.get_latest_incident_workflow(),
                         )
                         .order_by("-timestamp")
@@ -241,7 +242,7 @@ class QuestionForm(forms.Form):
                     if answer[0] != "":
                         initial_answer = list(filter(partial(is_not, ""), answer))[0]
                 self.fields[field_name + "_answer"] = forms.CharField(
-                    required=question.is_mandatory,
+                    required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
@@ -258,14 +259,17 @@ class QuestionForm(forms.Form):
             if incident_workflow is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
-                    .filter(question=question, incident_workflow=incident_workflow)
+                    .filter(
+                        question_options__question=question,
+                        incident_workflow=incident_workflow,
+                    )
                     .first()
                 )
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
-                        question=question,
+                        question_options__question=question,
                         incident_workflow=incident.get_latest_incident_workflow(),
                     )
                     .order_by("-timestamp")
@@ -285,7 +289,7 @@ class QuestionForm(forms.Form):
                         "data-bs-toggle": "tooltip",
                     },
                 ),
-                required=question.is_mandatory,
+                required=question_option.is_mandatory,
                 initial=initial_data,
                 help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
             )
@@ -294,7 +298,8 @@ class QuestionForm(forms.Form):
             initial_data = ""
             if incident_workflow is not None:
                 answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident_workflow=incident_workflow
+                    question_options__question=question,
+                    incident_workflow=incident_workflow,
                 )
                 if len(answer) > 0:
                     if answer[0] != "":
@@ -303,7 +308,7 @@ class QuestionForm(forms.Form):
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
-                        question=question,
+                        question_options__question=question,
                         incident_workflow=incident.get_latest_incident_workflow(),
                     )
                     .order_by("-timestamp")
@@ -314,7 +319,7 @@ class QuestionForm(forms.Form):
                         initial_data = answer
 
             self.fields[field_name] = forms.CharField(
-                required=question.is_mandatory,
+                required=question_option.is_mandatory,
                 widget=forms.Textarea(
                     attrs={
                         "rows": 3,
@@ -330,14 +335,17 @@ class QuestionForm(forms.Form):
             if incident_workflow is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
-                    .filter(question=question, incident_workflow=incident_workflow)
+                    .filter(
+                        question_options__question=question,
+                        incident_workflow=incident_workflow,
+                    )
                     .first()
                 )
             elif incident is not None:
                 answer = (
                     Answer.objects.values_list("answer", flat=True)
                     .filter(
-                        question=question,
+                        question_options__question=question,
                         incident_workflow=incident.get_latest_incident_workflow(),
                     )
                     .order_by("-timestamp")
