@@ -1,9 +1,19 @@
 import secrets
-from typing import Optional
+from typing import Any, Optional
 
+from django.contrib import messages
 from django.db import connection
+from django.http import HttpRequest
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
-from incidents.models import Incident
+from incidents.models import (
+    Answer,
+    Incident,
+    PredefinedAnswer,
+    Question,
+    QuestionCategory,
+)
 
 from .models import Company, User
 
@@ -194,3 +204,71 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
             return False
 
     return False
+
+
+def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
+    regulator = request.user.regulators.first()
+    if not change:
+        obj.creator_name = regulator
+        obj.creator_id = regulator.id
+
+    if not obj.creator_name or not obj.creator_id:
+        obj.creator_name = str(regulator)
+        obj.creator_id = regulator.id
+    return obj
+
+
+def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
+    if not hasattr(request, "_can_change_or_delete_obj"):
+        request._can_change_or_delete_obj = True
+    else:
+        return request._can_change_or_delete_obj
+
+    if not obj.creator:
+        return True
+
+    in_use = True
+    # [Predefined Answer] Check if obj is already in use
+    if isinstance(obj, PredefinedAnswer):
+        in_use = Answer.objects.filter(
+            predefined_answer_options__predefined_answer=obj
+        ).exists()
+
+    # [Question Category] Check if obj is already in use
+    if isinstance(obj, QuestionCategory):
+        in_use = Answer.objects.filter(question_options__category=obj).exists()
+
+    # [Question] Check if obj is already in use
+    if isinstance(obj, Question):
+        in_use = Answer.objects.filter(question_options__question=obj).exists()
+
+    regulator = request.user.regulators.first()
+    if obj.creator == regulator and not in_use:
+        return True
+
+    verbose_name = obj._meta.verbose_name.lower()
+    creator_name = obj.creator
+    messages.warning(
+        request,
+        mark_safe(
+            _(
+                f"<strong>Change or delete actions are not allowed</strong><br>"
+                f"- This {verbose_name} is either in use.<br>"
+                f"- You are not its creator ({creator_name})"
+            )
+        ),
+    )
+    request._can_change_or_delete_obj = False
+
+    return False
+
+
+# Remove languages are not translated
+def filter_languages_not_translated(form):
+    filtered_languages = [
+        lang for lang in form.context_data["language_tabs"] if lang[3] != "empty"
+    ]
+    form.context_data["language_tabs"].allow_deletion = False
+    form.context_data["language_tabs"] = filtered_languages
+
+    return form
