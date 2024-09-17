@@ -57,6 +57,7 @@ from .models import (
     IncidentWorkflow,
     LogReportRead,
     PredefinedAnswerOptions,
+    QuestionCategory,
     QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
@@ -1047,17 +1048,16 @@ class WorkflowWizardView(SessionWizardView):
         if self.workflow is not None:
             context["action"] = "Edit"
             context["steps"] = []
-            questions_options = self.workflow.questionoptions_set.all()
-            categories = set()
-            for question in questions_options:
-                categories.add(question.category)
-            categ_list = []
-            for category in categories:
-                categ_list.append(category)
-            categ_list.sort(key=lambda c: c.position)
+
+            category_ids = self.workflow.questionoptions_set.values_list(
+                "category", flat=True
+            ).distinct()
+            categories = QuestionCategory.objects.filter(id__in=category_ids).order_by(
+                "questioncategoryoptions__position"
+            )
 
             context["steps"].append(_("Timeline"))
-            context["steps"] += categ_list
+            context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
 
