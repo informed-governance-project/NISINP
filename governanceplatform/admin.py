@@ -318,7 +318,9 @@ class SectorCompanyContactInline(admin.TabularInline):
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
                 sector__in=user.sectors.all().distinct(),
-                company__in=user.companies.all().filter(sectorcompanycontact__is_company_administrator=True).distinct()
+                company__in=user.companies.all()
+                .filter(sectorcompanycontact__is_company_administrator=True)
+                .distinct(),
             )
 
         return queryset
@@ -997,12 +999,15 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
-                groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                    observerUserGroupId,
-                    observerAdminGroupId,
-                ]
+                Q(groups=None)
+                | Q(
+                    groups__in=[
+                        PlatformAdminGroupId,
+                        RegulatorAdminGroupId,
+                        observerUserGroupId,
+                        observerAdminGroupId,
+                    ]
+                )
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
