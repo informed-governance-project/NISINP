@@ -277,6 +277,7 @@ class PredefinedAnswerOptionsInline(NestedTabularInline):
     model = PredefinedAnswerOptions
     verbose_name = _("Answer choice option")
     verbose_name_plural = _("Answer choice options")
+    ordering = ["position"]
     extra = 0
     classes = ["collapse"]
 
