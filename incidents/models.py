@@ -1,5 +1,4 @@
 import pytz
-from django.contrib import admin
 from django.db import models
 from django.db.models import Deferrable
 from django.utils import timezone
@@ -73,8 +72,6 @@ class QuestionCategory(TranslatableModel):
     translations = TranslatedFields(
         label=models.CharField(verbose_name=_("Label"), max_length=255)
     )
-    position = models.IntegerField(verbose_name=_("Position"))
-
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -110,21 +107,10 @@ class Question(TranslatableModel):
         default=QUESTION_TYPES[0][0],
         verbose_name=_("Question Type"),
     )  # MULTI, FREETEXT, DATE,
-    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         tooltip=models.TextField(verbose_name=_("Tooltip"), blank=True, null=True),
     )
-    position = models.IntegerField(verbose_name=_("Position"))
-    category = models.ForeignKey(
-        QuestionCategory,
-        on_delete=models.SET_NULL,
-        default=None,
-        null=True,
-        blank=True,
-        verbose_name=_("Category"),
-    )
-
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -142,20 +128,13 @@ class Question(TranslatableModel):
         default=None,
     )
 
-    @admin.display(description="Predefined Answers")
-    def get_predefined_answers(self):
-        return [
-            predefined_answer.predefined_answer
-            for predefined_answer in self.predefinedanswer_set.all()
-        ]
-
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
 
     class Meta:
-        verbose_name_plural = _("Question")
-        verbose_name = _("Questions")
+        verbose_name_plural = _("Questions")
+        verbose_name = _("Question")
 
 
 # answers for the question
@@ -163,17 +142,6 @@ class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(
         predefined_answer=models.TextField(verbose_name=_("Answer"))
     )
-    question = models.ForeignKey(
-        Question,
-        verbose_name=_("Question"),
-        on_delete=models.CASCADE,
-        default=None,
-        null=True,
-    )
-    position = models.IntegerField(
-        verbose_name=_("Position"), blank=True, default=0, null=True
-    )
-
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -873,14 +841,7 @@ class Answer(models.Model):
         verbose_name=_("Incident report answered"),
         on_delete=models.CASCADE,
     )
-    question = models.ForeignKey(
-        Question, verbose_name=_("Question"), on_delete=models.CASCADE
-    )
     answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
-    predefined_answers = models.ManyToManyField(
-        PredefinedAnswer, verbose_name=_("Predefined answer"), blank=True
-    )
-
     question_options = models.ForeignKey(
         QuestionOptions,
         verbose_name=_("Question options"),
