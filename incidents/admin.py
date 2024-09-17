@@ -164,11 +164,18 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if obj and not self.has_change_permission(request, obj):
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
+            )
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
             form = filter_languages_not_translated(form)
         return form
 
@@ -217,11 +224,18 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if obj and not self.has_change_permission(request, obj):
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
+            )
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
             form = filter_languages_not_translated(form)
         return form
 
@@ -263,6 +277,24 @@ class PredefinedAnswerOptionsInline(NestedTabularInline):
     extra = 0
     classes = ["collapse"]
 
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        max_num = super().get_max_num(request, obj, **kwargs)
+        if obj and not can_change_or_delete_obj(request, obj):
+            max_num = 0
+        return max_num
+
 
 class QuestionOptionsInline(NestedTabularInline):
     model = QuestionOptions
@@ -271,6 +303,24 @@ class QuestionOptionsInline(NestedTabularInline):
     ordering = ["position"]
     extra = 0
     inlines = [PredefinedAnswerOptionsInline]
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        max_num = super().get_max_num(request, obj, **kwargs)
+        if obj and not can_change_or_delete_obj(request, obj):
+            max_num = 0
+        return max_num
 
 
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
@@ -309,13 +359,18 @@ class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        form = super(CustomTranslatableAdmin, self).render_change_form(
-            request, context, add, change, form_url, obj
-        )
-        if obj and not self.has_change_permission(request, obj):
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
+            )
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
             form = filter_languages_not_translated(form)
         return form
 
@@ -654,7 +709,7 @@ class WorkflowInline(admin.TabularInline):
 
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(NestedTranslatableAdmin):
-    list_display = ["name", "is_impact_needed", "submission_email"]
+    list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
     exclude = ["creator_name", "creator"]
@@ -676,6 +731,33 @@ class WorkflowAdmin(NestedTranslatableAdmin):
             },
         ),
     ]
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
+            )
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
+            form = filter_languages_not_translated(form)
+        return form
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
