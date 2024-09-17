@@ -13,7 +13,6 @@ from nested_admin import NestedTabularInline
 
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
-    CustomTranslatableTabularInline,
     NestedTranslatableAdmin,
     admin_site,
 )
@@ -164,7 +163,9 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
         has_permission = obj and not self.has_change_permission(request, obj)
         if has_permission:
             context.update(
@@ -174,7 +175,7 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
                     "show_save_and_add_another": False,
                 }
             )
-        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        form = super().render_change_form(request, context, add, change, form_url, obj)
         if has_permission:
             form = filter_languages_not_translated(form)
         return form
@@ -224,7 +225,9 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
         has_permission = obj and not self.has_change_permission(request, obj)
         if has_permission:
             context.update(
@@ -234,7 +237,7 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
                     "show_save_and_add_another": False,
                 }
             )
-        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        form = super().render_change_form(request, context, add, change, form_url, obj)
         if has_permission:
             form = filter_languages_not_translated(form)
         return form
@@ -321,18 +324,6 @@ class QuestionOptionsInline(NestedTabularInline):
         if obj and not can_change_or_delete_obj(request, obj):
             max_num = 0
         return max_num
-
-
-class PredefinedAnswerInline(CustomTranslatableTabularInline):
-    model = PredefinedAnswer
-    verbose_name = _("answer choice")
-    verbose_name_plural = _("answer choices")
-    extra = 0
-    exclude = ["creator", "creator_name"]
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
 
 
 @admin.register(Question, site=admin_site)
@@ -691,20 +682,6 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
-
-
-class WorkflowResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    class Meta:
-        model = Workflow
-
-
-class WorkflowInline(admin.TabularInline):
-    model = Workflow.sectorregulation_set.through
-    verbose_name = _("Incident notification workflow")
-    verbose_name_plural = _("Incident notification workflows")
-    extra = 0
 
 
 @admin.register(Workflow, site=admin_site)
