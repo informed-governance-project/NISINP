@@ -377,7 +377,9 @@ class QuestionForm(forms.Form):
 
         categories = (
             workflow.questionoptions_set.select_related("category")
-            .values_list("category__questioncategoryoptions__id", flat=True)
+            .values_list(
+                "category__questioncategoryoptions__question_category__id", flat=True
+            )
             .distinct()
             .order_by("category__questioncategoryoptions__position")
         )
