@@ -1192,7 +1192,6 @@ def save_answers(data=None, incident=None, workflow=None):
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
                 question_options=question_option,
-                question=question,
                 answer=answer,
             )
             answer_object.predefined_answer_options.set(predefined_answer_options)
