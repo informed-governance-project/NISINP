@@ -38,7 +38,9 @@ def get_pdf_report(
         incident_workflows_answer.setdefault(workflow_name, dict())
         incident_workflows_impact.setdefault(workflow_name, [])
 
-        answers = Answer.objects.filter(incident_workflow=incident_workflow)
+        answers = Answer.objects.filter(incident_workflow=incident_workflow).order_by(
+            "question_options__position"
+        )
         for answer in answers:
             populate_questions_answers(
                 answer,
