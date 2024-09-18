@@ -42,6 +42,7 @@ python-dateutil = "^2.8.2"
 django-phonenumber-field = "^7.3.0"
 django-filter = "^23.5"
 pytz = "^2024.1"
+django-nested-admin = "^4.1.1"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
+    "nested_admin",
 ]
 
 AUTHENTICATION_BACKENDS = [

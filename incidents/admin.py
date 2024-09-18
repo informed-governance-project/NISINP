@@ -9,14 +9,20 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
+from nested_admin import NestedTabularInline
 
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
-    CustomTranslatableTabularInline,
+    NestedTranslatableAdmin,
     admin_site,
 )
 from governanceplatform.globals import ACTION_FLAG_CHOICES
-from governanceplatform.helpers import user_in_group
+from governanceplatform.helpers import (
+    can_change_or_delete_obj,
+    filter_languages_not_translated,
+    set_creator,
+    user_in_group,
+)
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -25,8 +31,11 @@ from incidents.models import (
     Impact,
     Incident,
     PredefinedAnswer,
+    PredefinedAnswerOptions,
     Question,
     QuestionCategory,
+    QuestionCategoryOptions,
+    QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflowEmail,
     Workflow,
@@ -127,30 +136,16 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="predefined_answer",
         attribute="predefined_answer",
     )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
-    )
-    question = fields.Field(
-        attribute="question",
-        column_name="question",
-        widget=TranslatedNameWidget(Question, field="label"),
-    )
 
     class Meta:
         model = PredefinedAnswer
-        fields = ("id", "predefined_answer", "question", "position")
+        fields = ("id", "predefined_answer")
         export_order = fields
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
 class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
-    list_display = [
-        "question",
-        "predefined_answer",
-        "position",
-    ]
-    list_display_links = ["question", "predefined_answer"]
+    list_display = ["predefined_answer", "creator"]
     search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
     exclude = ["creator_name", "creator"]
@@ -159,14 +154,37 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def has_module_permission(self, request):
         return False
 
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
             )
-            obj.creator_id = request.user.regulators.all().first().id
+        form = super().render_change_form(request, context, add, change, form_url, obj)
+        if has_permission:
+            form = filter_languages_not_translated(form)
+        return form
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
 
@@ -189,24 +207,46 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
-    list_display = ["position", "label"]
+    list_display = ["label", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
-    ordering = ["position"]
     exclude = ["creator_name", "creator"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
 
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
             )
-            obj.creator_id = request.user.regulators.all().first().id
+        form = super().render_change_form(request, context, add, change, form_url, obj)
+        if has_permission:
+            form = filter_languages_not_translated(form)
+        return form
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
 
@@ -224,19 +264,6 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="question_type",
         attribute="question_type",
     )
-    is_mandatory = fields.Field(
-        column_name="is_mandatory",
-        attribute="is_mandatory",
-    )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
-    )
-    category = fields.Field(
-        column_name="category",
-        attribute="category",
-        widget=TranslatedNameWidget(QuestionCategory, field="label"),
-    )
 
     class Meta:
         model = Question
@@ -245,55 +272,152 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
             "label",
             "tooltip",
             "question_type",
-            "is_mandatory",
-            "position",
-            "category",
         )
         export_order = fields
 
 
-class PredefinedAnswerInline(CustomTranslatableTabularInline):
-    model = PredefinedAnswer
-    verbose_name = _("answer choice")
-    verbose_name_plural = _("answer choices")
+class PredefinedAnswerOptionsInline(NestedTabularInline):
+    model = PredefinedAnswerOptions
+    verbose_name = _("Answer choice option")
+    verbose_name_plural = _("Answer choice options")
+    ordering = ["position"]
     extra = 0
-    exclude = ["creator", "creator_name"]
+    classes = ["collapse"]
 
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
-            obj.creator_id = request.user.regulators.all().first().id
-        super().save_model(request, obj, form, change)
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        max_num = super().get_max_num(request, obj, **kwargs)
+        if obj and not can_change_or_delete_obj(request, obj):
+            max_num = 0
+        return max_num
+
+
+class QuestionOptionsInline(NestedTabularInline):
+    model = QuestionOptions
+    verbose_name = _("Question Option")
+    verbose_name_plural = _("Question Options")
+    ordering = ["position"]
+    extra = 0
+    inlines = [PredefinedAnswerOptionsInline]
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        max_num = super().get_max_num(request, obj, **kwargs)
+        if obj and not can_change_or_delete_obj(request, obj):
+            max_num = 0
+        return max_num
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
-    list_display = ["position", "category", "label", "get_predefined_answers"]
-    list_display_links = ["position", "category", "label"]
+class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
+    list_display = ["label", "question_type", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
     fields = [
-        ("position", "is_mandatory"),
         "question_type",
-        "category",
         "label",
         "tooltip",
     ]
-    inlines = (PredefinedAnswerInline,)
+    inlines = []
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
+            )
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
+            form = filter_languages_not_translated(form)
+        return form
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
-            obj.creator_id = request.user.regulators.all().first().id
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+
+@admin.register(QuestionOptions, site=admin_site)
+class QuestionOptionsAdmin(admin.ModelAdmin):
+    list_display = ["position", "question", "is_mandatory", "category"]
+    list_display_links = ["position", "question"]
+    ordering = ["position"]
+    fields = [
+        ("position", "is_mandatory"),
+        "question",
+        "category",
+    ]
+
+    # Hidden from register models list
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(PredefinedAnswerOptions, site=admin_site)
+class PredefinedAnswerOptionsAdmin(admin.ModelAdmin):
+    list_display = ["question_options", "position", "predefined_answer"]
+    list_display_links = ["question_options", "position", "predefined_answer"]
+    ordering = ["question_options", "position"]
+    fields = [
+        "predefined_answer",
+        "question_options",
+        "position",
+    ]
+
+    # Hidden from register models list
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(QuestionCategoryOptions, site=admin_site)
+class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
+    list_display = ["question_category", "position"]
+    list_display_links = ["position", "question_category"]
+    fields = [
+        "question_category",
+        "position",
+    ]
+
+    # Hidden from register models list
+    def has_module_permission(self, request):
+        return False
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
@@ -331,17 +455,8 @@ class ImpactSectorListFilter(SimpleListFilter):
         sectors_list = []
 
         for sector in sectors:
-            sector_name = sector.safe_translation_getter("name", any_language=True)
-            if sector_name and sector.parent:
-                sector_parent_name = sector.parent.safe_translation_getter(
-                    "name", any_language=True
-                )
-                sectors_list.append(
-                    (sector.id, sector_parent_name + " --> " + sector_name)
-                )
-            elif sector_name and sector.parent is None:
-                sectors_list.append((sector.id, sector_name))
-        return sorted(sectors_list, key=lambda item: item[1])
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         if self.value():
@@ -409,26 +524,21 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def get_sector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
-            if not sector.parent:
-                sectors.append(
-                    sector.safe_translation_getter("name", any_language=True)
-                )
-            else:
-                sectors.append(
-                    sector.parent.safe_translation_getter("name", any_language=True)
-                )
+            sector_name = (
+                sector.parent.get_safe_translation()
+                if sector.parent
+                else sector.get_safe_translation()
+            )
+            sectors.append(sector_name)
+
         return sectors
 
     @admin.display(description="Sub-sector")
     def get_subsector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
-            if sector.parent:
-                sectors.append(
-                    sector.safe_translation_getter("name", any_language=True)
-                )
-            else:
-                sectors.append("")
+            sector_name = sector.get_safe_translation() if sector.parent else ""
+            sectors.append(sector_name)
         return sectors
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -473,13 +583,7 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
-            obj.creator_id = request.user.regulators.all().first().id
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
 
@@ -580,37 +684,15 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     resource_class = EmailResource
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
-            )
-            obj.creator_id = request.user.regulators.all().first().id
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
 
-class WorkflowResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    class Meta:
-        model = Workflow
-
-
-class WorkflowInline(admin.TabularInline):
-    model = Workflow.sectorregulation_set.through
-    verbose_name = _("Incident notification workflow")
-    verbose_name_plural = _("Incident notification workflows")
-    extra = 0
-
-
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(CustomTranslatableAdmin):
-    list_display = ["name", "is_impact_needed", "submission_email"]
+class WorkflowAdmin(NestedTranslatableAdmin):
+    list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
-    resource_class = WorkflowResource
-    inlines = (WorkflowInline,)
-    filter_horizontal = ("questions",)
+    inlines = (QuestionOptionsInline,)
     exclude = ["creator_name", "creator"]
     fieldsets = [
         (
@@ -629,22 +711,37 @@ class WorkflowAdmin(CustomTranslatableAdmin):
                 ],
             },
         ),
-        (
-            _("Questions"),
-            {
-                "fields": ["questions"],
-            },
-        ),
     ]
 
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.creator_name = (
-                request.user.regulators.all()
-                .first()
-                .safe_translation_getter("name", any_language=True)
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
+            context.update(
+                {
+                    "show_save": False,
+                    "show_save_and_continue": False,
+                    "show_save_and_add_another": False,
+                }
             )
-            obj.creator_id = request.user.regulators.all().first().id
+        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        if has_permission:
+            form = filter_languages_not_translated(form)
+        return form
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
 

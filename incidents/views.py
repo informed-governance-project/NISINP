@@ -56,8 +56,9 @@ from .models import (
     Incident,
     IncidentWorkflow,
     LogReportRead,
-    PredefinedAnswer,
-    Question,
+    PredefinedAnswerOptions,
+    QuestionCategory,
+    QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
@@ -1047,17 +1048,16 @@ class WorkflowWizardView(SessionWizardView):
         if self.workflow is not None:
             context["action"] = "Edit"
             context["steps"] = []
-            questions = self.workflow.questions
-            categories = set()
-            for question in questions.all():
-                categories.add(question.category)
-            categ_list = []
-            for category in categories:
-                categ_list.append(category)
-            categ_list.sort(key=lambda c: c.position)
+
+            category_ids = self.workflow.questionoptions_set.values_list(
+                "category", flat=True
+            ).distinct()
+            categories = QuestionCategory.objects.filter(id__in=category_ids).order_by(
+                "questioncategoryoptions__position"
+            )
 
             context["steps"].append(_("Timeline"))
-            context["steps"] += categ_list
+            context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 context["steps"].append(_("Impacts"))
 
@@ -1164,32 +1164,37 @@ def save_answers(data=None, incident=None, workflow=None):
         except Exception:
             pass
         if question_id:
-            predefined_answers = []
-            question = Question.objects.get(pk=key)
-            if question.question_type == "FREETEXT":
+            predefined_answer_options = []
+            question_option = QuestionOptions.objects.get(pk=key)
+            question = question_option.question
+            question_type = question.question_type
+
+            if question_type == "FREETEXT":
                 answer = value
-            elif question.question_type == "DATE":
+            elif question_type == "DATE":
                 if value:
                     answer = value.strftime("%Y-%m-%d %H:%M")
                 else:
                     answer = None
-            elif question.question_type == "CL" or question.question_type == "RL":
+            elif question_type == "CL" or question_type == "RL":
                 answer = ""
                 for val in value:
                     answer += val + ","
                 answer = answer
             else:  # MULTI
                 for val in value:
-                    predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
+                    predefined_answer_options.append(
+                        PredefinedAnswerOptions.objects.get(pk=val)
+                    )
                 answer = None
                 if questions_data.get(key + "_answer", None):
                     answer = questions_data.get(key + "_answer")
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
-                question=question,
+                question_options=question_option,
                 answer=answer,
             )
-            answer_object.predefined_answers.set(predefined_answers)
+            answer_object.predefined_answer_options.set(predefined_answer_options)
 
     return incident_workflow
 
