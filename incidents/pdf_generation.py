@@ -47,7 +47,9 @@ def get_pdf_report(
                 incident_workflows_answer[workflow_name],
             )
         # impacts
-        incident_workflows_impact[workflow_name].extend(incident_workflow.impacts.all())
+        incident_workflows_impact[workflow_name].extend(
+            incident_workflow.impacts.all().order_by("translations__label").distinct()
+        )
 
     # Render the HTML file
 

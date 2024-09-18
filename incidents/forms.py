@@ -743,9 +743,12 @@ class ImpactForm(forms.Form):
             subgroup = []
             if sector.impact_set.filter(regulation=regulation).count() > 0:
                 for impact in sector.impact_set.filter(regulation=regulation):
-                    subgroup.append([impact.id, impact.label])
+                    subgroup.append([impact.id, str(impact)])
                 impacts_array.append(
-                    [sector.name, sorted(subgroup, key=lambda item: item[1])]
+                    [
+                        sector.get_safe_translation(),
+                        sorted(subgroup, key=lambda item: item[1]),
+                    ]
                 )
 
         # Not needed anymore : just keep in case
