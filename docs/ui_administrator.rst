@@ -1,27 +1,12 @@
 Administrator interface
 =========================
 
-log-in
--------
-
-On this page you can log in or create an account in case you have to notify an incident and you don't have your credential.
-
-.. figure:: _static/ui_user_login_page.png
-   :alt: Login page.
-   :target: _static/ui_user_login_page.png
-
-   Screenshot of the login page.
-
-If you have credentials and don't remember the password please use the link: 'Forgotten your password or username?'
-
-At the first login, you need to activate the 2FA.
-
 Access to the administrator page
 -----------------------------------
 
 The following roles have access to the administrator interface:
 
-- PlatformAdmin : create regulation, regulators, observers
+- PlatformAdmin : create regulations, regulators, observers
 - RegulatorAdmin : create the workflows for incidents, RegulatorUser for its regulator
 - RegulatorUser : create companies
 - OperatorAdmin : create OperatorUser for its company
@@ -35,14 +20,14 @@ The following roles have access to the administrator interface:
 
 The administrator page is composed of 3 parts:
 
-1. The navigation bar where you can change your account settings, language, also leaves the website and return on the user interface
-2. A list of modules you have access and things you can modify, see, or delete
-3. A list of your recent changes on the application
+1. The navigation bar, above, where you can change your account settings, language, also leaves the website and return to the user interface
+2. A list of modules, left, where you can select one type of objects related to incidents or users, and add or modify those
+3. A list of your recent actions on the platform
 
 Standard list view
 ---------------------
 
-When clicking on an entity for example "Impacts" here, you list all the objects and you have different possible actions.
+When clicking on a module, e.g. "Impacts" as illustrated below, you see a list of the objects of that type, and you have different possible actions. The proposed actions may differ depending on the object type and your role.
 
 .. figure:: _static/ui_standard_list.png
    :alt: edit page.
@@ -50,15 +35,16 @@ When clicking on an entity for example "Impacts" here, you list all the objects 
 
    Screenshot of a list page.
 
-1. For some entities, you can import/export in several formats (JSON, CSV, etc.)
-2. For some entities, you can filter the list depending of its attributes
-3. It's also possible to limit the number of displayed items with the search bar
-4. Some group actions are also available, for that you need to tick the case corresponding to the entries you want to modify and select the appropriate action
+1. Above the list is a search field, that allow to narrow the list to objects including that string, 
+2. On the right, you can filter the list according to some attributes,
+3. Just above the filter box, some buttons if present allow you to import or export the list in several formats (JSON, CSV, etc.),
+4. A button in the same zone allows to add a new object,
+4. Some group actions are also available, for that you need to tick the case corresponding to the entries you want to modify and select the appropriate action above the list.
 
 Standard add / change function
 -----------------------------------
 
-When clicking on add or editing an object, you arrive on this kind of view for all the objects. The difference between editing and adding is in editing mode, the values are prefilled by the existing one
+When clicking on the "Add" button or the first field of an object, you are directed to the "change" page, like shown below. When editng an existing object, the values are prefilled with the current properties of the object. When adding a new object, the form is blank.
 
 .. figure:: _static/ui_standard_add_edit.png
    :alt: edit page.
@@ -66,10 +52,9 @@ When clicking on add or editing an object, you arrive on this kind of view for a
 
    Screenshot of an edition page.
 
-1. You can change the language of the object, be informed that you always need to fill the fallback language. **Be aware that you need to save each language separately**. So, if you want to save the 3 languages in one step use the "save and continue editing"
-2. In case of editions you can see the history of the object (all the modifications done)
-3. Different possibilities to save the object
-4. In case of editing you can also delete the object. If you choose to delete the object, a confirmation message will be shown with the impacts on other entities
+1. Above the form, language tabs allow you to input several alternative versions of teh object, since the platform is multi-linual. Note that you always need to fill at least the first language, as it is used as fallback, would some fields be left blank in the other languages. **Also note that you need to save each language separately**. You can do that using the "Save and continue editing" button.
+2. In the upper right part of the window, an "History" button allows you to see the history of the object (all the modifications done)
+3. In the lower part of the window, you are offered different possibilities to save the object. You may also be able to delete the object. If you choose to delete the object, a confirmation message will be shown with the impacts on other entities.
 
 
 Creation of workflow for incident notification
@@ -79,23 +64,23 @@ The RegulatorAdmin role is the one who defines the workflows for incident notifi
 
 Here, the standard way to create a workflow:
 
-1.   You have to create first an item called ``incident notification workflow`` (e.g. NIS2, etc.).
+1.   First create an item in the ``Incident notification workflows`` module (e.g. NIS2, CER, GDPR, etc.).
 
-2.   You have to create the different steps of your workflow. The steps are called ``incident reports`` (e.g. Early Warning, initial assessment, etc.).
+2.   Then create the different steps of your workflow, that are called ``incident reports`` (e.g. Early Warning, Final Report, etc.).
 
-3.   Now you have to link ``incident reports`` with  ``incident notification workflow``, for that go on ``incident notification workflow`` and choose the incident reports. The position defines the sequence of apparition.
+3.   Now you link ``incident reports`` with  ``incident notification workflow``, for that go on ``incident notification workflow`` and choose the incident reports. The position defines the order of the reports.
 
-4.   For each incident report you have to create ``questions``. A question belongs to a ``question category``. The  ``question category`` can be created directly in the question form. You have to create the category only one time, after you can reuse it. 
+4.   Each incident report is made of a list of ``questions``, organised in tabs called ``question category``. The  ``question category`` can be created directly in the question form. You have to create the category only one time, after you can reuse it. 
 
-   .. note:: The ``question category`` helps for the rendering of the form for the user who submits the notification. There are different types of question, some types of question (e.g. Multiple choice, Single choice, etc.) can have ``predefined answers``. 
+   .. note:: The ``question category`` helps for the rendering of the form for the user who submits the notification. There are different types of questions, such as FreeText or Multiple choice. Some can have ``predefined answers``. 
 
    .. caution::  **It's important to use one answer only for one question**. You can create the predefined answer directly in the question form.**If you want to translate in several language, you must first fill one language, click on "save and continue editing" and go to the other language, if you don't do that you will loose the content for the predefined answer**.
 
 5.   Your incident workflow is now done.
 
 
-In addition to that there is an emailing system. The structure of the email has to be defined in the ``Email templates`` entity. Each email has a name, subject, and content.
-The content can be personalized with data from the database, for that you need to include the following tag:
+The workflow system also includes an automatic emailing system. The templates of the emails have to be defined in the ``Email templates`` entity. Each email has a name, subject, and content.
+The content can be personalized with data from the database, using the following tags:
 
 - #INCIDENT_NOTIFICATION_DATE# : first notification of the incident
 - #INCIDENT_DETECTION_DATE# : detection date of the incident
@@ -118,7 +103,7 @@ For each couple regulation/sector(s), it's possible to define an ``impact``, the
 person who submits the incident, the incident is qualified as "significative".
 
 
-.. Export and import
+.. Export and import (currently disabled for security)
 .. ------------------
 
 .. Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do
@@ -150,15 +135,15 @@ person who submits the incident, the incident is qualified as "significative".
 Questions of incident report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To import or export question you need three models : ``predefined answers, question categories, questions``
+To import or export questions you need three models: ``predefined answers, question categories, questions``
 
-For importing you need to import in this order:
+Importing has to happen in this order:
 
 1. Question categories
 2. Questions
 3. Predefined answers
 
-If you want to create from scratch, you have to create a file of ``question categories`` mentioning:
+If you want to create the files from scratch, you can create a ``question categories`` file mentioning:
 
 - ``label`` : the name of the category
 
