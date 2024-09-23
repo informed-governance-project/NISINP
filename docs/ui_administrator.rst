@@ -4,19 +4,19 @@ Administrator interface
 Access to the administrator page
 -----------------------------------
 
-The following roles have access to the administrator interface:
+Through the "Administration" link, left of the profile icon, above on the Incidents page, the following roles have access to the ``administrator`` interface, that allows them to create and modify some database objects :
 
-- PlatformAdmin : create regulations, regulators, observers
-- RegulatorAdmin : create the workflows for incidents, RegulatorUser for its regulator
-- RegulatorUser : create companies
-- OperatorAdmin : create OperatorUser for its company
-- ObserverAdmin : create ObserverUser for its Observer entity
+- PlatformAdmin : can create regulations, regulators, observers
+- RegulatorAdmin : can create workflows for incidents, RegulatorUser for its regulator
+- RegulatorUser : can create companies
+- OperatorAdmin : can create OperatorUser for its company
+- ObserverAdmin : can create ObserverUser for its Observer entity
 
 .. figure:: _static/ui_admin_overview.png
    :alt: admin page.
    :target: _static/ui_admin_overview.png
 
-   Screenshot of an administrator page.
+   Screenshot of an administrator page (Dark Theme).
 
 The administrator page is composed of 3 parts:
 
