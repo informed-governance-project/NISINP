@@ -20,9 +20,9 @@ Through the "Administration" link, left of the profile icon, above on the Incide
 
 The administrator page is composed of 3 parts:
 
-1. The navigation bar, above, where you can change your account settings, language, also leaves the website and return to the user interface
-2. A list of modules, left, where you can select one type of objects related to incidents or users, and add or modify those
-3. A list of your recent actions on the platform
+1. The navigation bar, above, where you can change your account settings, language, also leaves the website and return to the user website that shows incidents
+2. A list of modules on the left, where you can select one type of objects related to incidents or users, and add or modify those
+3. A list of your recent actions on the platform, on the right
 
 Standard list view
 ---------------------
