@@ -1,4 +1,4 @@
-Export and import (currently disabled for security)
+Importing and exporting database tables (currently disabled for security)
 --------------------------------------
 
 Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 2 exports. Same for the import.
