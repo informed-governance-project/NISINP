@@ -1,10 +1,10 @@
-Administrator interface
+Administration interface
 =========================
 
-Access to the administrator page
+Access to the administration page
 -----------------------------------
 
-Through the "Administration" link, left of the profile icon, above on the Incidents page, the following roles have access to the ``administrator`` interface, that allows them to create and modify some database objects :
+Through the "Administration" link, left of the profile icon, above on the Incidents page, the following roles have access to the ``site administration`` interface, that allows to create and modify some database objects :
 
 - PlatformAdmin : can create regulations, regulators, observers
 - RegulatorAdmin : can create workflows for incidents, RegulatorUser for its regulator
