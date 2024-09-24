@@ -497,7 +497,7 @@ class ObserverRegulation(models.Model):
     is_spoc = models.BooleanField(
         default=False, verbose_name=_("is single point of contact")
     )
-    incident_rule = models.JSONField(verbose_name=_("Data"))
+    incident_rule = models.JSONField(verbose_name=_("Incident rules"))
 
     class Meta:
         constraints = [

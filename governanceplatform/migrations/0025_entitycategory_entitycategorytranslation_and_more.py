@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
                         default=False, verbose_name="is single point of contact"
                     ),
                 ),
-                ("incident_rule", models.JSONField(verbose_name="Data")),
+                ("incident_rule", models.JSONField(verbose_name="Incident rules")),
                 (
                     "observer",
                     models.ForeignKey(
