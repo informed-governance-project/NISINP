@@ -450,3 +450,63 @@ class Regulation(TranslatableModel):
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
+
+
+# To categorize the operator, used for the observers to see or not the incident
+class EntityCategory(TranslatableModel):
+    translations = TranslatedFields(
+        label=models.CharField(
+            max_length=255,
+            verbose_name=_("Label"),
+        )
+    )
+    code = models.CharField(
+            max_length=255,
+            verbose_name=_("Code"),
+        )
+    regulation = models.ForeignKey(
+        Regulation,
+        null=True,
+        on_delete=models.CASCADE,
+        blank=True,
+        default=None,
+        verbose_name=_("Regulation"),
+    )
+
+    def __str__(self):
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
+
+    class Meta:
+        verbose_name_plural = _("Entity categories")
+        verbose_name = _("Entity category")
+
+
+# link between the observers and the regulation
+class ObserverRegulation(models.Model):
+    regulation = models.ForeignKey(
+        Regulation,
+        on_delete=models.CASCADE,
+        verbose_name=_("Regulation"),
+    )
+    observer = models.ForeignKey(
+        Observer,
+        on_delete=models.CASCADE,
+        verbose_name=_("Observer"),
+    )
+    is_spoc = models.BooleanField(
+        default=False, verbose_name=_("is single point of contact")
+    )
+    incident_rule = models.JSONField(verbose_name=_("Data"))
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["regulation", "observer"], name="unique_Observerregulation"
+            ),
+        ]
+        verbose_name = _("Observer regulation")
+        verbose_name_plural = _("Observer regulations")
+
+    def __str__(self):
+        return ""
