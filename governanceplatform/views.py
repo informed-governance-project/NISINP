@@ -9,12 +9,14 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from governanceplatform.models import Company
+from incidents.decorators import check_user_is_correct
 
 from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany
 from .helpers import user_in_group
 
 
 @login_required
+@check_user_is_correct
 def index(request):
     user = request.user
 
@@ -41,6 +43,7 @@ def logout_view(request):
 
 
 @login_required
+@check_user_is_correct
 def edit_account(request):
     user = request.user
     if request.method == "POST":

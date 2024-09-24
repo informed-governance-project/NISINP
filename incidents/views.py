@@ -38,7 +38,7 @@ from governanceplatform.settings import (
 )
 from theme.globals import REGIONAL_AREA
 
-from .decorators import regulator_role_required
+from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
 from .forms import (
@@ -68,6 +68,7 @@ from .pdf_generation import get_pdf_report
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
@@ -169,6 +170,7 @@ def get_incidents(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_form_list(request, form_list=None):
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
@@ -187,6 +189,7 @@ def get_form_list(request, form_list=None):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_next_workflow(request, form_list=None, incident_id=None):
     if form_list is None and incident_id is not None:
         incident = Incident.objects.get(id=incident_id)
@@ -201,6 +204,7 @@ def get_next_workflow(request, form_list=None, incident_id=None):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -241,6 +245,7 @@ def create_workflow(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def review_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
@@ -270,6 +275,7 @@ def review_workflow(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def edit_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -340,6 +346,7 @@ def edit_workflow(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def edit_impacts(request, incident_id=None):
     # OperatorAdmin can access only incidents related to selected company.
     if (
@@ -382,6 +389,7 @@ def edit_impacts(request, incident_id=None):
 @login_required
 @otp_required
 @regulator_role_required
+@check_user_is_correct
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     # RegulatorUser can access only incidents from accessible sectors.
@@ -453,6 +461,7 @@ def get_regulator_incident_edit_form(request, incident_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_edit_incident_timeline_form(request, incident_id: int):
     # RegulatorUser can access only incidents from accessible sectors.
     if (
@@ -517,6 +526,7 @@ def get_edit_incident_timeline_form(request, incident_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def access_log(request, incident_id: int):
     user = request.user
     incident = Incident.objects.get(pk=incident_id)
@@ -538,6 +548,7 @@ def access_log(request, incident_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def download_incident_pdf(request, incident_id: int):
     user = request.user
     incident = Incident.objects.get(pk=incident_id)
@@ -566,6 +577,7 @@ def download_incident_pdf(request, incident_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def download_incident_report_pdf(request, incident_workflow_id: int):
     user = request.user
     incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
@@ -595,6 +607,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def delete_incident(request, incident_id: int):
     user = request.user
     incident = Incident.objects.get(pk=incident_id)
