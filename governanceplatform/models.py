@@ -144,6 +144,10 @@ class Company(models.Model):
         OperatorType,
         verbose_name=_("Types"),
     )
+    entity_categories = models.ManyToManyField(
+        "governanceplatform.EntityCategory",
+        verbose_name=_("Entity categories"),
+    )
 
     def __str__(self):
         return self.name
@@ -493,8 +497,13 @@ class ObserverRegulation(models.Model):
         verbose_name=_("Incident rules"),
         null=True,
         blank=True,
-        default=None,
+        default=dict,
     )
+
+    def save(self, *args, **kwargs):
+        if self.incident_rule is None or self.incident_rule == '':
+            self.incident_rule = {}
+        super().save(*args, **kwargs)
 
     class Meta:
         constraints = [
