@@ -32,6 +32,8 @@ from .models import (  # Functionality,; OperatorType,; Service,
     Sector,
     SectorCompanyContact,
     User,
+    ObserverRegulation,
+    EntityCategory,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -202,6 +204,47 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 #     @admin.display(description="Sub-sector")
 #     def get_subsector_name(self, obj):
 #         return obj.sector.name if obj.sector.parent else None
+
+
+class EntityCategoryResource(resources.ModelResource):
+
+    class Meta:
+        model = EntityCategory
+
+
+@admin.register(EntityCategory, site=admin_site)
+class EntityCategoryAdmin(TranslatableAdmin):
+    resource_class = EntityCategoryResource
+
+    list_display = ["label", "code", "regulation"]
+    search_fields = ["label"]
+    fields = (
+        "label",
+        "code",
+        "regulation",
+    )
+
+    # Only accessible for platform admin
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
 
 
 class CompanyResource(resources.ModelResource):
@@ -1190,6 +1233,14 @@ class ObserverResource(TranslationUpdateMixin, resources.ModelResource):
         model = Observer
 
 
+class ObserverRegulationInline(admin.TabularInline):
+    model = ObserverRegulation
+    verbose_name = _("Observer regulation")
+    verbose_name_plural = _("Observer regulations")
+    exrta = 0
+    min_num = 0
+
+
 class ObserverUserInline(admin.TabularInline):
     model = ObserverUser
     verbose_name = _("Observer user")
@@ -1270,7 +1321,7 @@ class ObserverAdmin(CustomTranslatableAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (ObserverUserInline,)
+    inlines = (ObserverUserInline, ObserverRegulationInline,)
 
     def has_add_permission(self, request, obj=None):
         user = request.user
