@@ -216,12 +216,11 @@ class EntityCategoryResource(resources.ModelResource):
 class EntityCategoryAdmin(TranslatableAdmin):
     resource_class = EntityCategoryResource
 
-    list_display = ["label", "code", "regulation"]
+    list_display = ["label", "code"]
     search_fields = ["label"]
     fields = (
         "label",
         "code",
-        "regulation",
     )
 
     # Only accessible for platform admin

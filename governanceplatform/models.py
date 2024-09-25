@@ -464,14 +464,6 @@ class EntityCategory(TranslatableModel):
             max_length=255,
             verbose_name=_("Code"),
         )
-    regulation = models.ForeignKey(
-        Regulation,
-        null=True,
-        on_delete=models.CASCADE,
-        blank=True,
-        default=None,
-        verbose_name=_("Regulation"),
-    )
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)

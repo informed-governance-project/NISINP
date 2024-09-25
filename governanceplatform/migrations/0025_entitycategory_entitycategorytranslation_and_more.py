@@ -26,17 +26,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("code", models.CharField(max_length=255, verbose_name="Code")),
-                (
-                    "regulation",
-                    models.ForeignKey(
-                        blank=True,
-                        default=None,
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="governanceplatform.regulation",
-                        verbose_name="Regulation",
-                    ),
-                ),
             ],
             options={
                 "verbose_name": "Entity category",
