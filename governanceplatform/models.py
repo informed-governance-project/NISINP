@@ -1,12 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
+from incidents.models import Incident
 
 from .managers import CustomUserManager
 
@@ -225,6 +227,41 @@ class Observer(TranslatableModel):
     is_receiving_all_incident = models.BooleanField(
         default=False, verbose_name=_("Receives all incidents")
     )
+
+    def get_incidents(self):
+        if self.is_receiving_all_incident:
+            return Incident.objects.all().order_by("-incident_notification_date")
+
+        observer_regulations = self.observerregulation_set.all()
+        querysets = []
+        # query = Q()
+        for observer_regulation in observer_regulations:
+            filter_conditions = observer_regulation.incident_rule
+            regulation = observer_regulation.regulation
+            for condition in filter_conditions.get("conditions", []):
+                include_entity_categories = condition.get("include", [])
+                exclude_entity_categories = condition.get("exclude", [])
+                q_object = Q()
+                if include_entity_categories:
+                    for entity_category_code in include_entity_categories:
+                        q_object &= Q(
+                            company__entity_categories__code=entity_category_code
+                        )
+                if exclude_entity_categories:
+                    for entity_category_code in exclude_entity_categories:
+                        q_object &= ~Q(entity_types__name=entity_category_code)
+
+            querysets.append(
+                Incident.objects.filter(
+                    sector_regulation__regulation=regulation
+                ).filter(q_object)
+            )
+
+        combined_queryset = querysets[0]
+        for qs in querysets[1:]:
+            combined_queryset = combined_queryset.union(qs)
+
+        return combined_queryset
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
@@ -461,9 +498,9 @@ class EntityCategory(TranslatableModel):
         )
     )
     code = models.CharField(
-            max_length=255,
-            verbose_name=_("Code"),
-        )
+        max_length=255,
+        verbose_name=_("Code"),
+    )
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
