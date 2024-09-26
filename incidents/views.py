@@ -112,7 +112,7 @@ def get_incidents(request):
         f = IncidentFilter(filter_params, queryset=incidents)
     elif is_observer_user(user):
         incidents = user.observers.first().get_incidents()
-        f = IncidentFilter(filter_params, queryset=incidents)
+        f = IncidentFilter(filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
