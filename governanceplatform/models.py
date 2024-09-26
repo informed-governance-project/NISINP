@@ -528,9 +528,6 @@ class ObserverRegulation(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Observer"),
     )
-    is_spoc = models.BooleanField(
-        default=False, verbose_name=_("is single point of contact")
-    )
     incident_rule = models.JSONField(
         verbose_name=_("Incident rules"),
         null=True,
