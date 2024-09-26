@@ -24,7 +24,9 @@ from .helpers import (
 from .mixins import TranslationUpdateMixin
 from .models import (  # Functionality,; OperatorType,; Service,
     Company,
+    EntityCategory,
     Observer,
+    ObserverRegulation,
     ObserverUser,
     Regulation,
     Regulator,
@@ -32,8 +34,6 @@ from .models import (  # Functionality,; OperatorType,; Service,
     Sector,
     SectorCompanyContact,
     User,
-    ObserverRegulation,
-    EntityCategory,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -207,7 +207,6 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 
 class EntityCategoryResource(resources.ModelResource):
-
     class Meta:
         model = EntityCategory
 
@@ -254,7 +253,9 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    entity_categories = fields.Field(column_name="entity_categories", attribute="entity_categories")
+    entity_categories = fields.Field(
+        column_name="entity_categories", attribute="entity_categories"
+    )
 
     class Meta:
         import_id_fields = ("identifier",)
@@ -1247,7 +1248,7 @@ class ObserverRegulationInline(admin.TabularInline):
     model = ObserverRegulation
     verbose_name = _("Observer regulation")
     verbose_name_plural = _("Observer regulations")
-    exrta = 0
+    extra = 0
     min_num = 0
 
 
@@ -1331,7 +1332,10 @@ class ObserverAdmin(CustomTranslatableAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (ObserverUserInline, ObserverRegulationInline,)
+    inlines = (
+        ObserverUserInline,
+        ObserverRegulationInline,
+    )
 
     def has_add_permission(self, request, obj=None):
         user = request.user
