@@ -238,7 +238,6 @@ class Observer(TranslatableModel):
 
         observer_regulations = self.observerregulation_set.all()
         querysets = []
-        # query = Q()
         for observer_regulation in observer_regulations:
             filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
@@ -253,7 +252,9 @@ class Observer(TranslatableModel):
                         )
                 if exclude_entity_categories:
                     for entity_category_code in exclude_entity_categories:
-                        q_object &= ~Q(entity_types__name=entity_category_code)
+                        q_object &= ~Q(
+                            company__entity_categories__code=entity_category_code
+                        )
 
             querysets.append(
                 Incident.objects.filter(
@@ -538,7 +539,7 @@ class ObserverRegulation(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if self.incident_rule is None or self.incident_rule == '':
+        if self.incident_rule is None or self.incident_rule == "":
             self.incident_rule = {}
         super().save(*args, **kwargs)
 
