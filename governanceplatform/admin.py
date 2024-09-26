@@ -254,6 +254,7 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
+    entity_categories = fields.Field(column_name="entity_categories", attribute="entity_categories")
 
     class Meta:
         import_id_fields = ("identifier",)
@@ -412,6 +413,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_sectors",
     ]
     list_filter = [CompanySectorListFilter]
+    filter_horizontal = ["entity_categories"]
     search_fields = ["name"]
     inlines = (SectorCompanyContactMultipleInline,)
     fieldsets = [
@@ -432,6 +434,15 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "identifier",
+                ],
+            },
+        ),
+        (
+            _("Entity Categories"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "entity_categories",
                 ],
             },
         ),
