@@ -121,6 +121,10 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     # ObserverUser access all incident if he is in a observer who can access all incident.
     if is_observer_user_viewving_all_incident(user):
         return True
+    if is_observer_user(user):
+        incident_lists = user.observers.first().get_incidents()
+        if incident in incident_lists:
+            return True
 
     return False
 
