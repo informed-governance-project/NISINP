@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
@@ -237,30 +236,35 @@ class Observer(TranslatableModel):
             return Incident.objects.all().order_by("-incident_notification_date")
 
         observer_regulations = self.observerregulation_set.all()
+
+        if not observer_regulations:
+            return Incident.objects.none()
+
         querysets = []
         for observer_regulation in observer_regulations:
             filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
-            for condition in filter_conditions.get("conditions", []):
+            query = Incident.objects.filter(sector_regulation__regulation=regulation)
+            conditions = filter_conditions.get("conditions", [])
+            for condition in conditions:
                 include_entity_categories = condition.get("include", [])
                 exclude_entity_categories = condition.get("exclude", [])
-                q_object = Q()
+                query_filtered = query
                 if include_entity_categories:
                     for entity_category_code in include_entity_categories:
-                        q_object &= Q(
-                            company__entity_categories__code=entity_category_code
-                        )
-                if exclude_entity_categories:
-                    for entity_category_code in exclude_entity_categories:
-                        q_object &= ~Q(
+                        query_filtered = query_filtered.filter(
                             company__entity_categories__code=entity_category_code
                         )
 
-            querysets.append(
-                Incident.objects.filter(
-                    sector_regulation__regulation=regulation
-                ).filter(q_object)
-            )
+                if exclude_entity_categories:
+                    for entity_category_code in exclude_entity_categories:
+                        query_filtered = query_filtered.exclude(
+                            company__entity_categories__code=entity_category_code
+                        )
+                querysets.append(query_filtered)
+
+            if not conditions:
+                querysets.append(query)
 
         combined_queryset = querysets[0]
         for qs in querysets[1:]:
