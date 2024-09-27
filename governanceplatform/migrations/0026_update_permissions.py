@@ -1,6 +1,31 @@
 from django.db import migrations
 
 
+def create_new_permissions(apps, schema_editor):
+    Permission = apps.get_model("auth", "Permission")
+    ContentType = apps.get_model("contenttypes", "ContentType")
+
+    new_permissions = {
+        "observerregulation": ["add", "change", "delete", "view"],
+        "entitycategory": ["add", "change", "delete", "view"],
+    }
+
+    for model, perms in new_permissions.items():
+        try:
+            content_type = ContentType.objects.create(
+                app_label="governanceplatform", model=model
+            )
+        except ContentType.DoesNotExist:
+            continue
+
+        for perm in perms:
+            codename = f"{perm}_{model}"
+            name = f"Can {perm} {model}"
+            Permission.objects.create(
+                codename=codename, content_type=content_type, name=name
+            )
+
+
 def update_permissions(apps, schema_editor):
     def permission_formatting(permissions):
         group_permissions = []
@@ -12,16 +37,12 @@ def update_permissions(apps, schema_editor):
     def add_group_permissions(group_name, group_permissions):
         try:
             group = Group.objects.get(name=group_name)
-            existing_permissions = group.permissions.all()
-            permissions_to_remove = existing_permissions.exclude(
-                codename__in=group_permissions
-            )
-            group.permissions.remove(*permissions_to_remove)
 
             permissions_to_assign = Permission.objects.filter(
                 codename__in=group_permissions
             )
-            group.permissions.add(*permissions_to_assign)
+            for permission in permissions_to_assign:
+                group.permissions.add(permission)
             group.save()
         except Group.DoesNotExist:
             pass
@@ -31,18 +52,10 @@ def update_permissions(apps, schema_editor):
 
     groups_permissions = {
         "PlatformAdmin": {
-            "site": ["change"],
-            "user": ["add", "change", "delete"],
-            "regulatoruser": ["add", "change", "delete"],
-            "regulator": ["add", "change", "delete"],
-            "regulation": ["add", "change", "delete"],
-            "observeruser": ["add", "change", "delete"],
-            "observer": ["add", "change", "delete"],
             "observerregulation": ["add", "change", "delete"],
             "entitycategory": ["add", "change", "delete"],
         },
     }
-
     for group_name, permissions in groups_permissions.items():
         group_permissions = permission_formatting(permissions)
         add_group_permissions(group_name, group_permissions)
@@ -54,5 +67,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(create_new_permissions),
         migrations.RunPython(update_permissions),
     ]
