@@ -24,7 +24,9 @@ from .helpers import (
 from .mixins import TranslationUpdateMixin
 from .models import (  # Functionality,; OperatorType,; Service,
     Company,
+    EntityCategory,
     Observer,
+    ObserverRegulation,
     ObserverUser,
     Regulation,
     Regulator,
@@ -204,6 +206,45 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 #         return obj.sector.name if obj.sector.parent else None
 
 
+class EntityCategoryResource(resources.ModelResource):
+    class Meta:
+        model = EntityCategory
+
+
+@admin.register(EntityCategory, site=admin_site)
+class EntityCategoryAdmin(TranslatableAdmin):
+    resource_class = EntityCategoryResource
+
+    list_display = ["label", "code"]
+    search_fields = ["label"]
+    fields = (
+        "label",
+        "code",
+    )
+
+    # Only accessible for platform admin
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+
 class CompanyResource(resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id")
     identifier = fields.Field(column_name="identifier", attribute="identifier")
@@ -212,6 +253,9 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
+    entity_categories = fields.Field(
+        column_name="entity_categories", attribute="entity_categories"
+    )
 
     class Meta:
         import_id_fields = ("identifier",)
@@ -370,6 +414,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_sectors",
     ]
     list_filter = [CompanySectorListFilter]
+    filter_horizontal = ["entity_categories"]
     search_fields = ["name"]
     inlines = (SectorCompanyContactMultipleInline,)
     fieldsets = [
@@ -390,6 +435,15 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "identifier",
+                ],
+            },
+        ),
+        (
+            _("Entity Categories"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "entity_categories",
                 ],
             },
         ),
@@ -1190,6 +1244,14 @@ class ObserverResource(TranslationUpdateMixin, resources.ModelResource):
         model = Observer
 
 
+class ObserverRegulationInline(admin.TabularInline):
+    model = ObserverRegulation
+    verbose_name = _("Observer regulation")
+    verbose_name_plural = _("Observer regulations")
+    extra = 0
+    min_num = 0
+
+
 class ObserverUserInline(admin.TabularInline):
     model = ObserverUser
     verbose_name = _("Observer user")
@@ -1270,7 +1332,10 @@ class ObserverAdmin(CustomTranslatableAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (ObserverUserInline,)
+    inlines = (
+        ObserverUserInline,
+        ObserverRegulationInline,
+    )
 
     def has_add_permission(self, request, obj=None):
         user = request.user

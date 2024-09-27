@@ -24,7 +24,6 @@ from governanceplatform.helpers import (
     can_edit_incident_report,
     get_active_company_from_session,
     is_observer_user,
-    is_observer_user_viewving_all_incident,
     is_user_operator,
     is_user_regulator,
     user_in_group,
@@ -112,9 +111,9 @@ def get_incidents(request):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(filter_params, queryset=incidents)
-    elif is_observer_user_viewving_all_incident(user):
-        incidents = Incident.objects.all().order_by("-incident_notification_date")
-        f = IncidentFilter(filter_params, queryset=incidents)
+    elif is_observer_user(user):
+        incidents = user.observers.first().get_incidents()
+        f = IncidentFilter(filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(

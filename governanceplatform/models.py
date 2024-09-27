@@ -7,6 +7,7 @@ from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
+from incidents.models import Incident
 
 from .managers import CustomUserManager
 
@@ -144,6 +145,10 @@ class Company(models.Model):
         OperatorType,
         verbose_name=_("Types"),
     )
+    entity_categories = models.ManyToManyField(
+        "governanceplatform.EntityCategory",
+        verbose_name=_("Entity categories"),
+    )
 
     def __str__(self):
         return self.name
@@ -225,6 +230,50 @@ class Observer(TranslatableModel):
     is_receiving_all_incident = models.BooleanField(
         default=False, verbose_name=_("Receives all incidents")
     )
+
+    def get_incidents(self):
+        if self.is_receiving_all_incident:
+            return Incident.objects.all().order_by("-incident_notification_date")
+
+        observer_regulations = self.observerregulation_set.all()
+
+        if not observer_regulations:
+            return Incident.objects.none()
+
+        querysets = []
+        for observer_regulation in observer_regulations:
+            filter_conditions = observer_regulation.incident_rule
+            regulation = observer_regulation.regulation
+            query = Incident.objects.filter(sector_regulation__regulation=regulation)
+            conditions = filter_conditions.get("conditions", [])
+            if conditions:
+                for condition in conditions:
+                    include_entity_categories = condition.get("include", [])
+                    exclude_entity_categories = condition.get("exclude", [])
+                    query_filtered = query
+                    if include_entity_categories:
+                        for entity_category_code in include_entity_categories:
+                            query_filtered = query_filtered.filter(
+                                company__entity_categories__code=entity_category_code
+                            )
+
+                    if exclude_entity_categories:
+                        for entity_category_code in exclude_entity_categories:
+                            query_filtered = query_filtered.exclude(
+                                company__entity_categories__code=entity_category_code
+                            )
+                    querysets.append(query_filtered)
+            else:
+                querysets.append(query)
+
+        if querysets:
+            combined_queryset = querysets[0]
+            for qs in querysets[1:]:
+                combined_queryset = combined_queryset.union(qs)
+        else:
+            combined_queryset = Incident.objects.none()
+
+        return combined_queryset
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
@@ -450,3 +499,62 @@ class Regulation(TranslatableModel):
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
+
+
+# To categorize the operator, used for the observers to see or not the incident
+class EntityCategory(TranslatableModel):
+    translations = TranslatedFields(
+        label=models.CharField(
+            max_length=255,
+            verbose_name=_("Label"),
+        )
+    )
+    code = models.CharField(
+        max_length=255,
+        verbose_name=_("Code"),
+    )
+
+    def __str__(self):
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
+
+    class Meta:
+        verbose_name_plural = _("Entity categories")
+        verbose_name = _("Entity category")
+
+
+# link between the observers and the regulation
+class ObserverRegulation(models.Model):
+    regulation = models.ForeignKey(
+        Regulation,
+        on_delete=models.CASCADE,
+        verbose_name=_("Regulation"),
+    )
+    observer = models.ForeignKey(
+        Observer,
+        on_delete=models.CASCADE,
+        verbose_name=_("Observer"),
+    )
+    incident_rule = models.JSONField(
+        verbose_name=_("Incident rules"),
+        null=True,
+        blank=True,
+        default=dict,
+    )
+
+    def save(self, *args, **kwargs):
+        if self.incident_rule is None or self.incident_rule == "":
+            self.incident_rule = {}
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["regulation", "observer"], name="unique_Observerregulation"
+            ),
+        ]
+        verbose_name = _("Observer regulation")
+        verbose_name_plural = _("Observer regulations")
+
+    def __str__(self):
+        return ""

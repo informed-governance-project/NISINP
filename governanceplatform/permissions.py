@@ -55,6 +55,8 @@ def set_platform_admin_permissions(user):
             "regulation": ["add", "change", "delete"],
             "observeruser": ["add", "change", "delete"],
             "observer": ["add", "change", "delete"],
+            "observerregulation": ["add", "change", "delete"],
+            "entitycategory": ["add", "change", "delete"],
         },
     )
 

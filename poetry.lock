@@ -651,14 +651,14 @@ test = ["flake8", "isort", "pytest"]
 
 [[package]]
 name = "cyclonedx-python-lib"
-version = "7.6.0"
+version = "7.6.1"
 description = "Python library for CycloneDX"
 category = "dev"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "cyclonedx_python_lib-7.6.0-py3-none-any.whl", hash = "sha256:30655e89e5f987dc8d57835919748d71589fafeb33ff1dec45048eb72eda3cf9"},
-    {file = "cyclonedx_python_lib-7.6.0.tar.gz", hash = "sha256:fa481d5f0d82728cb6a32e55f8ba9c666ba75a2bd99eb643228e3011c56bb5c4"},
+    {file = "cyclonedx_python_lib-7.6.1-py3-none-any.whl", hash = "sha256:6570f14ad191c4c2a87032f4fb0fc913e5c37a43a577898daeb42a3079e52126"},
+    {file = "cyclonedx_python_lib-7.6.1.tar.gz", hash = "sha256:42e510e957c2ce9c71dd33020e43ce53fe6d0c854cfdc3c56e854e9461e846eb"},
 ]
 
 [package.dependencies]
