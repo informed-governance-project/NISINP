@@ -865,6 +865,9 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(groups=self.value())
+        # little hack to have the default view when a regulator admin logged in req41
+        if self.value() is None and not request.GET and user_in_group(request.user, "RegulatorAdmin"):
+            return queryset.filter(regulators=request.user.regulators.first())
 
 
 @admin.register(User, site=admin_site)
