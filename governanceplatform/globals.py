@@ -14,5 +14,5 @@ ACTION_FLAG_CHOICES = {
     DELETION: _('Deletion'),
     # VIEW: _('View'),
     CONNECTION: _('Logged in'),
-    # DECONNECTION: _('Logged out'),
+    DECONNECTION: _('Logged out'),
 }
