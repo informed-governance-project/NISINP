@@ -58,7 +58,7 @@ try:
         LOG_RETENTION_TIME_IN_DAY = 365
     try:
         INCIDENT_RETENTION_TIME_IN_DAY = (
-            config.LOG_RETENTION_TIME_IN_DAY
+            config.INCIDENT_RETENTION_TIME_IN_DAY
         )
     except AttributeError:
         INCIDENT_RETENTION_TIME_IN_DAY = 1825
