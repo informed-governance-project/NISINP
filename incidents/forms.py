@@ -12,7 +12,10 @@ from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 
-from governanceplatform.helpers import get_active_company_from_session
+from governanceplatform.helpers import (
+    get_active_company_from_session,
+    is_user_regulator,
+)
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
 from theme.globals import REGIONAL_AREA
@@ -506,13 +509,19 @@ class ContactForm(forms.Form):
 
     def prepare_initial_value(**kwargs):
         request = kwargs.pop("request")
-        if request.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated:
+            company_name = (
+                user.regulators.first()
+                if is_user_regulator(user)
+                else get_active_company_from_session(request)
+            )
             return {
-                "company_name": get_active_company_from_session(request),
-                "contact_lastname": request.user.last_name,
-                "contact_firstname": request.user.first_name,
-                "contact_email": request.user.email,
-                "contact_telephone": request.user.phone_number,
+                "company_name": company_name,
+                "contact_lastname": user.last_name,
+                "contact_firstname": user.first_name,
+                "contact_email": user.email,
+                "contact_telephone": user.phone_number,
             }
         return {}
 

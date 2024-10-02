@@ -69,6 +69,16 @@ def get_active_company_from_session(request) -> Optional[Company]:
 
 
 def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
+    # if it's regulator incident
+    if (
+        is_user_regulator(user)
+        and Incident.objects.filter(
+            pk=incident.id,
+            regulator=user.regulators.first(),
+        ).exists()
+    ):
+        return True
+
     # RegulatorUser can access only incidents from accessible sectors.
     if (
         user_in_group(user, "RegulatorUser")
@@ -129,18 +139,20 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
 
 # check if the user is allowed to create an incident_workflow
 def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
-    # prevent regulator and observer to create incident_workflow
-    if (
-        user_in_group(user, "RegulatorUser")
-        or user_in_group(user, "RegulatorAdmin")
-        or user_in_group(user, "ObserverAdmin")
-        or user_in_group(user, "ObserverUser")
-        or user_in_group(user, "PlatformAdmin")
-    ):
-        return False
     # if it's the incident of the user he can create
     if incident.contact_user == user:
         return True
+
+    # if it's regulator incident
+    if (
+        is_user_regulator(user)
+        and Incident.objects.filter(
+            pk=incident.id,
+            regulator=user.regulators.first(),
+        ).exists()
+    ):
+        return True
+
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")
@@ -163,12 +175,20 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
 # check if the user is allowed to edit an incident_workflow
 # for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
-    # prevent platform admin
-    if user_in_group(user, "PlatformAdmin"):
-        return False
     # if it's the incident of the user he can create
     if incident.contact_user == user:
         return True
+
+    # if it's regulator incident
+    if (
+        is_user_regulator(user)
+        and Incident.objects.filter(
+            pk=incident.id,
+            regulator=user.regulators.first(),
+        ).exists()
+    ):
+        return True
+
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")

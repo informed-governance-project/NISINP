@@ -426,6 +426,14 @@ class Incident(models.Model):
         blank=True,
         default=None,
     )
+    regulator = models.ForeignKey(
+        "governanceplatform.Regulator",
+        verbose_name=_("Regulator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
     # we allo to store user in case he is registered
     contact_user = models.ForeignKey(
         "governanceplatform.User",
