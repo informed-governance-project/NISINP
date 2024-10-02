@@ -34,7 +34,10 @@ def check_user_is_correct(view_func):
             return view_func(request, *args, **kwargs)
 
         messages.error(
-            request, _("User account misconfigured. Contact the administrator")
+            request,
+            _(
+                "The user account does not have any linked entities. Contact the administrator"
+            ),
         )
         return redirect("logout")
 

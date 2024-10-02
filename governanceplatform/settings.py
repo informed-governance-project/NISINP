@@ -160,6 +160,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django_otp.middleware.OTPMiddleware",
+    "governanceplatform.middleware.RestrictViewsMiddleware",
 ]
 
 INTERNAL_IPS = [
