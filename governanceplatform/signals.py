@@ -4,9 +4,8 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from governanceplatform.models import User
-
 from .models import ObserverUser, RegulatorUser, SectorCompanyContact
 from .permissions import (
     set_observer_admin_permissions,
@@ -37,6 +36,25 @@ def add_log_for_connection(sender, user, request, **kwargs):
 
 
 user_logged_in.connect(add_log_for_connection)
+
+
+# Add logs for user deconnection
+def log_user_logout(sender, request, user, **kwargs):
+    if (
+        user_in_group(user, "RegulatorAdmin")
+        or user_in_group(user, "RegulatorUser")
+        or user_in_group(user, "PlatformAdmin")
+    ):
+        LogEntry.objects.log_action(
+            user_id=user.id,
+            content_type_id=ContentType.objects.get_for_model(User).pk,
+            object_id=user.id,
+            object_repr=user.email,
+            action_flag=6,
+        )
+
+
+user_logged_out.connect(log_user_logout)
 
 
 @receiver(post_save, sender=SectorCompanyContact)

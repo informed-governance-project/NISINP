@@ -1,3 +1,4 @@
+import math
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
@@ -5,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Q, Value, When
 from django.db.models.functions import Concat
+from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
@@ -40,6 +42,7 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 
 
 # get the id of a group by name
@@ -121,6 +124,11 @@ class LogEntryAdmin(admin.ModelAdmin):
         # if obj is not None and obj.user:
         #     if not LogEntry.objects.all().filter(user=obj.user).exists():
         #         return True
+        if obj is not None and obj.action_time:
+            actual_time = timezone.now()
+            dt = actual_time - obj.action_time
+            if math.floor(dt.total_seconds() / 60 / 60 / 24) >= LOG_RETENTION_TIME_IN_DAY:
+                return True
         return False
 
     def has_view_permission(self, request, obj=None):
