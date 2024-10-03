@@ -89,11 +89,13 @@ def get_incidents(request):
 
     if is_user_regulator(user):
         html_view = "regulator/incidents.html"
+        request.session["is_regulator_incidents_referer"] = False
         if request.path == reverse("regulator_incidents"):
             html_view = "operator/incidents.html"
             # Filter regulator incidents
             incidents = incidents.filter(regulator=user.regulators.first())
             is_regulator_incidents = True
+            request.session["is_regulator_incidents_referer"] = True
         elif user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
@@ -233,8 +235,15 @@ def review_workflow(request):
 
     incident = incident_workflow.incident
 
+    is_regulator_incidents_referer = request.session.get(
+        "is_regulator_incidents_referer", False
+    )
+
     is_regulator_incident = (
-        True if incident.regulator == user.regulators.first() else False
+        True
+        if incident.regulator == user.regulators.first()
+        and is_regulator_incidents_referer
+        else False
     )
 
     if incident_workflow:
@@ -293,9 +302,16 @@ def edit_workflow(request):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
+    is_regulator_incidents_referer = request.session.get(
+        "is_regulator_incidents_referer", False
+    )
+
     if incident_id and can_edit_incident_report(user, incident, company_id):
         is_regulator_incident = (
-            True if incident.regulator == user.regulators.first() else False
+            True
+            if incident.regulator == user.regulators.first()
+            and is_regulator_incidents_referer
+            else False
         )
 
         if incident_workflow is None:
@@ -324,8 +340,10 @@ def edit_workflow(request):
         is_regulator_incident = (
             True
             if incident_workflow.incident.regulator == user.regulators.first()
+            and is_regulator_incidents_referer
             else False
         )
+
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
@@ -435,8 +453,15 @@ def access_log(request, incident_id: int):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
+    is_regulator_incidents_referer = request.session.get(
+        "is_regulator_incidents_referer", False
+    )
+
     is_regulator_incident = (
-        True if incident.regulator == user.regulators.first() else False
+        True
+        if incident.regulator == user.regulators.first()
+        and is_regulator_incidents_referer
+        else False
     )
 
     log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
@@ -862,6 +887,9 @@ class WorkflowWizardView(SessionWizardView):
         kwargs = super().get_form_kwargs(step)
 
         position = int(step)
+        is_regulator_incidents_referer = self.request.session.get(
+            "is_regulator_incidents_referer", False
+        )
 
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
@@ -870,7 +898,10 @@ class WorkflowWizardView(SessionWizardView):
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
             self.is_regulator_incident = (
-                True if self.incident.regulator == user.regulators.first() else False
+                True
+                if self.incident.regulator == user.regulators.first()
+                and is_regulator_incidents_referer
+                else False
             )
             if position == 0:
                 kwargs.update({"instance": self.incident})
@@ -906,7 +937,10 @@ class WorkflowWizardView(SessionWizardView):
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
             self.is_regulator_incident = (
-                True if self.incident.regulator == user.regulators.first() else False
+                True
+                if self.incident.regulator == user.regulators.first()
+                and is_regulator_incidents_referer
+                else False
             )
             if not self.request.workflow:
                 self.workflow = self.incident.get_next_step()
