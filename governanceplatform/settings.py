@@ -62,6 +62,12 @@ try:
         )
     except AttributeError:
         INCIDENT_RETENTION_TIME_IN_DAY = 1825
+    try:
+        TERMS_ACCEPTANCE_TIME_IN_DAYS = (
+            config.TERMS_ACCEPTANCE_TIME_IN_DAYS
+        )
+    except AttributeError:
+        TERMS_ACCEPTANCE_TIME_IN_DAYS = 365
 
     # INTERNATIONALIZATION
     LANGUAGE_CODE = config.LANGUAGE_CODE
@@ -174,6 +180,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "governanceplatform.middleware.RestrictViewsMiddleware",
+    "governanceplatform.middleware.TermsAcceptanceMiddleware",
 ]
 
 INTERNAL_IPS = [

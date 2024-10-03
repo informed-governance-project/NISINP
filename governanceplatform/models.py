@@ -329,6 +329,8 @@ class User(AbstractUser, PermissionsMixin):
             "Specifies whether a user can log in via the administration interface."
         ),
     )
+    accepted_terms = models.BooleanField(default=False)
+    accepted_terms_date = models.DateTimeField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

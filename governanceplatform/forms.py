@@ -93,6 +93,7 @@ class SelectCompany(forms.Form):
 
 
 class RegistrationForm(UserCreationForm):
+    accept_terms = forms.BooleanField(label=_("I accept the Terms of Use"))
     email = forms.TextInput()
     field_order = (
         "email",
@@ -100,6 +101,7 @@ class RegistrationForm(UserCreationForm):
         "first_name",
         "password1",
         "password2",
+        'accept_terms'
     )
 
     class Meta:
@@ -108,7 +110,14 @@ class RegistrationForm(UserCreationForm):
             "email",
             "last_name",
             "first_name",
+            "accept_terms",
         )
+
+    def clean_accept_terms(self):
+        accept = self.cleaned_data.get('accept_terms')
+        if not accept:
+            raise forms.ValidationError(_("You must accept the Terms of Use to register."))
+        return accept
 
 
 class CustomTranslatableAdminForm(TranslatableModelForm):
@@ -137,3 +146,7 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
                 error_message, params={"fallback_language_name": fallback_language_name}
             ),
         )
+
+
+class TermsAcceptanceForm(forms.Form):
+    accept = forms.BooleanField(label=_("I accept the Terms of Use"))
