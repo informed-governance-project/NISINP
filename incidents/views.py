@@ -863,7 +863,19 @@ class FormWizardView(SessionWizardView):
                 if sector_regulation.opening_email is not None:
                     send_email(sector_regulation.opening_email, incident)
 
-        return HttpResponseRedirect("/incidents")
+        is_regulator_incidents_referer = self.request.session.get(
+            "is_regulator_incidents_referer", False
+        )
+
+        self.is_regulator_incident = (
+            True if regulator and is_regulator_incidents_referer else False
+        )
+
+        return (
+            redirect("regulator_incidents")
+            if self.is_regulator_incident
+            else redirect("incidents")
+        )
 
 
 class WorkflowWizardView(SessionWizardView):
