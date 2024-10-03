@@ -290,6 +290,7 @@ class QuestionForm(forms.Form):
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
+                        "class": "empty_field" if not initial_data else "",
                     },
                 ),
                 required=question_option.is_mandatory,
@@ -328,6 +329,7 @@ class QuestionForm(forms.Form):
                         "rows": 3,
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
+                        "class": "empty_field" if not initial_data else "",
                     }
                 ),
                 initial=str(initial_data),
@@ -982,3 +984,7 @@ def format_datetime_astimezone(datetime, timezone):
 def set_initial_datetime(form, field_name, datetime_value, timezone):
     if datetime_value:
         form.initial[field_name] = format_datetime_astimezone(datetime_value, timezone)
+    else:
+        form.fields[field_name].widget.attrs["class"] = (
+            form.fields[field_name].widget.attrs.get("class", "") + " empty_field"
+        )
