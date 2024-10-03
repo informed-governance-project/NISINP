@@ -1110,6 +1110,9 @@ class WorkflowWizardView(SessionWizardView):
                 .first()
             )
             incident_workflow.comment = data.get("comment", None)
+            review_status = data.get("review_status", None)
+            if review_status is not None:
+                incident_workflow.review_status = review_status
             incident_workflow.save()
             create_entry_log(
                 user, incident_workflow.incident, incident_workflow, "COMMENT"
