@@ -4,15 +4,20 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.shortcuts import redirect, render
 from django.db.models.functions import Now
+from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
 
-from .forms import CustomUserChangeForm, RegistrationForm, SelectCompany, TermsAcceptanceForm
+from .forms import (
+    CustomUserChangeForm,
+    RegistrationForm,
+    SelectCompany,
+    TermsAcceptanceForm,
+)
 from .helpers import user_in_group
 
 
@@ -129,14 +134,14 @@ def select_company(request):
 @login_required
 @check_user_is_correct
 def accept_terms(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = TermsAcceptanceForm(request.POST)
         if form.is_valid():
             request.user.accepted_terms = True
             request.user.accepted_terms_date = Now()
             request.user.save()
-            return redirect('index')  # Redirect after accepting terms
+            return redirect("index")  # Redirect after accepting terms
     else:
         form = TermsAcceptanceForm()
 
-    return render(request, 'registration/accept_terms.html', {'form': form})
+    return render(request, "modals/accept_terms.html", {"form": form})
