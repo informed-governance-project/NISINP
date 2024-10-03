@@ -735,6 +735,7 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
         fields = [
             "id",
             "comment",
+            "review_status",
         ]
 
 
