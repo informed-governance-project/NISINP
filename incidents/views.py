@@ -1013,6 +1013,17 @@ class WorkflowWizardView(SessionWizardView):
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
+                # replace for SO the initial_data by an empty iterable
+                if (
+                    form.fields[field].__class__.__name__
+                    == "MultipleChoiceField" and
+                    form.fields[field].widget.__class__.__name__
+                    == "OtherCheckboxSelectMultiple" and
+                    form.fields[field].initial == [None]
+                ):
+                    print('coucou')
+                    form.fields[field].initial = []
+
                 # replace following widget by more readable in read only
                 if (
                     form.fields[field].widget.__class__.__name__
