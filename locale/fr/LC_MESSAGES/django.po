@@ -741,7 +741,7 @@ msgstr "Durée maximale"
 
 #: templates/registration/base.html:13
 msgid "Log in"
-msgstr "Connection"
+msgstr "Connexion"
 
 #: templates/two_factor/core/setup_complete.html:7
 msgid "Enable Two-Factor Authentication"
