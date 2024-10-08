@@ -2,7 +2,12 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
 
-from governanceplatform.helpers import is_observer_user, is_user_operator, user_in_group
+from governanceplatform.helpers import (
+    is_observer_user,
+    is_user_operator,
+    is_user_regulator,
+    user_in_group,
+)
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
 
 
@@ -20,6 +25,16 @@ class RestrictViewsMiddleware:
             if user_in_group(user, "PlatformAdmin"):
                 if request.path.startswith("/incidents/"):
                     return redirect(reverse("admin:index"))
+
+            if is_user_regulator(user) and not request.session.get(
+                "is_regulator_incidents", False
+            ):
+                if (
+                    request.path == reverse("declaration")
+                    or request.path.startswith("/incidents/delete/")
+                    or request.path == reverse("create_workflow")
+                ):
+                    return redirect(reverse("incidents"))
 
             if is_observer_user(user):
                 if (

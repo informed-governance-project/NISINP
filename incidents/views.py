@@ -73,7 +73,6 @@ def get_incidents(request):
     user = request.user
     incidents = Incident.objects.order_by("-incident_notification_date")
     html_view = "operator/incidents.html"
-    is_regulator_incidents = False
 
     # Save filter params in user's session
 
@@ -89,13 +88,12 @@ def get_incidents(request):
 
     if is_user_regulator(user):
         html_view = "regulator/incidents.html"
-        request.session["is_regulator_incidents_referer"] = False
+        request.session["is_regulator_incidents"] = False
         if request.path == reverse("regulator_incidents"):
             html_view = "operator/incidents.html"
             # Filter regulator incidents
             incidents = incidents.filter(regulator=user.regulators.first())
-            is_regulator_incidents = True
-            request.session["is_regulator_incidents_referer"] = True
+            request.session["is_regulator_incidents"] = True
         elif user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
@@ -152,7 +150,9 @@ def get_incidents(request):
             "filter": f,
             "incidents": response,
             "is_filtered": bool(is_filtered),
-            "is_regulator_incidents": is_regulator_incidents,
+            "is_regulator_incidents": request.session.get(
+                "is_regulator_incidents", False
+            ),
         },
     )
 
@@ -235,14 +235,11 @@ def review_workflow(request):
 
     incident = incident_workflow.incident
 
-    is_regulator_incidents_referer = request.session.get(
-        "is_regulator_incidents_referer", False
-    )
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
 
     is_regulator_incident = (
         True
-        if incident.regulator == user.regulators.first()
-        and is_regulator_incidents_referer
+        if incident.regulator == user.regulators.first() and is_regulator_incidents
         else False
     )
 
@@ -302,15 +299,12 @@ def edit_workflow(request):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
-    is_regulator_incidents_referer = request.session.get(
-        "is_regulator_incidents_referer", False
-    )
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
 
     if incident_id and can_edit_incident_report(user, incident, company_id):
         is_regulator_incident = (
             True
-            if incident.regulator == user.regulators.first()
-            and is_regulator_incidents_referer
+            if incident.regulator == user.regulators.first() and is_regulator_incidents
             else False
         )
 
@@ -340,7 +334,7 @@ def edit_workflow(request):
         is_regulator_incident = (
             True
             if incident_workflow.incident.regulator == user.regulators.first()
-            and is_regulator_incidents_referer
+            and is_regulator_incidents
             else False
         )
 
@@ -453,14 +447,11 @@ def access_log(request, incident_id: int):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
-    is_regulator_incidents_referer = request.session.get(
-        "is_regulator_incidents_referer", False
-    )
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
 
     is_regulator_incident = (
         True
-        if incident.regulator == user.regulators.first()
-        and is_regulator_incidents_referer
+        if incident.regulator == user.regulators.first() and is_regulator_incidents
         else False
     )
 
@@ -863,12 +854,12 @@ class FormWizardView(SessionWizardView):
                 if sector_regulation.opening_email is not None:
                     send_email(sector_regulation.opening_email, incident)
 
-        is_regulator_incidents_referer = self.request.session.get(
-            "is_regulator_incidents_referer", False
+        is_regulator_incidents = self.request.session.get(
+            "is_regulator_incidents", False
         )
 
         self.is_regulator_incident = (
-            True if regulator and is_regulator_incidents_referer else False
+            True if regulator and is_regulator_incidents else False
         )
 
         return (
@@ -899,8 +890,8 @@ class WorkflowWizardView(SessionWizardView):
         kwargs = super().get_form_kwargs(step)
 
         position = int(step)
-        is_regulator_incidents_referer = self.request.session.get(
-            "is_regulator_incidents_referer", False
+        is_regulator_incidents = self.request.session.get(
+            "is_regulator_incidents", False
         )
 
         if self.request.incident_workflow:
@@ -912,7 +903,7 @@ class WorkflowWizardView(SessionWizardView):
             self.is_regulator_incident = (
                 True
                 if self.incident.regulator == user.regulators.first()
-                and is_regulator_incidents_referer
+                and is_regulator_incidents
                 else False
             )
             if position == 0:
@@ -951,7 +942,7 @@ class WorkflowWizardView(SessionWizardView):
             self.is_regulator_incident = (
                 True
                 if self.incident.regulator == user.regulators.first()
-                and is_regulator_incidents_referer
+                and is_regulator_incidents
                 else False
             )
             if not self.request.workflow:
@@ -1015,13 +1006,11 @@ class WorkflowWizardView(SessionWizardView):
                 form.fields[field].required = False
                 # replace for SO the initial_data by an empty iterable
                 if (
-                    form.fields[field].__class__.__name__
-                    == "MultipleChoiceField" and
-                    form.fields[field].widget.__class__.__name__
-                    == "OtherCheckboxSelectMultiple" and
-                    form.fields[field].initial == [None]
+                    form.fields[field].__class__.__name__ == "MultipleChoiceField"
+                    and form.fields[field].widget.__class__.__name__
+                    == "OtherCheckboxSelectMultiple"
+                    and form.fields[field].initial == [None]
                 ):
-                    print('coucou')
                     form.fields[field].initial = []
 
                 # replace following widget by more readable in read only
