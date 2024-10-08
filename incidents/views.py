@@ -848,7 +848,7 @@ class FormWizardView(SessionWizardView):
 
                 incident.save()
 
-                create_entry_log(user, incident, None, "COMMENT")
+                create_entry_log(user, incident, None, "CREATE")
 
                 # send The email notification opening
                 if sector_regulation.opening_email is not None:
