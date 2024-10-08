@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
+from parler.widgets import SortedCheckboxSelectMultiple
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -555,7 +556,7 @@ def construct_services_array(root_sectors):
 class RegulationForm(forms.Form):
     regulations = forms.MultipleChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=SortedCheckboxSelectMultiple(),
     )
 
     def __init__(self, *args, **kwargs):
@@ -571,14 +572,15 @@ class RegulationForm(forms.Form):
 # prepare an array of regulations
 def construct_regulation_array(regulators):
     regulations_id = (
-        SectorRegulation.objects.all()
-        .filter(regulator__in=regulators)
-        .values_list("regulation", flat=True)
+        SectorRegulation.objects.filter(
+            regulator__in=regulators, sectorregulationworkflow__isnull=False
+        )
+        .distinct("regulation__id")
+        .values_list("regulation__id", flat=True)
     )
 
     regulations = (
-        Regulation.objects.all()
-        .filter(id__in=regulations_id)
+        Regulation.objects.filter(id__in=regulations_id)
         .values_list("id", "translations__label")
         .distinct("id")
     )
@@ -591,7 +593,7 @@ class RegulatorForm(forms.Form):
     regulators = forms.MultipleChoiceField(
         required=True,
         choices=[],
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=SortedCheckboxSelectMultiple(),
         label="Send notification to:",
     )
 
@@ -605,6 +607,7 @@ class RegulatorForm(forms.Form):
                     {regulator.safe_translation_getter('full_name', any_language=True)}",
                 )
                 for regulator in Regulator.objects.all()
+                if regulator.sectorregulation_set.exists()
             ]
         except Exception:
             self.fields["regulators"].choices = []
@@ -636,7 +639,7 @@ class DetectionDateForm(forms.Form):
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=forms.CheckboxSelectMultiple(),
     )
 
     def __init__(self, *args, **kwargs):
