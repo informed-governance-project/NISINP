@@ -170,7 +170,7 @@ class QuestionForm(forms.Form):
         field_name = "__question__" + str(question_option.id)
         question = question_option.question
         question_type = question_option.question.question_type
-        answer = Answer.objects.filter(
+        answer_queryset = Answer.objects.filter(
             question_options__question=question,
             incident_workflow=(
                 incident.get_latest_incident_workflow()
@@ -181,7 +181,7 @@ class QuestionForm(forms.Form):
 
         if question_type in ["MULTI", "MT", "SO", "ST"]:
             initial_data = list(
-                answer.order_by("-timestamp").values_list(
+                answer_queryset.order_by("-timestamp").values_list(
                     "predefined_answer_options", flat=True
                 )
             )
@@ -209,14 +209,18 @@ class QuestionForm(forms.Form):
 
             if question_type in ["ST", "MT"]:
                 if incident:
-                    answer.order_by("-timestamp")
+                    answer_queryset.order_by("-timestamp")
 
                 self.fields[field_name + "_answer"] = forms.CharField(
                     required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
-                            "value": str(answer.first()) if answer.exists() else None,
+                            "value": (
+                                str(answer_queryset.first())
+                                if answer_queryset.exists()
+                                else None
+                            ),
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
@@ -224,11 +228,11 @@ class QuestionForm(forms.Form):
                     label=_("Add precision"),
                 )
         elif question_type == "DATE":
-            if answer.exists():
+            if answer_queryset.exists():
                 if incident_workflow:
-                    answer = answer.first()
+                    answer = answer_queryset.first()
                 elif incident:
-                    answer = answer.order_by("-timestamp").first()
+                    answer = answer_queryset.order_by("-timestamp").first()
 
                 initial_data = (
                     datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
@@ -253,11 +257,11 @@ class QuestionForm(forms.Form):
             )
             self.fields[field_name].label = question.label
         elif question_type == "FREETEXT":
-            if answer.exists():
+            if answer_queryset.exists():
                 if incident_workflow:
-                    answer = answer.first()
+                    answer = answer_queryset.first()
                 elif incident:
-                    answer.order_by("-timestamp").first()
+                    answer = answer_queryset.order_by("-timestamp").first()
                 initial_data = str(answer) if str(answer) != "" else None
 
             self.fields[field_name] = forms.CharField(
@@ -270,15 +274,15 @@ class QuestionForm(forms.Form):
                         "class": "empty_field" if not initial_data else "",
                     }
                 ),
-                initial=str(initial_data),
+                initial=str(initial_data or ""),
                 label=question.label,
             )
         elif question_type in ["CL", "RL"]:
-            if answer.exists():
+            if answer_queryset.exists():
                 if incident_workflow:
-                    answer = answer.first()
+                    answer = answer_queryset.first()
                 elif incident:
-                    answer.order_by("-timestamp").first()
+                    answer = answer_queryset.order_by("-timestamp").first()
 
                 initial_data = list(filter(None, str(answer).split(",")))
 
