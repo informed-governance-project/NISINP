@@ -1,6 +1,4 @@
 from datetime import datetime
-from functools import partial
-from operator import is_not
 
 import pytz
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
@@ -168,121 +166,76 @@ class AuthenticationForm(OTPAuthenticationForm):
 class QuestionForm(forms.Form):
     # for dynamicly add question to forms
     def create_question(self, question_option, incident_workflow=None, incident=None):
-        initial_data = []
+        initial_data = None
         field_name = "__question__" + str(question_option.id)
         question = question_option.question
         question_type = question_option.question.question_type
+        answer = Answer.objects.filter(
+            question_options__question=question,
+            incident_workflow=(
+                incident.get_latest_incident_workflow()
+                if incident
+                else incident_workflow
+            ),
+        )
 
-        if (
-            question_type == "MULTI"
-            or question_type == "MT"
-            or question_type == "SO"
-            or question_type == "ST"
-        ):
-            initial_answer = ""
-            input_type = "checkbox"
-            choices = []
-            if question_type == "SO" or question_type == "ST":
-                input_type = "radio"
-            if incident_workflow:
-                pass
-            elif incident:
-                incident_workflow = incident.get_latest_incident_workflow()
-
+        if question_type in ["MULTI", "MT", "SO", "ST"]:
             initial_data = list(
-                Answer.objects.values_list("predefined_answer_options", flat=True)
-                .filter(
-                    question_options__question=question,
-                    incident_workflow=incident_workflow,
+                answer.order_by("-timestamp").values_list(
+                    "predefined_answer_options", flat=True
                 )
-                .order_by("-timestamp")
             )
-            for choice in question_option.predefinedansweroptions_set.all():
-                choices.append([choice.id, choice])
-            if question_type == "MULTI" or question_type == "MT":
-                self.fields[field_name] = forms.MultipleChoiceField(
-                    required=question_option.is_mandatory,
-                    choices=choices,
-                    widget=forms.CheckboxSelectMultiple(
-                        attrs={
-                            "title": question.tooltip,
-                            "data-bs-toggle": "tooltip",
-                        },
-                    ),
-                    label=question.label,
-                    initial=initial_data,
-                )
-            else:
-                self.fields[field_name] = forms.MultipleChoiceField(
-                    required=question_option.is_mandatory,
-                    choices=choices,
-                    widget=OtherCheckboxSelectMultiple(
-                        input_type=input_type,
-                        attrs={
-                            "title": question.tooltip,
-                            "data-bs-toggle": "tooltip",
-                        },
-                    ),
-                    label=question.label,
-                    initial=initial_data,
-                )
 
-            if question_type == "MT" or question_type == "ST":
-                if incident_workflow is not None:
-                    answer = Answer.objects.values_list("answer", flat=True).filter(
-                        question_options__question=question,
-                        incident_workflow=incident_workflow,
+            choices = [
+                (choice.predefined_answer.id, choice)
+                for choice in question_option.predefinedansweroptions_set.all().order_by(
+                    "position"
+                )
+            ]
+            form_attrs = {"title": question.tooltip, "data-bs-toggle": "tooltip"}
+            self.fields[field_name] = forms.MultipleChoiceField(
+                required=question_option.is_mandatory,
+                choices=choices,
+                widget=(
+                    forms.CheckboxSelectMultiple(attrs=form_attrs)
+                    if question_type in ["MULTI", "MT"]
+                    else OtherCheckboxSelectMultiple(
+                        input_type="radio", attrs=form_attrs
                     )
-                elif incident is not None:
-                    answer = (
-                        Answer.objects.values_list("answer", flat=True)
-                        .filter(
-                            question_options__question=question,
-                            incident_workflow=incident.get_latest_incident_workflow(),
-                        )
-                        .order_by("-timestamp")
-                    )
-                if len(answer) > 0:
-                    if answer[0] != "":
-                        initial_answer = list(filter(partial(is_not, ""), answer))[0]
+                ),
+                label=question.label,
+                initial=initial_data,
+            )
+
+            if question_type in ["ST", "MT"]:
+                if incident:
+                    answer.order_by("-timestamp")
+
                 self.fields[field_name + "_answer"] = forms.CharField(
                     required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
-                            "value": str(initial_answer),
+                            "value": str(answer.first()) if answer.exists() else None,
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
                     ),
-                    label="Add precision",
+                    label=_("Add precision"),
                 )
         elif question_type == "DATE":
-            initial_data = ""
-            answer = None
-            if incident_workflow is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question_options__question=question,
-                        incident_workflow=incident_workflow,
-                    )
-                    .first()
+            if answer.exists():
+                if incident_workflow:
+                    answer = answer.first()
+                elif incident:
+                    answer = answer.order_by("-timestamp").first()
+
+                initial_data = (
+                    datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
+                    if str(answer) != ""
+                    else None
                 )
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question_options__question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                    .first()
-                )
-            if answer is not None:
-                if answer != "":
-                    initial_data = answer
-                    initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M")
+
             self.fields[field_name] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
@@ -300,28 +253,12 @@ class QuestionForm(forms.Form):
             )
             self.fields[field_name].label = question.label
         elif question_type == "FREETEXT":
-            initial_data = ""
-            if incident_workflow is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question_options__question=question,
-                    incident_workflow=incident_workflow,
-                )
-                if len(answer) > 0:
-                    if answer[0] != "":
-                        initial_data = list(filter(partial(is_not, ""), answer))[0]
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question_options__question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                    .first()
-                )
-                if answer is not None:
-                    if answer != "":
-                        initial_data = answer
+            if answer.exists():
+                if incident_workflow:
+                    answer = answer.first()
+                elif incident:
+                    answer.order_by("-timestamp").first()
+                initial_data = str(answer) if str(answer) != "" else None
 
             self.fields[field_name] = forms.CharField(
                 required=question_option.is_mandatory,
@@ -336,36 +273,17 @@ class QuestionForm(forms.Form):
                 initial=str(initial_data),
                 label=question.label,
             )
-        elif question_type == "CL" or question_type == "RL":
-            initial_data = ""
-            if incident_workflow is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question_options__question=question,
-                        incident_workflow=incident_workflow,
-                    )
-                    .first()
-                )
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question_options__question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                ).first()
-            if answer is not None:
-                # initial_data = list(filter(partial(is_not, ""), answer))
-                initial_data = list(filter(None, answer.split(",")))
+        elif question_type in ["CL", "RL"]:
+            if answer.exists():
+                if incident_workflow:
+                    answer = answer.first()
+                elif incident:
+                    answer.order_by("-timestamp").first()
 
-            if question.question_type == "CL":
-                choices = countries
-            else:
-                choices = REGIONAL_AREA
+                initial_data = list(filter(None, str(answer).split(",")))
+
             self.fields[field_name] = forms.MultipleChoiceField(
-                choices=choices,
+                choices=countries if question_type == "CL" else REGIONAL_AREA,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
                 initial=initial_data,

@@ -52,6 +52,7 @@ from .forms import (
 )
 from .models import (
     Answer,
+    Impact,
     Incident,
     IncidentWorkflow,
     LogReportRead,
@@ -61,7 +62,6 @@ from .models import (
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
-    Impact,
 )
 from .pdf_generation import get_pdf_report
 
@@ -911,11 +911,11 @@ class WorkflowWizardView(SessionWizardView):
                 regulation=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
-            
+
             self.workflow.is_impact_needed = bool(
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
-            
+
             if position == 0:
                 kwargs.update({"instance": self.incident})
             # Regulator case
