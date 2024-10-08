@@ -955,11 +955,20 @@ class WorkflowWizardView(SessionWizardView):
                 and is_regulator_incidents
                 else False
             )
+
             if not self.request.workflow:
                 self.workflow = self.incident.get_next_step()
             else:
                 self.workflow = self.request.workflow
 
+            regulation_sector_has_impacts = Impact.objects.filter(
+                regulation=self.incident.sector_regulation.regulation,
+                sectors__in=self.incident.affected_sectors.all(),
+            ).exists()
+
+            self.workflow.is_impact_needed = bool(
+                self.workflow.is_impact_needed and regulation_sector_has_impacts
+            )
             if position == 0:
                 kwargs.update({"instance": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
@@ -1067,7 +1076,12 @@ class WorkflowWizardView(SessionWizardView):
             context["steps"].append(_("Timeline"))
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
-                context["steps"].append(_("Impacts"))
+                regulation_sector_has_impacts = Impact.objects.filter(
+                    regulation=self.incident.sector_regulation.regulation,
+                    sectors__in=self.incident.affected_sectors.all(),
+                ).exists()
+                if regulation_sector_has_impacts:
+                    context["steps"].append(_("Impacts"))
 
             user = self.request.user
             if is_user_regulator(user) and not self.is_regulator_incident:
