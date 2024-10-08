@@ -731,6 +731,12 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = self.instance.id
+        self.fields["comment"].widget.attrs.update(
+            {
+                "rows": 3,
+                "class": "empty_field" if not self.initial["comment"] else "",
+            }
+        )
 
     class Meta:
         model = IncidentWorkflow
