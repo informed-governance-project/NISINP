@@ -129,8 +129,12 @@ class Question(TranslatableModel):
     )
 
     def __str__(self):
-        label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation or ""
+        return (
+            self.safe_translation_getter("label", any_language=True)
+            if self.language_code
+            and self.safe_translation_getter("label", any_language=True)
+            else ""
+        )
 
     class Meta:
         verbose_name_plural = _("Questions")
@@ -160,10 +164,12 @@ class PredefinedAnswer(TranslatableModel):
     )
 
     def __str__(self):
-        predefined_answer_translation = self.safe_translation_getter(
-            "predefined_answer"
+        return (
+            self.safe_translation_getter("predefined_answer", any_language=True)
+            if self.language_code
+            and self.safe_translation_getter("predefined_answer", any_language=True)
+            else ""
         )
-        return predefined_answer_translation or ""
 
     class Meta:
         verbose_name_plural = _("Question - predefined answers")
@@ -826,8 +832,7 @@ class QuestionOptions(models.Model):
     )
 
     def __str__(self):
-        question_translation = self.question.safe_translation_getter("label")
-        return question_translation or ""
+        return str(self.question)
 
 
 class PredefinedAnswerOptions(models.Model):
@@ -836,10 +841,7 @@ class PredefinedAnswerOptions(models.Model):
     position = models.IntegerField(verbose_name=_("Position"))
 
     def __str__(self):
-        predefined_answer_translation = self.predefined_answer.safe_translation_getter(
-            "predefined_answer"
-        )
-        return predefined_answer_translation or ""
+        return str(self.predefined_answer)
 
 
 # answers
@@ -861,6 +863,9 @@ class Answer(models.Model):
         PredefinedAnswerOptions, verbose_name=_("Predefined answer options"), blank=True
     )
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+
+    def __str__(self):
+        return self.answer
 
     class meta:
         verbose_name_plural = _("Answer")
