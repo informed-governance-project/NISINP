@@ -21,7 +21,7 @@ from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
 from theme.globals import REGIONAL_AREA
 
-from .models import Answer, Incident, IncidentWorkflow, SectorRegulation
+from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -707,7 +707,12 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         for _category in categories:
             category_tree.append(QuestionForm)
         if workflow.is_impact_needed:
-            category_tree.append(ImpactForm)
+            regulation_sector_has_impacts = Impact.objects.filter(
+                regulation=incident.sector_regulation.regulation,
+                sectors__in=incident.affected_sectors.all(),
+            ).exists()
+            if regulation_sector_has_impacts:
+                category_tree.append(ImpactForm)
         if is_regulator:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
 
