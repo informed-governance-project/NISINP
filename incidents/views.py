@@ -1037,17 +1037,17 @@ class WorkflowWizardView(SessionWizardView):
                     form.fields[field].widget.__class__.__name__
                     == "DropdownCheckboxSelectMultiple"
                 ):
-                    initial = ""
                     COUNTRY_DICT = dict(countries)
                     REGIONAL_DICT = dict(REGIONAL_AREA)
-                    for val in form.fields[field].initial:
-                        if val != "":
-                            if val in COUNTRY_DICT:
-                                initial = initial + COUNTRY_DICT[val] + " - "
-                            elif val in REGIONAL_DICT:
-                                initial = initial + REGIONAL_DICT[val] + " - "
-                            else:
-                                initial = initial + val + " - "
+                    initial = " - ".join(
+                        map(
+                            lambda val: str(
+                                COUNTRY_DICT.get(val, REGIONAL_DICT.get(val, val))
+                            ),
+                            form.fields[field].initial,
+                        )
+                    )
+
                     new_field = forms.CharField(
                         required=False,
                         disabled=True,
@@ -1208,10 +1208,7 @@ def save_answers(data=None, incident=None, workflow=None):
                 else:
                     answer = None
             elif question_type == "CL" or question_type == "RL":
-                answer = ""
-                for val in value:
-                    answer += val + ","
-                answer = answer
+                answer = ",".join(map(str, value))
             else:  # MULTI
                 for val in value:
                     predefined_answer_options.append(

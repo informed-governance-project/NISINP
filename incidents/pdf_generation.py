@@ -6,6 +6,8 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
 
+from theme.globals import REGIONAL_AREA
+
 from .models import Answer, Incident, IncidentWorkflow
 
 
@@ -90,4 +92,12 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
     if predefined_answers:
         answer_list.extend(predefined_answers)
     else:
-        answer_list.append(answer.answer)
+        answer_string = answer
+        if answer.question_options.question.question_type == "RL":
+            REGIONAL_AREA_DICT = dict(REGIONAL_AREA)
+            region_name_list = [
+                REGIONAL_AREA_DICT.get(region_code, region_code)
+                for region_code in filter(None, str(answer).split(","))
+            ]
+            answer_string = " - ".join(map(str, region_name_list))
+        answer_list.append(answer_string)
