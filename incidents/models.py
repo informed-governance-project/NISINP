@@ -832,7 +832,7 @@ class QuestionOptions(models.Model):
     )
 
     def __str__(self):
-        return str(self.question)
+        return str(self.question) or ""
 
 
 class PredefinedAnswerOptions(models.Model):
@@ -841,7 +841,7 @@ class PredefinedAnswerOptions(models.Model):
     position = models.IntegerField(verbose_name=_("Position"))
 
     def __str__(self):
-        return str(self.predefined_answer)
+        return str(self.predefined_answer) or ""
 
 
 # answers
@@ -865,7 +865,7 @@ class Answer(models.Model):
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
 
     def __str__(self):
-        return self.answer
+        return self.answer or ""
 
     class meta:
         verbose_name_plural = _("Answer")
