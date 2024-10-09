@@ -1,5 +1,6 @@
 import math
-from django.contrib import admin
+
+from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
@@ -7,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Q, Value, When
 from django.db.models.functions import Concat
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
@@ -27,8 +29,10 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
+from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.models import (
+    Answer,
     Email,
     Impact,
     Incident,
@@ -42,7 +46,6 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
-from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 
 
 # get the id of a group by name
@@ -127,7 +130,10 @@ class LogEntryAdmin(admin.ModelAdmin):
         if obj is not None and obj.action_time:
             actual_time = timezone.now()
             dt = actual_time - obj.action_time
-            if math.floor(dt.total_seconds() / 60 / 60 / 24) >= LOG_RETENTION_TIME_IN_DAY:
+            if (
+                math.floor(dt.total_seconds() / 60 / 60 / 24)
+                >= LOG_RETENTION_TIME_IN_DAY
+            ):
                 return True
         return False
 
@@ -730,7 +736,20 @@ class WorkflowAdmin(NestedTranslatableAdmin):
     def has_delete_permission(self, request, obj=None):
         permission = super().has_delete_permission(request, obj)
         if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
+            permission = bool(
+                can_change_or_delete_obj(request, obj)
+                and not Answer.objects.filter(incident_workflow__workflow=obj).exists()
+            )
+            if not permission and request._can_change_or_delete_obj:
+                messages.warning(
+                    request,
+                    mark_safe(
+                        _(
+                            f"<strong>Delete action is not allowed</strong><br>"
+                            f"- This {obj._meta.verbose_name.lower()} is either in use.<br>"
+                        )
+                    ),
+                )
         return permission
 
     def render_change_form(self, request, context, obj=None, *args, **kwargs):
