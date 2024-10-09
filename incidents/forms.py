@@ -186,7 +186,7 @@ class QuestionForm(forms.Form):
                 )
 
             choices = [
-                (choice.predefined_answer.id, choice)
+                (choice.id, choice)
                 for choice in question_option.predefinedansweroptions_set.all().order_by(
                     "position"
                 )
@@ -272,7 +272,7 @@ class QuestionForm(forms.Form):
                 choices=countries if question_type == "CL" else REGIONAL_AREA,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
-                initial=initial_data,
+                initial=initial_data or [],
             )
 
     def __init__(self, *args, **kwargs):
