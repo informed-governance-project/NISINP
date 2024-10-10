@@ -511,7 +511,9 @@ class RegulatorForm(forms.Form):
                     {regulator.safe_translation_getter('full_name', any_language=True)}",
                 )
                 for regulator in Regulator.objects.all()
-                if regulator.sectorregulation_set.exists()
+                if regulator.sectorregulation_set.filter(
+                    sectorregulationworkflow__isnull=False
+                ).exists()
             ]
         except Exception:
             self.fields["regulators"].choices = []
