@@ -11,7 +11,6 @@ from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from nested_admin import NestedModelAdminMixin
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from .forms import CustomTranslatableAdminForm
@@ -62,10 +61,6 @@ admin_site = CustomAdminSite()
 
 
 class CustomTranslatableAdmin(TranslatableAdmin):
-    form = CustomTranslatableAdminForm
-
-
-class NestedTranslatableAdmin(NestedModelAdminMixin, CustomTranslatableAdmin):
     form = CustomTranslatableAdminForm
 
 
@@ -866,7 +861,11 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
         if self.value():
             return queryset.filter(groups=self.value())
         # little hack to have the default view when a regulator admin logged in req41
-        if self.value() is None and not request.GET and user_in_group(request.user, "RegulatorAdmin"):
+        if (
+            self.value() is None
+            and not request.GET
+            and user_in_group(request.user, "RegulatorAdmin")
+        ):
             return queryset.filter(regulators=request.user.regulators.first())
 
 

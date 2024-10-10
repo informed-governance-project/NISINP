@@ -256,9 +256,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
     in_use = True
     # [Predefined Answer] Check if obj is already in use
     if isinstance(obj, PredefinedAnswer):
-        in_use = Answer.objects.filter(
-            predefined_answer_options__predefined_answer=obj
-        ).exists()
+        in_use = Answer.objects.filter(predefined_answers=obj).exists()
 
     # [Question Category] Check if obj is already in use
     if isinstance(obj, QuestionCategory):

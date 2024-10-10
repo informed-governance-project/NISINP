@@ -182,14 +182,12 @@ class QuestionForm(forms.Form):
         if question_type in ["MULTI", "MT", "SO", "ST"]:
             if answer_queryset.exists():
                 initial_data = list(
-                    answer_queryset.values_list("predefined_answer_options", flat=True)
+                    answer_queryset.values_list("predefined_answers", flat=True)
                 )
 
             choices = [
                 (choice.id, choice)
-                for choice in question_option.predefinedansweroptions_set.all().order_by(
-                    "position"
-                )
+                for choice in question.predefinedanswer_set.all().order_by("position")
             ]
             form_attrs = {"title": question.tooltip, "data-bs-toggle": "tooltip"}
             self.fields[field_name] = forms.MultipleChoiceField(

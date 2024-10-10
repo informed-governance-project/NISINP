@@ -1,4 +1,5 @@
 import pytz
+from django.contrib import admin
 from django.db import models
 from django.db.models import Deferrable
 from django.utils import timezone
@@ -128,6 +129,13 @@ class Question(TranslatableModel):
         default=None,
     )
 
+    @admin.display(description="Predefined Answers")
+    def get_predefined_answers(self):
+        return [
+            predefined_answer.predefined_answer
+            for predefined_answer in self.predefinedanswer_set.all()
+        ]
+
     def __str__(self):
         return (
             self.safe_translation_getter("label", any_language=True)
@@ -146,6 +154,14 @@ class PredefinedAnswer(TranslatableModel):
     translations = TranslatedFields(
         predefined_answer=models.TextField(verbose_name=_("Answer"))
     )
+    question = models.ForeignKey(
+        Question,
+        verbose_name=_("Question"),
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
+    )
+    position = models.IntegerField(blank=True, default=0, null=True)
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -835,15 +851,6 @@ class QuestionOptions(models.Model):
         return str(self.question) or ""
 
 
-class PredefinedAnswerOptions(models.Model):
-    predefined_answer = models.ForeignKey(PredefinedAnswer, on_delete=models.CASCADE)
-    question_options = models.ForeignKey(QuestionOptions, on_delete=models.CASCADE)
-    position = models.IntegerField(verbose_name=_("Position"))
-
-    def __str__(self):
-        return str(self.predefined_answer) or ""
-
-
 # answers
 class Answer(models.Model):
     incident_workflow = models.ForeignKey(
@@ -858,10 +865,8 @@ class Answer(models.Model):
         on_delete=models.CASCADE,
         null=True,
     )
+    predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
 
-    predefined_answer_options = models.ManyToManyField(
-        PredefinedAnswerOptions, verbose_name=_("Predefined answer options"), blank=True
-    )
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
 
     def __str__(self):

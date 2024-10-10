@@ -56,7 +56,7 @@ from .models import (
     Incident,
     IncidentWorkflow,
     LogReportRead,
-    PredefinedAnswerOptions,
+    PredefinedAnswer,
     QuestionCategory,
     QuestionOptions,
     SectorRegulation,
@@ -1195,7 +1195,7 @@ def save_answers(data=None, incident=None, workflow=None):
         except Exception:
             pass
         if question_id:
-            predefined_answer_options = []
+            predefined_answers = []
             question_option = QuestionOptions.objects.get(pk=key)
             question = question_option.question
             question_type = question.question_type
@@ -1211,9 +1211,7 @@ def save_answers(data=None, incident=None, workflow=None):
                 answer = ",".join(map(str, value))
             else:  # MULTI
                 for val in value:
-                    predefined_answer_options.append(
-                        PredefinedAnswerOptions.objects.get(pk=val)
-                    )
+                    predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
                 answer = None
                 if questions_data.get(key + "_answer", None):
                     answer = questions_data.get(key + "_answer")
@@ -1222,7 +1220,7 @@ def save_answers(data=None, incident=None, workflow=None):
                 question_options=question_option,
                 answer=answer,
             )
-            answer_object.predefined_answer_options.set(predefined_answer_options)
+            answer_object.predefined_answers.set(predefined_answers)
 
     return incident_workflow
 

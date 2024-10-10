@@ -51,21 +51,15 @@ try:
         config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     )
     try:
-        LOG_RETENTION_TIME_IN_DAY = (
-            config.LOG_RETENTION_TIME_IN_DAY
-        )
+        LOG_RETENTION_TIME_IN_DAY = config.LOG_RETENTION_TIME_IN_DAY
     except AttributeError:
         LOG_RETENTION_TIME_IN_DAY = 365
     try:
-        INCIDENT_RETENTION_TIME_IN_DAY = (
-            config.INCIDENT_RETENTION_TIME_IN_DAY
-        )
+        INCIDENT_RETENTION_TIME_IN_DAY = config.INCIDENT_RETENTION_TIME_IN_DAY
     except AttributeError:
         INCIDENT_RETENTION_TIME_IN_DAY = 1825
     try:
-        TERMS_ACCEPTANCE_TIME_IN_DAYS = (
-            config.TERMS_ACCEPTANCE_TIME_IN_DAYS
-        )
+        TERMS_ACCEPTANCE_TIME_IN_DAYS = config.TERMS_ACCEPTANCE_TIME_IN_DAYS
     except AttributeError:
         TERMS_ACCEPTANCE_TIME_IN_DAYS = 365
 
@@ -127,7 +121,6 @@ INSTALLED_APPS = [
     "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
-    "nested_admin",
 ]
 
 AUTHENTICATION_BACKENDS = [

@@ -13,11 +13,10 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
-from nested_admin import NestedTabularInline
 
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
-    NestedTranslatableAdmin,
+    CustomTranslatableTabularInline,
     admin_site,
 )
 from governanceplatform.globals import ACTION_FLAG_CHOICES
@@ -37,7 +36,6 @@ from incidents.models import (
     Impact,
     Incident,
     PredefinedAnswer,
-    PredefinedAnswerOptions,
     Question,
     QuestionCategory,
     QuestionCategoryOptions,
@@ -290,40 +288,12 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         export_order = fields
 
 
-class PredefinedAnswerOptionsInline(NestedTabularInline):
-    model = PredefinedAnswerOptions
-    verbose_name = _("Answer choice option")
-    verbose_name_plural = _("Answer choice options")
-    ordering = ["position"]
-    extra = 0
-    classes = ["collapse"]
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def get_max_num(self, request, obj=None, **kwargs):
-        max_num = super().get_max_num(request, obj, **kwargs)
-        if obj and not can_change_or_delete_obj(request, obj):
-            max_num = 0
-        return max_num
-
-
-class QuestionOptionsInline(NestedTabularInline):
+class QuestionOptionsInline(admin.TabularInline):
     model = QuestionOptions
     verbose_name = _("Question Option")
     verbose_name_plural = _("Question Options")
     ordering = ["position"]
     extra = 0
-    inlines = [PredefinedAnswerOptionsInline]
 
     def has_change_permission(self, request, obj=None):
         permission = super().has_change_permission(request, obj)
@@ -344,9 +314,18 @@ class QuestionOptionsInline(NestedTabularInline):
         return max_num
 
 
+class PredefinedAnswerInline(CustomTranslatableTabularInline):
+    model = PredefinedAnswer
+    fields = ["predefined_answer", "position"]
+    verbose_name = _("predefined answer")
+    verbose_name_plural = _("predefined answers")
+    ordering = ["position"]
+    extra = 0
+
+
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
-    list_display = ["label", "question_type", "creator"]
+class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+    list_display = ["label", "question_type", "get_predefined_answers", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
     fields = [
@@ -354,7 +333,7 @@ class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
         "label",
         "tooltip",
     ]
-    inlines = []
+    inlines = [PredefinedAnswerInline]
 
     def has_change_permission(self, request, obj=None):
         permission = super().has_change_permission(request, obj)
@@ -368,7 +347,9 @@ class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
             permission = can_change_or_delete_obj(request, obj)
         return permission
 
-    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
         has_permission = obj and not self.has_change_permission(request, obj)
         if has_permission:
             context.update(
@@ -378,7 +359,7 @@ class QuestionAdmin(ExportActionModelAdmin, NestedTranslatableAdmin):
                     "show_save_and_add_another": False,
                 }
             )
-        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        form = super().render_change_form(request, context, add, change, form_url, obj)
         if has_permission:
             form = filter_languages_not_translated(form)
         return form
@@ -397,22 +378,6 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
         ("position", "is_mandatory"),
         "question",
         "category",
-    ]
-
-    # Hidden from register models list
-    def has_module_permission(self, request):
-        return False
-
-
-@admin.register(PredefinedAnswerOptions, site=admin_site)
-class PredefinedAnswerOptionsAdmin(admin.ModelAdmin):
-    list_display = ["question_options", "position", "predefined_answer"]
-    list_display_links = ["question_options", "position", "predefined_answer"]
-    ordering = ["question_options", "position"]
-    fields = [
-        "predefined_answer",
-        "question_options",
-        "position",
     ]
 
     # Hidden from register models list
@@ -703,7 +668,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(NestedTranslatableAdmin):
+class WorkflowAdmin(CustomTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
@@ -752,7 +717,9 @@ class WorkflowAdmin(NestedTranslatableAdmin):
                 )
         return permission
 
-    def render_change_form(self, request, context, obj=None, *args, **kwargs):
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
         has_permission = obj and not self.has_change_permission(request, obj)
         if has_permission:
             context.update(
@@ -762,7 +729,7 @@ class WorkflowAdmin(NestedTranslatableAdmin):
                     "show_save_and_add_another": False,
                 }
             )
-        form = super().render_change_form(request, context, obj, *args, **kwargs)
+        form = super().render_change_form(request, context, add, change, form_url, obj)
         if has_permission:
             form = filter_languages_not_translated(form)
         return form

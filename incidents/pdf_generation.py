@@ -85,12 +85,8 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
     question_dict = preliminary_questions_answers.setdefault(category_label, {})
     answer_list = question_dict.setdefault(question_label, [])
 
-    predefined_answers = [
-        pa.predefined_answer for pa in answer.predefined_answer_options.all()
-    ]
-
-    if predefined_answers:
-        answer_list.extend(predefined_answers)
+    if answer.predefined_answers.all():
+        answer_list.extend(answer.predefined_answers.all())
     else:
         answer_string = answer
         if answer.question_options.question.question_type == "RL":
