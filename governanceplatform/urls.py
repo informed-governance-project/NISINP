@@ -55,6 +55,12 @@ urlpatterns = [
     path("incidents/", include("incidents.urls"), name="incidents"),
     # Report Wizard
     path("reporting/", include("reporting.urls"), name="reporting"),
+    # Security objectives
+    path(
+        "securityobjectives/",
+        include("securityobjectives.urls"),
+        name="securityobjectives",
+    ),
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service
