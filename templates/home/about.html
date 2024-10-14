@@ -18,9 +18,9 @@
         <div class="card-body">
             <h2>Contact</h2>
             <ul class="list-group">
-                <li class="list-group-item text-white">Regulator: {{ regulator.name }}</li>
-                <li class="list-group-item text-white">Regulator website: <a href="{{ regulator.website }}" target="_blank" rel="noopener noreferrer">{{ regulator.website }}</a></li>
-                <li class="list-group-item text-white">Email: <a href="mailto:{{ regulator.contact_email }}">{{ regulator.contact_email }}</a></li>
+                <li class="list-group-item">Regulator: {{ regulator.name }}</li>
+                <li class="list-group-item">Regulator website: <a href="{{ regulator.website }}" target="_blank" rel="noopener noreferrer">{{ regulator.website }}</a></li>
+                <li class="list-group-item">Email: <a href="mailto:{{ regulator.contact_email }}">{{ regulator.contact_email }}</a></li>
             <ul>
         </div>
     </div>
@@ -29,8 +29,8 @@
         <div class="card-body">
             <h2>Information about this instance</h2>
             <ul class="list-group">
-                <li class="list-group-item text-white">Software version: <a href="{{ version_url }}" target="_blank" rel="noopener noreferrer">{{ app_version }}</a></li>
-                <li class="list-group-item text-white">Python version: {{ python_version }}</li>
+                <li class="list-group-item">Software version: <a href="{{ version_url }}" target="_blank" rel="noopener noreferrer">{{ app_version }}</a></li>
+                <li class="list-group-item">Python version: {{ python_version }}</li>
             <ul>
         </div>
     </div>

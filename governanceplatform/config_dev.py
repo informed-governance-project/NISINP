@@ -1,5 +1,7 @@
 import os
 
+from django.utils.translation import gettext_lazy as _
+
 PUBLIC_URL = "http://serima.monarc.lu"
 ALLOWED_HOSTS = ["127.0.0.1", locals().get("PUBLIC_URL", "")]
 REGULATOR_CONTACT = {
@@ -80,5 +82,39 @@ LOGGING = {
     },
 }
 
+LOG_RETENTION_TIME_IN_DAY = 365
+INCIDENT_RETENTION_TIME_IN_DAY = 1825
+TERMS_ACCEPTANCE_TIME_IN_DAYS = 365
+
 # TIMEOUT
 SESSION_COOKIE_AGE = 15 * 60  # 15 Minutes
+
+# INTERNATIONALIZATION
+LANGUAGE_CODE = "en-us"
+
+TIME_ZONE = "Europe/Luxembourg"
+
+LANGUAGES = [
+    ("en", "English"),
+    ("fr", "French"),
+    ("nl", _("Dutch")),
+    ("de", "German"),
+]
+
+PARLER_DEFAULT_LANGUAGE_CODE = "en"
+PARLER_LANGUAGES = {
+    1: (
+        {
+            "code": "en",
+        },  # English
+        {
+            "code": "fr",
+        },  # French
+        {
+            "code": "nl",
+        },  # Dutch
+        {
+            "code": "de",
+        },  # German
+    ),
+}

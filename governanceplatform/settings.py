@@ -50,6 +50,26 @@ try:
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
         config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     )
+    try:
+        LOG_RETENTION_TIME_IN_DAY = config.LOG_RETENTION_TIME_IN_DAY
+    except AttributeError:
+        LOG_RETENTION_TIME_IN_DAY = 365
+    try:
+        INCIDENT_RETENTION_TIME_IN_DAY = config.INCIDENT_RETENTION_TIME_IN_DAY
+    except AttributeError:
+        INCIDENT_RETENTION_TIME_IN_DAY = 1825
+    try:
+        TERMS_ACCEPTANCE_TIME_IN_DAYS = config.TERMS_ACCEPTANCE_TIME_IN_DAYS
+    except AttributeError:
+        TERMS_ACCEPTANCE_TIME_IN_DAYS = 365
+
+    # INTERNATIONALIZATION
+    LANGUAGE_CODE = config.LANGUAGE_CODE
+    TIME_ZONE = config.TIME_ZONE
+    LANGUAGES = config.LANGUAGES
+    PARLER_DEFAULT_LANGUAGE_CODE = config.PARLER_DEFAULT_LANGUAGE_CODE
+    PARLER_LANGUAGES = config.PARLER_LANGUAGES
+
 except AttributeError as e:
     print("Please check you configuration file for the missing configuration variable:")
     print(f"  {e}")
@@ -153,6 +173,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django_otp.middleware.OTPMiddleware",
+    "governanceplatform.middleware.RestrictViewsMiddleware",
+    "governanceplatform.middleware.TermsAcceptanceMiddleware",
 ]
 
 INTERNAL_IPS = [
@@ -236,21 +258,9 @@ LOGIN_URL = "/account/login"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "Europe/Luxembourg"
 USE_I18N = True
 USE_TZ = True
-SITE_ID = 1
-
-LANGUAGES = [
-    ("en", "English"),
-    ("fr", "Français"),
-    ("nl", "Dutch"),
-    ("de", "German"),
-]
-
+SITE_ID = 1  # Parler site id
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),
     os.path.join(BASE_DIR, "theme/locale"),
@@ -341,29 +351,6 @@ BOOTSTRAP5 = {
     },
     "field_renderers": {
         "default": "django_bootstrap5.renderers.FieldRenderer",
-    },
-}
-
-# Multinlingual DB parameter
-PARLER_DEFAULT_LANGUAGE_CODE = "en"
-PARLER_LANGUAGES = {
-    1: (
-        {
-            "code": "en",
-        },  # English
-        {
-            "code": "fr",
-        },  # French
-        {
-            "code": "nl",
-        },  # Dutch
-        {
-            "code": "de",
-        },  # German
-    ),
-    "default": {
-        "fallbacks": ["en"],
-        "hide_untranslated": False,
     },
 }
 

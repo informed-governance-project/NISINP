@@ -12,8 +12,10 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -24,7 +26,7 @@ from governanceplatform.helpers import (
     can_edit_incident_report,
     get_active_company_from_session,
     is_observer_user,
-    is_observer_user_viewving_all_incident,
+    is_user_operator,
     is_user_regulator,
     user_in_group,
 )
@@ -35,28 +37,28 @@ from governanceplatform.settings import (
     SITE_NAME,
     TIME_ZONE,
 )
+from theme.globals import REGIONAL_AREA
 
-from .decorators import regulator_role_required
+from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
 from .forms import (
     ContactForm,
-    ImpactForm,
-    IncidenteDateForm,
     IncidentStatusForm,
     IncidentWorkflowForm,
     RegulationForm,
     RegulatorForm,
     get_forms_list,
 )
-from .globals import REGIONAL_AREA
 from .models import (
     Answer,
+    Impact,
     Incident,
     IncidentWorkflow,
     LogReportRead,
     PredefinedAnswer,
-    Question,
+    QuestionCategory,
+    QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
@@ -66,10 +68,12 @@ from .pdf_generation import get_pdf_report
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
     incidents = Incident.objects.order_by("-incident_notification_date")
+    html_view = "operator/incidents.html"
 
     # Save filter params in user's session
 
@@ -84,33 +88,32 @@ def get_incidents(request):
     filter_params = request.session.get("filter_params", request.GET)
 
     if is_user_regulator(user):
-        # Filter incidents by regulator
-
-        incidents = incidents.filter(
-            sector_regulation__regulator__in=user.regulators.all()
-        )
-        if user_in_group(user, "RegulatorUser"):
+        html_view = "regulator/incidents.html"
+        request.session["is_regulator_incidents"] = False
+        if request.path == reverse("regulator_incidents"):
+            html_view = "operator/incidents.html"
+            # Filter regulator incidents
+            incidents = incidents.filter(regulator=user.regulators.first())
+            request.session["is_regulator_incidents"] = True
+        elif user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
                 affected_sectors__in=request.user.get_sectors().all()
             ).distinct()
-        for incident in incidents:
-            incident.formsWorkflow = []
-            for workflow_completed in incident.get_workflows_completed():
-                incident.formsWorkflow.append(
-                    IncidentWorkflowForm(instance=workflow_completed)
-                )
-            incident.formsStatus = IncidentStatusForm(
-                instance=incident,
-            )
 
+        else:
+            # Filter incidents by regulator
+            incidents = incidents.filter(
+                sector_regulation__regulator__in=user.regulators.all()
+            )
         f = IncidentFilter(filter_params, queryset=incidents)
+    elif is_observer_user(user):
+        html_view = "observer/incidents.html"
+        incidents = user.observers.first().get_incidents()
+        f = IncidentFilter(filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(filter_params, queryset=incidents)
-    elif is_observer_user_viewving_all_incident(user):
-        incidents = Incident.objects.all().order_by("-incident_notification_date")
         f = IncidentFilter(filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
@@ -126,12 +129,6 @@ def get_incidents(request):
         incidents = incidents.filter(contact_user=user)
         f = IncidentFilter(filter_params, queryset=incidents)
 
-    if request.GET.get("incidentId"):
-        # Search by incident id
-        incidents = incidents.filter(
-            incident_id__icontains=request.GET.get("incidentId")
-        ).distinct()
-
     # Show 10 incidents per page.
     incident_list = f.qs
     paginator = Paginator(incident_list, 10)
@@ -142,13 +139,6 @@ def get_incidents(request):
         response = paginator.page(1)
     except EmptyPage:
         response = paginator.page(paginator.num_pages)
-
-    # add paggination to the regular incidents view.
-    html_view = "operator/incidents.html"
-    if is_user_regulator(request.user):
-        html_view = "regulator/incidents.html"
-    elif is_observer_user(request.user):
-        html_view = "observer/incidents.html"
 
     is_filtered = {k: v for k, v in filter_params.items() if k != "page"}
 
@@ -161,12 +151,16 @@ def get_incidents(request):
             "filter": f,
             "incidents": response,
             "is_filtered": bool(is_filtered),
+            "is_regulator_incidents": request.session.get(
+                "is_regulator_incidents", False
+            ),
         },
     )
 
 
 @login_required
 @otp_required
+@check_user_is_correct
 def get_form_list(request, form_list=None):
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
@@ -185,20 +179,7 @@ def get_form_list(request, form_list=None):
 
 @login_required
 @otp_required
-def get_next_workflow(request, form_list=None, incident_id=None):
-    if form_list is None and incident_id is not None:
-        incident = Incident.objects.get(id=incident_id)
-        form_list = get_forms_list(incident=incident)
-    if incident_id is not None:
-        request.incident = incident_id
-        request.incident_workflow = None
-    return WorkflowWizardView.as_view(
-        form_list,
-    )(request)
-
-
-@login_required
-@otp_required
+@check_user_is_correct
 def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -239,6 +220,7 @@ def create_workflow(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def review_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
@@ -246,15 +228,30 @@ def review_workflow(request):
         messages.warning(request, _("No incident report could be found."))
         return redirect("incidents")
     user = request.user
-    incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+    try:
+        incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+    except IncidentWorkflow.DoesNotExist:
+        messages.warning(request, _("No incident report could be found."))
+        return redirect("incidents")
+
     incident = incident_workflow.incident
+
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
+
+    is_regulator_incident = (
+        True
+        if incident.regulator == user.regulators.first() and is_regulator_incidents
+        else False
+    )
 
     if incident_workflow:
         if can_access_incident(user, incident, company_id):
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=is_user_regulator(user),
+                is_regulator=bool(
+                    is_user_regulator(user) and not is_regulator_incident
+                ),
             )
             request.incident_workflow = incident_workflow.id
             return WorkflowWizardView.as_view(
@@ -268,6 +265,7 @@ def review_workflow(request):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def edit_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
@@ -293,23 +291,38 @@ def edit_workflow(request):
                 return redirect("incidents")
     # for the moment we only pass the incident workflow for regulator
     elif incident_workflow_id and is_user_regulator(user):
-        incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+        try:
+            incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+        except IncidentWorkflow.DoesNotExist:
+            messages.warning(request, _("No incident report could be found."))
+            return redirect("incidents")
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
+
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
+
     if incident_id and can_edit_incident_report(user, incident, company_id):
+        is_regulator_incident = (
+            True
+            if incident.regulator == user.regulators.first() and is_regulator_incidents
+            else False
+        )
+
         if incident_workflow is None:
             incident_workflow = IncidentWorkflow.objects.filter(
                 incident=incident_id, workflow=workflow_id
             ).order_by("timestamp")
             incident_workflow = incident_workflow.last()
-            request.incident = incident_workflow.incident.id
 
         if incident_workflow:
+            request.incident = incident_workflow.incident.id
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=is_user_regulator(user),
+                is_regulator=bool(
+                    is_user_regulator(user) and not is_regulator_incident
+                ),
             )
             request.incident_workflow = incident_workflow.id
 
@@ -319,10 +332,17 @@ def edit_workflow(request):
     elif incident_workflow and can_edit_incident_report(
         user, incident_workflow.incident, company_id
     ):
+        is_regulator_incident = (
+            True
+            if incident_workflow.incident.regulator == user.regulators.first()
+            and is_regulator_incidents
+            else False
+        )
+
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
-            is_regulator=is_user_regulator(user),
+            is_regulator=bool(is_user_regulator(user) and not is_regulator_incident),
         )
         request.incident_workflow = incident_workflow.id
 
@@ -338,193 +358,109 @@ def edit_workflow(request):
 
 @login_required
 @otp_required
-def edit_impacts(request, incident_id=None):
-    # OperatorAdmin can access only incidents related to selected company.
-    if (
-        user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, company__id=request.session.get("company_in_use")
-        ).exists()
-    ):
-        return HttpResponseRedirect("/incidents")
-    # OperatorStaff and IncidentUser can access only their incidents.
-    if (
-        not is_user_regulator(request.user)
-        and not user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, contact_user=request.user
-        ).exists()
-    ):
-        return HttpResponseRedirect("/incidents")
-
-    if incident_id is not None:
-        incident = Incident.objects.get(id=incident_id)
-
-    form = ImpactForm(
-        incident=incident, data=request.POST if request.method == "POST" else None
-    )
-
-    if request.method == "POST":
-        if form.is_valid():
-            incident.impacts.set(form.cleaned_data["impacts"])
-            if len(form.cleaned_data["impacts"]) > 0:
-                incident.is_significative_impact = True
-            else:
-                incident.is_significative_impact = False
-            incident.save()
-            return HttpResponseRedirect("/incidents")
-
-    return render(request, "edit_impacts.html", {"form": form, "incident": incident})
-
-
-@login_required
-@otp_required
 @regulator_role_required
+@check_user_is_correct
+@require_http_methods(["POST"])
 def get_regulator_incident_edit_form(request, incident_id: int):
     """Returns the list of incident as regulator."""
     # RegulatorUser can access only incidents from accessible sectors.
-    if not can_edit_incident_report(request.user, Incident.objects.get(pk=incident_id)):
-        return HttpResponseRedirect("/incidents")
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+    except Incident.DoesNotExist:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
+
+    if not can_edit_incident_report(request.user, incident):
+        return redirect("incidents")
 
     workflow_id = request.GET.get("workflow_id", None)
-    incident = Incident.objects.get(pk=incident_id)
+
     if workflow_id and IncidentWorkflow.objects.filter(pk=workflow_id).exists():
         workflow = IncidentWorkflow.objects.get(pk=workflow_id)
         workflow_form = IncidentWorkflowForm(
             instance=workflow,
-            data=request.POST if request.method == "POST" else None,
+            data=request.POST,
         )
-        if request.method == "POST":
-            if workflow_form.is_valid():
-                response = {"id": workflow.pk}
-                for field_name, field_value in workflow_form.cleaned_data.items():
-                    if field_value:
-                        response[field_name] = field_value
-                        setattr(workflow, field_name, field_value)
-                    else:
-                        response[field_name] = workflow_form.initial[field_name]
-                        setattr(
-                            workflow,
-                            field_name,
-                            workflow_form.initial[field_name],
+        if workflow_form.is_valid():
+            response = {"id": workflow.pk}
+            for field_name, field_value in workflow_form.cleaned_data.items():
+                if field_value:
+                    response[field_name] = field_value
+                    setattr(workflow, field_name, field_value)
+                else:
+                    response[field_name] = workflow_form.initial[field_name]
+                    setattr(
+                        workflow,
+                        field_name,
+                        workflow_form.initial[field_name],
+                    )
+                if field_name == "review_status":
+                    if incident.sector_regulation.report_status_changed_email:
+                        send_email(
+                            incident.sector_regulation.report_status_changed_email,
+                            incident,
                         )
-                    if field_name == "review_status":
-                        if incident.sector_regulation.report_status_changed_email:
-                            send_email(
-                                incident.sector_regulation.report_status_changed_email,
-                                incident,
-                            )
-                workflow.save()
+            workflow.save()
 
             return JsonResponse(response)
 
-    incident_form = IncidentStatusForm(
-        instance=incident, data=request.POST if request.method == "POST" else None
-    )
-    if request.method == "POST":
-        # TO DO : improve, but we can't check if the form is valid because we send only one value
-        if incident_form is not None:
-            # need to validate to get the cleaned data
-            incident_form.is_valid()
-            response = {"id": incident.pk}
-            for field_name, field_value in incident_form.cleaned_data.items():
-                if field_name and field_value is not None:
-                    response[field_name] = field_value
-                    setattr(incident, field_name, field_value)
-                    if field_name == "incident_status" and field_value == "CLOSE":
-                        if incident.sector_regulation.closing_email:
-                            send_email(
-                                incident.sector_regulation.closing_email, incident
-                            )
+    incident_form = IncidentStatusForm(instance=incident, data=request.POST)
 
-                else:
-                    response[field_name] = incident_form.initial[field_name]
-                    setattr(
-                        incident,
-                        field_name,
-                        incident_form.initial[field_name],
-                    )
-            incident.save()
+    if incident_form is not None:
+        # need to validate to get the cleaned data
+        incident_form.is_valid()
+        response = {"id": incident.pk}
+        for field_name, field_value in incident_form.cleaned_data.items():
+            if field_name and field_value is not None:
+                response[field_name] = field_value
+                setattr(incident, field_name, field_value)
+                if field_name == "incident_status" and field_value == "CLOSE":
+                    if incident.sector_regulation.closing_email:
+                        send_email(incident.sector_regulation.closing_email, incident)
 
-    return JsonResponse(response)
+            else:
+                response[field_name] = incident_form.initial[field_name]
+                setattr(
+                    incident,
+                    field_name,
+                    incident_form.initial[field_name],
+                )
+        incident.save()
+
+        return JsonResponse(response)
+
+    return redirect("incidents")
 
 
 @login_required
 @otp_required
-def get_edit_incident_timeline_form(request, incident_id: int):
-    # RegulatorUser can access only incidents from accessible sectors.
-    if (
-        user_in_group(request.user, "RegulatorUser")
-        and not Incident.objects.filter(
-            pk=incident_id, affected_sectors__in=request.user.sectors.all()
-        ).exists()
-    ):
-        return HttpResponseRedirect("/incidents")
-    # OperatorAdmin can access only incidents related to selected company.
-    elif (
-        user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, company__id=request.session.get("company_in_use")
-        ).exists()
-    ):
-        return HttpResponseRedirect("/incidents")
-    # OperatorStaff and IncidentUser can access only their reports.
-    elif (
-        not is_user_regulator(request.user)
-        and not user_in_group(request.user, "OperatorAdmin")
-        and not Incident.objects.filter(
-            pk=incident_id, contact_user=request.user
-        ).exists()
-    ):
-        return HttpResponseRedirect("/incidents")
-
-    incident = Incident.objects.get(pk=incident_id)
-
-    incident_date_form = IncidenteDateForm(
-        instance=incident, data=request.POST if request.method == "POST" else None
-    )
-    if request.method == "POST":
-        if incident_date_form.is_valid():
-            incident_date_form.save()
-            messages.success(
-                request,
-                f"Incident {incident.incident_id} has been successfully saved.",
-            )
-            response = HttpResponseRedirect(
-                request.session.get("return_page", "/incidents")
-            )
-            try:
-                del request.session["return_page"]
-            except KeyError:
-                pass
-
-            return response
-
-    if not request.session.get("return_page"):
-        request.session["return_page"] = request.headers.get("referer", "/incidents")
-
-    return render(
-        request,
-        "edit_incident_timeline.html",
-        context={
-            "form": incident_date_form,
-            "incident": incident,
-        },
-    )
-
-
-@login_required
-@otp_required
+@check_user_is_correct
 def access_log(request, incident_id: int):
     user = request.user
-    incident = Incident.objects.get(pk=incident_id)
     company_id = request.session.get("company_in_use")
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+    except Incident.DoesNotExist:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
 
     if not can_access_incident(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
+    is_regulator_incidents = request.session.get("is_regulator_incidents", False)
+
+    is_regulator_incident = (
+        True
+        if incident.regulator == user.regulators.first() and is_regulator_incidents
+        else False
+    )
+
     log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
+    if is_user_operator(user):
+        log = log.exclude(user__regulatoruser__isnull=False)
+    if is_regulator_incident:
+        log = log.filter(user__regulatoruser__regulator=user.regulators.first())
     context = {
         "log": log,
         "incident": incident,
@@ -534,86 +470,97 @@ def access_log(request, incident_id: int):
 
 @login_required
 @otp_required
+@check_user_is_correct
 def download_incident_pdf(request, incident_id: int):
     user = request.user
-    incident = Incident.objects.get(pk=incident_id)
     company_id = request.session.get("company_in_use")
+
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+    except Incident.DoesNotExist:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
 
     if not can_access_incident(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    else:
-        try:
-            pdf_report = get_pdf_report(incident, None, request)
-            create_entry_log(user, incident, None, "DOWNLOAD")
-        except Exception:
-            messages.warning(
-                request, _("An error occurred while generating the report.")
-            )
-            return HttpResponseRedirect("/incidents")
 
-        response = HttpResponse(pdf_report, content_type="application/pdf")
-        response[
-            "Content-Disposition"
-        ] = f"attachment;filename=Incident_{incident_id}_{date.today()}.pdf"
+    try:
+        pdf_report = get_pdf_report(incident, None, request)
+        create_entry_log(user, incident, None, "DOWNLOAD")
+    except Exception:
+        messages.warning(request, _("An error occurred while generating the report."))
+        return HttpResponseRedirect("/incidents")
 
-        return response
+    response = HttpResponse(pdf_report, content_type="application/pdf")
+    response[
+        "Content-Disposition"
+    ] = f"attachment;filename=Incident_{incident_id}_{date.today()}.pdf"
+
+    return response
 
 
 @login_required
 @otp_required
+@check_user_is_correct
 def download_incident_report_pdf(request, incident_workflow_id: int):
     user = request.user
-    incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
-    incident = incident_workflow.incident
     company_id = request.session.get("company_in_use")
+
+    try:
+        incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
+        incident = incident_workflow.incident
+    except IncidentWorkflow.DoesNotExist:
+        messages.warning(request, _("No incident report could be found."))
+        return redirect("incidents")
 
     if not can_access_incident(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    else:
-        try:
-            pdf_report = get_pdf_report(incident, incident_workflow, request)
-            # create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
-        except Exception:
-            messages.warning(
-                request, _("An error occurred while generating the report.")
-            )
-            return HttpResponseRedirect("/incidents")
+    try:
+        pdf_report = get_pdf_report(incident, incident_workflow, request)
+        create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
+    except Exception:
+        messages.warning(request, _("An error occurred while generating the report."))
+        return HttpResponseRedirect("/incidents")
 
-        response = HttpResponse(pdf_report, content_type="application/pdf")
-        response[
-            "Content-Disposition"
-        ] = f"attachment;filename=Incident_{incident_workflow}_{date.today()}.pdf"
+    response = HttpResponse(pdf_report, content_type="application/pdf")
+    response[
+        "Content-Disposition"
+    ] = f"attachment;filename=Incident_{incident_workflow}_{date.today()}.pdf"
 
-        return response
+    return response
 
 
 @login_required
 @otp_required
+@check_user_is_correct
 def delete_incident(request, incident_id: int):
     user = request.user
-    incident = Incident.objects.get(pk=incident_id)
     company_id = request.session.get("company_in_use")
+
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+    except Incident.DoesNotExist:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
 
     if not can_create_incident_report(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    else:
-        try:
-            incident = Incident.objects.get(pk=incident_id)
-            if incident is not None:
-                if incident.workflows.count() == 0:
-                    incident.delete()
-                    messages.info(request, _("The incident has been deleted."))
-                else:
-                    messages.warning(request, _("The incident could not be deleted."))
-        except Exception:
-            messages.warning(
-                request, _("An error occurred while deleting the incident.")
-            )
-            return redirect("incidents")
+
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+        if incident is not None:
+            if incident.workflows.count() == 0:
+                incident.delete()
+                messages.info(request, _("The incident has been deleted."))
+            else:
+                messages.warning(request, _("The incident could not be deleted."))
+    except Exception:
+        messages.warning(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
+    return redirect("incidents")
 
 
 def is_incidents_report_limit_reached(request):
@@ -791,10 +738,18 @@ class FormWizardView(SessionWizardView):
 
         user = self.request.user
         data = self.get_all_cleaned_data()
-        company = get_active_company_from_session(self.request)
+        company = (
+            get_active_company_from_session(self.request)
+            if not is_user_regulator(user)
+            else None
+        )
+        regulator = user.regulators.first() if is_user_regulator(user) else None
         sectors_id = extract_ids(data.get("sectors", []))
         regulators_id = extract_ids(data.get("regulators", []))
         regulations_id = extract_ids(data.get("regulations", []))
+        company_name = data.get("company_name")
+        if company or regulator:
+            company_name = company.name if company else str(regulator)
 
         sector_regulations = (
             SectorRegulation.objects.filter(
@@ -831,7 +786,8 @@ class FormWizardView(SessionWizardView):
                 complaint_reference=data.get("complaint_reference"),
                 contact_user=user,
                 company=company,
-                company_name=company.name if company else data.get("company_name"),
+                regulator=regulator,
+                company_name=company_name,
                 sector_regulation=sector_regulation,
                 incident_timezone=data.get("incident_timezone", TIME_ZONE),
                 incident_detection_date=incident_detection_date,
@@ -893,13 +849,25 @@ class FormWizardView(SessionWizardView):
 
                 incident.save()
 
-                create_entry_log(user, incident, None, "COMMENT")
+                create_entry_log(user, incident, None, "CREATE")
 
                 # send The email notification opening
                 if sector_regulation.opening_email is not None:
                     send_email(sector_regulation.opening_email, incident)
 
-        return HttpResponseRedirect("/incidents")
+        is_regulator_incidents = self.request.session.get(
+            "is_regulator_incidents", False
+        )
+
+        self.is_regulator_incident = (
+            True if regulator and is_regulator_incidents else False
+        )
+
+        return (
+            redirect("regulator_incidents")
+            if self.is_regulator_incident
+            else redirect("incidents")
+        )
 
 
 class WorkflowWizardView(SessionWizardView):
@@ -923,6 +891,9 @@ class WorkflowWizardView(SessionWizardView):
         kwargs = super().get_form_kwargs(step)
 
         position = int(step)
+        is_regulator_incidents = self.request.session.get(
+            "is_regulator_incidents", False
+        )
 
         if self.request.incident_workflow:
             self.incident_workflow = IncidentWorkflow.objects.get(
@@ -930,6 +901,21 @@ class WorkflowWizardView(SessionWizardView):
             )
             self.incident = self.incident_workflow.incident
             self.workflow = self.incident_workflow.workflow
+            self.is_regulator_incident = (
+                True
+                if self.incident.regulator == user.regulators.first()
+                and is_regulator_incidents
+                else False
+            )
+            regulation_sector_has_impacts = Impact.objects.filter(
+                regulation=self.incident.sector_regulation.regulation,
+                sectors__in=self.incident.affected_sectors.all(),
+            ).exists()
+
+            self.workflow.is_impact_needed = bool(
+                self.workflow.is_impact_needed and regulation_sector_has_impacts
+            )
+
             if position == 0:
                 kwargs.update({"instance": self.incident})
             # Regulator case
@@ -937,15 +923,20 @@ class WorkflowWizardView(SessionWizardView):
                 position == len(self.form_list) - 2
                 and self.workflow.is_impact_needed
                 and is_user_regulator(user)
+                and not self.is_regulator_incident
             ):
                 kwargs.update({"incident": self.incident})
-            elif position == len(self.form_list) - 1 and is_user_regulator(user):
+            elif (
+                position == len(self.form_list) - 1
+                and is_user_regulator(user)
+                and not self.is_regulator_incident
+            ):
                 kwargs.update({"instance": self.incident_workflow})
             # Operator case
             elif (
                 position == len(self.form_list) - 1
                 and self.workflow.is_impact_needed
-                and not is_user_regulator(user)
+                and (not is_user_regulator(user) or self.is_regulator_incident)
             ):
                 kwargs.update({"incident": self.incident})
             else:
@@ -958,11 +949,26 @@ class WorkflowWizardView(SessionWizardView):
                 )
         elif self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
+            self.is_regulator_incident = (
+                True
+                if self.incident.regulator == user.regulators.first()
+                and is_regulator_incidents
+                else False
+            )
+
             if not self.request.workflow:
                 self.workflow = self.incident.get_next_step()
             else:
                 self.workflow = self.request.workflow
 
+            regulation_sector_has_impacts = Impact.objects.filter(
+                regulation=self.incident.sector_regulation.regulation,
+                sectors__in=self.incident.affected_sectors.all(),
+            ).exists()
+
+            self.workflow.is_impact_needed = bool(
+                self.workflow.is_impact_needed and regulation_sector_has_impacts
+            )
             if position == 0:
                 kwargs.update({"instance": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
@@ -998,6 +1004,7 @@ class WorkflowWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         user = self.request.user
+
         # Operator : Complete an existing workflow or see historic
         # Regulator : See the report
         form = super().get_form(step=step, data=data, files=files)
@@ -1008,26 +1015,39 @@ class WorkflowWizardView(SessionWizardView):
             last_form_index = -1
         else:
             last_form_index = len(self.form_list) - 1
-        if (is_user_regulator(user) and position != last_form_index) or self.read_only:
+        if (
+            (is_user_regulator(user) and position != last_form_index)
+            and not self.is_regulator_incident
+            or self.read_only
+        ):
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
+                # replace for SO the initial_data by an empty iterable
+                if (
+                    form.fields[field].__class__.__name__ == "MultipleChoiceField"
+                    and form.fields[field].widget.__class__.__name__
+                    == "OtherCheckboxSelectMultiple"
+                    and form.fields[field].initial == [None]
+                ):
+                    form.fields[field].initial = []
+
                 # replace following widget by more readable in read only
                 if (
                     form.fields[field].widget.__class__.__name__
                     == "DropdownCheckboxSelectMultiple"
                 ):
-                    initial = ""
                     COUNTRY_DICT = dict(countries)
                     REGIONAL_DICT = dict(REGIONAL_AREA)
-                    for val in form.fields[field].initial:
-                        if val != "":
-                            if val in COUNTRY_DICT:
-                                initial = initial + COUNTRY_DICT[val] + " - "
-                            elif val in REGIONAL_DICT:
-                                initial = initial + REGIONAL_DICT[val] + " - "
-                            else:
-                                initial = initial + val + " - "
+                    initial = " - ".join(
+                        map(
+                            lambda val: str(
+                                COUNTRY_DICT.get(val, REGIONAL_DICT.get(val, val))
+                            ),
+                            form.fields[field].initial,
+                        )
+                    )
+
                     new_field = forms.CharField(
                         required=False,
                         disabled=True,
@@ -1044,22 +1064,27 @@ class WorkflowWizardView(SessionWizardView):
         if self.workflow is not None:
             context["action"] = "Edit"
             context["steps"] = []
-            questions = self.workflow.questions
-            categories = set()
-            for question in questions.all():
-                categories.add(question.category)
-            categ_list = []
-            for category in categories:
-                categ_list.append(category)
-            categ_list.sort(key=lambda c: c.position)
+            context["is_regulator_incident"] = self.is_regulator_incident
+
+            category_ids = self.workflow.questionoptions_set.values_list(
+                "category", flat=True
+            ).distinct()
+            categories = QuestionCategory.objects.filter(id__in=category_ids).order_by(
+                "questioncategoryoptions__position"
+            )
 
             context["steps"].append(_("Timeline"))
-            context["steps"] += categ_list
+            context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
-                context["steps"].append(_("Impacts"))
+                regulation_sector_has_impacts = Impact.objects.filter(
+                    regulation=self.incident.sector_regulation.regulation,
+                    sectors__in=self.incident.affected_sectors.all(),
+                ).exists()
+                if regulation_sector_has_impacts:
+                    context["steps"].append(_("Impacts"))
 
             user = self.request.user
-            if is_user_regulator(user):
+            if is_user_regulator(user) and not self.is_regulator_incident:
                 context["steps"].append(_("Comment"))
         return context
 
@@ -1078,7 +1103,9 @@ class WorkflowWizardView(SessionWizardView):
     def done(self, form_list, **kwargs):
         user = self.request.user
         data = self.get_all_cleaned_data()
-        if not is_user_regulator(user) and not self.read_only:
+        if (
+            not is_user_regulator(user) or self.is_regulator_incident
+        ) and not self.read_only:
             incident_timezone = data.get("incident_timezone", TIME_ZONE)
             incident_starting_date = data.get("incident_starting_date", None)
             incident_detection_date = data.get("incident_detection_date", None)
@@ -1119,12 +1146,19 @@ class WorkflowWizardView(SessionWizardView):
                 .first()
             )
             incident_workflow.comment = data.get("comment", None)
+            review_status = data.get("review_status", None)
+            if review_status is not None:
+                incident_workflow.review_status = review_status
             incident_workflow.save()
             create_entry_log(
                 user, incident_workflow.incident, incident_workflow, "COMMENT"
             )
 
-        return HttpResponseRedirect("/incidents")
+        return (
+            redirect("regulator_incidents")
+            if self.is_regulator_incident
+            else redirect("incidents")
+        )
 
 
 def save_answers(data=None, incident=None, workflow=None):
@@ -1162,19 +1196,19 @@ def save_answers(data=None, incident=None, workflow=None):
             pass
         if question_id:
             predefined_answers = []
-            question = Question.objects.get(pk=key)
-            if question.question_type == "FREETEXT":
+            question_option = QuestionOptions.objects.get(pk=key)
+            question = question_option.question
+            question_type = question.question_type
+
+            if question_type == "FREETEXT":
                 answer = value
-            elif question.question_type == "DATE":
+            elif question_type == "DATE":
                 if value:
                     answer = value.strftime("%Y-%m-%d %H:%M")
                 else:
                     answer = None
-            elif question.question_type == "CL" or question.question_type == "RL":
-                answer = ""
-                for val in value:
-                    answer += val + ","
-                answer = answer
+            elif question_type == "CL" or question_type == "RL":
+                answer = ",".join(map(str, value))
             else:  # MULTI
                 for val in value:
                     predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
@@ -1183,7 +1217,7 @@ def save_answers(data=None, incident=None, workflow=None):
                     answer = questions_data.get(key + "_answer")
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
-                question=question,
+                question_options=question_option,
                 answer=answer,
             )
             answer_object.predefined_answers.set(predefined_answers)

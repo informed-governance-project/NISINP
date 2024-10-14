@@ -1,8 +1,12 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.core.exceptions import ValidationError
+from django.utils.translation import get_language_info
 from django.utils.translation import gettext as _
 from django_otp.forms import OTPAuthenticationForm
+from parler.forms import TranslatableModelForm
 
 User = get_user_model()
 
@@ -89,6 +93,10 @@ class SelectCompany(forms.Form):
 
 
 class RegistrationForm(UserCreationForm):
+    accept_terms = forms.BooleanField(
+        label=_("I accept and agree to the"),
+        error_messages={"required": _("You must accept the Terms of Use to register.")},
+    )
     email = forms.TextInput()
     field_order = (
         "email",
@@ -96,6 +104,7 @@ class RegistrationForm(UserCreationForm):
         "first_name",
         "password1",
         "password2",
+        "accept_terms",
     )
 
     class Meta:
@@ -104,4 +113,37 @@ class RegistrationForm(UserCreationForm):
             "email",
             "last_name",
             "first_name",
+            "accept_terms",
         )
+
+
+class CustomTranslatableAdminForm(TranslatableModelForm):
+    FALLBACK_LANGUAGE = settings.PARLER_DEFAULT_LANGUAGE_CODE
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk and self.FALLBACK_LANGUAGE not in self.data:
+            if not self.instance.has_translation(self.FALLBACK_LANGUAGE):
+                self.add_default_translation_error()
+        elif self.FALLBACK_LANGUAGE not in self.data:
+            self.add_default_translation_error()
+
+        return cleaned_data
+
+    def add_default_translation_error(self):
+        language_info = get_language_info(self.FALLBACK_LANGUAGE)
+        fallback_language_name = language_info["name_translated"]
+        error_message = _(
+            "Default language translation (%(fallback_language_name)s) is missing. "
+            "Please add it before saving."
+        )
+        self.add_error(
+            None,
+            ValidationError(
+                error_message, params={"fallback_language_name": fallback_language_name}
+            ),
+        )
+
+
+class TermsAcceptanceForm(forms.Form):
+    accept = forms.BooleanField(label=_("I accept and agree to the"))

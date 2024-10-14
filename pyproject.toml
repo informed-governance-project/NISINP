@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "governanceplatform"
-version = "0.2.0"
+version = "0.2.6"
 description = "Governance Platform - NISINP"
 authors = [
     "Cédric Bonhomme <cedric.bonhomme@nc3.lu>",
@@ -21,7 +21,7 @@ keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 python = "^3.10"
 django = "^5.0.8"
 psycopg2-binary = "^2.8.4"
-cryptography = "^42.0.2"
+cryptography = "^43.0.1"
 django-cors-headers = "^4.3.1"
 drf-spectacular = "^0.27.0"
 drf-spectacular-sidecar = "^2024.1.1"

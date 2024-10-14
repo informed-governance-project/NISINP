@@ -5,8 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveButtonSelector = 'input[name="_save"]';
     const currentUrl = window.location.href.split('?')[0];
     const urlId = currentUrl.split("/admin/")[1];
+    const langTabs = Array.from(document.querySelectorAll(langTabsSelector))
+    .filter(tab => !tab.classList.contains('deletelink'));
 
     function saveUrlId() {
+        checkUrlId()
         if (urlId) sessionStorage.setItem('urlId', urlId)
     }
 
@@ -40,8 +43,8 @@ document.addEventListener("DOMContentLoaded", function () {
         return urlParams.get('language');
     }
 
-    const langTabs = Array.from(document.querySelectorAll(langTabsSelector))
-        .filter(tab => !tab.classList.contains('deletelink'));
+    saveUrlId();
+
 
     langTabs.forEach(function (tab) {
         tab.addEventListener('click', function (event) {
@@ -67,7 +70,5 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    checkUrlId();
 
-    saveUrlId();
 });

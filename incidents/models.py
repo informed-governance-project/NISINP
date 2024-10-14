@@ -60,7 +60,8 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
 
     class Meta:
         verbose_name_plural = _("Impact")
@@ -70,12 +71,8 @@ class Impact(TranslatableModel):
 # category for the question (to order)
 class QuestionCategory(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(
-            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
-        )
+        label=models.CharField(verbose_name=_("Label"), max_length=255)
     )
-    position = models.IntegerField(verbose_name=_("Position"))
-
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -94,7 +91,8 @@ class QuestionCategory(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
 
     class Meta:
         verbose_name = _("Category of question")
@@ -110,21 +108,10 @@ class Question(TranslatableModel):
         default=QUESTION_TYPES[0][0],
         verbose_name=_("Question Type"),
     )  # MULTI, FREETEXT, DATE,
-    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         tooltip=models.TextField(verbose_name=_("Tooltip"), blank=True, null=True),
     )
-    position = models.IntegerField(verbose_name=_("Position"))
-    category = models.ForeignKey(
-        QuestionCategory,
-        on_delete=models.SET_NULL,
-        default=None,
-        null=True,
-        blank=True,
-        verbose_name=_("Category"),
-    )
-
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -150,11 +137,16 @@ class Question(TranslatableModel):
         ]
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        return (
+            self.safe_translation_getter("label", any_language=True)
+            if self.language_code
+            and self.safe_translation_getter("label", any_language=True)
+            else ""
+        )
 
     class Meta:
-        verbose_name_plural = _("Question")
-        verbose_name = _("Questions")
+        verbose_name_plural = _("Questions")
+        verbose_name = _("Question")
 
 
 # answers for the question
@@ -169,10 +161,7 @@ class PredefinedAnswer(TranslatableModel):
         default=None,
         null=True,
     )
-    position = models.IntegerField(
-        verbose_name=_("Position"), blank=True, default=0, null=True
-    )
-
+    position = models.IntegerField(blank=True, default=0, null=True)
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -191,11 +180,21 @@ class PredefinedAnswer(TranslatableModel):
     )
 
     def __str__(self):
-        return self.predefined_answer if self.predefined_answer is not None else ""
+        return (
+            self.safe_translation_getter("predefined_answer", any_language=True)
+            if self.language_code
+            and self.safe_translation_getter("predefined_answer", any_language=True)
+            else ""
+        )
 
     class Meta:
         verbose_name_plural = _("Question - predefined answers")
         verbose_name = _("Question - predefined answer")
+
+
+class QuestionCategoryOptions(models.Model):
+    question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
+    position = models.IntegerField(verbose_name=_("Position"))
 
 
 # Email sent from regulator to operator
@@ -204,15 +203,10 @@ class Email(TranslatableModel, models.Model):
         subject=models.CharField(
             verbose_name=_("Subject"),
             max_length=255,
-            blank=True,
-            default=None,
-            null=True,
         ),
         content=models.TextField(verbose_name=_("Content")),
     )
-    name = models.CharField(
-        verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-    )
+    name = models.CharField(verbose_name=_("Name"), max_length=255)
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -231,7 +225,7 @@ class Email(TranslatableModel, models.Model):
     )
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        return self.name or ""
 
     class Meta:
         verbose_name_plural = _("Email templates")
@@ -242,21 +236,12 @@ class Email(TranslatableModel, models.Model):
 # 1 Workflow for N recommendation ?
 class Workflow(TranslatableModel):
     translations = TranslatedFields(
-        name=models.CharField(
-            verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-        )
+        name=models.CharField(verbose_name=_("Name"), max_length=255)
     )
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts are needed")
     )
     questions = models.ManyToManyField(Question, verbose_name=_("Questions"))
-
-    def __str__(self):
-        return self.name if self.name is not None else ""
-
-    class Meta:
-        verbose_name_plural = _("Incident reports")
-        verbose_name = _("Incident report")
 
     submission_email = models.ForeignKey(
         Email,
@@ -285,6 +270,14 @@ class Workflow(TranslatableModel):
         default=None,
     )
 
+    def __str__(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
+
+    class Meta:
+        verbose_name_plural = _("Incident reports")
+        verbose_name = _("Incident report")
+
 
 # link between a regulation and a regulator,
 # a regulator can only create a sector_regulation for the regulation the
@@ -292,9 +285,7 @@ class Workflow(TranslatableModel):
 class SectorRegulation(TranslatableModel):
     translations = TranslatedFields(
         # for exemple NIS for energy sector
-        name=models.CharField(
-            verbose_name=_("Name"), max_length=255, blank=True, default=None, null=True
-        )
+        name=models.CharField(verbose_name=_("Name"), max_length=255)
     )
     regulation = models.ForeignKey(
         "governanceplatform.Regulation",
@@ -350,7 +341,8 @@ class SectorRegulation(TranslatableModel):
         verbose_name = _("Incident notification workflow")
 
     def __str__(self):
-        return self.name if self.name is not None else ""
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
 
 
 # link between sector regulation and workflows
@@ -387,28 +379,26 @@ class SectorRegulationWorkflow(models.Model):
                 deferrable=Deferrable.DEFERRED,
             ),
         ]
-        verbose_name_plural = _("Link between workflorw and report")
-        verbose_name = _("Links between workflorw and report")
+        verbose_name_plural = _("Link between workflow and report")
+        verbose_name = _("Links between workflow and report")
 
     def __str__(self):
-        return self.workflow.name if self.workflow is not None else ""
+        return (
+            self.workflow.safe_translation_getter("name", any_language=True)
+            if self.workflow
+            else ""
+        )
 
 
 # for emailing during each workflow
 class SectorRegulationWorkflowEmail(TranslatableModel):
     translations = TranslatedFields(
-        headline=models.CharField(
-            verbose_name=_("Headline"),
-            max_length=255,
-            blank=True,
-            default=None,
-            null=True,
-        ),
+        headline=models.CharField(verbose_name=_("Headline"), max_length=255),
     )
 
     sector_regulation_workflow = models.ForeignKey(
         SectorRegulationWorkflow,
-        verbose_name=_("Link between workflorw and report"),
+        verbose_name=_("Link between workflow and report"),
         on_delete=models.CASCADE,
     )
     email = models.ForeignKey(Email, verbose_name=_("E-mail"), on_delete=models.CASCADE)
@@ -428,7 +418,10 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         verbose_name = _("Email for Incident notification workflow")
 
     def __str__(self):
-        return self.headline if self.headline is not None else ""
+        headline_translation = self.safe_translation_getter(
+            "headline", any_language=True
+        )
+        return headline_translation or ""
 
     def regulation(self):
         return self.sector_regulation_workflow.sector_regulation.regulation
@@ -450,6 +443,14 @@ class Incident(models.Model):
     company = models.ForeignKey(
         "governanceplatform.Company",
         verbose_name=_("Company"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    regulator = models.ForeignKey(
+        "governanceplatform.Regulator",
+        verbose_name=_("Regulator"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -802,27 +803,6 @@ class IncidentWorkflow(models.Model):
         return False
 
 
-# answers
-class Answer(models.Model):
-    incident_workflow = models.ForeignKey(
-        IncidentWorkflow,
-        verbose_name=_("Incident report answered"),
-        on_delete=models.CASCADE,
-    )
-    question = models.ForeignKey(
-        Question, verbose_name=_("Question"), on_delete=models.CASCADE
-    )
-    answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
-    predefined_answers = models.ManyToManyField(
-        PredefinedAnswer, verbose_name=_("Predefined answer"), blank=True
-    )
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
-
-    class meta:
-        verbose_name_plural = _("Answer")
-        verbose_name = _("Answers")
-
-
 # record who has read the reports
 class LogReportRead(models.Model):
     user = models.ForeignKey(
@@ -854,3 +834,44 @@ class LogReportRead(models.Model):
     def save(self, *args, **kwargs):
         self.user_full_name = self.user.get_full_name()
         super().save(*args, **kwargs)
+
+
+class QuestionOptions(models.Model):
+    report = models.ForeignKey(
+        Workflow, on_delete=models.CASCADE, null=True, blank=True
+    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
+    position = models.IntegerField(verbose_name=_("Position"))
+    category = models.ForeignKey(
+        QuestionCategory, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    def __str__(self):
+        return str(self.question) or ""
+
+
+# answers
+class Answer(models.Model):
+    incident_workflow = models.ForeignKey(
+        IncidentWorkflow,
+        verbose_name=_("Incident report answered"),
+        on_delete=models.CASCADE,
+    )
+    answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
+    question_options = models.ForeignKey(
+        QuestionOptions,
+        verbose_name=_("Question options"),
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    predefined_answers = models.ManyToManyField(PredefinedAnswer, blank=True)
+
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+
+    def __str__(self):
+        return self.answer or ""
+
+    class meta:
+        verbose_name_plural = _("Answer")
+        verbose_name = _("Answers")

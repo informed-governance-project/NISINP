@@ -2,7 +2,10 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-
+from django.contrib.admin.models import LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from governanceplatform.models import User
 from .models import ObserverUser, RegulatorUser, SectorCompanyContact
 from .permissions import (
     set_observer_admin_permissions,
@@ -12,6 +15,46 @@ from .permissions import (
     set_regulator_admin_permissions,
     set_regulator_staff_permissions,
 )
+
+from .helpers import user_in_group
+
+
+# Add logs for user connection
+def add_log_for_connection(sender, user, request, **kwargs):
+    if (
+        user_in_group(user, "RegulatorAdmin")
+        or user_in_group(user, "RegulatorUser")
+        or user_in_group(user, "PlatformAdmin")
+    ):
+        LogEntry.objects.log_action(
+            user_id=user.id,
+            content_type_id=ContentType.objects.get_for_model(User).pk,
+            object_id=user.id,
+            object_repr=user.email,
+            action_flag=5,
+        )
+
+
+user_logged_in.connect(add_log_for_connection)
+
+
+# Add logs for user deconnection
+def log_user_logout(sender, request, user, **kwargs):
+    if (
+        user_in_group(user, "RegulatorAdmin")
+        or user_in_group(user, "RegulatorUser")
+        or user_in_group(user, "PlatformAdmin")
+    ):
+        LogEntry.objects.log_action(
+            user_id=user.id,
+            content_type_id=ContentType.objects.get_for_model(User).pk,
+            object_id=user.id,
+            object_repr=user.email,
+            action_flag=6,
+        )
+
+
+user_logged_out.connect(log_user_logout)
 
 
 @receiver(post_save, sender=SectorCompanyContact)
@@ -85,11 +128,21 @@ def delete_user_groups(sender, instance, **kwargs):
             group = None
 
         if group and user.groups.filter(name=group_name).exists():
-            # remove roles only if there is no linked company
-            if group_name == "OperatorUser" and user.companies.count() < 1:
-                user.groups.remove(group)
+            # remove roles only if there is no linked company/regulator
             if group_name == "OperatorAdmin" and user.companies.count() < 1:
                 user.groups.remove(group)
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
+                if new_group:
+                    user.groups.add(new_group)
+
+                user.is_active = False
+
+            if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
+                user.groups.remove(group)
+                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
+                if new_group:
+                    user.groups.add(new_group)
+                user.is_active = False
 
     if not user.sectorcompanycontact_set.exists():
         user.is_staff = False

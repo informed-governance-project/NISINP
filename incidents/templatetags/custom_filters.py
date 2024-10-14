@@ -187,36 +187,36 @@ def is_deadline_exceeded(report, incident):
 
 
 # get the incident workflow by workflow and incident to see the historic for regulator
-@register.filter
-def get_incident_workflow_by_workflow(incident, workflow):
-    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-        workflow
-    )
+# @register.filter
+# def get_incident_workflow_by_workflow(incident, workflow):
+#     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+#         workflow
+#     )
 
-    if latest_incident_workflow is None:
-        queryset = IncidentWorkflow.objects.filter(
-            incident=incident, workflow=workflow
-        ).order_by("-timestamp")
-    else:
-        queryset = (
-            IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
-            .exclude(id=latest_incident_workflow.id)
-            .order_by("-timestamp")
-        )
+#     if latest_incident_workflow is None:
+#         queryset = IncidentWorkflow.objects.filter(
+#             incident=incident, workflow=workflow
+#         ).order_by("-timestamp")
+#     else:
+#         queryset = (
+#             IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
+#             .exclude(id=latest_incident_workflow.id)
+#             .order_by("-timestamp")
+#         )
 
-    if not queryset:
-        return None
+#     if not queryset:
+#         return None
 
-    data = list(queryset.values("id", "timestamp"))
-    for item in data:
-        item["timestamp"] = item["timestamp"].isoformat()
+#     data = list(queryset.values("id", "timestamp"))
+#     for item in data:
+#         item["timestamp"] = item["timestamp"].isoformat()
 
-    return json.dumps(data, cls=DjangoJSONEncoder)
+# return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 # get the incident workflow by workflow and incident to see the historic for operator
 @register.filter
-def get_incident_workflow_by_workflow_operator(incident, workflow):
+def get_incident_workflow_by_workflow(incident, workflow):
     queryset = (
         IncidentWorkflow.objects.all()
         .filter(incident=incident, workflow=workflow)

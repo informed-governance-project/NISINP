@@ -55,6 +55,8 @@ def set_platform_admin_permissions(user):
             "regulation": ["add", "change", "delete"],
             "observeruser": ["add", "change", "delete"],
             "observer": ["add", "change", "delete"],
+            "observerregulation": ["add", "change", "delete"],
+            "entitycategory": ["add", "change", "delete"],
         },
     )
 
@@ -116,7 +118,7 @@ def set_operator_admin_permissions(user):
         is_staff=True,
         group_name="OperatorAdmin",
         permissions={
-            "user": ["add", "change", "delete"],
+            "user": ["add", "change"],
             "sectorcompanycontact": ["add", "change", "delete"],
             "company": ["change"],
         },
