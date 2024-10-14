@@ -1,18 +1,23 @@
 from django.contrib import admin
-from governanceplatform.mixins import TranslationUpdateMixin
-from governanceplatform.admin import admin_site
-from import_export import resources, fields
-from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
-from parler.admin import TranslatableAdmin
-from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
+from django.utils.translation import gettext_lazy as _
+from import_export import fields, resources
+from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
+from governanceplatform.admin import (
+    CustomTranslatableAdmin,
+    CustomTranslatableTabularInline,
+    admin_site,
+)
+from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
-    Standard,
+    Evidence,
     MaturityLevel,
-    SecurityObjective,
     SecurityMeasure,
-    SecurityObjectivesInStandard
+    SecurityObjective,
+    SecurityObjectivesInStandard,
+    Standard,
 )
 
 
@@ -29,11 +34,13 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Domain
-        fields = ('label', 'position')
+        fields = ("label", "position")
 
 
 @admin.register(Domain, site=admin_site)
-class DomainAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class DomainAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     resource_class = DomainResource
     list_display = [
         "label",
@@ -58,7 +65,7 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Standard
-        fields = ('label', 'description', 'regulation')
+        fields = ("label", "description", "regulation")
 
 
 class SecurityObjectiveInline(admin.TabularInline):
@@ -66,13 +73,15 @@ class SecurityObjectiveInline(admin.TabularInline):
 
 
 @admin.register(Standard, site=admin_site)
-class StandardAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class StandardAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     resource_class = StandardResource
     list_display = [
         "label",
         "description",
     ]
-    exclude = ('regulator',)
+    exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
 
     # exclude standards which are not belonging to the user regulator
@@ -97,11 +106,13 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = MaturityLevel
-        fields = ('label')
+        fields = "label"
 
 
 @admin.register(MaturityLevel, site=admin_site)
-class MaturityLevelAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class MaturityLevelAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     resource_class = MaturityLevelResource
     list_display = [
         "label",
@@ -139,11 +150,20 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 
     class Meta:
         model = SecurityObjective
-        fields = ('objective', 'description', 'unique_code', 'position', 'domain', 'standards')
+        fields = (
+            "objective",
+            "description",
+            "unique_code",
+            "position",
+            "domain",
+            "standards",
+        )
 
 
 @admin.register(SecurityObjective, site=admin_site)
-class SecurityObjectiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class SecurityObjectiveAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     resource_class = SecurityObjectiveResource
     list_display = [
         "objective",
@@ -156,8 +176,10 @@ class SecurityObjectiveAdmin(ImportExportModelAdmin, ExportActionModelAdmin, Tra
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "standards":
-            kwargs["queryset"] = Standard.objects.filter(regulator=request.user.regulators.first())
-        return super(SecurityObjectiveAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+            kwargs["queryset"] = Standard.objects.filter(
+                regulator=request.user.regulators.first()
+            )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
@@ -165,7 +187,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     security_objective = fields.Field(
         column_name="security_objective",
         attribute="security_objective",
-        widget=TranslatedNameWidget(SecurityObjective, field="label"),
+        widget=TranslatedNameWidget(SecurityObjective, field="objective"),
     )
     maturity_level = fields.Field(
         column_name="maturity_level",
@@ -176,9 +198,47 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="description",
         attribute="description",
     )
-    evidence = fields.Field(
-        column_name="evidence",
-        attribute="evidence",
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
+
+    class Meta:
+        model = SecurityMeasure
+        fields = ("security_objective", "maturity_level", "description", "position")
+
+
+class EvidenceInline(CustomTranslatableTabularInline):
+    model = Evidence
+    verbose_name = _("evidence")
+    verbose_name_plural = _("evidences")
+    ordering = ["position"]
+    extra = 0
+
+
+@admin.register(SecurityMeasure, site=admin_site)
+class SecurityMeasureAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
+    resource_class = SecurityMeasureResource
+    list_display = [
+        "security_objective",
+        "description",
+        "position",
+    ]
+    inlines = [EvidenceInline]
+
+
+class SecurityEvidenceResource(TranslationUpdateMixin, resources.ModelResource):
+    id = fields.Field(column_name="id", attribute="id", readonly=True)
+    security_measure = fields.Field(
+        column_name="security_measure",
+        attribute="security_measure",
+        widget=TranslatedNameWidget(SecurityMeasure, field="description"),
+    )
+    description = fields.Field(
+        column_name="description",
+        attribute="description",
     )
     position = fields.Field(
         column_name="position",
@@ -186,16 +246,18 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     class Meta:
-        model = SecurityObjective
-        fields = ('security_objective', 'maturity_level', 'description', 'evidence')
+        model = Evidence
+        fields = ("security_measure", "description", "position")
 
 
-@admin.register(SecurityMeasure, site=admin_site)
-class SecurityMeasureAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
-    resource_class = SecurityMeasureResource
+@admin.register(Evidence, site=admin_site)
+class EvidenceAdmin(
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
+    resource_class = SecurityEvidenceResource
     list_display = [
-        "security_objective",
-        "description",
-        "evidence",
         "position",
+        "description",
+        "security_measure",
     ]
+    list_display_links = ["position", "description"]
