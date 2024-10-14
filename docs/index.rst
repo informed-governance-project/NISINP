@@ -54,6 +54,7 @@ NIS Incident Notification Platform
 
    ui_user
    ui_administrator
+   ui_platformadmin
 
 
 Presentation
@@ -68,7 +69,7 @@ The platform is dedicated to national regulators and Operators of Essential Serv
 `NIS 2 <https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2021)689333>`_.
 Different regulations are supported.
 
-This project is lead by `NC3-LU <https://www.nc3.lu>`_.
+This project is lead by `NC3-LU <https://www.nc3.lu>`__.
 Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 `IBPT.be <https://www.ibpt.be>`_.
 

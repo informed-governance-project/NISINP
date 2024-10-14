@@ -53,8 +53,10 @@ def set_platform_admin_permissions(user):
             "regulatoruser": ["add", "change", "delete"],
             "regulator": ["add", "change", "delete"],
             "regulation": ["add", "change", "delete"],
-            "certuser": ["add", "change", "delete"],
-            "cert": ["add", "change", "delete"],
+            "observeruser": ["add", "change", "delete"],
+            "observer": ["add", "change", "delete"],
+            "observerregulation": ["add", "change", "delete"],
+            "entitycategory": ["add", "change", "delete"],
         },
     )
 
@@ -69,27 +71,27 @@ def set_regulator_admin_permissions(user):
     )
 
 
-def set_cert_admin_permissions(user):
+def set_observer_admin_permissions(user):
     set_permissions_for_user(
         user,
         is_superuser=False,
         is_staff=True,
-        group_name="CertAdmin",
+        group_name="ObserverAdmin",
         permissions={
             "user": ["add", "change", "delete"],
-            "certuser": ["add", "change", "delete"],
-            "cert": ["change"],
+            "observeruser": ["add", "change", "delete"],
+            "observer": ["change"],
         },
     )
 
 
-def set_cert_user_permissions(user):
+def set_observer_user_permissions(user):
     user.is_staff = False
     set_permissions_for_user(
         user,
         is_superuser=False,
         is_staff=False,
-        group_name="CertUser",
+        group_name="ObserverUser",
         permissions={},
     )
 
@@ -116,7 +118,7 @@ def set_operator_admin_permissions(user):
         is_staff=True,
         group_name="OperatorAdmin",
         permissions={
-            "user": ["add", "change", "delete"],
+            "user": ["add", "change"],
             "sectorcompanycontact": ["add", "change", "delete"],
             "company": ["change"],
         },

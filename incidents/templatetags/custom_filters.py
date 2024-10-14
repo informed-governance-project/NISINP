@@ -1,6 +1,9 @@
+import json
 import math
 
 from django import template
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -50,9 +53,9 @@ def status_class_without_incident_workflow(report, incident):
         return "table-success"
     elif value == _("Review failed"):
         return "table-danger"
-    elif value == _("Delivered"):
+    elif value == _("Submitted"):
         return "table-info"
-    elif value == _("Not delivered and deadline exceeded"):
+    elif value == _("Not submitted and deadline exceeded"):
         return "table-dark"
     else:
         return "table-secondary"
@@ -65,11 +68,11 @@ def get_review_status_name(value):
     elif value == "FAIL":
         return _("Review failed")
     elif value == "DELIV":
-        return _("Delivered")
+        return _("Submitted")
     elif value == "OUT":
-        return _("Not delivered and deadline exceeded")
+        return _("Not submitted and deadline exceeded")
     else:
-        return _("Not delivered")
+        return _("Not submitted")
 
 
 @register.filter
@@ -152,14 +155,14 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not delivered and deadline exceeded")
+                    return _("Not submitted and deadline exceeded")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
                 math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                return _("Not delivered and deadline exceeded")
+                return _("Not submitted and deadline exceeded")
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
             and incident.get_previous_workflow(report) is not False
@@ -177,52 +180,56 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not delivered and deadline exceeded")
+                    return _("Not submitted and deadline exceeded")
 
-    return _("Not delivered")
+    return _("Not submitted")
 
 
 # get the incident workflow by workflow and incident to see the historic for regulator
-@register.filter
-def get_incident_workflow_by_workflow(incident, workflow):
-    # we exclude the latest incident workflow
-    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-        workflow
-    )
-    if latest_incident_workflow is None:
-        return (
-            IncidentWorkflow.objects.all()
-            .filter(incident=incident, workflow=workflow)
-            .order_by("-timestamp")
-        )
+# @register.filter
+# def get_incident_workflow_by_workflow(incident, workflow):
+#     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+#         workflow
+#     )
 
-    return (
-        IncidentWorkflow.objects.all()
-        .filter(incident=incident, workflow=workflow)
-        .exclude(id=latest_incident_workflow.id)
-        .order_by("-timestamp")
-    )
+#     if latest_incident_workflow is None:
+#         queryset = IncidentWorkflow.objects.filter(
+#             incident=incident, workflow=workflow
+#         ).order_by("-timestamp")
+#     else:
+#         queryset = (
+#             IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
+#             .exclude(id=latest_incident_workflow.id)
+#             .order_by("-timestamp")
+#         )
+
+#     if not queryset:
+#         return None
+
+#     data = list(queryset.values("id", "timestamp"))
+#     for item in data:
+#         item["timestamp"] = item["timestamp"].isoformat()
+
+    # return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 # get the incident workflow by workflow and incident to see the historic for operator
 @register.filter
-def get_incident_workflow_by_workflow_operator(incident, workflow):
-    # we exclude the latest incident workflow
-    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-        workflow
-    )
-    if latest_incident_workflow is None:
-        return (
-            IncidentWorkflow.objects.all()
-            .filter(incident=incident, workflow=workflow)
-            .order_by("-timestamp")
-        )
-
-    return (
+def get_incident_workflow_by_workflow(incident, workflow):
+    queryset = (
         IncidentWorkflow.objects.all()
         .filter(incident=incident, workflow=workflow)
         .order_by("-timestamp")
     )
+
+    if not queryset:
+        return None
+
+    data = list(queryset.values("id", "timestamp"))
+    for item in data:
+        item["timestamp"] = item["timestamp"].isoformat()
+
+    return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 # replace a field in the URL, used for filter + pagination
@@ -231,3 +238,9 @@ def url_replace(request, field, value):
     d = request.GET.copy()
     d[field] = value
     return d.urlencode()
+
+
+# get settings value
+@register.simple_tag
+def settings_value(name):
+    return getattr(settings, name, "")

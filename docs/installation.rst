@@ -61,7 +61,8 @@ Create a database, database user:
     ALTER ROLE
     postgres=# grant all privileges on database <database> to <username>;
     GRANT
-    postgres=#
+    postgres=# ALTER DATABASE <database> OWNER TO <username>;
+    GRANT
 
 
 NISINP
@@ -79,7 +80,7 @@ NISINP
     poetry shell
     python manage.py migrate
     python manage.py collectstatic
-    poetry manage.py compilemessages
+    python manage.py compilemessages
 
 
 Theme

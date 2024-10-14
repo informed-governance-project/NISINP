@@ -9,24 +9,29 @@ from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
 from import_export import fields, resources
-from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from parler.admin import TranslatableAdmin
+from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
-from .helpers import user_in_group, instance_user_in_group
+from .forms import CustomTranslatableAdminForm
+from .helpers import (
+    instance_user_in_group,
+    is_user_operator,
+    is_user_regulator,
+    user_in_group,
+)
 from .mixins import TranslationUpdateMixin
-from .models import (
-    Cert,
-    CertUser,
+from .models import (  # Functionality,; OperatorType,; Service,
     Company,
-    # Functionality,
-    # OperatorType,
+    EntityCategory,
+    Observer,
+    ObserverRegulation,
+    ObserverUser,
     Regulation,
     Regulator,
     RegulatorUser,
     Sector,
     SectorCompanyContact,
-    # Service,
     User,
 )
 from .settings import SITE_NAME
@@ -44,7 +49,7 @@ def get_group_id(name=""):
 
 
 class CustomAdminSite(admin.AdminSite):
-    site_header = SITE_NAME + " " + _("Administration")
+    site_header = SITE_NAME + " " + _("Settings")
     site_title = SITE_NAME
 
     def admin_view(self, view, cacheable=False):
@@ -53,6 +58,14 @@ class CustomAdminSite(admin.AdminSite):
 
 
 admin_site = CustomAdminSite()
+
+
+class CustomTranslatableAdmin(TranslatableAdmin):
+    form = CustomTranslatableAdminForm
+
+
+class CustomTranslatableTabularInline(TranslatableTabularInline):
+    form = CustomTranslatableAdminForm
 
 
 @admin.register(Site, site=admin_site)
@@ -86,11 +99,11 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
     class Meta:
         model = Sector
         export_order = ["id", "parent"]
-        exclude = ('creator', 'creator_name')
+        exclude = ("creator", "creator_name")
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAdmin):
+class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
     search_fields = ["translations__name"]
@@ -171,7 +184,7 @@ class SectorAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAd
 
 
 # @admin.register(Service, site=admin_site)
-# class ServiceAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class ServiceAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
 #     list_display_links = ["acronym", "name"]
 #     search_fields = ["translations__name"]
@@ -188,6 +201,45 @@ class SectorAdmin(ImportExportModelAdmin, ExportActionModelAdmin, TranslatableAd
 #         return obj.sector.name if obj.sector.parent else None
 
 
+class EntityCategoryResource(resources.ModelResource):
+    class Meta:
+        model = EntityCategory
+
+
+@admin.register(EntityCategory, site=admin_site)
+class EntityCategoryAdmin(TranslatableAdmin):
+    resource_class = EntityCategoryResource
+
+    list_display = ["label", "code"]
+    search_fields = ["label"]
+    fields = (
+        "label",
+        "code",
+    )
+
+    # Only accessible for platform admin
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+
 class CompanyResource(resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id")
     identifier = fields.Field(column_name="identifier", attribute="identifier")
@@ -196,11 +248,14 @@ class CompanyResource(resources.ModelResource):
     country = fields.Field(column_name="country", attribute="country")
     email = fields.Field(column_name="email", attribute="email")
     phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
+    entity_categories = fields.Field(
+        column_name="entity_categories", attribute="entity_categories"
+    )
 
     class Meta:
         import_id_fields = ("identifier",)
         model = Company
-        exclude = ('sector_contacts', 'types')
+        exclude = ("sector_contacts", "types")
 
 
 class SectorCompanyContactInline(admin.TabularInline):
@@ -209,6 +264,7 @@ class SectorCompanyContactInline(admin.TabularInline):
     verbose_name_plural = _("Contacts for sectors")
     extra = 0
     min_num = 1
+    max_num = 1
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector":
@@ -223,8 +279,8 @@ class SectorCompanyContactInline(admin.TabularInline):
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         platformAdminGroupId = get_group_id("PlatformAdmin")
-        certAdminGroupId = get_group_id("CertAdmin")
-        certUserGroupId = get_group_id("CertUser")
+        observerAdminGroupId = get_group_id("ObserverAdmin")
+        observerUserGroupId = get_group_id("ObserverUser")
         regulatorAdminGroupId = get_group_id("RegulatorAdmin")
         regulatorUserGroupId = get_group_id("RegulatorUser")
         if db_field.name == "user":
@@ -237,13 +293,13 @@ class SectorCompanyContactInline(admin.TabularInline):
                     User.objects.exclude(
                         groups__in=[
                             platformAdminGroupId,
-                            certAdminGroupId,
-                            certUserGroupId,
+                            observerAdminGroupId,
+                            observerUserGroupId,
                             regulatorAdminGroupId,
                             regulatorUserGroupId,
                         ]
                     )
-                    .filter(regulators=None, certs=None)
+                    .filter(regulators=None, observers=None)
                     .order_by("email")
                 )
 
@@ -278,16 +334,44 @@ class SectorCompanyContactInline(admin.TabularInline):
         return super().has_add_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
-        if obj == request.user:
+        user = request.user
+
+        if obj and user_in_group(user, "RegulatorAdmin") and is_user_operator(obj):
+            return False
+
+        if obj == user:
             return False
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        if obj == request.user:
+        user = request.user
+
+        if obj and user_in_group(user, "RegulatorAdmin") and is_user_operator(obj):
+            return False
+
+        if obj == user:
             return False
         elif user_in_group(request.user, "RegulatorUser"):
             return True
         return super().has_delete_permission(request, obj)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                sector__in=user.sectors.all().distinct(),
+                company__in=user.companies.all()
+                .filter(sectorcompanycontact__is_company_administrator=True)
+                .distinct(),
+            )
+
+        return queryset
+
+
+class SectorCompanyContactMultipleInline(SectorCompanyContactInline):
+    max_num = None
 
 
 class CompanySectorListFilter(SimpleListFilter):
@@ -303,13 +387,8 @@ class CompanySectorListFilter(SimpleListFilter):
 
         sectors_list = []
         for sector in sectors:
-            if sector.name is not None and sector.parent is not None:
-                sectors_list.append(
-                    (sector.id, sector.parent.name + " --> " + sector.name)
-                )
-            elif sector.name is not None and sector.parent is None:
-                sectors_list.append((sector.id, sector.name))
-        return sorted(sectors_list, key=lambda item: item[1])
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -319,7 +398,7 @@ class CompanySectorListFilter(SimpleListFilter):
 
 
 @admin.register(Company, site=admin_site)
-class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
+class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
     list_display = [
         "name",
@@ -330,11 +409,12 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
         "get_sectors",
     ]
     list_filter = [CompanySectorListFilter]
+    filter_horizontal = ["entity_categories"]
     search_fields = ["name"]
-    inlines = (SectorCompanyContactInline,)
+    inlines = (SectorCompanyContactMultipleInline,)
     fieldsets = [
         (
-            _("Contact Information"),
+            _("Contact information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
@@ -345,11 +425,20 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
             },
         ),
         (
-            _("Configuration Information"),
+            _("Configuration information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
                     "identifier",
+                ],
+            },
+        ),
+        (
+            _("Entity Categories"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "entity_categories",
                 ],
             },
         ),
@@ -358,31 +447,12 @@ class CompanyAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAd
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude SectorCompanyContactInline for OperatorAdmin because if we go for user creation
-        # it asks company and that's not good
-        if obj and user_in_group(user, "OperatorAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactInline)
-            ]
-
-        # Exclude SectorCompanyContactInline for RegulatorAdmin because if we go for user creation
-        # it asks for regulators and that's not good
-
-        if user_in_group(user, "RegulatorAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, SectorCompanyContactInline)
-            ]
-
-        # if not obj and user_in_group(user, "RegulatorUser"):
-        #     inline_instances = [
-        #         inline
-        #         for inline in inline_instances
-        #         if not isinstance(inline, SectorCompanyContactInline)
-        #     ]
+        # Exclude SectorCompanyContactMultipleInline for RegulatorAdmin / OperatorAdmin
+        # because if we go for user creation it asks company and that's not good
+        if user_in_group(user, "RegulatorAdmin") or user_in_group(
+            user, "OperatorAdmin"
+        ):
+            inline_instances = []
 
         return inline_instances
 
@@ -483,27 +553,31 @@ class UserResource(resources.ModelResource):
         else:
             companies = None
             sectors = None
-            if 'companies' in data and 'sectors' in data:
-                if data['companies']:
-                    data_companies = data['companies'].split('|')
+            if "companies" in data and "sectors" in data:
+                if data["companies"]:
+                    data_companies = data["companies"].split("|")
                     companies = Company.objects.filter(name__in=data_companies)
-                    data_sectors = data['sectors'].split('|')
+                    data_sectors = data["sectors"].split("|")
                     sectors = Sector.objects.filter(translations__name__in=data_sectors)
                     if sectors is not None and companies is not None:
                         for company in companies:
                             for sector in sectors:
-                                if not SectorCompanyContact.objects.filter(user=obj, sector=sector, company=company).exists():
-                                    sc = SectorCompanyContact(user=obj, sector=sector, company=company)
-                                    if 'administrator' in data:
-                                        if data['administrator'] is True:
+                                if not SectorCompanyContact.objects.filter(
+                                    user=obj, sector=sector, company=company
+                                ).exists():
+                                    sc = SectorCompanyContact(
+                                        user=obj, sector=sector, company=company
+                                    )
+                                    if "administrator" in data:
+                                        if data["administrator"] is True:
                                             sc.is_company_administrator = True
-                                        elif data['administrator'] is False:
+                                        elif data["administrator"] is False:
                                             sc.is_company_administrator = False
                                     sc.save()
 
     # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
     def skip_row(self, instance, original, row, import_validation_errors=None):
-        if getattr(original, "pk") is not None:
+        if original.pk:
             if (
                 instance_user_in_group(instance, "OperatorUser")
                 or instance_user_in_group(instance, "OperatorAdmin")
@@ -514,19 +588,20 @@ class UserResource(resources.ModelResource):
             else:
                 return True
 
-        return super().skip_row(instance, original, row,
-                                import_validation_errors=import_validation_errors)
+        return super().skip_row(
+            instance, original, row, import_validation_errors=import_validation_errors
+        )
 
     # override to put by default IncidentUser group to user without group
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
         user = User.objects.get(pk=row_result.object_id)
         if user.groups.count() == 0:
-            user.groups.add(Group.objects.get(name='IncidentUser').id)
+            user.groups.add(Group.objects.get(name="IncidentUser").id)
             user.save()
 
     class Meta:
         model = User
-        import_id_fields = ('email',)
+        import_id_fields = ("email",)
         skip_unchanged = True
         fields = (
             "first_name",
@@ -542,10 +617,20 @@ class userRegulatorInline(admin.TabularInline):
     model = RegulatorUser
     extra = 0
     min_num = 1
+    max_num = 1
 
     filter_horizontal = [
         "sectors",
     ]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return qs.filter(is_regulator_administrator=True)
+        else:
+            return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
@@ -569,19 +654,18 @@ class userRegulatorInline(admin.TabularInline):
                 kwargs["queryset"] = User.objects.filter(
                     Q(groups=None)
                     | Q(
-                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        groups__in=[RegulatorAdminGroupId],
                         regulators=None,
                     )
                     | Q(
-                        groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
+                        groups__in=[RegulatorAdminGroupId],
                         regulators=current_id,
                     )
                 )
             # Regulator Admin
             if user_in_group(user, "RegulatorAdmin"):
                 kwargs["queryset"] = User.objects.filter(
-                    Q(groups=None)
-                    | Q(
+                    Q(
                         groups__in=[RegulatorAdminGroupId, RegulatorUserGroupId],
                         regulators=None,
                     )
@@ -611,20 +695,21 @@ class userRegulatorInline(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        if (
-            user_in_group(request.user, "PlatformAdmin")
-            and "is_regulator_administrator" in formset.form.base_fields
-        ):
-            formset.form.base_fields[
-                "is_regulator_administrator"
-            ].widget = forms.HiddenInput()
-            formset.form.base_fields["is_regulator_administrator"].initial = True
-            # TO remove the sector choice for regulator admin
-            # formset.form.base_fields[
-            #     "sectors"
-            # ].widget = forms.HiddenInput()
+        if user_in_group(request.user, "PlatformAdmin"):
+            if "is_regulator_administrator" in formset.form.base_fields:
+                formset.form.base_fields[
+                    "is_regulator_administrator"
+                ].widget = forms.HiddenInput()
+                formset.form.base_fields["is_regulator_administrator"].initial = True
+            if "sectors" in formset.form.base_fields:
+                formset.form.base_fields.pop("sectors", None)
+
         formset.empty_permitted = False
         return formset
+
+
+class userRegulatorMultipleInline(userRegulatorInline):
+    max_num = None
 
 
 # reset the 2FA we delete the TOTP devices
@@ -637,7 +722,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 
 class UserRegulatorsListFilter(SimpleListFilter):
-    title = _("Regulators")
+    title = _("Competent authorities")
     parameter_name = "regulators"
 
     def lookups(self, request, model_admin):
@@ -646,7 +731,7 @@ class UserRegulatorsListFilter(SimpleListFilter):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             regulators = Regulator.objects.all()
-        return [(regulator.id, regulator.name) for regulator in regulators]
+        return [(regulator.id, regulator) for regulator in regulators]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -655,22 +740,22 @@ class UserRegulatorsListFilter(SimpleListFilter):
         return queryset
 
 
-class CertUsersListFilter(SimpleListFilter):
-    title = _("CERT")
-    parameter_name = "certs"
+class ObserverUsersListFilter(SimpleListFilter):
+    title = _("Observer")
+    parameter_name = "observers"
 
     def lookups(self, request, model_admin):
-        certs = Cert.objects.none()
+        observers = Observer.objects.none()
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
-            certs = Cert.objects.all()
-        return [(cert.id, cert.name) for cert in certs]
+            observers = Observer.objects.all()
+        return [(observer.id, observer) for observer in observers]
 
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(certs=value)
+            return queryset.filter(observers=value)
         return queryset
 
 
@@ -682,7 +767,7 @@ class UserCompaniesListFilter(SimpleListFilter):
         companies = Company.objects.all()
         user = request.user
         # Platform Admin
-        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "CertAdmin"):
+        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "ObserverAdmin"):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -705,13 +790,17 @@ class UserSectorListFilter(SimpleListFilter):
         sectors = Sector.objects.all()
         user = request.user
         # Platform Admin
-        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "CertAdmin"):
+        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "ObserverAdmin"):
             sectors = Sector.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(id__in=user.sectors.all())
 
-        return [(sector.id, sector.name) for sector in sectors]
+        sectors_list = []
+
+        for sector in sectors:
+            sectors_list.append((sector.id, sector))
+        return sorted(sectors_list, key=lambda item: str(item[1]))
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -729,14 +818,20 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
         user = request.user
 
         if user_in_group(user, "RegulatorAdmin"):
-            groups = groups.exclude(name__in=["PlatformAdmin"])
+            groups = groups.exclude(
+                name__in=[
+                    "PlatformAdmin",
+                    "ObserverAdmin",
+                    "ObserverUser",
+                ]
+            )
 
         if user_in_group(user, "PlatformAdmin"):
             groups = groups.exclude(
                 name__in=["OperatorAdmin", "OperatorUser", "IncidentUser"]
             )
 
-        if user_in_group(user, "CertAdmin"):
+        if user_in_group(user, "ObserverAdmin"):
             groups = groups.exclude(
                 name__in=[
                     "PlatformAdmin",
@@ -750,7 +845,12 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
 
         if user_in_group(user, "RegulatorUser"):
             groups = groups.exclude(
-                name__in=["PlatformAdmin", "RegulatorAdmin", "CertAdmin", "CertUser"]
+                name__in=[
+                    "PlatformAdmin",
+                    "RegulatorAdmin",
+                    "ObserverAdmin",
+                    "ObserverUser",
+                ]
             )
 
         if user_in_group(user, "OperatorAdmin"):
@@ -760,19 +860,27 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(groups=self.value())
+        # little hack to have the default view when a regulator admin logged in req41
+        if (
+            self.value() is None
+            and not request.GET
+            and user_in_group(request.user, "RegulatorAdmin")
+        ):
+            return queryset.filter(regulators=request.user.regulators.first())
 
 
 @admin.register(User, site=admin_site)
-class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin):
+class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = UserResource
     list_display = [
+        "is_active",
         "first_name",
         "last_name",
         "email",
         "phone_number",
         "get_regulators",
         "get_companies",
-        "get_certs",
+        "get_observers",
         # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
@@ -780,21 +888,34 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     search_fields = ["first_name", "last_name", "email"]
     list_filter = [
         UserRegulatorsListFilter,
-        CertUsersListFilter,
+        ObserverUsersListFilter,
         UserCompaniesListFilter,
         UserSectorListFilter,
         UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
-    inlines = [userRegulatorInline, SectorCompanyContactInline]
-    fieldsets = [
+    standard_fieldsets = [
         (
-            _("Contact Information"),
+            _("Contact information"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
+                ],
+            },
+        ),
+    ]
+    # add is_active for RegulatorAdmin
+    admin_fieldsets = [
+        (
+            _("Contact information"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    ("first_name", "last_name"),
+                    ("email", "phone_number"),
+                    ("is_active"),
                 ],
             },
         ),
@@ -805,64 +926,62 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
+    def get_fieldsets(self, request, obj=None):
+        # RegulatorAdmin
+        if user_in_group(request.user, "RegulatorAdmin"):
+            if "object_id" in request.resolver_match.kwargs:
+                current_id = request.resolver_match.kwargs["object_id"]
+                user = User.objects.get(pk=current_id)
+                if user and (
+                    user_in_group(user, "RegulatorAdmin")
+                    or user_in_group(user, "RegulatorUser")
+                ):
+                    return self.admin_fieldsets
+        # PlatformAdmin
+        if user_in_group(request.user, "PlatformAdmin"):
+            if "object_id" in request.resolver_match.kwargs:
+                current_id = request.resolver_match.kwargs["object_id"]
+                user = User.objects.get(pk=current_id)
+                if user and (
+                    user_in_group(user, "RegulatorAdmin")
+                    or user_in_group(user, "PlatformAdmin")
+                ):
+                    return self.admin_fieldsets
+        return self.standard_fieldsets
+
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
+        user = request.user
 
-        # Exclude SectorCompanyContactInline, userRegulatorInline for the logged-in user
-        if obj and obj == request.user:
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(
-                    inline, (SectorCompanyContactInline, userRegulatorInline)
-                )
-            ]
+        # Exclude all inlines for the logged-in user
+        if obj and obj == user:
+            return []
 
-        # Exclude userRegulatorInline for PlatformAdmin group
-        if obj and user_in_group(obj, "PlatformAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, userRegulatorInline)
-            ]
+        # PlatformAdmin inlines
+        if user_in_group(user, "PlatformAdmin"):
+            inline_instances = []
 
-        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
-        if user_in_group(request.user, "RegulatorAdmin"):
-            if obj and not user_in_group(obj, "RegulatorUser"):
+        # RegulatorAdmin inlines
+        if user_in_group(user, "RegulatorAdmin"):
+            if obj and is_user_regulator(obj):
+                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
+            if obj and is_user_operator(obj):
                 inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (userRegulatorInline))
-                ]
-            else:
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (SectorCompanyContactInline))
+                    SectorCompanyContactInline(self.model, self.admin_site)
                 ]
 
-        # Exclude userRegulatorInline or SectorCompanyContactInline for users in RegulatorAdmin group
-        if user_in_group(request.user, "RegulatorUser"):
-            if obj and not user_in_group(obj, "RegulatorUser"):
+        # RegulatorUser inlines
+        if user_in_group(user, "RegulatorUser"):
+            if obj and user_in_group(obj, "RegulatorUser"):
+                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
+            if obj and user_in_group(obj, "OperatorAdmin"):
                 inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (userRegulatorInline))
-                ]
-            else:
-                inline_instances = [
-                    inline
-                    for inline in inline_instances
-                    if not isinstance(inline, (SectorCompanyContactInline))
+                    SectorCompanyContactInline(self.model, self.admin_site)
                 ]
 
-        # platform admin just create user and manage certuser and regulatoruser entity
-        if user_in_group(request.user, "PlatformAdmin"):
-            inline_instances = [
-                inline
-                for inline in inline_instances
-                if not isinstance(inline, (userRegulatorInline))
-            ]
+        # OperatorAdmin inlines
+        if user_in_group(user, "OperatorAdmin"):
+            inline_instances = [SectorCompanyContactInline(self.model, self.admin_site)]
 
         return inline_instances
 
@@ -876,19 +995,29 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
                 field for field in list_display if field not in fields_to_exclude
             ]
 
-        if user_in_group(request.user, "CertAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies", "get_regulators"]
+        if user_in_group(request.user, "ObserverAdmin"):
+            fields_to_exclude = [
+                "get_sectors",
+                "get_companies",
+                "get_regulators",
+                "is_active",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
-            fields_to_exclude = ["get_regulators", "get_certs"]
+            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
+            list_display = [
+                field for field in list_display if field not in fields_to_exclude
+            ]
+        if user_in_group(request.user, "RegulatorAdmin"):
+            fields_to_exclude = ["get_observers"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
-            fields_to_exclude = ["get_regulators", "get_certs"]
+            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -901,40 +1030,47 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
         PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
-        RegulatorUserGroupId = get_group_id(name="RegulatorUser")
-        CertAdminGroupId = get_group_id(name="CertAdmin")
-        CertUserGroupId = get_group_id(name="CertUser")
+        observerAdminGroupId = get_group_id(name="ObserverAdmin")
+        observerUserGroupId = get_group_id(name="ObserverUser")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return queryset.filter(
-                groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                    RegulatorUserGroupId,
-                    CertUserGroupId,
-                    CertAdminGroupId,
-                ]
+                Q(groups=None)
+                | Q(
+                    groups__in=[
+                        PlatformAdminGroupId,
+                        RegulatorAdminGroupId,
+                        observerUserGroupId,
+                        observerAdminGroupId,
+                    ]
+                )
             )
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
-            return queryset.exclude(groups__in=[PlatformAdminGroupId]).filter(
-                Q(regulators=user.regulators.first()) | Q(regulators=None)
-            )
-        # Regulator User
-        if user_in_group(user, "RegulatorUser"):
             return queryset.exclude(
                 groups__in=[
                     PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                    CertUserGroupId,
-                    CertAdminGroupId,
-                    None,
-                ],
-            ).filter(~Q(groups=None))
-        # Cert Admin
-        if user_in_group(user, "CertAdmin"):
-            return queryset.filter(Q(certs=user.certs.first()))
+                    observerUserGroupId,
+                    observerAdminGroupId,
+                ]
+            ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
+        # Regulator User
+        if user_in_group(user, "RegulatorUser"):
+            return queryset.exclude(
+                Q(groups=None)
+                | Q(
+                    groups__in=[
+                        PlatformAdminGroupId,
+                        RegulatorAdminGroupId,
+                        observerUserGroupId,
+                        observerAdminGroupId,
+                    ]
+                ),
+            ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
+        # Observer Admin
+        if user_in_group(user, "ObserverAdmin"):
+            return queryset.filter(Q(observers=user.observers.first()))
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
@@ -948,40 +1084,62 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
             return True
         return super().has_change_permission(request, obj)
 
+    def has_delete_permission(self, request, obj=None):
+        if obj:
+            if (
+                user_in_group(obj, "RegulatorUser")
+                or user_in_group(obj, "RegulatorAdmin")
+                or user_in_group(obj, "PlatformAdmin")
+                or user_in_group(obj, "OperatorAdmin")
+            ) and obj.logentry_set.all().count() > 0:
+                return False
+        return True
+
     def save_model(self, request, obj, form, change):
         user = request.user
         if not change:
-            # in CertAdmin we can only add user for our CERT and default is CertUser
-            if user_in_group(user, "CertAdmin"):
+            # in ObserverAdmin we can only add user for our Observer entity and default is ObserverUser
+            if user_in_group(user, "ObserverAdmin"):
                 super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="CertUser")
-                obj.certs.add(user.certs.first())
+                new_group, created = Group.objects.get_or_create(name="ObserverUser")
+                obj.observers.add(user.observers.first())
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
-            # in RegulatorUser we can only add user for operators and default is IncidentUser
+            # in RegulatorAdmin we can only add user for regulator and default is RegulatorUser
+            if user_in_group(user, "RegulatorAdmin"):
+                super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
+                if new_group:
+                    obj.groups.add(new_group)
+
+            # in RegulatorUser we can only add user for operators and default is OperatorUser
             # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
                 super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="IncidentUser")
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
             # in PlatformAdmin we add by default platformadmin
             # if we are not in a popup we create a platformAdmin
-            if user_in_group(user, "PlatformAdmin") and "to_field=id&_popup" not in request.get_full_path():
+            if (
+                user_in_group(user, "PlatformAdmin")
+                and "to_field=id&_popup" not in request.get_full_path()
+            ):
                 super().save_model(request, obj, form, change)
                 new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
                 if new_group:
                     obj.groups.add(new_group)
-                else:
-                    obj.groups.add(created)
 
         super().save_model(request, obj, form, change)
+
+    # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
+    def delete_model(self, request, obj):
+        if user_in_group(obj, "RegulatorUser"):
+            obj.is_active = False
+        else:
+            obj.delete()
 
 
 # class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
@@ -997,7 +1155,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
 
 # @admin.register(Functionality, site=admin_site)
-# class FunctionalityAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class FunctionalityAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["name"]
 #     search_fields = ["translations__name"]
 #     resource_class = FunctionalityResource
@@ -1025,7 +1183,7 @@ class UserAdmin(ImportExportModelAdmin, ExportActionModelAdmin, admin.ModelAdmin
 
 
 # @admin.register(OperatorType, site=admin_site)
-# class OperatorTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
+# class OperatorTypeAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["type"]
 #     search_fields = ["translations__type"]
 #     resource_class = OperatorTypeResource
@@ -1044,8 +1202,8 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
+class RegulatorAdmin(CustomTranslatableAdmin):
+    list_display = ["name", "full_name", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
     fields = (
@@ -1055,10 +1213,9 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "country",
         "address",
         "email_for_notification",
-        "is_receiving_all_incident",
     )
 
-    inlines = (userRegulatorInline,)
+    inlines = (userRegulatorMultipleInline,)
 
     def has_add_permission(self, request, obj=None):
         user = request.user
@@ -1079,57 +1236,94 @@ class RegulatorAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
 
-class CertResource(TranslationUpdateMixin, resources.ModelResource):
+class ObserverResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
     )
 
     class Meta:
-        model = Cert
+        model = Observer
 
 
-class CertUserInline(admin.TabularInline):
-    model = CertUser
-    verbose_name = _("CERT user")
-    verbose_name_plural = _("CERT users")
+class ObserverRegulationInline(admin.TabularInline):
+    model = ObserverRegulation
+    verbose_name = _("Observer regulation")
+    verbose_name_plural = _("Observer regulations")
     extra = 0
     min_num = 0
 
+
+class ObserverUserInline(admin.TabularInline):
+    model = ObserverUser
+    verbose_name = _("Observer user")
+    verbose_name_plural = _("Observer users")
+    extra = 0
+    min_num = 0
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        user = request.user
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return qs.filter(is_observer_administrator=True)
+        else:
+            return qs
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
-            # current_id of the parent, here a CERT
+            ObserverAdminGroupID = get_group_id(name="ObserverAdmin")
+            ObserverUserGroupID = get_group_id(name="ObserverUser")
+            user = request.user
             current_id = None
-            if request.resolver_match.kwargs.get("object_id"):
+            if "object_id" in request.resolver_match.kwargs:
                 current_id = request.resolver_match.kwargs["object_id"]
-            query1 = User.objects.filter(
-                regulators=None,
-                companies=None,
-                sectors=None,
-                is_staff=False,
-                is_superuser=False,
-                sectorcompanycontact=None,
-                groups=None,
-                certs=None,
-            )
-            query_union = query1
-            if current_id is not None:
-                query2 = User.objects.filter(
-                    certs=current_id,
-                    regulators=None,
-                    companies=None,
-                    sectors=None,
+            if user_in_group(user, "PlatformAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(groups=None)
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        observers=None,
+                    )
+                    | Q(
+                        groups__in=[ObserverAdminGroupID],
+                        observers=current_id,
+                    )
                 )
-                query_union = query1.union(query2)
-            kwargs["queryset"] = User.objects.filter(id__in=query_union.values("id"))
+            # Observer Admin
+            if user_in_group(user, "ObserverAdmin"):
+                kwargs["queryset"] = User.objects.filter(
+                    Q(
+                        groups__in=[ObserverAdminGroupID],
+                        observers=None,
+                    )
+                    | Q(
+                        groups__in=[ObserverAdminGroupID, ObserverUserGroupID],
+                        observers=user.observers.first(),
+                    )
+                )
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        if (
+            user_in_group(request.user, "PlatformAdmin")
+            and "is_observer_administrator" in formset.form.base_fields
+        ):
+            formset.form.base_fields[
+                "is_observer_administrator"
+            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_observer_administrator"].initial = True
+        formset.empty_permitted = False
+        return formset
 
-@admin.register(Cert, site=admin_site)
-class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+
+@admin.register(Observer, site=admin_site)
+class ObserverAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
-    resource_class = CertResource
+    resource_class = ObserverResource
     fields = (
         "name",
         "full_name",
@@ -1140,17 +1334,22 @@ class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
         "is_receiving_all_incident",
     )
 
-    inlines = (CertUserInline,)
+    inlines = (
+        ObserverUserInline,
+        ObserverRegulationInline,
+    )
 
     def has_add_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin") or user_in_group(user, "CertAdmin"):
+        if user_in_group(user, "RegulatorAdmin") or user_in_group(
+            user, "ObserverAdmin"
+        ):
             return False
         return super().has_change_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin") and obj != user.certs.first():
+        if user_in_group(user, "RegulatorAdmin") and obj != user.observers.first():
             return False
         return super().has_change_permission(request, obj)
 
@@ -1164,8 +1363,8 @@ class CertAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         user = request.user
-        # Cert Admin
-        if user_in_group(user, "CertAdmin"):
+        # Observer Admin
+        if user_in_group(user, "ObserverAdmin"):
             return queryset.filter(
                 user=user,
             )
@@ -1193,7 +1392,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulation, site=admin_site)
-class RegulationAdmin(ImportExportModelAdmin, TranslatableAdmin):
+class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label", "get_regulators"]
     search_fields = ["translations__label"]
     resource_class = RegulationResource

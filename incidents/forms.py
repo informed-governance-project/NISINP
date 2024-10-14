@@ -1,29 +1,25 @@
 from datetime import datetime
-from functools import partial
-from operator import is_not
 
+import pytz
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.translation import gettext as _
-from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
+from parler.widgets import SortedCheckboxSelectMultiple
 
-from governanceplatform.helpers import get_active_company_from_session
-from governanceplatform.models import Regulation, Regulator, Sector, Service
-
-from .globals import REGIONAL_AREA
-from governanceplatform.settings import TIME_ZONE
-from .models import (  # Impact,
-    Answer,
-    Incident,
-    IncidentWorkflow,
-    Question,
-    SectorRegulation,
+from governanceplatform.helpers import (
+    get_active_company_from_session,
+    is_user_regulator,
 )
+from governanceplatform.models import Regulation, Regulator, Sector, Service
+from governanceplatform.settings import TIME_ZONE
+from theme.globals import REGIONAL_AREA
+
+from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
 
 
 # TO DO: change the templates to custom one
@@ -168,241 +164,145 @@ class AuthenticationForm(OTPAuthenticationForm):
 
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
-    label = forms.CharField(widget=forms.HiddenInput(), required=False)
-
     # for dynamicly add question to forms
-    def create_question(self, question, incident_workflow=None, incident=None):
-        initial_data = []
-        if (
-            question.question_type == "MULTI"
-            or question.question_type == "MT"
-            or question.question_type == "SO"
-            or question.question_type == "ST"
-        ):
-            initial_answer = ""
-            input_type = "checkbox"
-            choices = []
-            if question.question_type == "SO" or question.question_type == "ST":
-                input_type = "radio"
-            if incident_workflow is not None:
+    def create_question(self, question_option, incident_workflow=None, incident=None):
+        initial_data = None
+        field_name = "__question__" + str(question_option.id)
+        question = question_option.question
+        question_type = question_option.question.question_type
+        answer_queryset = Answer.objects.filter(
+            question_options__question=question,
+            incident_workflow=(
+                incident.get_latest_incident_workflow()
+                if incident
+                else incident_workflow
+            ),
+        ).order_by("-timestamp")
+
+        if question_type in ["MULTI", "MT", "SO", "ST"]:
+            if answer_queryset.exists():
                 initial_data = list(
-                    filter(
-                        partial(is_not, None),
-                        Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(question=question, incident_workflow=incident_workflow)
-                        .order_by("-timestamp"),
-                    )
-                )
-            elif incident is not None:
-                initial_data = list(
-                    filter(
-                        partial(is_not, None),
-                        Answer.objects.values_list("predefined_answers", flat=True)
-                        .filter(
-                            question=question,
-                            incident_workflow=incident.get_latest_incident_workflow(),
-                        )
-                        .order_by("-timestamp"),
-                    )
-                )
-            for choice in question.predefinedanswer_set.all().order_by("position"):
-                choices.append([choice.id, choice])
-            if question.question_type == "MULTI" or question.question_type == "MT":
-                self.fields[str(question.id)] = forms.MultipleChoiceField(
-                    required=question.is_mandatory,
-                    choices=choices,
-                    widget=forms.CheckboxSelectMultiple(
-                        attrs={
-                            "title": question.tooltip,
-                            "data-bs-toggle": "tooltip",
-                        },
-                    ),
-                    label=question.label,
-                    initial=initial_data,
-                )
-            else:
-                self.fields[str(question.id)] = forms.MultipleChoiceField(
-                    required=question.is_mandatory,
-                    choices=choices,
-                    widget=OtherCheckboxSelectMultiple(
-                        input_type=input_type,
-                        attrs={
-                            "title": question.tooltip,
-                            "data-bs-toggle": "tooltip",
-                        },
-                    ),
-                    label=question.label,
-                    initial=initial_data,
+                    answer_queryset.values_list("predefined_answers", flat=True)
                 )
 
-            if question.question_type == "MT" or question.question_type == "ST":
-                if incident_workflow is not None:
-                    answer = Answer.objects.values_list("answer", flat=True).filter(
-                        question=question, incident_workflow=incident_workflow
+            choices = [
+                (choice.id, choice)
+                for choice in question.predefinedanswer_set.all().order_by("position")
+            ]
+            form_attrs = {"title": question.tooltip, "data-bs-toggle": "tooltip"}
+            self.fields[field_name] = forms.MultipleChoiceField(
+                required=question_option.is_mandatory,
+                choices=choices,
+                widget=(
+                    forms.CheckboxSelectMultiple(attrs=form_attrs)
+                    if question_type in ["MULTI", "MT"]
+                    else OtherCheckboxSelectMultiple(
+                        input_type="radio", attrs=form_attrs
                     )
-                elif incident is not None:
-                    answer = (
-                        Answer.objects.values_list("answer", flat=True)
-                        .filter(
-                            question=question,
-                            incident_workflow=incident.get_latest_incident_workflow(),
-                        )
-                        .order_by("-timestamp")
-                    )
-                if len(answer) > 0:
-                    if answer[0] != "":
-                        initial_answer = list(filter(partial(is_not, ""), answer))[0]
-                self.fields[str(question.id) + "_answer"] = forms.CharField(
-                    required=question.is_mandatory,
+                ),
+                label=question.label,
+                initial=initial_data,
+            )
+
+            if question_type in ["ST", "MT"]:
+                value = str(answer_queryset.first()) if answer_queryset.exists() else ""
+                self.fields[field_name + "_answer"] = forms.CharField(
+                    required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
-                            "value": str(initial_answer),
+                            "value": value,
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
                     ),
-                    label="Add precision",
+                    label=_("Add precision"),
                 )
-        elif question.question_type == "DATE":
-            initial_data = ""
-            answer = None
-            if incident_workflow is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(question=question, incident_workflow=incident_workflow)
-                    .first()
+        elif question_type == "DATE":
+            if answer_queryset.exists():
+                answer = answer_queryset.first()
+                initial_data = (
+                    datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
+                    if str(answer) != ""
+                    else None
                 )
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                    .first()
-                )
-            if answer is not None:
-                if answer != "":
-                    initial_data = answer
-                    initial_data = datetime.strptime(initial_data, "%Y-%m-%d %H:%M:%S")
-            self.fields[str(question.id)] = forms.DateTimeField(
+
+            self.fields[field_name] = forms.DateTimeField(
                 widget=DateTimePickerInput(
                     options={
-                        "format": "YYYY-MM-DD HH:mm:ss",
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     },
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
+                        "class": "empty_field" if not initial_data else "",
                     },
                 ),
-                required=question.is_mandatory,
+                required=question_option.is_mandatory,
                 initial=initial_data,
+                help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
             )
-            self.fields[str(question.id)].label = question.label
-        elif question.question_type == "FREETEXT":
-            initial_data = ""
-            if incident_workflow is not None:
-                answer = Answer.objects.values_list("answer", flat=True).filter(
-                    question=question, incident_workflow=incident_workflow
-                )
-                if len(answer) > 0:
-                    if answer[0] != "":
-                        initial_data = list(filter(partial(is_not, ""), answer))[0]
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                    .first()
-                )
-                if answer is not None:
-                    if answer != "":
-                        initial_data = answer
+            self.fields[field_name].label = question.label
+        elif question_type == "FREETEXT":
+            if answer_queryset.exists():
+                answer = answer_queryset.first()
+                initial_data = str(answer) if str(answer) != "" else None
 
-            self.fields[str(question.id)] = forms.CharField(
-                required=question.is_mandatory,
+            self.fields[field_name] = forms.CharField(
+                required=question_option.is_mandatory,
                 widget=forms.Textarea(
                     attrs={
+                        "rows": 3,
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
+                        "class": "empty_field" if not initial_data else "",
                     }
                 ),
-                initial=str(initial_data),
+                initial=str(initial_data or ""),
                 label=question.label,
             )
-        elif question.question_type == "CL" or question.question_type == "RL":
-            initial_data = ""
-            if incident_workflow is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(question=question, incident_workflow=incident_workflow)
-                    .first()
-                )
-            elif incident is not None:
-                answer = (
-                    Answer.objects.values_list("answer", flat=True)
-                    .filter(
-                        question=question,
-                        incident_workflow=incident.get_latest_incident_workflow(),
-                    )
-                    .order_by("-timestamp")
-                ).first()
-            if answer is not None:
-                # initial_data = list(filter(partial(is_not, ""), answer))
-                initial_data = list(answer.split(","))
+        elif question_type in ["CL", "RL"]:
+            if answer_queryset.exists():
+                answer = answer_queryset.first()
+                initial_data = list(filter(None, str(answer).split(",")))
 
-            if question.question_type == "CL":
-                choices = countries
-            else:
-                choices = REGIONAL_AREA
-            self.fields[str(question.id)] = forms.MultipleChoiceField(
-                choices=choices,
+            self.fields[field_name] = forms.MultipleChoiceField(
+                choices=countries if question_type == "CL" else REGIONAL_AREA,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
-                initial=initial_data,
+                initial=initial_data or [],
             )
 
     def __init__(self, *args, **kwargs):
-        position = -1
-        workflow = None
-        incident_workflow = None
-        incident = None
-        if "position" in kwargs:
-            position = kwargs.pop("position")
-        if "workflow" in kwargs:
-            workflow = kwargs.pop("workflow")
-        if "incident_workflow" in kwargs:
-            incident_workflow = kwargs.pop("incident_workflow")
-        if "incident" in kwargs:
-            incident = kwargs.pop("incident")
+        position = kwargs.pop("position", -1)
+        workflow = kwargs.pop("workflow", None)
+        incident_workflow = kwargs.pop("incident_workflow", None)
+        incident = kwargs.pop("incident", None)
         super().__init__(*args, **kwargs)
 
-        if workflow is not None:
-            questions = workflow.questions.all()
-        if incident_workflow is not None:
-            questions = incident_workflow.workflow.questions.all()
-        categories = set()
+        if incident_workflow:
+            workflow = incident_workflow.workflow
 
-        for question in questions:
-            categories.add(question.category)
-        categories = list(categories)
-        categories.sort(key=lambda x: x.position)
-        category = categories[position]
-
-        subquestion = (
-            Question.objects.all()
-            .filter(category=category, id__in=questions.values("id"))
-            .order_by("position")
+        categories = (
+            workflow.questionoptions_set.select_related("category")
+            .values_list(
+                "category__questioncategoryoptions__question_category__id", flat=True
+            )
+            .distinct()
+            .order_by("category__questioncategoryoptions__position")
         )
 
-        for question in subquestion:
-            self.create_question(question, incident_workflow, incident)
+        if position >= len(categories):
+            raise ValueError("Position exceeds available categories.")
+
+        category = categories[position]
+
+        category_question_options = workflow.questionoptions_set.filter(
+            category__id=category
+        )
+
+        for question_option in category_question_options:
+            self.create_question(question_option, incident_workflow, incident)
 
 
 # the first question for preliminary notification
@@ -492,7 +392,8 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "Insert a reference to find and track easily your incident (internal reference, CERT reference, etc.)"
+                    "To make your incident easier to locate and track, please include a reference "
+                    "(e.g., an identifier, internal reference, CERT reference, etc.)."
                 ),
                 "data-bs-toggle": "tooltip",
             }
@@ -503,7 +404,9 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "title": _("Insert any complaint has been filed with the police"),
+                "title": _(
+                    "Insert a police report that you have filed with the police"
+                ),
                 "data-bs-toggle": "tooltip",
             }
         ),
@@ -511,13 +414,19 @@ class ContactForm(forms.Form):
 
     def prepare_initial_value(**kwargs):
         request = kwargs.pop("request")
-        if request.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated:
+            company_name = (
+                user.regulators.first()
+                if is_user_regulator(user)
+                else get_active_company_from_session(request)
+            )
             return {
-                "company_name": get_active_company_from_session(request),
-                "contact_lastname": request.user.last_name,
-                "contact_firstname": request.user.first_name,
-                "contact_email": request.user.email,
-                "contact_telephone": request.user.phone_number,
+                "company_name": company_name,
+                "contact_lastname": user.last_name,
+                "contact_firstname": user.first_name,
+                "contact_email": user.email,
+                "contact_telephone": user.phone_number,
             }
         return {}
 
@@ -549,7 +458,7 @@ def construct_services_array(root_sectors):
 class RegulationForm(forms.Form):
     regulations = forms.MultipleChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=SortedCheckboxSelectMultiple(),
     )
 
     def __init__(self, *args, **kwargs):
@@ -564,19 +473,21 @@ class RegulationForm(forms.Form):
 
 # prepare an array of regulations
 def construct_regulation_array(regulators):
-    regulations_to_select = []
     regulations_id = (
-        SectorRegulation.objects.all()
-        .filter(regulator__in=regulators)
-        .values_list("regulation", flat=True)
+        SectorRegulation.objects.filter(
+            regulator__in=regulators, sectorregulationworkflow__isnull=False
+        )
+        .distinct("regulation__id")
+        .values_list("regulation__id", flat=True)
     )
 
-    regulations = Regulation.objects.all().filter(id__in=regulations_id)
+    regulations = (
+        Regulation.objects.filter(id__in=regulations_id)
+        .values_list("id", "translations__label")
+        .distinct("id")
+    )
 
-    for regulation in regulations:
-        regulations_to_select.append([regulation.id, regulation.label])
-
-    return regulations_to_select
+    return regulations
 
 
 class RegulatorForm(forms.Form):
@@ -584,14 +495,24 @@ class RegulatorForm(forms.Form):
     regulators = forms.MultipleChoiceField(
         required=True,
         choices=[],
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=SortedCheckboxSelectMultiple(),
         label="Send notification to:",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
-            self.fields["regulators"].choices = [(k.id, k.name + " " + k.full_name) for k in Regulator.objects.all()]
+            self.fields["regulators"].choices = [
+                (
+                    regulator.id,
+                    f"{regulator.safe_translation_getter('name', any_language=True)} \
+                    {regulator.safe_translation_getter('full_name', any_language=True)}",
+                )
+                for regulator in Regulator.objects.all()
+                if regulator.sectorregulation_set.filter(
+                    sectorregulationworkflow__isnull=False
+                ).exists()
+            ]
         except Exception:
             self.fields["regulators"].choices = []
 
@@ -601,15 +522,19 @@ class RegulatorForm(forms.Form):
 
 # select the detection date
 class DetectionDateForm(forms.Form):
+    incident_timezone = forms.ChoiceField(
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "form-control"}),
+        required=False,
+        label=gettext_lazy("Select the incident time zone"),
+        initial=TIME_ZONE,
+    )
+
     detection_date = forms.DateTimeField(
         required=True,
         widget=DateTimePickerInput(
             options={
-                "format": "YYYY-MM-DD HH:mm:ss",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
+                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
             },
         ),
     )
@@ -618,7 +543,7 @@ class DetectionDateForm(forms.Form):
 class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "multiple-selection"}),
+        widget=forms.CheckboxSelectMultiple(),
     )
 
     def __init__(self, *args, **kwargs):
@@ -634,41 +559,34 @@ class SectorForm(forms.Form):
             self.fields["sectors"].required = False
 
 
-# OLD VERSION
-# # prepare an array of sectors
-# def construct_sectors_array(regulations, regulators):
-#     sectors_to_select = []
-#     sector_regulations = SectorRegulation.objects.all().filter(
-#         regulation__in=regulations, regulator__in=regulators
-#     )
-
-#     for sector_regulation in sector_regulations:
-#         for sector in sector_regulation.sectors.all():
-#             if [sector.id, sector.name] not in sectors_to_select:
-#                 sectors_to_select.append([sector.id, sector.name])
-
-#     return sectors_to_select
-
-
 def construct_sectors_array(regulations, regulators):
-    sector_regulations = SectorRegulation.objects.filter(regulation__in=regulations, regulator__in=regulators)
-    all_sectors = Sector.objects.filter(sectorregulation__in=sector_regulations)
-    categs = dict()
+    sector_regulations = SectorRegulation.objects.filter(
+        regulation__in=regulations, regulator__in=regulators
+    )
+    all_sectors = (
+        Sector.objects.filter(sectorregulation__in=sector_regulations)
+        .distinct()
+        .order_by("parent")
+    )
+
+    categs = {}
 
     for sector in all_sectors:
-        if sector.parent is not None:
-            if not categs.get(sector.parent.name):
-                categs[sector.parent.name] = [[sector.id, sector]]
-            else:
-                categs[sector.parent.name].append([sector.id, sector])
-        else:
-            if not categs.get(sector.name):
-                categs[sector.name] = []
-    final_categs = []
-    for sector, list_of_options in categs.items():
-        final_categs.append([sector, list_of_options])
+        sector_name = sector.get_safe_translation()
 
-    return final_categs
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs.setdefault(parent_name, []).append([sector.id, sector_name])
+        else:
+            if not categs.get(sector_name):
+                categs.setdefault(sector_name, []).append([sector.id, sector_name])
+
+    final_categs = [
+        [sector, sorted(options, key=lambda item: item[1])]
+        for sector, options in categs.items()
+    ]
+
+    return sorted(final_categs, key=lambda item: item[0])
 
 
 def get_forms_list(incident=None, workflow=None, is_regulator=False):
@@ -683,24 +601,22 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         ]
     else:
         category_tree.append(IncidenteDateForm)
-        impact_needed = False
         if workflow is None:
             workflow = incident.get_next_step()
-            if workflow.is_impact_needed:
-                impact_needed = True
-            categories = set()
-            for question in workflow.questions.all():
-                categories.add(question.category)
-        else:
-            if workflow.is_impact_needed:
-                impact_needed = True
-            categories = set()
-            for question in workflow.questions.all():
-                categories.add(question.category)
+        categories = (
+            workflow.questionoptions_set.select_related("category")
+            .values_list("category__questioncategoryoptions__id", flat=True)
+            .distinct()
+        )
         for _category in categories:
             category_tree.append(QuestionForm)
-        if impact_needed:
-            category_tree.append(ImpactForm)
+        if workflow.is_impact_needed:
+            regulation_sector_has_impacts = Impact.objects.filter(
+                regulation=incident.sector_regulation.regulation,
+                sectors__in=incident.affected_sectors.all(),
+            ).exists()
+            if regulation_sector_has_impacts:
+                category_tree.append(ImpactForm)
         if is_regulator:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
 
@@ -727,12 +643,19 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = self.instance.id
+        self.fields["comment"].widget.attrs.update(
+            {
+                "rows": 3,
+                "class": "empty_field" if not self.initial["comment"] else "",
+            }
+        )
 
     class Meta:
         model = IncidentWorkflow
         fields = [
             "id",
             "comment",
+            "review_status",
         ]
 
 
@@ -750,9 +673,12 @@ class ImpactForm(forms.Form):
             subgroup = []
             if sector.impact_set.filter(regulation=regulation).count() > 0:
                 for impact in sector.impact_set.filter(regulation=regulation):
-                    subgroup.append([impact.id, impact.label])
+                    subgroup.append([impact.id, str(impact)])
                 impacts_array.append(
-                    [sector.name, sorted(subgroup, key=lambda item: item[1])]
+                    [
+                        sector.get_safe_translation(),
+                        sorted(subgroup, key=lambda item: item[1]),
+                    ]
                 )
 
         # Not needed anymore : just keep in case
@@ -794,71 +720,111 @@ class ImpactForm(forms.Form):
 
 # let the user change the date of his incident
 class IncidenteDateForm(forms.ModelForm):
+    incident_timezone = forms.ChoiceField(
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        widget=forms.Select(attrs={"class": "form-control"}),
+        required=False,
+        label=gettext_lazy("Select the incident time zone"),
+        initial=TIME_ZONE,
+    )
 
     incident_notification_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
-        ),
+        widget=DateTimePickerInput(),
         required=False,
     )
 
     incident_detection_date = forms.DateTimeField(
         widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
+            options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
-        help_text=format_lazy(
-            "{} : {}, {}",
-            gettext_lazy("Timezone"),
-            TIME_ZONE,
-            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
-        ),
+        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
     )
 
     incident_starting_date = forms.DateTimeField(
         widget=DateTimePickerInput(
-            options={
-                "format": "YYYY-MM-DD HH:mm",
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-            },
-            attrs={
-                "data-bs-toggle": "tooltip",
-            },
+            options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
-        help_text=format_lazy(
-            "{} : {}, {}",
-            gettext_lazy("Timezone"),
-            TIME_ZONE,
-            gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
-        ),
+        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = self.instance.id
-        self.incident = Incident.objects.get(id=self.id)
+        self.incident = self.instance
+
         self.fields["incident_notification_date"].disabled = True
-        if self.incident is not None:
-            self.fields[
-                "incident_detection_date"
-            ].disabled = self.incident.sector_regulation.is_detection_date_needed
+
+        if self.incident:
+            i_timezone = (
+                self.incident.incident_timezone
+                if self.incident.incident_timezone
+                else TIME_ZONE
+            )
+            i_notification_date = (
+                self.incident.incident_notification_date
+                if self.incident.incident_notification_date
+                else None
+            )
+
+            i_detection_date = (
+                self.incident.incident_detection_date
+                if self.incident.incident_detection_date
+                else None
+            )
+            timezone = pytz.timezone(i_timezone)
+
+            if i_notification_date:
+                maxDate_notification = format_datetime_astimezone(
+                    i_notification_date, timezone
+                )
+                self.fields["incident_detection_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_notification
+
+                self.fields["incident_starting_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_notification
+
+            if self.incident.sector_regulation.is_detection_date_needed:
+                maxDate_detection = format_datetime_astimezone(
+                    i_detection_date, timezone
+                )
+
+                self.fields["incident_starting_date"].widget.config.options[
+                    "maxDate"
+                ] = maxDate_detection
+                self.fields["incident_detection_date"].disabled = True
+                self.fields["incident_timezone"].disabled = True
+
+            if i_timezone != TIME_ZONE:
+                self.fields["incident_timezone"].disabled = True
+
+            set_initial_datetime(
+                self,
+                "incident_notification_date",
+                i_notification_date,
+                timezone,
+            )
+
+            set_initial_datetime(
+                self,
+                "incident_detection_date",
+                i_detection_date,
+                timezone,
+            )
+            set_initial_datetime(
+                self,
+                "incident_starting_date",
+                self.incident.incident_starting_date,
+                timezone,
+            )
 
     class Meta:
         model = Incident
         fields = [
             "id",
+            "incident_timezone",
             "incident_notification_date",
             "incident_detection_date",
             "incident_starting_date",
@@ -880,6 +846,15 @@ class IncidentWorkflowForm(forms.ModelForm):
 
 
 class IncidentStatusForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        # prevent is_significative_impact to go FALSE when we change an other field
+        if len(cleaned_data) > 1:
+            cleaned_data[
+                "is_significative_impact"
+            ] = self.instance.is_significative_impact
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -919,3 +894,16 @@ class IncidentStatusForm(forms.ModelForm):
             "incident_status": False,
             "is_significative_impact": False,
         }
+
+
+def format_datetime_astimezone(datetime, timezone):
+    return datetime.astimezone(timezone).strftime("%Y-%m-%d %H:%M")
+
+
+def set_initial_datetime(form, field_name, datetime_value, timezone):
+    if datetime_value:
+        form.initial[field_name] = format_datetime_astimezone(datetime_value, timezone)
+    else:
+        form.fields[field_name].widget.attrs["class"] = (
+            form.fields[field_name].widget.attrs.get("class", "") + " empty_field"
+        )
