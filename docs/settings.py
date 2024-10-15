@@ -2,7 +2,7 @@
 # import source code dir
 
 SITE_ID = 303
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
