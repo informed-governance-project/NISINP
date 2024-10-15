@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django_extensions",
     "governanceplatform",
     "incidents",
     "api",
@@ -71,4 +72,6 @@ INSTALLED_APPS = [
     "import_export",
     "parler",
     "bootstrap_datepicker_plus",
+    "phonenumber_field",
+    "django_filters",
 ]
