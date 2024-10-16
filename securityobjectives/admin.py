@@ -171,6 +171,7 @@ class SecurityObjectiveAdmin(
         "unique_code",
         "domain",
     ]
+    ordering = ["position"]
     exclude = ["is_archived"]
 
     # filter only the standards that belongs to the regulators'user
