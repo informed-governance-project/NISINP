@@ -15,20 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from django.views.i18n import set_language
 
-from .views import (
-    get_security_objectives,
-    get_form_list,
-    create_so,
-)
+from .views import create_so, declaration, get_security_objectives
 
 urlpatterns = [
     # Root
     path("", get_security_objectives, name="securityobjectives"),
     # SO declaration
-    path("so_declaration", get_form_list, name="so_declaration"),
+    path("declaration", declaration, name="so_declaration"),
     # fill the SO
     path(r"create_so/<int:standard_answer_id>", create_so, name="create_so"),
-    path("set-language/", set_language, name="set_language"),
 ]
