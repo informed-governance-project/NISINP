@@ -181,8 +181,8 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
-        has_permission = obj and self.has_change_permission(request, obj)
-        if not has_permission:
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
             context.update(
                 {
                     "show_save": False,
@@ -243,8 +243,8 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
-        has_permission = obj and self.has_change_permission(request, obj)
-        if not has_permission:
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
             context.update(
                 {
                     "show_save": False,
@@ -350,8 +350,8 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
-        has_permission = obj and self.has_change_permission(request, obj)
-        if not has_permission:
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
             context.update(
                 {
                     "show_save": False,
@@ -726,8 +726,8 @@ class WorkflowAdmin(CustomTranslatableAdmin):
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
-        has_permission = obj and self.has_change_permission(request, obj)
-        if not has_permission:
+        has_permission = obj and not self.has_change_permission(request, obj)
+        if has_permission:
             context.update(
                 {
                     "show_save": False,
