@@ -1,18 +1,12 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
-from governanceplatform.admin import (
-    CustomTranslatableAdmin,
-    CustomTranslatableTabularInline,
-    admin_site,
-)
+from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
-    Evidence,
     MaturityLevel,
     SecurityMeasure,
     SecurityObjective,
@@ -171,7 +165,6 @@ class SecurityObjectiveAdmin(
         "unique_code",
         "domain",
     ]
-    ordering = ["position"]
     exclude = ["is_archived"]
 
     # filter only the standards that belongs to the regulators'user
@@ -199,22 +192,14 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="description",
         attribute="description",
     )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
+    evidence = fields.Field(
+        column_name="evidence",
+        attribute="evidence",
     )
 
     class Meta:
         model = SecurityMeasure
-        fields = ("security_objective", "maturity_level", "description", "position")
-
-
-class EvidenceInline(CustomTranslatableTabularInline):
-    model = Evidence
-    verbose_name = _("evidence")
-    verbose_name_plural = _("evidences")
-    ordering = ["position"]
-    extra = 0
+        fields = ("security_objective", "maturity_level", "description", "evidence")
 
 
 @admin.register(SecurityMeasure, site=admin_site)
@@ -227,38 +212,3 @@ class SecurityMeasureAdmin(
         "description",
         "position",
     ]
-    inlines = [EvidenceInline]
-
-
-class SecurityEvidenceResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-    security_measure = fields.Field(
-        column_name="security_measure",
-        attribute="security_measure",
-        widget=TranslatedNameWidget(SecurityMeasure, field="description"),
-    )
-    description = fields.Field(
-        column_name="description",
-        attribute="description",
-    )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
-    )
-
-    class Meta:
-        model = Evidence
-        fields = ("security_measure", "description", "position")
-
-
-@admin.register(Evidence, site=admin_site)
-class EvidenceAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
-):
-    resource_class = SecurityEvidenceResource
-    list_display = [
-        "position",
-        "description",
-        "security_measure",
-    ]
-    list_display_links = ["position", "description"]

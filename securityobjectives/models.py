@@ -35,7 +35,6 @@ class SecurityObjective(TranslatableModel, models.Model):
     unique_code = models.CharField(max_length=255, blank=True, default=None, null=True)
     # when we want to delete a SO we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(default=False, verbose_name=_("is archived"))
-    position = models.IntegerField(default=0)
     domain = models.ForeignKey(
         Domain,
         on_delete=models.SET_NULL,
@@ -98,21 +97,11 @@ class SecurityMeasure(TranslatableModel):
     )
     translations = TranslatedFields(
         description=models.TextField(),
+        evidence=models.TextField(),
     )
     position = models.IntegerField(default=0)
     # when we want to delete a Security Measure we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(default=False, verbose_name=_("is archived"))
-
-    def __str__(self):
-        return self.description if self.description is not None else ""
-
-
-class Evidence(TranslatableModel):
-    translations = TranslatedFields(
-        description=models.TextField(),
-    )
-    position = models.IntegerField(default=0)
-    security_measure = models.ForeignKey(SecurityMeasure, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.description if self.description is not None else ""
