@@ -258,8 +258,22 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         return form
 
     def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
+        exist = QuestionCategory.objects.filter(
+            translations__label=obj.label
+        ).exists()
+        if not exist:
+            set_creator(request, obj, change)
+            super().save_model(request, obj, form, change)
+        else:
+            messages.warning(
+                    request,
+                    mark_safe(
+                        _(
+                            f"<strong>Add action is not allowed</strong><br>"
+                            f"- This {obj._meta.verbose_name.lower()} already exist.<br>"
+                        )
+                    ),
+                )
 
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
