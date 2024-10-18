@@ -18,10 +18,6 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Question category options",
             },
         ),
-        migrations.RemoveField(
-            model_name="questionoptions",
-            name="category",
-        ),
         migrations.AddField(
             model_name="questioncategoryoptions",
             name="report",
