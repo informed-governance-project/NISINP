@@ -782,6 +782,13 @@ class SectorRegulationInline(admin.TabularInline):
     verbose_name_plural = _("Incident reports")
     extra = 0
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "workflow":
+            kwargs["queryset"] = Workflow.objects.translated(get_language()).order_by(
+                "translations__name"
+            )
+        return super(SectorRegulationInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(CustomTranslatableAdmin):
