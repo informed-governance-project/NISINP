@@ -313,6 +313,15 @@ class QuestionOptionsInline(admin.TabularInline):
             max_num = 0
         return max_num
 
+    # filter the question category option on the report_id to avoid mixing report categories
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category_option" and self.parent_obj:
+            kwargs["queryset"] = QuestionCategoryOptions.objects.filter(
+                report=self.parent_obj
+            )
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
     model = PredefinedAnswer
@@ -371,13 +380,13 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 @admin.register(QuestionOptions, site=admin_site)
 class QuestionOptionsAdmin(admin.ModelAdmin):
-    list_display = ["position", "question", "is_mandatory", "category"]
+    list_display = ["position", "question", "is_mandatory", "category_option"]
     list_display_links = ["position", "question"]
     ordering = ["position"]
     fields = [
         ("position", "is_mandatory"),
         "question",
-        "category",
+        "category_option",
     ]
 
     # Hidden from register models list
@@ -387,16 +396,24 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 
 @admin.register(QuestionCategoryOptions, site=admin_site)
 class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
-    list_display = ["question_category", "position"]
+    list_display = ["question_category", "position", "report"]
     list_display_links = ["position", "question_category"]
     fields = [
         "question_category",
         "position",
+        "report"
     ]
 
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
+
+    # remove the right to add or edit report
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+        form.base_fields['report'].widget.can_add_related = False
+        form.base_fields['report'].widget.can_change_related = False
+        return form
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
@@ -692,6 +709,13 @@ class WorkflowAdmin(CustomTranslatableAdmin):
             },
         ),
     ]
+
+    # give the parent object to the inlines
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        for inline_instance in inline_instances:
+            inline_instance.parent_obj = obj
+        return inline_instances
 
     def get_form(self, request, obj=None, **kwargs):
         if obj and not self.has_change_permission(request, obj):

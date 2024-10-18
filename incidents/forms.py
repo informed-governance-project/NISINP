@@ -284,21 +284,17 @@ class QuestionForm(forms.Form):
             workflow = incident_workflow.workflow
 
         categories = (
-            workflow.questionoptions_set.select_related("category")
-            .values_list(
-                "category__questioncategoryoptions__question_category__id", flat=True
-            )
-            .distinct()
-            .order_by("category__questioncategoryoptions__position")
+            workflow.questionoptions_set.values_list(
+                "category_option", flat=True
+            ).distinct()
         )
-
         if position >= len(categories):
             raise ValueError("Position exceeds available categories.")
 
         category = categories[position]
 
         category_question_options = workflow.questionoptions_set.filter(
-            category__id=category
+            category_option__id=category
         )
 
         for question_option in category_question_options:
@@ -604,9 +600,9 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         if workflow is None:
             workflow = incident.get_next_step()
         categories = (
-            workflow.questionoptions_set.select_related("category")
-            .values_list("category__questioncategoryoptions__id", flat=True)
-            .distinct()
+            workflow.questionoptions_set.values_list(
+                "category_option", flat=True
+            ).distinct()
         )
         for _category in categories:
             category_tree.append(QuestionForm)
@@ -619,7 +615,6 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
                 category_tree.append(ImpactForm)
         if is_regulator:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
-
     return category_tree
 
 

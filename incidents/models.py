@@ -192,11 +192,6 @@ class PredefinedAnswer(TranslatableModel):
         verbose_name = _("Question - predefined answer")
 
 
-class QuestionCategoryOptions(models.Model):
-    question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
-    position = models.IntegerField(verbose_name=_("Position"))
-
-
 # Email sent from regulator to operator
 class Email(TranslatableModel, models.Model):
     translations = TranslatedFields(
@@ -836,6 +831,21 @@ class LogReportRead(models.Model):
         super().save(*args, **kwargs)
 
 
+class QuestionCategoryOptions(models.Model):
+    question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
+    position = models.IntegerField(verbose_name=_("Position"))
+    report = models.ForeignKey(
+        Workflow, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    def __str__(self):
+        return self.question_category.label or ""
+
+    class Meta:
+        verbose_name_plural = _("Question category options")
+        verbose_name = _("Question category option")
+
+
 class QuestionOptions(models.Model):
     report = models.ForeignKey(
         Workflow, on_delete=models.CASCADE, null=True, blank=True
@@ -843,8 +853,8 @@ class QuestionOptions(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     position = models.IntegerField(verbose_name=_("Position"))
-    category = models.ForeignKey(
-        QuestionCategory, on_delete=models.SET_NULL, null=True, blank=True
+    category_option = models.ForeignKey(
+        QuestionCategoryOptions, on_delete=models.SET_NULL, null=True, blank=True,
     )
 
     def __str__(self):
