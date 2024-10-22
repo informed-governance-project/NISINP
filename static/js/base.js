@@ -8,3 +8,13 @@ var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggl
 var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
   return new bootstrap.Tooltip(tooltipTriggerEl, {delay:200})
 })
+
+
+$('.select_SO_Standard').on( "click", function() {
+  var $popup = $("#select_SO_Standard");
+  var popup_url = '/securityobjectives/select_so_standard';
+
+  $(".modal-dialog", $popup).load(popup_url, function () {
+      $popup.modal("show");
+  });
+});

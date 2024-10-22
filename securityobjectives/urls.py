@@ -14,15 +14,41 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.urls import path
 
-from .views import create_so, declaration, get_security_objectives
+from .views import (
+    copy_declaration,
+    declaration,
+    delete_declaration,
+    get_security_objectives,
+    select_so_standard,
+    submit_declaration,
+)
 
 urlpatterns = [
     # Root
     path("", get_security_objectives, name="securityobjectives"),
+    # Select SO standard
+    path("select_so_standard", select_so_standard, name="select_so_standard"),
     # SO declaration
     path("declaration", declaration, name="so_declaration"),
-    # fill the SO
-    path(r"create_so/<int:standard_answer_id>", create_so, name="create_so"),
+    # Copy SO declaration
+    path(
+        "copy/<int:standard_answer_id>",
+        copy_declaration,
+        name="copy_so_declaration",
+    ),
+    # Submit SO declaration
+    path(
+        "submit/<int:standard_answer_id>",
+        submit_declaration,
+        name="submit_so_declaration",
+    ),
+    # Delete SO declaration
+    path(
+        "delete/<int:standard_answer_id>",
+        delete_declaration,
+        name="delete_so_declaration",
+    ),
 ]
