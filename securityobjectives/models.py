@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
+from incidents.globals import REVIEW_STATUS
+
 
 # Maturity level : define a matury (e.g. sophisticated)
 class MaturityLevel(TranslatableModel):
@@ -74,7 +76,8 @@ class Standard(TranslatableModel):
     )
 
     def __str__(self):
-        return self.label if self.label is not None else ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
 
 
 class SecurityObjectivesInStandard(models.Model):
@@ -118,8 +121,13 @@ class StandardAnswer(models.Model):
         related_name="standardanswer",
     )
     standard_notification_date = models.DateTimeField(default=timezone.now)
-    is_reviewed = models.BooleanField(default=False, verbose_name=_("Reviewed"))
-    is_finished = models.BooleanField(default=False, verbose_name=_("Finished"))
+    status = models.CharField(
+        max_length=5,
+        choices=REVIEW_STATUS,
+        blank=False,
+        default=REVIEW_STATUS[0][0],
+        verbose_name=_("Status"),
+    )
     submitter_user = models.ForeignKey(
         "governanceplatform.user", on_delete=models.SET_NULL, null=True
     )
@@ -140,7 +148,7 @@ class SecurityMeasureAnswer(models.Model):
     security_measure_notification_date = models.DateTimeField(default=timezone.now)
     standard_answer = models.ForeignKey(
         StandardAnswer,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         default=None,
@@ -148,7 +156,7 @@ class SecurityMeasureAnswer(models.Model):
     )
     security_measure = models.ForeignKey(
         SecurityMeasure,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         default=None,
