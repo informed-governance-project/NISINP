@@ -1,29 +1,47 @@
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 
 class SecurityObjectiveAnswerForm(forms.Form):
-    is_measure_in_place = forms.BooleanField()
-    operator_comment = forms.CharField(
+    is_implemented = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                "onclick": "update_so_answer(this)",
+            }
+        ),
+    )
+    comment = forms.CharField(
         required=False,
         widget=forms.Textarea(
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                # "onblur": "onBlurTextarea(this)",
+                "onblur": "update_so_answer(this)",
             }
         ),
     )
-    regulator_comment = forms.CharField(
+    review_comment = forms.CharField(
         required=False,
         widget=forms.Textarea(
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                # "onblur": "onBlurTextarea(this)",
+                "onblur": "update_so_answer(this)",
             }
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get("initial", None)
+        super().__init__(*args, **kwargs)
+        if initial:
+            self.fields["is_implemented"].disabled = initial.get("is_regulator", True)
+            self.fields["comment"].disabled = initial.get("is_regulator", True)
+            self.fields["review_comment"].disabled = not initial.get(
+                "is_regulator", True
+            )
 
 
 class CustomSelect(forms.Select):
@@ -53,4 +71,45 @@ class SecurityObjectiveStatusForm(forms.Form):
         ],
         widget=CustomSelect(),
         initial="NOT_REVIEWED",
+    )
+
+
+class SelectSOStandardForm(forms.Form):
+    so_standard = forms.ChoiceField(
+        widget=forms.Select(),
+        required=True,
+        label=_("Standard"),
+    )
+
+    year = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 3, timezone.now().year + 2)
+        ],
+        required=True,
+        initial=timezone.now().year,
+        label=_("Year"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.pop("initial", None)
+        super().__init__(*args, **kwargs)
+        if initial:
+            self.fields["so_standard"].choices = initial
+        else:
+            self.fields["so_standard"].disabled = True
+            self.fields["year"].disabled = True
+
+
+class SelectYearForm(forms.Form):
+    year = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 3, timezone.now().year + 2)
+        ],
+        required=True,
+        initial=timezone.now().year,
+        label=_("Year"),
     )
