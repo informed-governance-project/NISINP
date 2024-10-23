@@ -21,6 +21,7 @@ from .views import (
     copy_declaration,
     declaration,
     delete_declaration,
+    download_declaration_pdf,
     get_security_objectives,
     select_so_standard,
     submit_declaration,
@@ -50,5 +51,11 @@ urlpatterns = [
         "delete/<int:standard_answer_id>",
         delete_declaration,
         name="delete_so_declaration",
+    ),
+    # Download PDF SO declaration pdf
+    path(
+        "download/<int:standard_answer_id>",
+        download_declaration_pdf,
+        name="download_so_declaration_pdf",
     ),
 ]

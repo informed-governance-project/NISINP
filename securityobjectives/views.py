@@ -1,15 +1,19 @@
 import json
+import os
 from collections import defaultdict
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Value, When
 from django.forms.models import model_to_dict
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
+from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -285,3 +289,90 @@ def delete_declaration(request, standard_answer_id: int):
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
     return redirect("securityobjectives")
+
+
+@login_required
+@otp_required
+def download_declaration_pdf(request, standard_answer_id: int):
+    standard_answer = StandardAnswer.objects.filter(pk=standard_answer_id).annotate(
+        total_security_objectives=Count(
+            "standard__securityobjectivesinstandard__security_objective",
+            distinct=True,
+        ),
+        total_security_objectives_answered=Count(
+            "securitymeasureanswers__security_measure__security_objective",
+            distinct=True,
+        ),
+        answered_percentage=Case(
+            When(total_security_objectives=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                F("total_security_objectives_answered")
+                * 100.0
+                / F("total_security_objectives"),
+                output_field=FloatField(),
+            ),
+        ),
+    )
+
+    if not standard_answer:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
+
+    try:
+        standard_answer = standard_answer.first()
+        standard = standard_answer.standard
+        security_objectives_queryset = (
+            standard.securityobjectivesinstandard_set.all().order_by("position")
+        )
+        security_objectives = defaultdict(lambda: defaultdict(lambda: []))
+
+        for so_in_standard in security_objectives_queryset:
+            security_objective = so_in_standard.security_objective
+            security_measures = security_objective.securitymeasure_set.all()
+            for measure in security_measures:
+                try:
+                    sm_answer = SecurityMeasureAnswer.objects.get(
+                        standard_answer=standard_answer,
+                        security_measure=measure,
+                    )
+                    measure.is_implemented = sm_answer.is_implemented
+                    measure.comment = sm_answer.comment
+                    measure.review_comment = sm_answer.review_comment
+                except SecurityMeasureAnswer.DoesNotExist:
+                    measure.is_implemented = False
+
+                security_objective = measure.security_objective
+                maturity_level = measure.maturity_level
+                security_objectives[security_objective][maturity_level].append(measure)
+
+        security_objectives = {
+            so: dict(levels) for so, levels in security_objectives.items()
+        }
+        static_theme_dir = settings.STATIC_THEME_DIR
+        output_from_parsed_template = render_to_string(
+            "security_objectives/report/template.html",
+            {
+                "static_theme_dir": os.path.abspath(static_theme_dir),
+                "standard_answer": standard_answer,
+                "security_objectives": security_objectives,
+            },
+            request=request,
+        )
+
+        htmldoc = HTML(string=output_from_parsed_template, base_url=static_theme_dir)
+
+        stylesheets = [
+            CSS(os.path.join(static_theme_dir, "css/custom.css")),
+            CSS(os.path.join(static_theme_dir, "css/report.css")),
+        ]
+
+        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets)
+        response = HttpResponse(pdf_report, content_type="application/pdf")
+        response[
+            "Content-Disposition"
+        ] = f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
+
+        return response
+    except Exception:
+        messages.warning(request, _("An error occurred while generating the report."))
+        return redirect("securityobjectives")
