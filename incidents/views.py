@@ -1149,6 +1149,12 @@ class WorkflowWizardView(SessionWizardView):
             )
             incident_workflow.comment = data.get("comment", None)
             review_status = data.get("review_status", None)
+            if incident_workflow.review_status != review_status:
+                if incident_workflow.incident.sector_regulation.report_status_changed_email:
+                    send_email(
+                        incident_workflow.incident.sector_regulation.report_status_changed_email,
+                        incident_workflow.incident,
+                    )
             if review_status is not None:
                 incident_workflow.review_status = review_status
             incident_workflow.save()
