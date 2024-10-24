@@ -145,3 +145,7 @@ def accept_terms(request):
         form = TermsAcceptanceForm()
 
     return render(request, "modals/accept_terms.html", {"form": form})
+
+
+def contact(request):
+    return render(request, "home/contact.html")
