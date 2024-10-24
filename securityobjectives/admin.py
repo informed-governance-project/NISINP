@@ -97,10 +97,14 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    level = fields.Field(
+        column_name="level",
+        attribute="level",
+    )
 
     class Meta:
         model = MaturityLevel
-        fields = "label"
+        fields = ("level", "label")
 
 
 @admin.register(MaturityLevel, site=admin_site)
@@ -109,6 +113,7 @@ class MaturityLevelAdmin(
 ):
     resource_class = MaturityLevelResource
     list_display = [
+        "level",
         "label",
     ]
 

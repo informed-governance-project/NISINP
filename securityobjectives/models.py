@@ -12,6 +12,7 @@ class MaturityLevel(TranslatableModel):
     translations = TranslatedFields(
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
+    level = models.IntegerField(default=0)
 
     def __str__(self):
         return self.label if self.label is not None else ""
