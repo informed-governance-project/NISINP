@@ -257,24 +257,6 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             form = filter_languages_not_translated(form)
         return form
 
-    def save_model(self, request, obj, form, change):
-        exist = QuestionCategory.objects.filter(
-            translations__label=obj.label
-        ).exists()
-        if not exist:
-            set_creator(request, obj, change)
-            super().save_model(request, obj, form, change)
-        else:
-            messages.warning(
-                    request,
-                    mark_safe(
-                        _(
-                            f"<strong>Add action is not allowed</strong><br>"
-                            f"- This {obj._meta.verbose_name.lower()} already exist.<br>"
-                        )
-                    ),
-                )
-
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -412,11 +394,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
     list_display = ["question_category", "position", "report"]
     list_display_links = ["position", "question_category"]
-    fields = [
-        "question_category",
-        "position",
-        "report"
-    ]
+    fields = ["question_category", "position", "report"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
@@ -425,8 +403,8 @@ class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
     # remove the right to add or edit report
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
-        form.base_fields['report'].widget.can_add_related = False
-        form.base_fields['report'].widget.can_change_related = False
+        form.base_fields["report"].widget.can_add_related = False
+        form.base_fields["report"].widget.can_change_related = False
         return form
 
 
@@ -801,7 +779,7 @@ class SectorRegulationInline(admin.TabularInline):
             kwargs["queryset"] = Workflow.objects.translated(get_language()).order_by(
                 "translations__name"
             )
-        return super(SectorRegulationInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(SectorRegulation, site=admin_site)
