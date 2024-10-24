@@ -2,7 +2,7 @@
 # import source code dir
 
 SITE_ID = 303
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
@@ -27,7 +27,7 @@ try:
     HASH_KEY = config.HASH_KEY
 
     # SECURITY WARNING: don't run with debug turned on in production!
-    DEBUG = config.DEBUG
+    DEBUG = DEBUG
     LOGGING = config.LOGGING
     LOG_DIRECTORY = config.LOG_DIRECTORY
 
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django_extensions",
     "governanceplatform",
     "incidents",
     "api",
@@ -71,4 +72,6 @@ INSTALLED_APPS = [
     "import_export",
     "parler",
     "bootstrap_datepicker_plus",
+    "phonenumber_field",
+    "django_filters",
 ]

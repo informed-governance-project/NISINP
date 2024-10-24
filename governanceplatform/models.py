@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
+from .globals import ACTION_FLAG_CHOICES
 
 import governanceplatform
 from incidents.models import Incident
@@ -560,3 +561,23 @@ class ObserverRegulation(models.Model):
 
     def __str__(self):
         return ""
+
+
+# class to record the script logs
+class ScriptLogEntry(models.Model):
+    action_time = models.DateTimeField(auto_now=True, verbose_name=_("Action time"))
+    action_flag = models.PositiveSmallIntegerField(verbose_name=_("Action flag"))
+    object_id = models.TextField(null=True, blank=True, verbose_name=_("Object id"))
+    object_repr = models.CharField(max_length=200, verbose_name=_("Object representation"))
+    additional_info = models.TextField(null=True, blank=True, verbose_name=_("Additional information"))
+
+    class Meta:
+        verbose_name = _("Script log entry")
+        verbose_name_plural = _("Script log entries")
+
+    def __str__(self):
+        return f"{self.action()} - {self.object_repr}"
+
+    # Define a method to return human-readable action names
+    def action(self):
+        return ACTION_FLAG_CHOICES.get(self.action_flag, "Unknown")

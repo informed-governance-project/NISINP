@@ -57,7 +57,7 @@ from .models import (
     IncidentWorkflow,
     LogReportRead,
     PredefinedAnswer,
-    QuestionCategory,
+    QuestionCategoryOptions,
     QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
@@ -1067,12 +1067,14 @@ class WorkflowWizardView(SessionWizardView):
             context["is_regulator_incident"] = self.is_regulator_incident
 
             category_ids = self.workflow.questionoptions_set.values_list(
-                "category", flat=True
+                "category_option", flat=True
             ).distinct()
-            categories = QuestionCategory.objects.filter(id__in=category_ids).order_by(
-                "questioncategoryoptions__position"
+            categories_options = QuestionCategoryOptions.objects.filter(id__in=category_ids).order_by(
+                "position"
             )
-
+            categories = []
+            for categ in categories_options:
+                categories.append(categ.question_category)
             context["steps"].append(_("Timeline"))
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
@@ -1147,6 +1149,12 @@ class WorkflowWizardView(SessionWizardView):
             )
             incident_workflow.comment = data.get("comment", None)
             review_status = data.get("review_status", None)
+            if incident_workflow.review_status != review_status:
+                if incident_workflow.incident.sector_regulation.report_status_changed_email:
+                    send_email(
+                        incident_workflow.incident.sector_regulation.report_status_changed_email,
+                        incident_workflow.incident,
+                    )
             if review_status is not None:
                 incident_workflow.review_status = review_status
             incident_workflow.save()

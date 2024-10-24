@@ -130,6 +130,22 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
         return cleaned_data
 
+    def _post_clean(self):
+        _post_clean = super()._post_clean()
+        forms_to_check = ["QuestionCategoryForm"]
+        if (
+            self.instance.has_translation(self.instance.get_current_language())
+            and self.__class__.__name__ in forms_to_check
+        ):
+            error_message = _(
+                f"This {self.instance._meta.verbose_name.lower()} already exist."
+            )
+            self.add_error(
+                None,
+                ValidationError(error_message),
+            )
+        return _post_clean
+
     def add_default_translation_error(self):
         language_info = get_language_info(self.FALLBACK_LANGUAGE)
         fallback_language_name = language_info["name_translated"]

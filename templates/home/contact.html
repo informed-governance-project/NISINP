@@ -1,0 +1,18 @@
+{% extends 'home/base.html' %}
+{% load i18n %}
+{% block bootstrap5_title %}About{% endblock %}
+{% block content %}
+<div class="container text-justify">
+    <div class="card">
+        <div class="card-body">
+            <h2>Contact</h2>
+            {% translate "Dear entity, should you need any assistance please contact us on " %}{{ regulator.contact_email }}
+            <ul class="list-group">
+                <li class="list-group-item">Regulator: {{ regulator.name }}</li>
+                <li class="list-group-item">Regulator website: <a href="{{ regulator.website }}" target="_blank" rel="noopener noreferrer">{{ regulator.website }}</a></li>
+            <ul>
+        </div>
+    </div>
+    <br />
+</div>
+{% endblock %}

@@ -94,6 +94,8 @@ urlpatterns = [
     ),
     # Language Selector
     path("set-language/", set_language, name="set_language"),
+    # contact
+    path("contact/", views.contact, name="contact"),
 ]
 
 # API

@@ -257,10 +257,6 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             form = filter_languages_not_translated(form)
         return form
 
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
-
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -312,6 +308,15 @@ class QuestionOptionsInline(admin.TabularInline):
         if obj and not can_change_or_delete_obj(request, obj):
             max_num = 0
         return max_num
+
+    # filter the question category option on the report_id to avoid mixing report categories
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category_option" and self.parent_obj:
+            kwargs["queryset"] = QuestionCategoryOptions.objects.filter(
+                report=self.parent_obj
+            )
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
@@ -371,13 +376,13 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 @admin.register(QuestionOptions, site=admin_site)
 class QuestionOptionsAdmin(admin.ModelAdmin):
-    list_display = ["position", "question", "is_mandatory", "category"]
+    list_display = ["position", "question", "is_mandatory", "category_option"]
     list_display_links = ["position", "question"]
     ordering = ["position"]
     fields = [
         ("position", "is_mandatory"),
         "question",
-        "category",
+        "category_option",
     ]
 
     # Hidden from register models list
@@ -387,16 +392,20 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 
 @admin.register(QuestionCategoryOptions, site=admin_site)
 class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
-    list_display = ["question_category", "position"]
+    list_display = ["question_category", "position", "report"]
     list_display_links = ["position", "question_category"]
-    fields = [
-        "question_category",
-        "position",
-    ]
+    fields = ["question_category", "position", "report"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
+
+    # remove the right to add or edit report
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+        form.base_fields["report"].widget.can_add_related = False
+        form.base_fields["report"].widget.can_change_related = False
+        return form
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
@@ -693,6 +702,13 @@ class WorkflowAdmin(CustomTranslatableAdmin):
         ),
     ]
 
+    # give the parent object to the inlines
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        for inline_instance in inline_instances:
+            inline_instance.parent_obj = obj
+        return inline_instances
+
     def get_form(self, request, obj=None, **kwargs):
         if obj and not self.has_change_permission(request, obj):
             self.save_as = False
@@ -757,6 +773,13 @@ class SectorRegulationInline(admin.TabularInline):
     verbose_name = _("Incident report")
     verbose_name_plural = _("Incident reports")
     extra = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "workflow":
+            kwargs["queryset"] = Workflow.objects.translated(get_language()).order_by(
+                "translations__name"
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(SectorRegulation, site=admin_site)
