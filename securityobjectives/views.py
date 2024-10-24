@@ -18,8 +18,10 @@ from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
+    is_user_operator,
     is_user_regulator,
 )
+from governanceplatform.models import Company
 
 from .forms import (
     ImportSOForm,
@@ -35,30 +37,34 @@ from .models import SecurityMeasure, SecurityMeasureAnswer, Standard, StandardAn
 @otp_required
 def get_security_objectives(request):
     user = request.user
-
-    standard_answers = (
-        StandardAnswer.objects.filter(submitter_user=user)
-        .annotate(
-            total_security_objectives=Count(
-                "standard__securityobjectivesinstandard__security_objective",
-                distinct=True,
-            ),
-            total_security_objectives_answered=Count(
-                "securitymeasureanswers__security_measure__security_objective",
-                distinct=True,
-            ),
-            answered_percentage=Case(
-                When(total_security_objectives=0, then=Value(0.0)),
-                default=ExpressionWrapper(
-                    F("total_security_objectives_answered")
-                    * 100.0
-                    / F("total_security_objectives"),
-                    output_field=FloatField(),
-                ),
-            ),
+    standard_answer_queryset = StandardAnswer.objects.none()
+    if is_user_regulator(user):
+        standard_answer_queryset = StandardAnswer.objects.exclude(status="UNDE")
+    if is_user_operator(user):
+        company = get_active_company_from_session(request)
+        standard_answer_queryset = StandardAnswer.objects.filter(
+            submitter_company=company
         )
-        .order_by("standard_notification_date")
-    )
+
+    standard_answers = standard_answer_queryset.annotate(
+        total_security_objectives=Count(
+            "standard__securityobjectivesinstandard__security_objective",
+            distinct=True,
+        ),
+        total_security_objectives_answered=Count(
+            "securitymeasureanswers__security_measure__security_objective",
+            distinct=True,
+        ),
+        answered_percentage=Case(
+            When(total_security_objectives=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                F("total_security_objectives_answered")
+                * 100.0
+                / F("total_security_objectives"),
+                output_field=FloatField(),
+            ),
+        ),
+    ).order_by("standard_notification_date")
 
     context = {"standard_answers": standard_answers}
     return render(
@@ -391,8 +397,13 @@ def import_so_declaration(request):
     standard_list = [
         (standard.id, str(standard)) for standard in Standard.objects.all()
     ]
+    company_list = [(company.id, str(company)) for company in Company.objects.all()]
     if request.method == "POST":
-        form = ImportSOForm(request.POST, request.FILES, initial=standard_list)
+        form = ImportSOForm(
+            request.POST,
+            request.FILES,
+            initial={"standard": standard_list, "company": company_list},
+        )
         if form.is_valid():
             try:
                 wb = openpyxl.load_workbook(form.cleaned_data["import_file"])
@@ -404,20 +415,32 @@ def import_so_declaration(request):
             measure_answers_imported = []
             default_text = "Free text field"
             standard_id = form.cleaned_data["standard"]
+            company_id = form.cleaned_data["company"]
             year = form.cleaned_data["year"]
             status = form.cleaned_data["status"]
 
             try:
                 standard = Standard.objects.get(pk=standard_id)
+                company = Company.objects.get(pk=company_id)
+                users = company.user_set.filter(is_staff=True)
+                if users:
+                    user = users.first()
+                else:
+                    messages.warning(
+                        request,
+                        _("No users for this company"),
+                    )
+
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     status=status,
                     submitter_user=user,
+                    submitter_company=company,
                     creator_name=user.get_full_name(),
                     year_of_submission=year,
                 )
                 new_standard_answer.save()
-            except Standard.DoesNotExist:
+            except (Standard.DoesNotExist, Company.DoesNotExist):
                 messages.warning(
                     request,
                     _("An error occurred while importing the declaration file."),
@@ -485,6 +508,8 @@ def import_so_declaration(request):
 
     if not standard_list:
         messages.error(request, _("No data available"))
-    form = ImportSOForm(initial=standard_list)
+    form = ImportSOForm(
+        initial={"standard": standard_list, "company": company_list},
+    )
     context = {"form": form}
     return render(request, "modals/import_so_declaration.html", context=context)

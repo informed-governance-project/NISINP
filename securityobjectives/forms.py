@@ -113,6 +113,12 @@ class ImportSOForm(forms.Form):
         label=_("Standard"),
     )
 
+    company = forms.ChoiceField(
+        widget=forms.Select(),
+        required=True,
+        label=_("Company"),
+    )
+
     year = forms.ChoiceField(
         widget=forms.Select(),
         choices=[
@@ -128,15 +134,18 @@ class ImportSOForm(forms.Form):
         widget=forms.Select(),
         choices=REVIEW_STATUS,
         initial=REVIEW_STATUS[0][0],
+        label=_("Status"),
     )
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.pop("initial", None)
         super().__init__(*args, **kwargs)
-        if initial:
-            self.fields["standard"].choices = initial
+        if initial["standard"] and initial["company"]:
+            self.fields["standard"].choices = initial["standard"]
+            self.fields["company"].choices = initial["company"]
         else:
-            self.fields["so_standard"].disabled = True
+            self.fields["standard"].disabled = True
+            self.fields["company"].disabled = True
             self.fields["year"].disabled = True
             self.fields["status"].disabled = True
 
