@@ -23,6 +23,7 @@ from .views import (
     delete_declaration,
     download_declaration_pdf,
     get_security_objectives,
+    import_so_declaration,
     select_so_standard,
     submit_declaration,
 )
@@ -58,4 +59,6 @@ urlpatterns = [
         download_declaration_pdf,
         name="download_so_declaration_pdf",
     ),
+    # Import SO declaction
+    path("import", import_so_declaration, name="import_so_declaration"),
 ]

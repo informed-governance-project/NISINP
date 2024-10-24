@@ -2,6 +2,7 @@ import json
 import os
 from collections import defaultdict
 
+import openpyxl
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,6 +22,7 @@ from governanceplatform.helpers import (
 )
 
 from .forms import (
+    ImportSOForm,
     SecurityObjectiveAnswerForm,
     SecurityObjectiveStatusForm,
     SelectSOStandardForm,
@@ -168,7 +170,9 @@ def declaration(request):
 
     for so_in_standard in security_objectives_queryset:
         security_objective = so_in_standard.security_objective
-        security_measures = security_objective.securitymeasure_set.all()
+        security_measures = security_objective.securitymeasure_set.all().order_by(
+            "maturity_level__level"
+        )
         security_objective.status_form = SecurityObjectiveStatusForm(
             prefix=f"so_{security_objective.id}"
         )
@@ -328,7 +332,9 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
         for so_in_standard in security_objectives_queryset:
             security_objective = so_in_standard.security_objective
-            security_measures = security_objective.securitymeasure_set.all()
+            security_measures = security_objective.securitymeasure_set.all().order_by(
+                "maturity_level__level"
+            )
             for measure in security_measures:
                 try:
                     sm_answer = SecurityMeasureAnswer.objects.get(
@@ -376,3 +382,109 @@ def download_declaration_pdf(request, standard_answer_id: int):
     except Exception:
         messages.warning(request, _("An error occurred while generating the report."))
         return redirect("securityobjectives")
+
+
+@login_required
+@otp_required
+def import_so_declaration(request):
+    user = request.user
+    standard_list = [
+        (standard.id, str(standard)) for standard in Standard.objects.all()
+    ]
+    if request.method == "POST":
+        form = ImportSOForm(request.POST, request.FILES, initial=standard_list)
+        if form.is_valid():
+            try:
+                wb = openpyxl.load_workbook(form.cleaned_data["import_file"])
+                ws = wb.active
+            except Exception as e:
+                messages.error(request, _("Error opening the file: {}").format(str(e)))
+                return redirect("securityobjectives")
+
+            measure_answers_imported = []
+            default_text = "Free text field"
+            standard_id = form.cleaned_data["standard"]
+            year = form.cleaned_data["year"]
+            status = form.cleaned_data["status"]
+
+            try:
+                standard = Standard.objects.get(pk=standard_id)
+                new_standard_answer = StandardAnswer(
+                    standard=standard,
+                    status=status,
+                    submitter_user=user,
+                    creator_name=user.get_full_name(),
+                    year_of_submission=year,
+                )
+                new_standard_answer.save()
+            except Standard.DoesNotExist:
+                messages.warning(
+                    request,
+                    _("An error occurred while importing the declaration file."),
+                )
+                return redirect("securityobjectives")
+
+            security_objectives = {
+                obj.security_objective.unique_code: obj.security_objective
+                for obj in standard.securityobjectivesinstandard_set.all()
+            }
+
+            for row in ws.iter_rows(
+                min_row=4, max_row=120, max_col=9, values_only=True
+            ):
+                security_objective_code = row[1].split(":")[0] if row[1] else None
+                if security_objective_code:
+                    comment = (
+                        row[7] if row[7] and default_text not in str(row[7]) else None
+                    )
+                    maturity_level = row[8] if isinstance(row[8], int) else None
+                    if comment or maturity_level is not None:
+                        maturity_level = maturity_level if maturity_level else 0
+                        comment = comment if comment else ""
+
+                        security_objective = security_objectives.get(
+                            security_objective_code
+                        )
+
+                        if security_objective:
+                            security_measures = SecurityMeasure.objects.filter(
+                                security_objective=security_objective,
+                                maturity_level__level__lte=maturity_level,
+                            )
+
+                            for sm in security_measures:
+                                sma_comment = (
+                                    comment
+                                    if sm.maturity_level.level == maturity_level
+                                    else ""
+                                )
+                                if sma_comment:
+                                    comment = ""
+                                is_implemented = (
+                                    True
+                                    if sm.maturity_level.level <= maturity_level
+                                    and not sm.maturity_level.level == 0
+                                    else False
+                                )
+                                measure_answers_imported.append(
+                                    SecurityMeasureAnswer(
+                                        standard_answer=new_standard_answer,
+                                        security_measure=sm,
+                                        comment=sma_comment,
+                                        is_implemented=is_implemented,
+                                    )
+                                )
+
+            SecurityMeasureAnswer.objects.bulk_create(measure_answers_imported)
+
+            messages.info(
+                request, ("The security objectives declaration has been imported.")
+            )
+
+            return redirect("securityobjectives")
+
+    if not standard_list:
+        messages.error(request, _("No data available"))
+    form = ImportSOForm(initial=standard_list)
+    context = {"form": form}
+    return render(request, "modals/import_so_declaration.html", context=context)

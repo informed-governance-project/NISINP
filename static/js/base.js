@@ -18,3 +18,12 @@ $('.select_so_standard').on( "click", function() {
       $popup.modal("show");
   });
 });
+
+$('.import_so_declaration').on( "click", function() {
+  var $popup = $("#import_so_declaration");
+  var popup_url = '/securityobjectives/import';
+
+  $(".modal-dialog", $popup).load(popup_url, function () {
+      $popup.modal("show");
+  });
+});

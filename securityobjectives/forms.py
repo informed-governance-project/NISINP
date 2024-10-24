@@ -2,6 +2,8 @@ from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from incidents.globals import REVIEW_STATUS
+
 
 class SecurityObjectiveAnswerForm(forms.Form):
     is_implemented = forms.BooleanField(
@@ -100,6 +102,43 @@ class SelectSOStandardForm(forms.Form):
         else:
             self.fields["so_standard"].disabled = True
             self.fields["year"].disabled = True
+
+
+class ImportSOForm(forms.Form):
+    import_file = forms.FileField()
+
+    standard = forms.ChoiceField(
+        widget=forms.Select(),
+        required=True,
+        label=_("Standard"),
+    )
+
+    year = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 3, timezone.now().year + 2)
+        ],
+        required=True,
+        initial=timezone.now().year,
+        label=_("Year"),
+    )
+
+    status = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=REVIEW_STATUS,
+        initial=REVIEW_STATUS[0][0],
+    )
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.pop("initial", None)
+        super().__init__(*args, **kwargs)
+        if initial:
+            self.fields["standard"].choices = initial
+        else:
+            self.fields["so_standard"].disabled = True
+            self.fields["year"].disabled = True
+            self.fields["status"].disabled = True
 
 
 class SelectYearForm(forms.Form):
