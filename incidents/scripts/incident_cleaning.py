@@ -10,7 +10,6 @@ from governanceplatform.models import ScriptLogEntry
 def run():
     # for all closed incident
     incident_to_delete_qs = Incident.objects.filter(
-        incident_status='CLOSE',
         incident_notification_date__lte=Now()-timedelta(days=INCIDENT_RETENTION_TIME_IN_DAY)
     )
     ScriptLogEntry.objects.create(
