@@ -12,6 +12,7 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+from django.utils.text import capfirst
 
 from .forms import CustomTranslatableAdminForm
 from .helpers import (
@@ -33,6 +34,7 @@ from .models import (  # Functionality,; OperatorType,; Service,
     Sector,
     SectorCompanyContact,
     User,
+    ScriptLogEntry,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -55,6 +57,37 @@ class CustomAdminSite(admin.AdminSite):
     def admin_view(self, view, cacheable=False):
         decorated_view = otp_required(view)
         return super().admin_view(decorated_view, cacheable)
+
+    def get_app_list(self, request, app_label=None):
+        """
+        Override this method to organize models under custom sections.
+        """
+        app_list = super(CustomAdminSite, self).get_app_list(request, app_label)
+
+        # change the place of scriptlogentry to have it under the administration
+        for app in app_list:
+            if app["name"] == "Administration":  # Your app name (not app_label)
+                app["models"].append(
+                    {
+                        "name": capfirst(
+                            ScriptLogEntry._meta.verbose_name_plural
+                        ),  # Human-readable name
+                        "object_name": ScriptLogEntry._meta.object_name,
+                        "admin_url": "/admin/governanceplatform/scriptlogentry/",
+                        "perms": {
+                            "add": False,
+                            "change": True,
+                            "delete": False,
+                        },
+                    }
+                )
+            if app["name"] == "governanceplatform":
+                app['models'] = [
+                    model for model in app['models']
+                    if model['object_name'] != ScriptLogEntry._meta.object_name
+                ]
+
+        return app_list
 
 
 admin_site = CustomAdminSite()
@@ -1421,3 +1454,19 @@ class RegulationAdmin(CustomTranslatableAdmin):
         if user_in_group(user, "RegulatorAdmin"):
             return False
         return super().has_delete_permission(request, obj)
+
+
+@admin.register(ScriptLogEntry, site=admin_site)
+class ScriptLogEntryAdmin(admin.ModelAdmin):
+    list_display = ['action_time', 'action', 'object_repr', 'additional_info']
+    readonly_fields = ['action_time', 'action', 'object_id', 'object_repr', 'additional_info']
+    search_fields = ['object_repr']
+
+    def has_add_permission(self, request):
+        return False  # Disable adding custom logs manually
+
+    def has_change_permission(self, request, obj=None):
+        return False  # Disable changing logs
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # Disable deleting logs
