@@ -58,11 +58,11 @@ class CustomAdminSite(admin.AdminSite):
         decorated_view = otp_required(view)
         return super().admin_view(decorated_view, cacheable)
 
-    def get_app_list(self, request):
+    def get_app_list(self, request, app_label=None):
         """
         Override this method to organize models under custom sections.
         """
-        app_list = super().get_app_list(request)
+        app_list = super(CustomAdminSite, self).get_app_list(request, app_label)
 
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
