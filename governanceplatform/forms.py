@@ -137,13 +137,25 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
             self.instance.has_translation(self.instance.get_current_language())
             and self.__class__.__name__ in forms_to_check
         ):
-            error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exist."
-            )
-            self.add_error(
-                None,
-                ValidationError(error_message),
-            )
+            # get the model
+            model = self._meta.model
+            # get the language
+            current_language = self.instance.get_current_language()
+            # get the input value
+            form_translation = self.cleaned_data.get('label')
+            # check if this translations exists
+            duplicate_translations = model.objects.translated(current_language).filter(
+                translations__label=form_translation
+            ).exclude(pk=self.instance.pk)  # Exclude the current instance
+
+            if duplicate_translations.exists():
+                error_message = _(
+                    f"This {self.instance._meta.verbose_name.lower()} already exist."
+                )
+                self.add_error(
+                    None,
+                    ValidationError(error_message),
+                )
         return _post_clean
 
     def add_default_translation_error(self):
