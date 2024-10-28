@@ -166,3 +166,31 @@ class SecurityMeasureAnswer(models.Model):
     comment = models.TextField()
     is_implemented = models.BooleanField(default=False, verbose_name=_("Implemented"))
     review_comment = models.TextField()
+
+
+# SO Status set by regulator
+class SecurityObjectiveStatus(models.Model):
+    standard_answer = models.ForeignKey(
+        StandardAnswer,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    security_objective = models.ForeignKey(
+        SecurityObjective,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    status = models.CharField(
+        choices=[
+            ("NOT_REVIEWED", _("Not reviewed")),
+            ("PASS", _("Pass")),
+            ("FAIL", _("Fail")),
+        ],
+        blank=False,
+        default=REVIEW_STATUS[0][0],
+        verbose_name=_("Status"),
+    )
