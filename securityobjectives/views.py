@@ -30,7 +30,14 @@ from .forms import (
     SelectSOStandardForm,
     SelectYearForm,
 )
-from .models import SecurityMeasure, SecurityMeasureAnswer, Standard, StandardAnswer
+from .models import (
+    SecurityMeasure,
+    SecurityMeasureAnswer,
+    SecurityObjective,
+    SecurityObjectiveStatus,
+    Standard,
+    StandardAnswer,
+)
 
 
 @login_required
@@ -125,6 +132,9 @@ def declaration(request):
             .last()
         )
 
+    if not has_change_permission(request, standard_answer, "edit"):
+        return redirect("securityobjectives")
+
     standard = standard_answer.standard
 
     security_objectives_queryset = (
@@ -133,44 +143,118 @@ def declaration(request):
 
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
-        id_security_measure = data.pop("id", None)
-        form = SecurityObjectiveAnswerForm(data)
-        if form.is_valid():
-            try:
-                security_measure = SecurityMeasure.objects.get(pk=id_security_measure)
-                field_name = next(iter(data))
-                field_to_update = {field_name: form.cleaned_data[field_name]}
-                obj, created = SecurityMeasureAnswer.objects.update_or_create(
-                    standard_answer=standard_answer,
-                    security_measure=security_measure,
-                    defaults={
-                        **field_to_update,
-                        "security_measure_notification_date": timezone.now(),
-                        "standard_answer": standard_answer,
-                        "security_measure": security_measure,
-                    },
-                )
+        id_object = data.pop("id", None)
+        field_name = next(iter(data))
+        if field_name in ["review_comment", "status"] and not is_user_regulator(user):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"No permission to update the {field_name}",
+                },
+                status=403,
+            )
+        if field_name == "status":
+            form = SecurityObjectiveStatusForm(data)
+            if form.is_valid():
+                try:
+                    security_objective = SecurityObjective.objects.get(pk=id_object)
+                    field_to_update = {field_name: form.cleaned_data[field_name]}
+                    obj, created = SecurityObjectiveStatus.objects.update_or_create(
+                        standard_answer=standard_answer,
+                        security_objective=security_objective,
+                        defaults={
+                            **field_to_update,
+                            "standard_answer": standard_answer,
+                            "security_objective": security_objective,
+                        },
+                    )
 
-                if (
-                    not obj.is_implemented
-                    and not obj.comment
-                    and not obj.review_comment
-                ):
-                    obj.delete()
+                    status_counts_queryset = (
+                        SecurityObjectiveStatus.objects.filter(
+                            standard_answer=standard_answer
+                        )
+                        .values("status")
+                        .annotate(count=Count("status"))
+                    )
 
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "created": created,
-                        "data": field_to_update,
-                    },
-                    status=201 if created else 200,
-                )
-            except SecurityMeasure.DoesNotExist:
-                return JsonResponse(
-                    {"success": False, "error": "security_measure_does_not_exist"},
-                    status=404,
-                )
+                    status_counts_dict = defaultdict(
+                        int,
+                        {
+                            item["status"]: item["count"]
+                            for item in status_counts_queryset
+                        },
+                    )
+
+                    security_objectives_count = security_objectives_queryset.count()
+
+                    if sum(status_counts_dict.values()) == security_objectives_count:
+                        pass_counts = status_counts_dict["PASS"]
+                        fail_counts = status_counts_dict["FAIL"]
+
+                        if pass_counts == security_objectives_count:
+                            standard_answer.status = "PASS"
+                        elif fail_counts >= 1:
+                            standard_answer.status = "FAIL"
+                        else:
+                            standard_answer.status = "DELIV"
+
+                        standard_answer.save()
+
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "created": created,
+                            "id": id_object,
+                            "data": field_to_update,
+                        },
+                        status=201 if created else 200,
+                    )
+                except SecurityObjective.DoesNotExist:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "security objective does not exist",
+                        },
+                        status=404,
+                    )
+
+        else:
+            form = SecurityObjectiveAnswerForm(data)
+            if form.is_valid():
+                try:
+                    security_measure = SecurityMeasure.objects.get(pk=id_object)
+                    field_to_update = {field_name: form.cleaned_data[field_name]}
+                    obj, created = SecurityMeasureAnswer.objects.update_or_create(
+                        standard_answer=standard_answer,
+                        security_measure=security_measure,
+                        defaults={
+                            **field_to_update,
+                            "security_measure_notification_date": timezone.now(),
+                            "standard_answer": standard_answer,
+                            "security_measure": security_measure,
+                        },
+                    )
+
+                    if (
+                        not obj.is_implemented
+                        and not obj.comment
+                        and not obj.review_comment
+                    ):
+                        obj.delete()
+
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "created": created,
+                            "data": field_to_update,
+                        },
+                        status=201 if created else 200,
+                    )
+                except SecurityMeasure.DoesNotExist:
+                    return JsonResponse(
+                        {"success": False, "error": "security measure does not exist"},
+                        status=404,
+                    )
 
     security_objectives = defaultdict(lambda: defaultdict(lambda: []))
 
@@ -179,9 +263,19 @@ def declaration(request):
         security_measures = security_objective.securitymeasure_set.all().order_by(
             "maturity_level__level"
         )
+        try:
+            so_status = SecurityObjectiveStatus.objects.get(
+                standard_answer=standard_answer,
+                security_objective=security_objective,
+            )
+            initial = model_to_dict(so_status, fields=["status"])
+        except SecurityObjectiveStatus.DoesNotExist:
+            initial = {}
+
         security_objective.status_form = SecurityObjectiveStatusForm(
-            prefix=f"so_{security_objective.id}"
+            initial=initial, prefix=f"{security_objective.id}"
         )
+
         for measure in security_measures:
             try:
                 sm_answer = SecurityMeasureAnswer.objects.get(
@@ -217,53 +311,52 @@ def declaration(request):
 @otp_required
 def copy_declaration(request, standard_answer_id: int):
     user = request.user
+    try:
+        original_standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+        if not has_change_permission(request, original_standard_answer, "copy"):
+            return redirect("securityobjectives")
+    except StandardAnswer.DoesNotExist:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
     if request.method == "POST":
         form = SelectYearForm(request.POST)
         if form.is_valid():
             year = form.cleaned_data["year"]
-            try:
-                original_standard_answer = StandardAnswer.objects.get(
-                    pk=standard_answer_id
-                )
-                original_standard_answer_dict = {
-                    "standard": original_standard_answer.standard,
-                    "submitter_company": original_standard_answer.submitter_company,
-                    "creator_company_name": original_standard_answer.creator_company_name,
-                }
+            original_standard_answer_dict = {
+                "standard": original_standard_answer.standard,
+                "submitter_company": original_standard_answer.submitter_company,
+                "creator_company_name": original_standard_answer.creator_company_name,
+            }
 
-                new_standard_answer = StandardAnswer(
-                    **original_standard_answer_dict,
-                    submitter_user=user,
-                    creator_name=user.get_full_name(),
-                    year_of_submission=year,
-                )
-                new_standard_answer.save()
+            new_standard_answer = StandardAnswer(
+                **original_standard_answer_dict,
+                submitter_user=user,
+                creator_name=user.get_full_name(),
+                year_of_submission=year,
+            )
+            new_standard_answer.save()
 
-                security_measure_answers = SecurityMeasureAnswer.objects.filter(
-                    standard_answer=original_standard_answer
-                )
+            security_measure_answers = SecurityMeasureAnswer.objects.filter(
+                standard_answer=original_standard_answer
+            )
 
-                if security_measure_answers:
-                    security_measure_answers_copy = [
-                        SecurityMeasureAnswer(
-                            standard_answer=new_standard_answer,
-                            security_measure=sma.security_measure,
-                            comment=sma.comment,
-                            is_implemented=sma.is_implemented,
-                        )
-                        for sma in security_measure_answers
-                    ]
-
-                    SecurityMeasureAnswer.objects.bulk_create(
-                        security_measure_answers_copy
+            if security_measure_answers:
+                security_measure_answers_copy = [
+                    SecurityMeasureAnswer(
+                        standard_answer=new_standard_answer,
+                        security_measure=sma.security_measure,
+                        comment=sma.comment,
+                        is_implemented=sma.is_implemented,
                     )
+                    for sma in security_measure_answers
+                ]
 
-                messages.info(
-                    request,
-                    _("The security objectives declaration has been duplicated."),
-                )
-            except StandardAnswer.DoesNotExist:
-                messages.error(request, _("Declaration not found"))
+                SecurityMeasureAnswer.objects.bulk_create(security_measure_answers_copy)
+
+            messages.info(
+                request,
+                _("The security objectives declaration has been duplicated."),
+            )
 
         return redirect("securityobjectives")
 
@@ -275,15 +368,36 @@ def copy_declaration(request, standard_answer_id: int):
 @login_required
 @otp_required
 def submit_declaration(request, standard_answer_id: int):
-    try:
-        standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
-        standard_answer.status = "DELIV"
-        standard_answer.save()
-        messages.info(
-            request, _("The security objectives declaration has been submitted.")
-        )
-    except StandardAnswer.DoesNotExist:
+    standard_answer = StandardAnswer.objects.filter(pk=standard_answer_id).annotate(
+        total_security_objectives=Count(
+            "standard__securityobjectivesinstandard__security_objective",
+            distinct=True,
+        ),
+        total_security_objectives_answered=Count(
+            "securitymeasureanswers__security_measure__security_objective",
+            distinct=True,
+        ),
+        answered_percentage=Case(
+            When(total_security_objectives=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                F("total_security_objectives_answered")
+                * 100.0
+                / F("total_security_objectives"),
+                output_field=FloatField(),
+            ),
+        ),
+    )
+    if not standard_answer:
         messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
+
+    standard_answer = standard_answer.first()
+    if not has_change_permission(request, standard_answer, "submit"):
+        return redirect("securityobjectives")
+    standard_answer.status = "DELIV"
+    standard_answer.save()
+    messages.info(request, _("The security objectives declaration has been submitted."))
+
     return redirect("securityobjectives")
 
 
@@ -292,6 +406,8 @@ def submit_declaration(request, standard_answer_id: int):
 def delete_declaration(request, standard_answer_id: int):
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+        if not has_change_permission(request, standard_answer, "delete"):
+            return redirect("securityobjectives")
         standard_answer.delete()
         messages.info(
             request, _("The security objectives declaration has been deleted.")
@@ -330,6 +446,8 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
     try:
         standard_answer = standard_answer.first()
+        if not has_change_permission(request, standard_answer, "download"):
+            return redirect("securityobjectives")
         standard = standard_answer.standard
         security_objectives_queryset = (
             standard.securityobjectivesinstandard_set.all().order_by("position")
@@ -513,3 +631,41 @@ def import_so_declaration(request):
     )
     context = {"form": form}
     return render(request, "modals/import_so_declaration.html", context=context)
+
+
+def has_change_permission(request, standard_answer, action):
+    def check_conditions():
+        user = request.user
+        user_company = get_active_company_from_session(request)
+        is_standard_answer_in_user_company = (
+            is_user_operator(user) and standard_answer.submitter_company == user_company
+        )
+
+        match action:
+            case "edit" | "download":
+                return (
+                    is_user_regulator(user) and standard_answer.status != "UNDE"
+                ) or (
+                    is_standard_answer_in_user_company
+                    and standard_answer.status == "UNDE"
+                )
+            case "submit":
+                return (
+                    is_standard_answer_in_user_company
+                    and standard_answer.status == "UNDE"
+                    and standard_answer.answered_percentage == 100
+                )
+            case "copy":
+                return is_standard_answer_in_user_company
+            case "delete":
+                return (
+                    is_standard_answer_in_user_company
+                    and not standard_answer.status == "UNDE"
+                )
+            case _:
+                return False
+
+    if not check_conditions():
+        messages.error(request, _("Forbidden"))
+        return False
+    return True
