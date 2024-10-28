@@ -4,6 +4,8 @@ from django.utils.translation import gettext as _
 
 from incidents.globals import REVIEW_STATUS
 
+from .models import SecurityObjectiveStatus
+
 
 class SecurityObjectiveAnswerForm(forms.Form):
     is_implemented = forms.BooleanField(
@@ -39,41 +41,22 @@ class SecurityObjectiveAnswerForm(forms.Form):
         initial = kwargs.get("initial", None)
         super().__init__(*args, **kwargs)
         if initial:
-            self.fields["is_implemented"].disabled = initial.get("is_regulator", True)
-            self.fields["comment"].disabled = initial.get("is_regulator", True)
-            self.fields["review_comment"].disabled = not initial.get(
-                "is_regulator", True
-            )
+            is_regulator = initial.get("is_regulator", True)
+            self.fields["is_implemented"].disabled = is_regulator
+            self.fields["comment"].disabled = is_regulator
+            self.fields["review_comment"].disabled = not is_regulator
+            if not is_regulator:
+                self.fields["review_comment"].widget = forms.HiddenInput()
+                self.initial["review_comment"] = None
 
 
-class CustomSelect(forms.Select):
-    def create_option(
-        self, name, value, label, selected, index, subindex=None, attrs=None
-    ):
-        option = super().create_option(
-            name, value, label, selected, index, subindex=subindex, attrs=attrs
-        )
-
-        if value == "NOT_REVIEWED":
-            option["attrs"]["class"] = "bg-transparent"
-        elif value == "PASS":
-            option["attrs"]["class"] = "bg-success"
-        elif value == "FAIL":
-            option["attrs"]["class"] = "bg-danger"
-
-        return option
-
-
-class SecurityObjectiveStatusForm(forms.Form):
-    security_objective_status = forms.ChoiceField(
-        choices=[
-            ("NOT_REVIEWED", _("Not reviewed")),
-            ("PASS", _("Pass")),
-            ("FAIL", _("Fail")),
-        ],
-        widget=CustomSelect(),
-        initial="NOT_REVIEWED",
-    )
+class SecurityObjectiveStatusForm(forms.ModelForm):
+    class Meta:
+        model = SecurityObjectiveStatus
+        fields = ["status"]
+        widgets = {
+            "status": forms.Select(attrs={"onchange": "update_so_status(this)"}),
+        }
 
 
 class SelectSOStandardForm(forms.Form):
