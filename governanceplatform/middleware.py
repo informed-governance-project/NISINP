@@ -23,8 +23,10 @@ class RestrictViewsMiddleware:
         user = request.user
         if user.is_authenticated:
             if user_in_group(user, "PlatformAdmin"):
-                if request.path.startswith("/incidents/"):
-                    return redirect(reverse("admin:index"))
+                if request.path.startswith("/incidents/") or request.path.startswith(
+                    "/securityobjectives/"
+                ):
+                    return redirect("admin:index")
 
             if is_user_regulator(user) and not request.session.get(
                 "is_regulator_incidents", False
@@ -34,7 +36,13 @@ class RestrictViewsMiddleware:
                     or request.path.startswith("/incidents/delete/")
                     or request.path == reverse("create_workflow")
                 ):
-                    return redirect(reverse("incidents"))
+                    return redirect("incidents")
+                if (
+                    request.path.startswith("/securityobjectives/delete/")
+                    or request.path.startswith("/securityobjectives/submit/")
+                    or request.path.startswith("/securityobjectives/copy/")
+                ):
+                    return redirect("securityobjectives")
 
             if is_observer_user(user):
                 if (
@@ -44,14 +52,17 @@ class RestrictViewsMiddleware:
                     or request.path.startswith("/incidents/incident/")
                     or request.path == reverse("create_workflow")
                     or request.path == reverse("edit_workflow")
+                    or request.path.startswith("/securityobjectives/")
                 ):
-                    return redirect(reverse("incidents"))
+                    return redirect("incidents")
 
             if is_user_operator(user):
                 if request.path.startswith(
                     "/incidents/incident/"
                 ) or request.path == reverse("regulator_incidents"):
                     return redirect(reverse("incidents"))
+                if request.path == reverse("import_so_declaration"):
+                    return redirect("securityobjectives")
 
         return self.get_response(request)
 
