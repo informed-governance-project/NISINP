@@ -41,6 +41,7 @@ class RestrictViewsMiddleware:
                     request.path.startswith("/securityobjectives/delete/")
                     or request.path.startswith("/securityobjectives/submit/")
                     or request.path.startswith("/securityobjectives/copy/")
+                    or request.path == reverse("select_so_standard")
                 ):
                     return redirect("securityobjectives")
 
