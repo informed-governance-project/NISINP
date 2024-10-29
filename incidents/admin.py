@@ -311,10 +311,10 @@ class QuestionOptionsInline(admin.TabularInline):
 
     # filter the question category option on the report_id to avoid mixing report categories
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "category_option":
+        if db_field.name == "category_option" and not request.POST:
             kwargs["queryset"] = QuestionCategoryOptions.objects.filter(
-                report=self.parent_obj
-            )
+                questionoptions__report=self.parent_obj
+            ).distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -392,20 +392,13 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 
 @admin.register(QuestionCategoryOptions, site=admin_site)
 class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
-    list_display = ["question_category", "position", "report"]
+    list_display = ["question_category", "position"]
     list_display_links = ["position", "question_category"]
-    fields = ["question_category", "position", "report"]
+    fields = ["question_category", "position"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
-
-    # remove the right to add or edit report
-    def get_form(self, request, obj=None, change=False, **kwargs):
-        form = super().get_form(request, obj, change, **kwargs)
-        form.base_fields["report"].widget.can_add_related = False
-        form.base_fields["report"].widget.can_change_related = False
-        return form
 
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):

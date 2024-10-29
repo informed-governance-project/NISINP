@@ -834,9 +834,6 @@ class LogReportRead(models.Model):
 class QuestionCategoryOptions(models.Model):
     question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
     position = models.IntegerField(verbose_name=_("Position"))
-    report = models.ForeignKey(
-        Workflow, on_delete=models.CASCADE, null=True, blank=True
-    )
 
     def __str__(self):
         return self.question_category.label or ""
@@ -854,7 +851,10 @@ class QuestionOptions(models.Model):
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     position = models.IntegerField(verbose_name=_("Position"))
     category_option = models.ForeignKey(
-        QuestionCategoryOptions, on_delete=models.SET_NULL, null=True, blank=True,
+        QuestionCategoryOptions,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
