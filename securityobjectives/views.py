@@ -6,6 +6,7 @@ import openpyxl
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Value, When
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
@@ -23,6 +24,7 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import Company
 
+from .filters import StandardAnswerFilter
 from .forms import (
     ImportSOForm,
     SecurityObjectiveAnswerForm,
@@ -73,7 +75,40 @@ def get_security_objectives(request):
         ),
     ).order_by("standard_notification_date")
 
-    context = {"standard_answers": standard_answers}
+    # Filter
+    if "reset" in request.GET:
+        if "so_filter_params" in request.session:
+            del request.session["so_filter_params"]
+        return redirect("securityobjectives")
+
+    if request.GET:
+        request.session["so_filter_params"] = request.GET
+
+    so_filter_params = request.session.get("so_filter_params", request.GET)
+
+    security_objective_filter = StandardAnswerFilter(
+        so_filter_params, queryset=standard_answers
+    )
+
+    # Paginator
+    so_answer_list = security_objective_filter.qs
+    paginator = Paginator(so_answer_list, 10)
+    page_number = request.GET.get("page", 1)
+    try:
+        response = paginator.page(page_number)
+    except PageNotAnInteger:
+        response = paginator.page(1)
+    except EmptyPage:
+        response = paginator.page(paginator.num_pages)
+
+    is_filtered = {k: v for k, v in so_filter_params.items() if k != "page"}
+
+    context = {
+        "standard_answers": response,
+        "paginator": paginator,
+        "filter": security_objective_filter,
+        "is_filtered": bool(is_filtered),
+    }
     return render(
         request, "security_objectives/securityobjectives.html", context=context
     )
@@ -673,7 +708,7 @@ def has_change_permission(request, standard_answer, action):
             case "delete":
                 return (
                     is_standard_answer_in_user_company
-                    and not standard_answer.status == "UNDE"
+                    and standard_answer.status == "UNDE"
                 )
             case "download":
                 return (
