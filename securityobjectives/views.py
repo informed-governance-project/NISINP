@@ -592,10 +592,11 @@ def import_so_declaration(request):
                 if users:
                     user = users.first()
                 else:
-                    messages.warning(
+                    messages.error(
                         request,
                         _("No users for this company"),
                     )
+                    return redirect("securityobjectives")
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
@@ -603,11 +604,12 @@ def import_so_declaration(request):
                     submitter_user=user,
                     submitter_company=company,
                     creator_name=user.get_full_name(),
+                    creator_company_name=str(company),
                     year_of_submission=year,
                 )
                 new_standard_answer.save()
             except (Standard.DoesNotExist, Company.DoesNotExist):
-                messages.warning(
+                messages.error(
                     request,
                     _("An error occurred while importing the declaration file."),
                 )
