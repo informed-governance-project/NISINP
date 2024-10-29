@@ -459,6 +459,15 @@ def download_declaration_pdf(request, standard_answer_id: int):
             security_measures = security_objective.securitymeasure_set.all().order_by(
                 "maturity_level__level"
             )
+            try:
+                so_status = SecurityObjectiveStatus.objects.get(
+                    standard_answer=standard_answer,
+                    security_objective=security_objective,
+                )
+                security_objective.status = so_status
+            except SecurityObjectiveStatus.DoesNotExist:
+                security_objective.status = None
+
             for measure in security_measures:
                 try:
                     sm_answer = SecurityMeasureAnswer.objects.get(
@@ -642,7 +651,7 @@ def has_change_permission(request, standard_answer, action):
         )
 
         match action:
-            case "edit" | "download":
+            case "edit":
                 return (
                     is_user_regulator(user) and standard_answer.status != "UNDE"
                 ) or (
@@ -661,6 +670,12 @@ def has_change_permission(request, standard_answer, action):
                 return (
                     is_standard_answer_in_user_company
                     and not standard_answer.status == "UNDE"
+                )
+            case "download":
+                return (
+                    is_user_regulator(user)
+                    and standard_answer.status != "UNDE"
+                    or is_standard_answer_in_user_company
                 )
             case _:
                 return False
