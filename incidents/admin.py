@@ -314,7 +314,7 @@ class QuestionOptionsInline(admin.TabularInline):
         if db_field.name == "category_option" and not request.POST:
             kwargs["queryset"] = QuestionCategoryOptions.objects.filter(
                 questionoptions__report=self.parent_obj
-            ).distinct()
+            ).exclude(questionoptions__report=None).distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
