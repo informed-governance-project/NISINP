@@ -288,7 +288,7 @@ class QuestionOptionsInline(admin.TabularInline):
     model = QuestionOptions
     verbose_name = _("Question Option")
     verbose_name_plural = _("Question Options")
-    ordering = ["position"]
+    ordering = ["category_option__position", "position"]
     extra = 0
 
     def has_change_permission(self, request, obj=None):
