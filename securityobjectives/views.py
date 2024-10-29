@@ -124,13 +124,17 @@ def declaration(request):
         try:
             standard_answer = StandardAnswer.objects.get(pk=standard_id)
         except StandardAnswer.DoesNotExist:
-            pass
+            messages.error(request, _("Declaration not found"))
+            return redirect("securityobjectives")
     else:
         standard_answer = (
             StandardAnswer.objects.filter(submitter_user=user)
             .order_by("standard_notification_date")
             .last()
         )
+    if not standard_answer:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
 
     if not has_change_permission(request, standard_answer, "edit"):
         return redirect("securityobjectives")
