@@ -64,6 +64,7 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
 
 class SecurityObjectiveInline(admin.TabularInline):
     model = SecurityObjectivesInStandard
+    ordering = ["position"]
     extra = 0
 
 
