@@ -57,7 +57,10 @@ class SecurityObjective(TranslatableModel, models.Model):
         ]
 
     def __str__(self):
-        return self.objective if self.objective is not None else ""
+        objective_translation = self.safe_translation_getter(
+            "objective", any_language=True
+        )
+        return f"{self.unique_code}:{objective_translation}" or ""
 
 
 # Standard : A group of security objectives

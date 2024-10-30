@@ -64,6 +64,7 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
 
 class SecurityObjectiveInline(admin.TabularInline):
     model = SecurityObjectivesInStandard
+    extra = 0
 
 
 @admin.register(Standard, site=admin_site)
