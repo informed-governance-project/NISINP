@@ -23,6 +23,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
 )
 from governanceplatform.models import Company
+from incidents.globals import REVIEW_STATUS
 
 from .filters import StandardAnswerFilter
 from .forms import (
@@ -207,6 +208,9 @@ def declaration(request):
                         },
                     )
 
+                    standard_answer.last_update = timezone.now()
+                    standard_answer.save()
+
                     status_counts_queryset = (
                         SecurityObjectiveStatus.objects.filter(
                             standard_answer=standard_answer
@@ -236,9 +240,6 @@ def declaration(request):
                         else:
                             standard_answer.status = "DELIV"
 
-                        standard_answer.last_update = timezone.now()
-                        standard_answer.save()
-
                     return JsonResponse(
                         {
                             "success": True,
@@ -256,7 +257,6 @@ def declaration(request):
                         },
                         status=404,
                     )
-
         else:
             form = SecurityObjectiveAnswerForm(data)
             if form.is_valid():
@@ -587,7 +587,6 @@ def import_so_declaration(request):
             standard_id = form.cleaned_data["standard"]
             company_id = form.cleaned_data["company"]
             year = form.cleaned_data["year"]
-            status = form.cleaned_data["status"]
 
             try:
                 standard = Standard.objects.get(pk=standard_id)
@@ -604,7 +603,7 @@ def import_so_declaration(request):
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
-                    status=status,
+                    status=REVIEW_STATUS[1][0],  # Default DELIV
                     submitter_user=user,
                     submitter_company=company,
                     creator_name=user.get_full_name(),

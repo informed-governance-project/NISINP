@@ -2,8 +2,6 @@ from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from incidents.globals import REVIEW_STATUS
-
 from .models import SecurityObjectiveStatus
 
 
@@ -88,7 +86,9 @@ class SelectSOStandardForm(forms.Form):
 
 
 class ImportSOForm(forms.Form):
-    import_file = forms.FileField()
+    import_file = forms.FileField(
+        required=True,
+    )
 
     standard = forms.ChoiceField(
         widget=forms.Select(),
@@ -113,13 +113,6 @@ class ImportSOForm(forms.Form):
         label=_("Year"),
     )
 
-    status = forms.ChoiceField(
-        widget=forms.Select(),
-        choices=REVIEW_STATUS,
-        initial=REVIEW_STATUS[0][0],
-        label=_("Status"),
-    )
-
     def __init__(self, *args, **kwargs):
         initial = kwargs.pop("initial", None)
         super().__init__(*args, **kwargs)
@@ -130,7 +123,6 @@ class ImportSOForm(forms.Form):
             self.fields["standard"].disabled = True
             self.fields["company"].disabled = True
             self.fields["year"].disabled = True
-            self.fields["status"].disabled = True
 
 
 class SelectYearForm(forms.Form):
