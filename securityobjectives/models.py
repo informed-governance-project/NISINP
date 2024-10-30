@@ -121,7 +121,8 @@ class StandardAnswer(models.Model):
         default=None,
         related_name="standardanswer",
     )
-    standard_notification_date = models.DateTimeField(default=timezone.now)
+    last_update = models.DateTimeField(default=timezone.now)
+    submit_date = models.DateTimeField(blank=True, default=None, null=True)
     status = models.CharField(
         max_length=5,
         choices=REVIEW_STATUS,

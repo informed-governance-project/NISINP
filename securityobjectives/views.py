@@ -73,7 +73,7 @@ def get_security_objectives(request):
                 output_field=FloatField(),
             ),
         ),
-    ).order_by("standard_notification_date")
+    ).order_by("-last_update")
 
     # Filter
     if "reset" in request.GET:
@@ -163,7 +163,7 @@ def declaration(request):
     else:
         standard_answer = (
             StandardAnswer.objects.filter(submitter_user=user)
-            .order_by("standard_notification_date")
+            .order_by("last_update")
             .last()
         )
     if not standard_answer:
@@ -236,6 +236,7 @@ def declaration(request):
                         else:
                             standard_answer.status = "DELIV"
 
+                        standard_answer.last_update = timezone.now()
                         standard_answer.save()
 
                     return JsonResponse(
@@ -279,6 +280,9 @@ def declaration(request):
                         and not obj.review_comment
                     ):
                         obj.delete()
+
+                    standard_answer.last_update = timezone.now()
+                    standard_answer.save()
 
                     return JsonResponse(
                         {
@@ -433,6 +437,7 @@ def submit_declaration(request, standard_answer_id: int):
     if not has_change_permission(request, standard_answer, "submit"):
         return redirect("securityobjectives")
     standard_answer.status = "DELIV"
+    standard_answer.submit_date = timezone.now()
     standard_answer.save()
     messages.info(request, _("The security objectives declaration has been submitted."))
 
