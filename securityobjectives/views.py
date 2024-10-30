@@ -85,7 +85,6 @@ def get_security_objectives(request):
         request.session["so_filter_params"] = request.GET
 
     so_filter_params = request.session.get("so_filter_params", request.GET)
-
     security_objective_filter = StandardAnswerFilter(
         so_filter_params, queryset=standard_answers
     )
