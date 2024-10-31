@@ -1,13 +1,24 @@
 import json
 import os
 from collections import defaultdict
+from math import modf
 
 import openpyxl
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.db.models import Case, Count, ExpressionWrapper, F, FloatField, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Q,
+    Value,
+    When,
+)
+from django.db.models.functions import Cast
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -263,7 +274,7 @@ def declaration(request):
                 try:
                     security_measure = SecurityMeasure.objects.get(pk=id_object)
                     field_to_update = {field_name: form.cleaned_data[field_name]}
-                    obj, created = SecurityMeasureAnswer.objects.update_or_create(
+                    sma, sma_created = SecurityMeasureAnswer.objects.update_or_create(
                         standard_answer=standard_answer,
                         security_measure=security_measure,
                         defaults={
@@ -274,12 +285,25 @@ def declaration(request):
                         },
                     )
 
+                    so_score = calculate_so_score(security_measure, standard_answer)
+
+                    if so_score is not None:
+                        SecurityObjectiveStatus.objects.update_or_create(
+                            standard_answer=standard_answer,
+                            security_objective=security_measure.security_objective,
+                            defaults={
+                                "score": so_score,
+                                "standard_answer": standard_answer,
+                                "security_objective": security_measure.security_objective,
+                            },
+                        )
+
                     if (
-                        not obj.is_implemented
-                        and not obj.comment
-                        and not obj.review_comment
+                        not sma.is_implemented
+                        and not sma.comment
+                        and not sma.review_comment
                     ):
-                        obj.delete()
+                        sma.delete()
 
                     standard_answer.last_update = timezone.now()
                     standard_answer.save()
@@ -287,10 +311,10 @@ def declaration(request):
                     return JsonResponse(
                         {
                             "success": True,
-                            "created": created,
+                            "created": sma_created,
                             "data": field_to_update,
                         },
-                        status=201 if created else 200,
+                        status=201 if sma_created else 200,
                     )
                 except SecurityMeasure.DoesNotExist:
                     return JsonResponse(
@@ -311,6 +335,7 @@ def declaration(request):
                 security_objective=security_objective,
             )
             initial = model_to_dict(so_status, fields=["status"])
+            security_objective.score = so_status.score
         except SecurityObjectiveStatus.DoesNotExist:
             initial = {}
 
@@ -394,6 +419,22 @@ def copy_declaration(request, standard_answer_id: int):
                 ]
 
                 SecurityMeasureAnswer.objects.bulk_create(security_measure_answers_copy)
+
+                for sma in security_measure_answers_copy:
+                    security_measure = sma.security_measure
+                    standard_answer = sma.standard_answer
+                    so_score = calculate_so_score(security_measure, standard_answer)
+
+                    if so_score is not None:
+                        SecurityObjectiveStatus.objects.update_or_create(
+                            standard_answer=sma.standard_answer,
+                            security_objective=sma.security_measure.security_objective,
+                            defaults={
+                                "score": so_score,
+                                "standard_answer": standard_answer,
+                                "security_objective": security_measure.security_objective,
+                            },
+                        )
 
             messages.info(
                 request,
@@ -671,6 +712,22 @@ def import_so_declaration(request):
 
             SecurityMeasureAnswer.objects.bulk_create(measure_answers_imported)
 
+            for sma in measure_answers_imported:
+                security_measure = sma.security_measure
+                standard_answer = sma.standard_answer
+                so_score = calculate_so_score(security_measure, standard_answer)
+
+                if so_score is not None:
+                    SecurityObjectiveStatus.objects.update_or_create(
+                        standard_answer=sma.standard_answer,
+                        security_objective=sma.security_measure.security_objective,
+                        defaults={
+                            "score": so_score,
+                            "standard_answer": standard_answer,
+                            "security_objective": security_measure.security_objective,
+                        },
+                    )
+
             messages.info(
                 request, ("The security objectives declaration has been imported.")
             )
@@ -728,3 +785,39 @@ def has_change_permission(request, standard_answer, action):
         messages.error(request, _("Forbidden"))
         return False
     return True
+
+
+def calculate_so_score(security_measure, standard_answer):
+    try:
+        scores_by_level = (
+            SecurityMeasure.objects.filter(
+                security_objective=security_measure.security_objective
+            )
+            .exclude(maturity_level__level=0)
+            .values("maturity_level__level")
+            .annotate(
+                rate=Cast(
+                    Count(
+                        "securitymeasureanswers",
+                        filter=Q(
+                            securitymeasureanswers__is_implemented=True,
+                            securitymeasureanswers__standard_answer=standard_answer,
+                        ),
+                    ),
+                    FloatField(),
+                )
+                / Count("pk", distinct=True),
+            )
+            .order_by("maturity_level__level")
+        )
+    except Exception:
+        return None
+
+    final_score = scores_by_level[0]["rate"]
+    for score in scores_by_level[1:]:
+        if modf(final_score)[0] == 0 and score["rate"] > 0 and final_score > 0:
+            final_score += score["rate"]
+        else:
+            break
+
+    return final_score
