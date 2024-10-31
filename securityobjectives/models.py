@@ -63,6 +63,41 @@ class SecurityObjective(TranslatableModel, models.Model):
         return f"{self.unique_code}:{objective_translation}" or ""
 
 
+# Email sent from regulator to operator
+class SecurityObjectiveEmail(TranslatableModel, models.Model):
+    translations = TranslatedFields(
+        subject=models.CharField(
+            verbose_name=_("Subject"),
+            max_length=255,
+        ),
+        content=models.TextField(verbose_name=_("Content")),
+    )
+    name = models.CharField(verbose_name=_("Name"), max_length=255)
+    # name of the regulator who create the object
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    def __str__(self):
+        return self.name or ""
+
+    class Meta:
+        verbose_name_plural = _("Email templates")
+        verbose_name = _("Email template")
+
+
 # Standard : A group of security objectives
 class Standard(TranslatableModel):
     translations = TranslatedFields(
@@ -77,6 +112,25 @@ class Standard(TranslatableModel):
     )
     security_objectives = models.ManyToManyField(
         SecurityObjective, through="SecurityObjectivesInStandard"
+    )
+    # email
+    submission_email = models.ForeignKey(
+        SecurityObjectiveEmail,
+        verbose_name=_("Submission e-mail"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="security_objective_submission_email",
+    )
+    security_objective_status_changed_email = models.ForeignKey(
+        SecurityObjectiveEmail,
+        verbose_name=_("Email for status change"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="security_objective_status_changed_email",
     )
 
     def __str__(self):

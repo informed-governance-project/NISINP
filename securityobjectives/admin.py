@@ -4,6 +4,9 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.helpers import (
+    set_creator,
+)
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
@@ -12,6 +15,7 @@ from securityobjectives.models import (
     SecurityObjective,
     SecurityObjectivesInStandard,
     Standard,
+    SecurityObjectiveEmail
 )
 
 
@@ -219,3 +223,41 @@ class SecurityMeasureAdmin(
         "description",
         "position",
     ]
+
+
+class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
+    subject = fields.Field(
+        column_name="subject",
+        attribute="subject",
+    )
+
+    content = fields.Field(
+        column_name="content",
+        attribute="content",
+    )
+
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
+    class Meta:
+        model = SecurityObjectiveEmail
+        fields = ("id", "name", "subject", "content")
+        export_order = fields
+
+
+@admin.register(SecurityObjectiveEmail, site=admin_site)
+class SOEmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+    list_display = [
+        "name",
+        "subject",
+        "content",
+    ]
+    search_fields = ["translations__subject", "translations__content"]
+    fields = ("name", "subject", "content")
+    resource_class = SOEmailResource
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
+        super().save_model(request, obj, form, change)

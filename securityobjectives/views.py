@@ -41,6 +41,7 @@ from .models import (
     Standard,
     StandardAnswer,
 )
+from .email import send_email
 
 
 @login_required
@@ -232,14 +233,16 @@ def declaration(request):
                     if sum(status_counts_dict.values()) == security_objectives_count:
                         pass_counts = status_counts_dict["PASS"]
                         fail_counts = status_counts_dict["FAIL"]
-
+                        old_status = standard_answer.status
                         if pass_counts == security_objectives_count:
                             standard_answer.status = "PASS"
                         elif fail_counts >= 1:
                             standard_answer.status = "FAIL"
                         else:
                             standard_answer.status = "DELIV"
-
+                        if old_status != standard_answer.status:
+                            send_email(standard_answer.standard.security_objective_status_changed_email, standard_answer)
+                        standard_answer.save()
                     return JsonResponse(
                         {
                             "success": True,
@@ -439,6 +442,7 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer.status = "DELIV"
     standard_answer.submit_date = timezone.now()
     standard_answer.save()
+    send_email(standard_answer.standard.submission_email, standard_answer)
     messages.info(request, _("The security objectives declaration has been submitted."))
 
     return redirect("securityobjectives")
