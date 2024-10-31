@@ -105,7 +105,7 @@ def get_security_objectives(request):
     # Paginator
     so_answer_list = security_objective_filter.qs
     paginator = Paginator(so_answer_list, 10)
-    page_number = request.GET.get("page", 1)
+    page_number = so_filter_params.get("page", 1)
     try:
         response = paginator.page(page_number)
     except PageNotAnInteger:
