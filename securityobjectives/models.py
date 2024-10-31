@@ -249,7 +249,7 @@ class SecurityObjectiveStatus(models.Model):
             ("FAIL", _("Fail")),
         ],
         blank=False,
-        default=REVIEW_STATUS[0][0],
+        default="NOT_REVIEWED",
         verbose_name=_("Status"),
     )
 
