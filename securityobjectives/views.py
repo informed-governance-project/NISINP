@@ -7,7 +7,6 @@ import openpyxl
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import (
     Case,
     Count,
@@ -102,22 +101,12 @@ def get_security_objectives(request):
         so_filter_params, queryset=standard_answers
     )
 
-    # Paginator
+    # Filter
     so_answer_list = security_objective_filter.qs
-    paginator = Paginator(so_answer_list, 10)
-    page_number = so_filter_params.get("page", 1)
-    try:
-        response = paginator.page(page_number)
-    except PageNotAnInteger:
-        response = paginator.page(1)
-    except EmptyPage:
-        response = paginator.page(paginator.num_pages)
-
     is_filtered = {k: v for k, v in so_filter_params.items() if k != "page"}
 
     context = {
-        "standard_answers": response,
-        "paginator": paginator,
+        "standard_answers": so_answer_list,
         "filter": security_objective_filter,
         "is_filtered": bool(is_filtered),
     }
