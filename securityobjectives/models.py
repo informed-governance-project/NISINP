@@ -198,3 +198,9 @@ class SecurityObjectiveStatus(models.Model):
         default=REVIEW_STATUS[0][0],
         verbose_name=_("Status"),
     )
+
+    score = models.DecimalField(
+        default=0,
+        max_digits=4,
+        decimal_places=2,
+    )
