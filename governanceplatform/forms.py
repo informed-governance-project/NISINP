@@ -128,23 +128,9 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
         elif self.FALLBACK_LANGUAGE not in self.data:
             self.add_default_translation_error()
 
-        return cleaned_data
+        self.check_translation_duplication_entry()
 
-    def _post_clean(self):
-        _post_clean = super()._post_clean()
-        forms_to_check = ["QuestionCategoryForm"]
-        if (
-            self.instance.has_translation(self.instance.get_current_language())
-            and self.__class__.__name__ in forms_to_check
-        ):
-            error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exist."
-            )
-            self.add_error(
-                None,
-                ValidationError(error_message),
-            )
-        return _post_clean
+        return cleaned_data
 
     def add_default_translation_error(self):
         language_info = get_language_info(self.FALLBACK_LANGUAGE)
@@ -159,6 +145,26 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
                 error_message, params={"fallback_language_name": fallback_language_name}
             ),
         )
+
+    def check_translation_duplication_entry(self):
+        forms_to_check = ["QuestionCategoryForm"]
+        if self.__class__.__name__ not in forms_to_check:
+            return
+
+        model = self._meta.model._parler_meta.root_model
+        current_language = self.instance.get_current_language()
+        duplicate_translations = model.objects.filter(
+            **self.cleaned_data, language_code=current_language
+        )
+
+        if duplicate_translations.exists():
+            error_message = _(
+                f"This {self.instance._meta.verbose_name.lower()} already exist."
+            )
+            self.add_error(
+                None,
+                ValidationError(error_message),
+            )
 
 
 class TermsAcceptanceForm(forms.Form):
