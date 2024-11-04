@@ -10,9 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import (
     Case,
     Count,
+    Exists,
     ExpressionWrapper,
     F,
     FloatField,
+    OuterRef,
     Q,
     Value,
     When,
@@ -67,25 +69,7 @@ def get_security_objectives(request):
             submitter_company=company
         )
 
-    standard_answers = standard_answer_queryset.annotate(
-        total_security_objectives=Count(
-            "standard__securityobjectivesinstandard__security_objective",
-            distinct=True,
-        ),
-        total_security_objectives_answered=Count(
-            "securitymeasureanswers__security_measure__security_objective",
-            distinct=True,
-        ),
-        answered_percentage=Case(
-            When(total_security_objectives=0, then=Value(0.0)),
-            default=ExpressionWrapper(
-                F("total_security_objectives_answered")
-                * 100.0
-                / F("total_security_objectives"),
-                output_field=FloatField(),
-            ),
-        ),
-    ).order_by("-last_update")
+    standard_answers = get_standard_answers_with_progress(standard_answer_queryset)
 
     # Filter
     if "reset" in request.GET:
@@ -446,25 +430,9 @@ def copy_declaration(request, standard_answer_id: int):
 @login_required
 @otp_required
 def submit_declaration(request, standard_answer_id: int):
-    standard_answer = StandardAnswer.objects.filter(pk=standard_answer_id).annotate(
-        total_security_objectives=Count(
-            "standard__securityobjectivesinstandard__security_objective",
-            distinct=True,
-        ),
-        total_security_objectives_answered=Count(
-            "securitymeasureanswers__security_measure__security_objective",
-            distinct=True,
-        ),
-        answered_percentage=Case(
-            When(total_security_objectives=0, then=Value(0.0)),
-            default=ExpressionWrapper(
-                F("total_security_objectives_answered")
-                * 100.0
-                / F("total_security_objectives"),
-                output_field=FloatField(),
-            ),
-        ),
-    )
+    standard_answer_queryset = StandardAnswer.objects.filter(pk=standard_answer_id)
+    standard_answer = get_standard_answers_with_progress(standard_answer_queryset)
+
     if not standard_answer:
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
@@ -500,25 +468,8 @@ def delete_declaration(request, standard_answer_id: int):
 @login_required
 @otp_required
 def download_declaration_pdf(request, standard_answer_id: int):
-    standard_answer = StandardAnswer.objects.filter(pk=standard_answer_id).annotate(
-        total_security_objectives=Count(
-            "standard__securityobjectivesinstandard__security_objective",
-            distinct=True,
-        ),
-        total_security_objectives_answered=Count(
-            "securitymeasureanswers__security_measure__security_objective",
-            distinct=True,
-        ),
-        answered_percentage=Case(
-            When(total_security_objectives=0, then=Value(0.0)),
-            default=ExpressionWrapper(
-                F("total_security_objectives_answered")
-                * 100.0
-                / F("total_security_objectives"),
-                output_field=FloatField(),
-            ),
-        ),
-    )
+    standard_answer_queryset = StandardAnswer.objects.filter(pk=standard_answer_id)
+    standard_answer = get_standard_answers_with_progress(standard_answer_queryset)
 
     if not standard_answer:
         messages.error(request, _("Declaration not found"))
@@ -640,7 +591,7 @@ def import_so_declaration(request):
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
-                    status=REVIEW_STATUS[1][0],  # Default DELIV
+                    status=REVIEW_STATUS[2][0],  # Default PASS
                     submitter_user=user,
                     submitter_company=company,
                     creator_name=user.get_full_name(),
@@ -665,13 +616,20 @@ def import_so_declaration(request):
             ):
                 security_objective_code = row[1].split(":")[0] if row[1] else None
                 if security_objective_code:
+                    evidence = (
+                        row[6] if row[6] and default_text not in str(row[6]) else None
+                    )
                     comment = (
                         row[7] if row[7] and default_text not in str(row[7]) else None
                     )
                     maturity_level = row[8] if isinstance(row[8], int) else None
-                    if comment or maturity_level is not None:
+                    if evidence or comment or maturity_level is not None:
                         maturity_level = maturity_level if maturity_level else 0
+                        evidence = evidence if evidence else ""
                         comment = comment if comment else ""
+                        evidence_and_comment = (
+                            f"{evidence}\n\n{comment}" if evidence else comment
+                        )
 
                         security_objective = security_objectives.get(
                             security_objective_code
@@ -685,12 +643,12 @@ def import_so_declaration(request):
 
                             for sm in security_measures:
                                 sma_comment = (
-                                    comment
+                                    evidence_and_comment
                                     if sm.maturity_level.level == maturity_level
                                     else ""
                                 )
                                 if sma_comment:
-                                    comment = ""
+                                    evidence_and_comment = ""
                                 is_implemented = (
                                     True
                                     if sm.maturity_level.level <= maturity_level
@@ -737,6 +695,41 @@ def import_so_declaration(request):
     )
     context = {"form": form}
     return render(request, "modals/import_so_declaration.html", context=context)
+
+
+def get_standard_answers_with_progress(standard_answer_queryset):
+    invalid_answers = SecurityMeasureAnswer.objects.filter(
+        standard_answer=OuterRef("pk"),
+        security_measure__security_objective=OuterRef(
+            "securitymeasureanswers__security_measure__security_objective"
+        ),
+        is_implemented=True,
+        comment="",
+    ).exclude(security_measure__maturity_level__level=0)
+
+    standard_answers = standard_answer_queryset.annotate(
+        total_security_objectives=Count(
+            "standard__securityobjectivesinstandard__security_objective",
+            distinct=True,
+        ),
+        total_security_objectives_answered=Count(
+            "securitymeasureanswers__security_measure__security_objective",
+            filter=Q(securitymeasureanswers__is_implemented=True)
+            & ~Exists(invalid_answers),
+            distinct=True,
+        ),
+        answered_percentage=Case(
+            When(total_security_objectives=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                F("total_security_objectives_answered")
+                * 100.0
+                / F("total_security_objectives"),
+                output_field=FloatField(),
+            ),
+        ),
+    ).order_by("-last_update")
+
+    return standard_answers
 
 
 def has_change_permission(request, standard_answer, action):
