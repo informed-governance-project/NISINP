@@ -8,7 +8,6 @@ import pytz
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -131,15 +130,6 @@ def get_incidents(request):
 
     # Show 10 incidents per page.
     incident_list = f.qs
-    paginator = Paginator(incident_list, 10)
-    page_number = request.GET.get("page", 1)
-    try:
-        response = paginator.page(page_number)
-    except PageNotAnInteger:
-        response = paginator.page(1)
-    except EmptyPage:
-        response = paginator.page(paginator.num_pages)
-
     is_filtered = {k: v for k, v in filter_params.items() if k != "page"}
 
     return render(
@@ -147,9 +137,8 @@ def get_incidents(request):
         html_view,
         context={
             "site_name": SITE_NAME,
-            "paginator": paginator,
             "filter": f,
-            "incidents": response,
+            "incidents": incident_list,
             "is_filtered": bool(is_filtered),
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
@@ -1069,9 +1058,9 @@ class WorkflowWizardView(SessionWizardView):
             category_ids = self.workflow.questionoptions_set.values_list(
                 "category_option", flat=True
             ).distinct()
-            categories_options = QuestionCategoryOptions.objects.filter(id__in=category_ids).order_by(
-                "position"
-            )
+            categories_options = QuestionCategoryOptions.objects.filter(
+                id__in=category_ids
+            ).order_by("position")
             categories = []
             for categ in categories_options:
                 categories.append(categ.question_category)
@@ -1150,7 +1139,9 @@ class WorkflowWizardView(SessionWizardView):
             incident_workflow.comment = data.get("comment", None)
             review_status = data.get("review_status", None)
             if incident_workflow.review_status != review_status:
-                if incident_workflow.incident.sector_regulation.report_status_changed_email:
+                if (
+                    incident_workflow.incident.sector_regulation.report_status_changed_email
+                ):
                     send_email(
                         incident_workflow.incident.sector_regulation.report_status_changed_email,
                         incident_workflow.incident,
