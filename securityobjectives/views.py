@@ -34,17 +34,17 @@ from governanceplatform.helpers import (
     is_user_operator,
     is_user_regulator,
 )
-from governanceplatform.models import Company
+from governanceplatform.models import Company, Sector
 from incidents.globals import REVIEW_STATUS
 
 from .email import send_email
 from .filters import StandardAnswerFilter
 from .forms import (
+    CopySOForm,
     ImportSOForm,
     SecurityObjectiveAnswerForm,
     SecurityObjectiveStatusForm,
     SelectSOStandardForm,
-    SelectYearForm,
 )
 from .models import (
     SecurityMeasure,
@@ -105,11 +105,18 @@ def select_so_standard(request):
     standard_list = [
         (standard.id, str(standard)) for standard in Standard.objects.all()
     ]
+
+    sector_list = get_sectors_grouped(Sector.objects.all())
+    if not standard_list or not sector_list:
+        messages.error(request, _("No data available"))
+
+    initial = {"standard_list": standard_list, "sectors_list": sector_list}
     if request.method == "POST":
-        form = SelectSOStandardForm(request.POST, initial=standard_list)
+        form = SelectSOStandardForm(request.POST, initial=initial)
         if form.is_valid():
             so_standard_id = form.cleaned_data["so_standard"]
             year = form.cleaned_data["year"]
+            sectors = form.cleaned_data["sectors"]
             try:
                 standard = Standard.objects.get(pk=so_standard_id)
                 user = request.user
@@ -123,13 +130,12 @@ def select_so_standard(request):
                     year_of_submission=year,
                 )
                 new_standard_answer.save()
+                new_standard_answer.sectors.set(sectors)
                 return redirect("so_declaration")
             except Standard.DoesNotExist:
                 messages.error(request, _("Standard does not exist"))
 
-    if not standard_list:
-        messages.error(request, _("No data available"))
-    form = SelectSOStandardForm(initial=standard_list)
+    form = SelectSOStandardForm(initial=initial)
     context = {"form": form}
     return render(request, "modals/select_so_standard.html", context=context)
 
@@ -279,7 +285,7 @@ def declaration(request):
 
                     if (
                         not sma.is_implemented
-                        and not sma.comment
+                        and not sma.justification
                         and not sma.review_comment
                     ):
                         sma.delete()
@@ -329,7 +335,8 @@ def declaration(request):
                     security_measure=measure,
                 )
                 initial = model_to_dict(
-                    sm_answer, fields=["comment", "is_implemented", "review_comment"]
+                    sm_answer,
+                    fields=["justification", "is_implemented", "review_comment"],
                 )
             except SecurityMeasureAnswer.DoesNotExist:
                 initial = {}
@@ -357,6 +364,10 @@ def declaration(request):
 @otp_required
 def copy_declaration(request, standard_answer_id: int):
     user = request.user
+    sector_list = get_sectors_grouped(Sector.objects.all())
+    initial = {"sectors": sector_list}
+    if not sector_list:
+        messages.error(request, _("No sectors data available"))
     try:
         original_standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
         if not has_change_permission(request, original_standard_answer, "copy"):
@@ -365,9 +376,10 @@ def copy_declaration(request, standard_answer_id: int):
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
     if request.method == "POST":
-        form = SelectYearForm(request.POST)
+        form = CopySOForm(request.POST, initial=initial)
         if form.is_valid():
             year = form.cleaned_data["year"]
+            sectors = form.cleaned_data["sectors"]
             original_standard_answer_dict = {
                 "standard": original_standard_answer.standard,
                 "submitter_company": original_standard_answer.submitter_company,
@@ -381,6 +393,7 @@ def copy_declaration(request, standard_answer_id: int):
                 year_of_submission=year,
             )
             new_standard_answer.save()
+            new_standard_answer.sectors.set(sectors)
 
             security_measure_answers = SecurityMeasureAnswer.objects.filter(
                 standard_answer=original_standard_answer
@@ -391,7 +404,7 @@ def copy_declaration(request, standard_answer_id: int):
                     SecurityMeasureAnswer(
                         standard_answer=new_standard_answer,
                         security_measure=sma.security_measure,
-                        comment=sma.comment,
+                        justification=sma.justification,
                         is_implemented=sma.is_implemented,
                     )
                     for sma in security_measure_answers
@@ -422,7 +435,7 @@ def copy_declaration(request, standard_answer_id: int):
 
         return redirect("securityobjectives")
 
-    form = SelectYearForm()
+    form = CopySOForm(initial=initial)
     context = {"form": form, "standard_answer_id": standard_answer_id}
     return render(request, "modals/copy_so_declaration.html", context=context)
 
@@ -506,7 +519,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
                         security_measure=measure,
                     )
                     measure.is_implemented = sm_answer.is_implemented
-                    measure.comment = sm_answer.comment
+                    measure.justification = sm_answer.justification
                     measure.review_comment = sm_answer.review_comment
                 except SecurityMeasureAnswer.DoesNotExist:
                     measure.is_implemented = False
@@ -555,12 +568,18 @@ def import_so_declaration(request):
     standard_list = [
         (standard.id, str(standard)) for standard in Standard.objects.all()
     ]
+    sector_list = get_sectors_grouped(Sector.objects.all())
     company_list = [(company.id, str(company)) for company in Company.objects.all()]
+    initial = {
+        "standard": standard_list,
+        "company": company_list,
+        "sectors": sector_list,
+    }
     if request.method == "POST":
         form = ImportSOForm(
             request.POST,
             request.FILES,
-            initial={"standard": standard_list, "company": company_list},
+            initial=initial,
         )
         if form.is_valid():
             try:
@@ -619,16 +638,18 @@ def import_so_declaration(request):
                     evidence = (
                         row[6] if row[6] and default_text not in str(row[6]) else None
                     )
-                    comment = (
+                    justification = (
                         row[7] if row[7] and default_text not in str(row[7]) else None
                     )
                     maturity_level = row[8] if isinstance(row[8], int) else None
-                    if evidence or comment or maturity_level is not None:
+                    if evidence or justification or maturity_level is not None:
                         maturity_level = maturity_level if maturity_level else 0
                         evidence = evidence if evidence else ""
-                        comment = comment if comment else ""
-                        evidence_and_comment = (
-                            f"{evidence}\n\n{comment}" if evidence else comment
+                        justification = justification if justification else ""
+                        evidence_and_justification = (
+                            f"{evidence}\n\n{justification}"
+                            if evidence
+                            else justification
                         )
 
                         security_objective = security_objectives.get(
@@ -642,13 +663,13 @@ def import_so_declaration(request):
                             )
 
                             for sm in security_measures:
-                                sma_comment = (
-                                    evidence_and_comment
+                                sma_justification = (
+                                    evidence_and_justification
                                     if sm.maturity_level.level == maturity_level
                                     else ""
                                 )
-                                if sma_comment:
-                                    evidence_and_comment = ""
+                                if sma_justification:
+                                    evidence_and_justification = ""
                                 is_implemented = (
                                     True
                                     if sm.maturity_level.level <= maturity_level
@@ -659,7 +680,7 @@ def import_so_declaration(request):
                                     SecurityMeasureAnswer(
                                         standard_answer=new_standard_answer,
                                         security_measure=sm,
-                                        comment=sma_comment,
+                                        justification=sma_justification,
                                         is_implemented=is_implemented,
                                     )
                                 )
@@ -690,9 +711,7 @@ def import_so_declaration(request):
 
     if not standard_list:
         messages.error(request, _("No data available"))
-    form = ImportSOForm(
-        initial={"standard": standard_list, "company": company_list},
-    )
+    form = ImportSOForm(initial=initial)
     context = {"form": form}
     return render(request, "modals/import_so_declaration.html", context=context)
 
@@ -704,7 +723,7 @@ def get_standard_answers_with_progress(standard_answer_queryset):
             "securitymeasureanswers__security_measure__security_objective"
         ),
         is_implemented=True,
-        comment="",
+        justification="",
     ).exclude(security_measure__maturity_level__level=0)
 
     standard_answers = standard_answer_queryset.annotate(
@@ -810,3 +829,23 @@ def calculate_so_score(security_measure, standard_answer):
             break
 
     return final_score
+
+
+def get_sectors_grouped(sectors):
+    categs = defaultdict(list)
+    for sector in sectors:
+        sector_name = sector.get_safe_translation()
+
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs[parent_name].append([sector.id, sector_name])
+        else:
+            if not categs.get(sector_name):
+                categs[sector_name].append([sector.id, sector_name])
+
+    sectors_grouped = (
+        (sector, sorted(options, key=lambda item: item[1]))
+        for sector, options in categs.items()
+    )
+
+    return sorted(sectors_grouped, key=lambda item: item[0])

@@ -2,6 +2,8 @@ from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from incidents.forms import DropdownCheckboxSelectMultiple
+
 from .models import SecurityObjectiveStatus
 
 
@@ -14,7 +16,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
             }
         ),
     )
-    comment = forms.CharField(
+    justification = forms.CharField(
         required=False,
         widget=forms.Textarea(
             attrs={
@@ -41,7 +43,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
         if initial:
             is_regulator = initial.get("is_regulator", True)
             self.fields["is_implemented"].disabled = is_regulator
-            self.fields["comment"].disabled = is_regulator
+            self.fields["justification"].disabled = is_regulator
             self.fields["review_comment"].disabled = not is_regulator
             if not is_regulator:
                 self.fields["review_comment"].widget = forms.HiddenInput()
@@ -74,15 +76,24 @@ class SelectSOStandardForm(forms.Form):
         initial=timezone.now().year,
         label=_("Year"),
     )
+    sectors = forms.MultipleChoiceField(
+        required=True,
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 3"}
+        ),
+        label=_("Sectors"),
+    )
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.pop("initial", None)
         super().__init__(*args, **kwargs)
         if initial:
-            self.fields["so_standard"].choices = initial
+            self.fields["so_standard"].choices = initial["standard_list"]
+            self.fields["sectors"].choices = initial["sectors_list"]
         else:
             self.fields["so_standard"].disabled = True
             self.fields["year"].disabled = True
+            self.fields["sectors"].disabled = True
 
 
 class ImportSOForm(forms.Form):
@@ -113,19 +124,29 @@ class ImportSOForm(forms.Form):
         label=_("Year"),
     )
 
+    sectors = forms.MultipleChoiceField(
+        required=True,
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 3"}
+        ),
+        label=_("Sectors"),
+    )
+
     def __init__(self, *args, **kwargs):
         initial = kwargs.pop("initial", None)
         super().__init__(*args, **kwargs)
-        if initial["standard"] and initial["company"]:
+        if initial["standard"] and initial["company"] and initial["sectors"]:
             self.fields["standard"].choices = initial["standard"]
             self.fields["company"].choices = initial["company"]
+            self.fields["sectors"].choices = initial["sectors"]
         else:
             self.fields["standard"].disabled = True
             self.fields["company"].disabled = True
             self.fields["year"].disabled = True
+            self.fields["sectors"].disabled = True
 
 
-class SelectYearForm(forms.Form):
+class CopySOForm(forms.Form):
     year = forms.ChoiceField(
         widget=forms.Select(),
         choices=[
@@ -136,3 +157,20 @@ class SelectYearForm(forms.Form):
         initial=timezone.now().year,
         label=_("Year"),
     )
+
+    sectors = forms.MultipleChoiceField(
+        required=True,
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 3"}
+        ),
+        label=_("Sectors"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.pop("initial", None)
+        super().__init__(*args, **kwargs)
+        if initial["sectors"]:
+            self.fields["sectors"].choices = initial["sectors"]
+        else:
+            self.fields["year"].disabled = True
+            self.fields["sectors"].disabled = True
