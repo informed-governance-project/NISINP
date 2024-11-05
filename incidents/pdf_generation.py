@@ -80,7 +80,7 @@ def get_pdf_report(
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
-    category_label = answer.question_options.category
+    category_label = answer.question_options.category_option.question_category
     question_label = answer.question_options.question
     question_dict = preliminary_questions_answers.setdefault(category_label, {})
     answer_list = question_dict.setdefault(question_label, [])
