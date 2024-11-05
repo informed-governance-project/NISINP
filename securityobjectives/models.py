@@ -200,6 +200,9 @@ class StandardAnswer(models.Model):
     )
     # the year for the one
     year_of_submission = models.PositiveIntegerField()
+    sectors = models.ManyToManyField(
+        "governanceplatform.sector", verbose_name=_("Sectors")
+    )
 
 
 # the answer of the operator by SM
@@ -221,7 +224,7 @@ class SecurityMeasureAnswer(models.Model):
         default=None,
         related_name="securitymeasureanswers",
     )
-    comment = models.TextField()
+    justification = models.TextField()
     is_implemented = models.BooleanField(default=False, verbose_name=_("Implemented"))
     review_comment = models.TextField()
 
