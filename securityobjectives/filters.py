@@ -1,6 +1,8 @@
 import django_filters
+from django.db.models import F, Q
 
-from governanceplatform.models import Company, User
+from governanceplatform.models import Company, Sector, User
+from incidents.forms import DropdownCheckboxSelectMultiple
 
 from .models import StandardAnswer
 
@@ -14,6 +16,19 @@ class YearChoiceFilter(django_filters.ChoiceFilter):
 
 class StandardAnswerFilter(django_filters.FilterSet):
     year_of_submission = YearChoiceFilter()
+    sectors = django_filters.ModelMultipleChoiceFilter(
+        queryset=Sector.objects.filter(
+            ~Q(
+                id__in=Sector.objects.exclude(parent=None).values_list(
+                    "parent_id", flat=True
+                )
+            )
+            | Q(id=F("parent_id"))
+        ).order_by("parent"),
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 2"}
+        ),
+    )
 
     class Meta:
         model = StandardAnswer
@@ -23,6 +38,7 @@ class StandardAnswerFilter(django_filters.FilterSet):
             "submitter_user",
             "submitter_company",
             "year_of_submission",
+            "sectors",
         ]
 
     def __init__(self, *args, **kwargs):
