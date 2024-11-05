@@ -55,8 +55,27 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
         model = SecurityObjectiveStatus
         fields = ["status"]
         widgets = {
-            "status": forms.Select(attrs={"onchange": "update_so_declaration(this)"}),
+            "status": forms.Select(
+                attrs={
+                    "class": "so_status_form",
+                    "onchange": "update_so_declaration(this)",
+                }
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get("initial", None)
+        super().__init__(*args, **kwargs)
+        if initial:
+            current_class = self.fields["status"].widget.attrs.get("class", "")
+            if initial["status"] == "PASS":
+                self.fields["status"].widget.attrs.update(
+                    {"class": f"{current_class} text-white bg-success"},
+                )
+            if initial["status"] == "FAIL":
+                self.fields["status"].widget.attrs.update(
+                    {"class": f"{current_class} text-white bg-danger"},
+                )
 
 
 class SelectSOStandardForm(forms.Form):
