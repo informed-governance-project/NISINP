@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
+from django.db.models import Deferrable
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
-from .globals import ACTION_FLAG_CHOICES
+from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 
 import governanceplatform
 from incidents.models import Incident
@@ -85,11 +86,25 @@ class Functionality(TranslatableModel):
         name=models.CharField(verbose_name=_("Name"), max_length=100)
     )
 
+    type = models.CharField(
+        verbose_name=_("Type"),
+        max_length=100,
+        choices=FUNCTIONALITIES,
+        null=False,
+    )
+
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
         return name_translation or ""
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["type"],
+                name="Unique_Type",
+                deferrable=Deferrable.DEFERRED,
+            ),
+        ]
         verbose_name = _("Functionality")
         verbose_name_plural = _("Functionalities")
 
@@ -194,6 +209,11 @@ class Regulator(TranslatableModel):
         blank=True,
         null=True,
     )
+    functionalities = models.ManyToManyField(
+        Functionality,
+        verbose_name=_("Functionalities"),
+        blank=True,
+    )
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
@@ -230,6 +250,10 @@ class Observer(TranslatableModel):
     )
     is_receiving_all_incident = models.BooleanField(
         default=False, verbose_name=_("Receives all incidents")
+    )
+    functionalities = models.ManyToManyField(
+        Functionality,
+        verbose_name=_("Functionalities")
     )
 
     def get_incidents(self):

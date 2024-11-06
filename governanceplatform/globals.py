@@ -16,3 +16,8 @@ ACTION_FLAG_CHOICES = {
     CONNECTION: _('Logged in'),
     DECONNECTION: _('Logged out'),
 }
+
+# Functionalities list
+FUNCTIONALITIES = {
+    "securityobjectives": _('Security Objective')
+}

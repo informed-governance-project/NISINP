@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils.timezone import now
 
 from governanceplatform.helpers import (
@@ -9,6 +9,7 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
+from governanceplatform.globals import FUNCTIONALITIES
 
 
 class RestrictViewsMiddleware:
@@ -97,4 +98,27 @@ class TermsAcceptanceMiddleware:
                     dt = now().date() - request.user.accepted_terms_date.date()
                     if dt.days > TERMS_ACCEPTANCE_TIME_IN_DAYS:
                         return redirect("accept_terms")
+        return self.get_response(request)
+
+
+# check if the regulator has access to functionality
+class CheckFunctionalityAccessMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # don't redirect in unfiltered URL
+        if resolve(request.path).route.split('/')[0] not in FUNCTIONALITIES:
+            return self.get_response(request)
+        # regulator case
+        if request.user.regulators.first() is not None:
+            regulator = request.user.regulators.first()
+            functionalities = regulator.functionalities
+            redir = True
+            for f in functionalities.all():
+                if request.path.startswith(reverse(f.type)):
+                    redir = False
+            if redir:
+                return redirect("incidents")
+
         return self.get_response(request)

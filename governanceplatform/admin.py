@@ -22,7 +22,8 @@ from .helpers import (
     user_in_group,
 )
 from .mixins import TranslationUpdateMixin
-from .models import (  # Functionality,; OperatorType,; Service,
+from .models import (  # OperatorType,; Service,
+    Functionality,
     Company,
     EntityCategory,
     Observer,
@@ -1175,23 +1176,46 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             obj.delete()
 
 
-# class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
-#     id = fields.Field(
-#         column_name="id",
-#         attribute="id",
-#     )
+class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
 
-#     name = fields.Field(
-#         column_name="name",
-#         attribute="name",
-#     )
+    name = fields.Field(
+        column_name="name",
+        attribute="name",
+    )
+
+    type = fields.Field(
+        column_name="type",
+        attribute="type",
+    )
 
 
-# @admin.register(Functionality, site=admin_site)
-# class FunctionalityAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
-#     list_display = ["name"]
-#     search_fields = ["translations__name"]
-#     resource_class = FunctionalityResource
+@admin.register(Functionality, site=admin_site)
+class FunctionalityAdmin(CustomTranslatableAdmin):
+    list_display = ["type", "name"]
+    search_fields = ["translations__name"]
+    resource_class = FunctionalityResource
+
+    def has_add_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "PlatformAdmin"):
+            return True
+        return False
 
 
 # class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
@@ -1246,7 +1270,21 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         "country",
         "address",
         "email_for_notification",
+        "functionalities",
     )
+
+    filter_horizontal = [
+        "functionalities",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the functionalities
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("functionalities",)
+
+        return readonly_fields
 
     inlines = (userRegulatorMultipleInline,)
 
@@ -1365,7 +1403,12 @@ class ObserverAdmin(CustomTranslatableAdmin):
         "address",
         "email_for_notification",
         "is_receiving_all_incident",
+        "functionalities",
     )
+
+    filter_horizontal = [
+        "functionalities",
+    ]
 
     inlines = (
         ObserverUserInline,
@@ -1409,7 +1452,7 @@ class ObserverAdmin(CustomTranslatableAdmin):
         user = request.user
         # only the platform admin can change the is_receive_all_incident
         if not user_in_group(user, "PlatformAdmin"):
-            readonly_fields += ("is_receiving_all_incident",)
+            readonly_fields += ("is_receiving_all_incident", "functionalities")
 
         return readonly_fields
 

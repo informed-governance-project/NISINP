@@ -19,6 +19,20 @@ from securityobjectives.models import (
 )
 
 
+# check if the user has access to SO
+def check_access(request):
+    user = request.user
+    functionalities = None
+    if user.regulators.first() is not None:
+        functionalities = user.regulators.first().functionalities
+    if user.observers.first() is not None:
+        functionalities = user.observers.first().functionalities
+    if functionalities is not None:
+        if "securityobjectives" in functionalities.all().values_list('type', flat=True):
+            return {'change': True, 'add': True}
+    return {'change': False, 'add': False}
+
+
 class DomainResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
     position = fields.Field(
@@ -44,6 +58,9 @@ class DomainAdmin(
         "label",
         "position",
     ]
+
+    def get_model_perms(self, request):
+        return check_access(request)
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -96,6 +113,9 @@ class StandardAdmin(
         obj.regulator = user.regulators.first()
         super().save_model(request, obj, form, change)
 
+    def get_model_perms(self, request):
+        return check_access(request)
+
 
 class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -122,6 +142,9 @@ class MaturityLevelAdmin(
         "level",
         "label",
     ]
+
+    def get_model_perms(self, request):
+        return check_access(request)
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
@@ -186,6 +209,9 @@ class SecurityObjectiveAdmin(
             )
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def get_model_perms(self, request):
+        return check_access(request)
+
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -224,6 +250,9 @@ class SecurityMeasureAdmin(
         "position",
     ]
 
+    def get_model_perms(self, request):
+        return check_access(request)
+
 
 class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
     subject = fields.Field(
@@ -261,3 +290,6 @@ class SOEmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+    def get_model_perms(self, request):
+        return check_access(request)

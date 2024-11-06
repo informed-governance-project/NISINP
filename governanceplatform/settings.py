@@ -176,6 +176,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "governanceplatform.middleware.RestrictViewsMiddleware",
     "governanceplatform.middleware.TermsAcceptanceMiddleware",
+    "governanceplatform.middleware.CheckFunctionalityAccessMiddleware",
 ]
 
 INTERNAL_IPS = [
