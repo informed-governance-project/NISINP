@@ -13,6 +13,22 @@ class MaturityLevel(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
     level = models.IntegerField(default=0)
+    # name of the regulator who create the object
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.label if self.label is not None else ""
@@ -24,6 +40,22 @@ class Domain(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
     position = models.IntegerField(default=0)
+    # name of the regulator who create the object
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.label if self.label is not None else ""
@@ -45,6 +77,22 @@ class SecurityObjective(TranslatableModel, models.Model):
         blank=True,
         default=None,
         related_name="securityobjective",
+    )
+    # name of the regulator who create the object
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
     )
 
     class Meta:
@@ -163,6 +211,23 @@ class SecurityMeasure(TranslatableModel):
     position = models.IntegerField(default=0)
     # when we want to delete a Security Measure we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(default=False, verbose_name=_("is archived"))
+
+    # name of the regulator who create the object
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    creator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Creator"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     def __str__(self):
         return self.description if self.description is not None else ""
