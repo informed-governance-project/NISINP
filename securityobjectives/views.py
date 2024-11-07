@@ -344,6 +344,9 @@ def declaration(request):
                 initial = {}
 
             initial["is_regulator"] = is_user_regulator(user)
+            initial["is_readonly"] = (
+                is_user_operator(user) and standard_answer.status != "UNDE"
+            )
 
             security_objective = measure.security_objective
             maturity_level = measure.maturity_level
