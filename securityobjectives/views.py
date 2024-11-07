@@ -104,7 +104,10 @@ def get_security_objectives(request):
 @otp_required
 def select_so_standard(request):
     standard_list = [
-        (standard.id, str(standard)) for standard in Standard.objects.all()
+        (standard.id, str(standard))
+        for standard in Standard.objects.filter(
+            securityobjectivesinstandard__isnull=False
+        ).distinct()
     ]
 
     sector_list = get_sectors_grouped(Sector.objects.all())
