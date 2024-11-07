@@ -311,6 +311,7 @@ def declaration(request):
 
     for so_in_standard in security_objectives_queryset:
         security_objective = so_in_standard.security_objective
+        security_objective.declaration_status = standard_answer.status
         security_measures = security_objective.securitymeasure_set.all().order_by(
             "maturity_level__level"
         )
@@ -500,6 +501,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
         for so_in_standard in security_objectives_queryset:
             security_objective = so_in_standard.security_objective
+            security_objective.declaration_status = standard_answer.status
             security_measures = security_objective.securitymeasure_set.all().order_by(
                 "maturity_level__level"
             )

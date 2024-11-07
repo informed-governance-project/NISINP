@@ -41,11 +41,12 @@ class SecurityObjectiveAnswerForm(forms.Form):
         initial = kwargs.get("initial", None)
         super().__init__(*args, **kwargs)
         if initial:
+            is_readonly = initial.get("is_readonly", True)
             is_regulator = initial.get("is_regulator", True)
-            self.fields["is_implemented"].disabled = is_regulator
-            self.fields["justification"].disabled = is_regulator
-            self.fields["review_comment"].disabled = not is_regulator
-            if not is_regulator:
+            self.fields["is_implemented"].disabled = is_readonly or is_regulator
+            self.fields["justification"].disabled = is_readonly or is_regulator
+            self.fields["review_comment"].disabled = is_readonly
+            if not is_readonly and not is_regulator:
                 self.fields["review_comment"].widget = forms.HiddenInput()
                 self.initial["review_comment"] = None
 
