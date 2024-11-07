@@ -24,6 +24,7 @@ from .views import (
     download_declaration_pdf,
     get_security_objectives,
     import_so_declaration,
+    review_comment_declaration,
     select_so_standard,
     submit_declaration,
 )
@@ -52,6 +53,12 @@ urlpatterns = [
         "delete/<int:standard_answer_id>",
         delete_declaration,
         name="delete_so_declaration",
+    ),
+    # Add review comment SO declaration
+    path(
+        "review_comment/<int:standard_answer_id>",
+        review_comment_declaration,
+        name="review_comment_so_declaration",
     ),
     # Download PDF SO declaration pdf
     path(

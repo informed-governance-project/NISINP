@@ -4,7 +4,7 @@ from django.utils.translation import gettext as _
 
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import SecurityObjectiveStatus
+from .models import SecurityObjectiveStatus, StandardAnswer
 
 
 class SecurityObjectiveAnswerForm(forms.Form):
@@ -194,3 +194,27 @@ class CopySOForm(forms.Form):
         else:
             self.fields["year"].disabled = True
             self.fields["sectors"].disabled = True
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = StandardAnswer
+        fields = ["review_comment", "deadline"]
+        widgets = {
+            "review_comment": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get("initial", None)
+        super().__init__(*args, **kwargs)
+        self.fields["review_comment"].required = True
+        self.fields["deadline"].required = False
+
+        if initial:
+            is_read_only = initial.get("is_readonly", True)
+            self.fields["review_comment"].disabled = is_read_only
+            self.fields["deadline"].disabled = is_read_only

@@ -42,6 +42,7 @@ from .filters import StandardAnswerFilter
 from .forms import (
     CopySOForm,
     ImportSOForm,
+    ReviewForm,
     SecurityObjectiveAnswerForm,
     SecurityObjectiveStatusForm,
     SelectSOStandardForm,
@@ -477,6 +478,39 @@ def delete_declaration(request, standard_answer_id: int):
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
     return redirect("securityobjectives")
+
+
+@login_required
+@otp_required
+def review_comment_declaration(request, standard_answer_id: int):
+    user = request.user
+    try:
+        standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+    except StandardAnswer.DoesNotExist:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
+
+    initial = model_to_dict(standard_answer, fields=["review_comment", "deadline"])
+    initial["is_readonly"] = is_user_operator(user)
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST, initial=initial)
+        if form.is_valid():
+            standard_answer.review_comment = form.cleaned_data["review_comment"]
+            standard_answer.deadline = form.cleaned_data["deadline"]
+            standard_answer.last_update = timezone.now()
+            standard_answer.save()
+
+            messages.info(
+                request,
+                _("The review comment has been saved."),
+            )
+
+            return redirect("securityobjectives")
+
+    form = ReviewForm(initial=initial)
+    context = {"form": form, "standard_answer_id": standard_answer_id}
+    return render(request, "modals/review_comment_so_declaration.html", context=context)
 
 
 @login_required
