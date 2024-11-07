@@ -7,7 +7,7 @@ from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.helpers import (
     set_creator,
 )
-from governanceplatform.widgets import TranslatedNameWidget, TranslatedObjectNotInTheModelWidget
+from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -96,7 +96,7 @@ class SecurityObjectiveInline(admin.TabularInline):
 
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(
-    CustomTranslatableAdmin
+    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
 ):
     resource_class = StandardResource
     list_display = [
@@ -178,8 +178,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     )
     standard = fields.Field(
         column_name="standard",
-        attribute="standard",
-        widget=TranslatedObjectNotInTheModelWidget(Standard, field="label"),
+        widget=TranslatedNameWidget(Standard, field="label"),
     )
     position = fields.Field(
         column_name="position",
@@ -198,22 +197,15 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                     position=row['position']
                 )
 
-    def get_export_fields(self):
-        exclude_columns = ["id", "standard", "position"]
-        fields = super().get_export_fields()
-        return [field for field in fields if field.column_name not in exclude_columns]
-
     class Meta:
-        import_id_fields = ("unique_code",)
         model = SecurityObjective
-        exclude = ("is_archived")
         fields = (
             "objective",
             "description",
             "unique_code",
             "domain",
             "standard",
-            "position"
+            "position",
         )
 
 

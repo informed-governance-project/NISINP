@@ -16,3 +16,17 @@ def url_replace(request, field, value):
 @register.simple_tag
 def settings_value(name):
     return getattr(settings, name, "")
+
+
+@register.simple_tag
+def status_class(value):
+    if value == "PASS":
+        return "table-success"
+    elif value == "FAIL":
+        return "table-danger"
+    elif value == "DELIV":
+        return "table-info"
+    elif value == "OUT":
+        return "table-dark"
+    else:
+        return "table-secondary"
