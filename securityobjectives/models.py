@@ -332,3 +332,26 @@ class SecurityObjectiveStatus(models.Model):
         max_digits=4,
         decimal_places=2,
     )
+
+
+class LogStandardAnswer(models.Model):
+    user = models.ForeignKey(
+        "governanceplatform.User",
+        on_delete=models.SET_NULL,
+        verbose_name=_("User"),
+        null=True,
+    )
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    # save full name in case of the user is deleted to keep the name
+    user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    standard_answer = models.ForeignKey(
+        StandardAnswer,
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    action = models.CharField(max_length=10, verbose_name=_("Action performed"))
+
+    def save(self, *args, **kwargs):
+        self.user_full_name = self.user.get_full_name()
+        super().save(*args, **kwargs)

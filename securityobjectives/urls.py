@@ -18,6 +18,7 @@ Including another URLconf
 from django.urls import path
 
 from .views import (
+    access_log,
     copy_declaration,
     declaration,
     delete_declaration,
@@ -68,4 +69,10 @@ urlpatterns = [
     ),
     # Import SO declaction
     path("import", import_so_declaration, name="import_so_declaration"),
+    # Logs SO declaction
+    path(
+        "access_log/<int:standard_answer_id>",
+        access_log,
+        name="so_access_log",
+    ),
 ]

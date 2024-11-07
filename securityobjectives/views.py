@@ -48,6 +48,7 @@ from .forms import (
     SelectSOStandardForm,
 )
 from .models import (
+    LogStandardAnswer,
     SecurityMeasure,
     SecurityMeasureAnswer,
     SecurityObjective,
@@ -135,6 +136,7 @@ def select_so_standard(request):
                 )
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(sectors)
+                create_entry_log(user, new_standard_answer, "CREATE")
                 return redirect("so_declaration")
             except Standard.DoesNotExist:
                 messages.error(request, _("Standard does not exist"))
@@ -363,6 +365,8 @@ def declaration(request):
         so: dict(levels) for so, levels in security_objectives.items()
     }
 
+    create_entry_log(user, standard_answer, "READ")
+
     context = {"security_objectives": security_objectives}
 
     return render(request, "security_objectives/declaration.html", context=context)
@@ -401,6 +405,8 @@ def copy_declaration(request, standard_answer_id: int):
                 year_of_submission=year,
             )
             new_standard_answer.save()
+            create_entry_log(user, new_standard_answer, "CREATE")
+            create_entry_log(user, original_standard_answer, "COPY")
             new_standard_answer.sectors.set(sectors)
 
             security_measure_answers = SecurityMeasureAnswer.objects.filter(
@@ -451,6 +457,7 @@ def copy_declaration(request, standard_answer_id: int):
 @login_required
 @otp_required
 def submit_declaration(request, standard_answer_id: int):
+    user = request.user
     standard_answer_queryset = StandardAnswer.objects.filter(pk=standard_answer_id)
     standard_answer = get_standard_answers_with_progress(standard_answer_queryset)
 
@@ -465,6 +472,7 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer.submit_date = timezone.now()
     standard_answer.save()
     send_email(standard_answer.standard.submission_email, standard_answer)
+    create_entry_log(user, standard_answer, "SUBMIT")
     messages.info(request, _("The security objectives declaration has been submitted."))
 
     return redirect("securityobjectives")
@@ -507,6 +515,7 @@ def review_comment_declaration(request, standard_answer_id: int):
             standard_answer.last_update = timezone.now()
             standard_answer.save()
 
+            create_entry_log(user, standard_answer, "COMMENT")
             messages.info(
                 request,
                 _("The review comment has been saved."),
@@ -521,7 +530,28 @@ def review_comment_declaration(request, standard_answer_id: int):
 
 @login_required
 @otp_required
+def access_log(request, standard_answer_id: int):
+    user = request.user
+    try:
+        standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+    except StandardAnswer.DoesNotExist:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
+
+    log = LogStandardAnswer.objects.filter(standard_answer=standard_answer).order_by(
+        "-timestamp"
+    )
+    if is_user_operator(user):
+        log = log.exclude(user__regulatoruser__isnull=False)
+
+    context = {"log": log}
+    return render(request, "modals/so_access_log.html", context=context)
+
+
+@login_required
+@otp_required
 def download_declaration_pdf(request, standard_answer_id: int):
+    user = request.user
     standard_answer_queryset = StandardAnswer.objects.filter(pk=standard_answer_id)
     standard_answer = get_standard_answers_with_progress(standard_answer_queryset)
 
@@ -596,7 +626,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
         response[
             "Content-Disposition"
         ] = f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
-
+        create_entry_log(user, standard_answer, "DOWNLOAD")
         return response
     except Exception:
         messages.warning(request, _("An error occurred while generating the report."))
@@ -745,6 +775,7 @@ def import_so_declaration(request):
                         },
                     )
 
+            create_entry_log(user, standard_answer, "IMPORT")
             messages.info(
                 request, ("The security objectives declaration has been imported.")
             )
@@ -888,3 +919,12 @@ def get_sectors_grouped(sectors):
     )
 
     return sorted(sectors_grouped, key=lambda item: item[0])
+
+
+def create_entry_log(user, standard_answer, action):
+    log = LogStandardAnswer.objects.create(
+        user=user,
+        standard_answer=standard_answer,
+        action=action,
+    )
+    log.save()
