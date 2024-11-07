@@ -7,7 +7,7 @@ from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.helpers import (
     set_creator,
 )
-from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
+from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -161,20 +161,31 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         column_name="unique_code",
         attribute="unique_code",
     )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
-    )
     domain = fields.Field(
         column_name="domain",
         attribute="domain",
         widget=TranslatedNameWidget(Domain, field="label"),
     )
-    standards = fields.Field(
-        column_name="standards",
-        attribute="standards",
-        widget=TranslatedNameM2MWidget(Standard, field="label", separator="|"),
+    standard = fields.Field(
+        column_name="standard",
+        widget=TranslatedNameWidget(Standard, field="label"),
     )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
+
+    # if there is a standard get it and save the SO
+    def after_import_row(self, row, row_result, row_number=None, **kwargs):
+        so = SecurityObjective.objects.get(pk=row_result.object_id)
+        if row['standard'] and row['position']:
+            standard = Standard.objects.filter(translations__label=row['standard']).first()
+            if standard is not None and row['position'] is not None:
+                SecurityObjectivesInStandard.objects.create(
+                    security_objective=so,
+                    standard=standard,
+                    position=row['position']
+                )
 
     class Meta:
         model = SecurityObjective
@@ -182,9 +193,9 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "objective",
             "description",
             "unique_code",
-            "position",
             "domain",
-            "standards",
+            "standard",
+            "position",
         )
 
 
