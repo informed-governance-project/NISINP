@@ -54,6 +54,7 @@ class DomainAdmin(
     ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
 ):
     resource_class = DomainResource
+    exclude = ["creator_name", "creator"]
     list_display = [
         "label",
         "position",
@@ -61,6 +62,10 @@ class DomainAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
+        super().save_model(request, obj, form, change)
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -138,6 +143,7 @@ class MaturityLevelAdmin(
     ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
 ):
     resource_class = MaturityLevelResource
+    exclude = ["creator_name", "creator"]
     list_display = [
         "level",
         "label",
@@ -145,6 +151,10 @@ class MaturityLevelAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
+        super().save_model(request, obj, form, change)
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
@@ -218,7 +228,7 @@ class SecurityObjectiveAdmin(
         "unique_code",
         "domain",
     ]
-    exclude = ["is_archived"]
+    exclude = ["is_archived", "creator_name", "creator"]
 
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -230,6 +240,10 @@ class SecurityObjectiveAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
+        super().save_model(request, obj, form, change)
 
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
@@ -268,9 +282,14 @@ class SecurityMeasureAdmin(
         "description",
         "position",
     ]
+    exclude = ["creator_name", "creator"]
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def save_model(self, request, obj, form, change):
+        set_creator(request, obj, change)
+        super().save_model(request, obj, form, change)
 
 
 class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
