@@ -799,10 +799,7 @@ def has_change_permission(request, standard_answer, action):
             case "edit":
                 return (
                     is_user_regulator(user) and standard_answer.status != "UNDE"
-                ) or (
-                    is_standard_answer_in_user_company
-                    and standard_answer.status == "UNDE"
-                )
+                ) or (is_standard_answer_in_user_company)
             case "submit":
                 return (
                     is_standard_answer_in_user_company
