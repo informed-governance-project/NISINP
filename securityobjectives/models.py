@@ -203,6 +203,12 @@ class StandardAnswer(models.Model):
     sectors = models.ManyToManyField(
         "governanceplatform.sector", verbose_name=_("Sectors")
     )
+    review_comment = models.TextField(
+        blank=True, default=None, null=True, verbose_name=_("Review comment")
+    )
+    deadline = models.DateTimeField(
+        blank=True, default=None, null=True, verbose_name=_("Deadline")
+    )
 
 
 # the answer of the operator by SM
