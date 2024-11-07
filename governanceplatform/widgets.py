@@ -48,3 +48,28 @@ class TranslatedNameWidget(widgets.ForeignKeyWidget):
                 pass
 
         return
+
+
+# Custom widget to get the translation of an unrelated object in a model
+class TranslatedObjectNotInTheModelWidget(widgets.ForeignKeyWidget):
+
+    def clean(self, value, row=None, *args, **kwargs):
+        if not value:
+            return self.model.objects.none()
+
+        languages = [lang[0] for lang in LANGUAGES]
+
+        for lang_code in languages:
+            try:
+                if isinstance(value, int):
+                    value = self.model.objects.get(pk=value)
+                instance = self.model._parler_meta.root_model.objects.get(
+                    **{self.field: value},
+                    language_code=lang_code,
+                )
+
+                return instance.master
+            except (self.model.DoesNotExist, TranslationDoesNotExist):
+                pass
+
+        return
