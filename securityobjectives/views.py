@@ -62,7 +62,9 @@ from .models import (
 def get_security_objectives(request):
     user = request.user
     standard_answer_queryset = StandardAnswer.objects.none()
+    template = "operator/so_dashboard.html"
     if is_user_regulator(user):
+        template = "regulator/so_dashboard.html"
         standard_answer_queryset = StandardAnswer.objects.exclude(status="UNDE")
     if is_user_operator(user):
         company = get_active_company_from_session(request)
@@ -95,9 +97,7 @@ def get_security_objectives(request):
         "filter": security_objective_filter,
         "is_filtered": bool(is_filtered),
     }
-    return render(
-        request, "security_objectives/securityobjectives.html", context=context
-    )
+    return render(request, template, context=context)
 
 
 @login_required
