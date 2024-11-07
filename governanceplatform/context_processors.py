@@ -39,3 +39,15 @@ def instance_configurations(request):
     }
 
     return configurations
+
+
+def user_module_permissions(request):
+    user = request.user
+    user_module_permissions = {}
+
+    if user.is_authenticated:
+        user_module_permissions[
+            "user_module_permissions"
+        ] = user.get_module_permissions()
+
+    return user_module_permissions

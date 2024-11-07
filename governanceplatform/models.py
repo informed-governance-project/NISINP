@@ -6,11 +6,11 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
-from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 
 import governanceplatform
 from incidents.models import Incident
 
+from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 from .managers import CustomUserManager
 
 
@@ -252,8 +252,7 @@ class Observer(TranslatableModel):
         default=False, verbose_name=_("Receives all incidents")
     )
     functionalities = models.ManyToManyField(
-        Functionality,
-        verbose_name=_("Functionalities")
+        Functionality, verbose_name=_("Functionalities")
     )
 
     def get_incidents(self):
@@ -398,6 +397,16 @@ class User(AbstractUser, PermissionsMixin):
             return ru.sectors
         else:
             return self.sectors
+
+    def get_module_permissions(self):
+        user_entity = None
+        if governanceplatform.helpers.is_user_regulator(self):
+            user_entity = self.regulatoruser_set.first().regulator
+        if governanceplatform.helpers.is_observer_user(self):
+            user_entity = self.observeruser_set.first().observer
+        if user_entity:
+            return list(user_entity.functionalities.values_list("type", flat=True))
+        return []
 
     class Meta:
         permissions = (
@@ -592,8 +601,12 @@ class ScriptLogEntry(models.Model):
     action_time = models.DateTimeField(auto_now=True, verbose_name=_("Action time"))
     action_flag = models.PositiveSmallIntegerField(verbose_name=_("Action flag"))
     object_id = models.TextField(null=True, blank=True, verbose_name=_("Object id"))
-    object_repr = models.CharField(max_length=200, verbose_name=_("Object representation"))
-    additional_info = models.TextField(null=True, blank=True, verbose_name=_("Additional information"))
+    object_repr = models.CharField(
+        max_length=200, verbose_name=_("Object representation")
+    )
+    additional_info = models.TextField(
+        null=True, blank=True, verbose_name=_("Additional information")
+    )
 
     class Meta:
         verbose_name = _("Script log entry")
