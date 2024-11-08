@@ -6,6 +6,7 @@ from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.helpers import (
     set_creator,
+    can_change_or_delete_obj,
 )
 from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
@@ -44,6 +45,12 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="label",
     )
 
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        creator = kwargs.get('creator')
+        if instance and creator:
+            instance.creator = creator
+            instance.creator_name = creator.name
+
     class Meta:
         model = Domain
         fields = ("label", "position")
@@ -62,6 +69,29 @@ class DomainAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def import_action(self, request, *args, **kwargs):
+        # Save the request to use later in the resource
+        self.request = request
+        return super().import_action(request, *args, **kwargs)
+
+    def get_import_data_kwargs(self, *args, **kwargs):
+        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
+        cr = self.request.user.regulators.first()
+        data_kwargs.update({'creator': cr})
+        return data_kwargs
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -118,6 +148,20 @@ class StandardAdmin(
         obj.regulator = user.regulators.first()
         super().save_model(request, obj, form, change)
 
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        user = request.user
+        if obj and permission:
+            permission = user.regulators.first() == obj.regulator
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        user = request.user
+        if obj and permission:
+            permission = user.regulators.first() == obj.regulator
+        return permission
+
     def get_model_perms(self, request):
         return check_access(request)
 
@@ -132,6 +176,12 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="level",
         attribute="level",
     )
+
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        creator = kwargs.get('creator')
+        if instance and creator:
+            instance.creator = creator
+            instance.creator_name = creator.name
 
     class Meta:
         model = MaturityLevel
@@ -151,6 +201,29 @@ class MaturityLevelAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def import_action(self, request, *args, **kwargs):
+        # Save the request to use later in the resource
+        self.request = request
+        return super().import_action(request, *args, **kwargs)
+
+    def get_import_data_kwargs(self, *args, **kwargs):
+        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
+        cr = self.request.user.regulators.first()
+        data_kwargs.update({'creator': cr})
+        return data_kwargs
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -184,6 +257,12 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         column_name="position",
         attribute="position",
     )
+
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        creator = kwargs.get('creator')
+        if instance and creator:
+            instance.creator = creator
+            instance.creator_name = creator.name
 
     # if there is a standard get it and save the SO
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
@@ -233,6 +312,29 @@ class SecurityObjectiveAdmin(
     def get_model_perms(self, request):
         return check_access(request)
 
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def import_action(self, request, *args, **kwargs):
+        # Save the request to use later in the resource
+        self.request = request
+        return super().import_action(request, *args, **kwargs)
+
+    def get_import_data_kwargs(self, *args, **kwargs):
+        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
+        cr = self.request.user.regulators.first()
+        data_kwargs.update({'creator': cr})
+        return data_kwargs
+
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
@@ -259,6 +361,12 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="evidence",
     )
 
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        creator = kwargs.get('creator')
+        if instance and creator:
+            instance.creator = creator
+            instance.creator_name = creator.name
+
     class Meta:
         model = SecurityMeasure
         fields = ("security_objective", "maturity_level", "description", "evidence")
@@ -274,10 +382,33 @@ class SecurityMeasureAdmin(
         "description",
         "position",
     ]
-    exclude = ["creator_name", "creator"]
+    exclude = ["creator_name", "creator", "is_archived"]
 
     def get_model_perms(self, request):
         return check_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def import_action(self, request, *args, **kwargs):
+        # Save the request to use later in the resource
+        self.request = request
+        return super().import_action(request, *args, **kwargs)
+
+    def get_import_data_kwargs(self, *args, **kwargs):
+        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
+        cr = self.request.user.regulators.first()
+        data_kwargs.update({'creator': cr})
+        return data_kwargs
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -316,6 +447,18 @@ class SOEmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     search_fields = ["translations__subject", "translations__content"]
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
+
+    def has_change_permission(self, request, obj=None):
+        permission = super().has_change_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj)
+        return permission
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)

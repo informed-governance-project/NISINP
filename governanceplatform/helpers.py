@@ -16,6 +16,15 @@ from incidents.models import (
     Workflow,
 )
 
+from securityobjectives.models import (
+    SecurityObjective,
+    SecurityMeasure,
+    MaturityLevel,
+    SecurityMeasureAnswer,
+    Domain,
+    SecurityObjectiveEmail
+)
+
 from .models import Company, User
 
 
@@ -268,6 +277,26 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
 
     # [Workflow] in_use flag is set to False
     if isinstance(obj, Workflow):
+        in_use = False
+
+    # [SecurityObjective] Check if obj is already in use
+    if isinstance(obj, SecurityObjective):
+        in_use = SecurityMeasureAnswer.objects.filter(security_measure__security_objective=obj).exists()
+
+    # [SecurityMeasure] Check if obj is already in use
+    if isinstance(obj, SecurityMeasure):
+        in_use = SecurityMeasureAnswer.objects.filter(security_measure=obj).exists()
+
+    # [MaturityLevel] Check if obj is already in use
+    if isinstance(obj, MaturityLevel):
+        in_use = SecurityMeasureAnswer.objects.filter(security_measure__maturity_level=obj).exists()
+
+    # [Domain] Check if obj is already in use
+    if isinstance(obj, Domain):
+        in_use = SecurityMeasureAnswer.objects.filter(security_measure__security_objective__domain=obj).exists()
+
+    # [SecurityObjectiveEmail] Set in use flag to false
+    if isinstance(obj, SecurityObjectiveEmail):
         in_use = False
 
     regulator = request.user.regulators.first()
