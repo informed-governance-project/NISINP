@@ -9,6 +9,7 @@ from governanceplatform.helpers import (
     can_change_or_delete_obj,
 )
 from governanceplatform.widgets import TranslatedNameWidget
+from governanceplatform.models import Regulation
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -141,6 +142,16 @@ class StandardAdmin(
         queryset = super().get_queryset(request)
         user = request.user
         return queryset.filter(regulator=user.regulators.first())
+
+    # limit regulation to the one authorized by paltformadmin
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "regulation" and not request.POST:
+            regulator = request.user.regulators.first()
+            kwargs["queryset"] = Regulation.objects.filter(
+                regulators=regulator
+            ).distinct()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     # save by default the regulator
     def save_model(self, request, obj, form, change):
