@@ -666,6 +666,7 @@ def import_so_declaration(request):
             standard_id = form.cleaned_data["standard"]
             company_id = form.cleaned_data["company"]
             year = form.cleaned_data["year"]
+            sectors = form.cleaned_data["sectors"]
 
             try:
                 standard = Standard.objects.get(pk=standard_id)
@@ -689,6 +690,9 @@ def import_so_declaration(request):
                     creator_company_name=str(company),
                     year_of_submission=year,
                 )
+                new_standard_answer.save()
+                for sector in sectors:
+                    new_standard_answer.sectors.add(sector)
                 new_standard_answer.save()
             except (Standard.DoesNotExist, Company.DoesNotExist):
                 messages.error(
