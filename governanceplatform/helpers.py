@@ -15,14 +15,15 @@ from incidents.models import (
     QuestionCategoryOptions,
     Workflow,
 )
-
 from securityobjectives.models import (
-    SecurityObjective,
-    SecurityMeasure,
-    MaturityLevel,
-    SecurityMeasureAnswer,
     Domain,
-    SecurityObjectiveEmail
+    MaturityLevel,
+    SecurityMeasure,
+    SecurityMeasureAnswer,
+    SecurityObjective,
+    SecurityObjectiveEmail,
+    Standard,
+    StandardAnswer,
 )
 
 from .models import Company, User
@@ -259,7 +260,9 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
     if not obj.pk:
         return True
 
-    if not obj.creator:
+    creator = getattr(obj, "creator", getattr(obj, "regulator", None))
+
+    if not creator:
         return True
 
     in_use = True
@@ -279,9 +282,15 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
     if isinstance(obj, Workflow):
         in_use = False
 
+    # [Standard] Check if obj is already in use
+    if isinstance(obj, Standard):
+        in_use = StandardAnswer.objects.filter(standard=obj).exists()
+
     # [SecurityObjective] Check if obj is already in use
     if isinstance(obj, SecurityObjective):
-        in_use = SecurityMeasureAnswer.objects.filter(security_measure__security_objective=obj).exists()
+        in_use = SecurityMeasureAnswer.objects.filter(
+            security_measure__security_objective=obj
+        ).exists()
 
     # [SecurityMeasure] Check if obj is already in use
     if isinstance(obj, SecurityMeasure):
@@ -289,22 +298,26 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
 
     # [MaturityLevel] Check if obj is already in use
     if isinstance(obj, MaturityLevel):
-        in_use = SecurityMeasureAnswer.objects.filter(security_measure__maturity_level=obj).exists()
+        in_use = SecurityMeasureAnswer.objects.filter(
+            security_measure__maturity_level=obj
+        ).exists()
 
     # [Domain] Check if obj is already in use
     if isinstance(obj, Domain):
-        in_use = SecurityMeasureAnswer.objects.filter(security_measure__security_objective__domain=obj).exists()
+        in_use = SecurityMeasureAnswer.objects.filter(
+            security_measure__security_objective__domain=obj
+        ).exists()
 
     # [SecurityObjectiveEmail] Set in use flag to false
     if isinstance(obj, SecurityObjectiveEmail):
         in_use = False
 
     regulator = request.user.regulators.first()
-    if obj.creator == regulator and not in_use:
+    if creator == regulator and not in_use:
         return True
 
     verbose_name = obj._meta.verbose_name.lower()
-    creator_name = obj.creator
+    creator_name = creator
     messages.warning(
         request,
         mark_safe(

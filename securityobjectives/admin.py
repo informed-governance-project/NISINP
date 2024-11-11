@@ -1,23 +1,23 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
+from governanceplatform.helpers import can_change_or_delete_obj, set_creator
 from governanceplatform.mixins import TranslationUpdateMixin
-from governanceplatform.helpers import (
-    set_creator,
-    can_change_or_delete_obj,
-)
-from governanceplatform.widgets import TranslatedNameWidget
 from governanceplatform.models import Regulation
+from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
     SecurityMeasure,
     SecurityObjective,
+    SecurityObjectiveEmail,
     SecurityObjectivesInStandard,
     Standard,
-    SecurityObjectiveEmail
+    StandardAnswer,
 )
 
 
@@ -30,9 +30,9 @@ def check_access(request):
     if user.observers.first() is not None:
         functionalities = user.observers.first().functionalities
     if functionalities is not None:
-        if "securityobjectives" in functionalities.all().values_list('type', flat=True):
-            return {'change': True, 'add': True}
-    return {'change': False, 'add': False}
+        if "securityobjectives" in functionalities.all().values_list("type", flat=True):
+            return {"change": True, "add": True}
+    return {"change": False, "add": False}
 
 
 class DomainResource(TranslationUpdateMixin, resources.ModelResource):
@@ -47,7 +47,7 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        creator = kwargs.get('creator')
+        creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
@@ -91,7 +91,7 @@ class DomainAdmin(
     def get_import_data_kwargs(self, *args, **kwargs):
         data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
         cr = self.request.user.regulators.first()
-        data_kwargs.update({'creator': cr})
+        data_kwargs.update({"creator": cr})
         return data_kwargs
 
     def save_model(self, request, obj, form, change):
@@ -161,16 +161,27 @@ class StandardAdmin(
 
     def has_change_permission(self, request, obj=None):
         permission = super().has_change_permission(request, obj)
-        user = request.user
         if obj and permission:
-            permission = user.regulators.first() == obj.regulator
+            permission = can_change_or_delete_obj(request, obj)
         return permission
 
     def has_delete_permission(self, request, obj=None):
         permission = super().has_delete_permission(request, obj)
-        user = request.user
         if obj and permission:
-            permission = user.regulators.first() == obj.regulator
+            permission = bool(
+                can_change_or_delete_obj(request, obj)
+                and not StandardAnswer.objects.filter(standard=obj).exists()
+            )
+            if not permission and request._can_change_or_delete_obj:
+                messages.warning(
+                    request,
+                    mark_safe(
+                        _(
+                            f"<strong>Delete action is not allowed</strong><br>"
+                            f"- This {obj._meta.verbose_name.lower()} is either in use.<br>"
+                        )
+                    ),
+                )
         return permission
 
     def get_model_perms(self, request):
@@ -189,7 +200,7 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        creator = kwargs.get('creator')
+        creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
@@ -233,7 +244,7 @@ class MaturityLevelAdmin(
     def get_import_data_kwargs(self, *args, **kwargs):
         data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
         cr = self.request.user.regulators.first()
-        data_kwargs.update({'creator': cr})
+        data_kwargs.update({"creator": cr})
         return data_kwargs
 
     def save_model(self, request, obj, form, change):
@@ -270,7 +281,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        creator = kwargs.get('creator')
+        creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
@@ -278,13 +289,13 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     # if there is a standard get it and save the SO
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
         so = SecurityObjective.objects.get(pk=row_result.object_id)
-        if row['standard'] and row['position']:
-            standard = Standard.objects.filter(translations__label=row['standard']).first()
-            if standard is not None and row['position'] is not None:
+        if row["standard"] and row["position"]:
+            standard = Standard.objects.filter(
+                translations__label=row["standard"]
+            ).first()
+            if standard is not None and row["position"] is not None:
                 SecurityObjectivesInStandard.objects.create(
-                    security_objective=so,
-                    standard=standard,
-                    position=row['position']
+                    security_objective=so, standard=standard, position=row["position"]
                 )
 
     class Meta:
@@ -343,7 +354,7 @@ class SecurityObjectiveAdmin(
     def get_import_data_kwargs(self, *args, **kwargs):
         data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
         cr = self.request.user.regulators.first()
-        data_kwargs.update({'creator': cr})
+        data_kwargs.update({"creator": cr})
         return data_kwargs
 
     def save_model(self, request, obj, form, change):
@@ -363,6 +374,10 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="maturity_level",
         widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
     description = fields.Field(
         column_name="description",
         attribute="description",
@@ -373,14 +388,20 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        creator = kwargs.get('creator')
+        creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
 
     class Meta:
         model = SecurityMeasure
-        fields = ("security_objective", "maturity_level", "description", "evidence")
+        fields = (
+            "security_objective",
+            "maturity_level",
+            "position",
+            "description",
+            "evidence",
+        )
 
 
 @admin.register(SecurityMeasure, site=admin_site)
@@ -394,6 +415,7 @@ class SecurityMeasureAdmin(
         "position",
     ]
     exclude = ["creator_name", "creator", "is_archived"]
+    ordering = ["security_objective__unique_code", "position"]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -418,7 +440,7 @@ class SecurityMeasureAdmin(
     def get_import_data_kwargs(self, *args, **kwargs):
         data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
         cr = self.request.user.regulators.first()
-        data_kwargs.update({'creator': cr})
+        data_kwargs.update({"creator": cr})
         return data_kwargs
 
     def save_model(self, request, obj, form, change):
