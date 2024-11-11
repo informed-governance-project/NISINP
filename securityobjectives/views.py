@@ -405,9 +405,9 @@ def copy_declaration(request, standard_answer_id: int):
                 year_of_submission=year,
             )
             new_standard_answer.save()
+            new_standard_answer.sectors.set(sectors)
             create_entry_log(user, new_standard_answer, "CREATE")
             create_entry_log(user, original_standard_answer, "COPY")
-            new_standard_answer.sectors.set(sectors)
 
             security_measure_answers = SecurityMeasureAnswer.objects.filter(
                 standard_answer=original_standard_answer
@@ -691,9 +691,8 @@ def import_so_declaration(request):
                     year_of_submission=year,
                 )
                 new_standard_answer.save()
-                for sector in sectors:
-                    new_standard_answer.sectors.add(sector)
-                new_standard_answer.save()
+                new_standard_answer.sectors.set(sectors)
+
             except (Standard.DoesNotExist, Company.DoesNotExist):
                 messages.error(
                     request,
