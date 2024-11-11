@@ -33,6 +33,7 @@ from governanceplatform.helpers import (
     get_active_company_from_session,
     is_user_operator,
     is_user_regulator,
+    user_in_group,
 )
 from governanceplatform.models import Company, Sector
 from incidents.globals import REVIEW_STATUS
@@ -66,7 +67,15 @@ def get_security_objectives(request):
     template = "operator/so_dashboard.html"
     if is_user_regulator(user):
         template = "regulator/so_dashboard.html"
-        standard_answer_queryset = StandardAnswer.objects.exclude(status="UNDE")
+        is_regulator_admin = user_in_group(user, "RegulatorAdmin")
+        standard_answer_queryset = StandardAnswer.objects.filter(
+            sectors__in=user.get_sectors().all()
+        )
+        if is_regulator_admin:
+            standard_answer_queryset = StandardAnswer.objects.all()
+
+        standard_answer_queryset = standard_answer_queryset.exclude(status="UNDE")
+
     if is_user_operator(user):
         company = get_active_company_from_session(request)
         standard_answer_queryset = StandardAnswer.objects.filter(
@@ -500,6 +509,8 @@ def review_comment_declaration(request, standard_answer_id: int):
     user = request.user
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+        if not has_change_permission(request, standard_answer, "review_comment"):
+            return redirect("securityobjectives")
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
@@ -534,6 +545,8 @@ def access_log(request, standard_answer_id: int):
     user = request.user
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+        if not has_change_permission(request, standard_answer, "log"):
+            return redirect("securityobjectives")
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
@@ -830,15 +843,21 @@ def get_standard_answers_with_progress(standard_answer_queryset):
 def has_change_permission(request, standard_answer, action):
     def check_conditions():
         user = request.user
+        user_sectors = user.get_sectors().all()
         user_company = get_active_company_from_session(request)
         is_standard_answer_in_user_company = (
             is_user_operator(user) and standard_answer.submitter_company == user_company
         )
+        standard_sectors = standard_answer.sectors.all()
+        is_user_regulator_sector = user_in_group(user, "RegulatorAdmin") or (
+            is_user_regulator(user)
+            and any(sector in standard_sectors for sector in user_sectors)
+        )
 
         match action:
-            case "edit":
+            case "edit" | "download":
                 return (
-                    is_user_regulator(user) and standard_answer.status != "UNDE"
+                    is_user_regulator_sector and standard_answer.status != "UNDE"
                 ) or (is_standard_answer_in_user_company)
             case "submit":
                 return (
@@ -853,12 +872,15 @@ def has_change_permission(request, standard_answer, action):
                     is_standard_answer_in_user_company
                     and standard_answer.status == "UNDE"
                 )
-            case "download":
+            case "review_comment":
                 return (
-                    is_user_regulator(user)
-                    and standard_answer.status != "UNDE"
-                    or is_standard_answer_in_user_company
+                    is_user_regulator_sector and standard_answer.status != "UNDE"
+                ) or (
+                    is_standard_answer_in_user_company
+                    and (standard_answer.review_comment or standard_answer.deadline)
                 )
+            case "log":
+                return is_user_regulator_sector or is_standard_answer_in_user_company
             case _:
                 return False
 
