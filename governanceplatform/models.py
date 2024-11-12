@@ -252,7 +252,8 @@ class Observer(TranslatableModel):
         default=False, verbose_name=_("Receives all incidents")
     )
     functionalities = models.ManyToManyField(
-        Functionality, verbose_name=_("Functionalities")
+        Functionality, verbose_name=_("Functionalities"),
+        blank=True,
     )
 
     def get_incidents(self):
