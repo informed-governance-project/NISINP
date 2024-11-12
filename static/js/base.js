@@ -10,9 +10,9 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 })
 
 
-$('.select_so_standard').on( "click", function() {
-  var $popup = $("#select_so_standard");
-  var popup_url = '/securityobjectives/select_so_standard';
+$('.create_so_declaration').on( "click", function() {
+  var $popup = $("#create_so_declaration");
+  var popup_url = '/securityobjectives/create_so_declaration';
 
   $(".modal-dialog", $popup).load(popup_url, function () {
       $popup.modal("show");

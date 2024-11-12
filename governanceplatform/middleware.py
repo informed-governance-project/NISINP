@@ -1,7 +1,8 @@
 from django.shortcuts import redirect
-from django.urls import reverse, resolve
+from django.urls import resolve, reverse
 from django.utils.timezone import now
 
+from governanceplatform.globals import FUNCTIONALITIES
 from governanceplatform.helpers import (
     is_observer_user,
     is_user_operator,
@@ -9,7 +10,6 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
-from governanceplatform.globals import FUNCTIONALITIES
 
 
 class RestrictViewsMiddleware:
@@ -42,7 +42,7 @@ class RestrictViewsMiddleware:
                     request.path.startswith("/securityobjectives/delete/")
                     or request.path.startswith("/securityobjectives/submit/")
                     or request.path.startswith("/securityobjectives/copy/")
-                    or request.path == reverse("select_so_standard")
+                    or request.path == reverse("create_so_declaration")
                 ):
                     return redirect("securityobjectives")
 
@@ -108,7 +108,7 @@ class CheckFunctionalityAccessMiddleware:
 
     def __call__(self, request):
         # don't redirect in unfiltered URL
-        if resolve(request.path).route.split('/')[0] not in FUNCTIONALITIES:
+        if resolve(request.path).route.split("/")[0] not in FUNCTIONALITIES:
             return self.get_response(request)
         # regulator case
         if request.user.regulators.first() is not None:

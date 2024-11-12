@@ -113,7 +113,7 @@ def get_security_objectives(request):
 
 @login_required
 @otp_required
-def select_so_standard(request):
+def create_so_declaration(request):
     standard_list = [
         (standard.id, str(standard))
         for standard in Standard.objects.filter(
@@ -153,7 +153,7 @@ def select_so_standard(request):
 
     form = SelectSOStandardForm(initial=initial)
     context = {"form": form}
-    return render(request, "modals/select_so_standard.html", context=context)
+    return render(request, "modals/create_so_declaration.html", context=context)
 
 
 @login_required

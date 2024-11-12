@@ -20,13 +20,13 @@ from django.urls import path
 from .views import (
     access_log,
     copy_declaration,
+    create_so_declaration,
     declaration,
     delete_declaration,
     download_declaration_pdf,
     get_security_objectives,
     import_so_declaration,
     review_comment_declaration,
-    select_so_standard,
     submit_declaration,
 )
 
@@ -34,7 +34,7 @@ urlpatterns = [
     # Root
     path("", get_security_objectives, name="securityobjectives"),
     # Select SO standard
-    path("select_so_standard", select_so_standard, name="select_so_standard"),
+    path("create_so_declaration", create_so_declaration, name="create_so_declaration"),
     # SO declaration
     path("declaration", declaration, name="so_declaration"),
     # Copy SO declaration
