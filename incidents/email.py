@@ -71,9 +71,10 @@ def send_email(email, incident):
     recipient_list.extend(regulator_users_sectored_emails)
 
     observer_emails = []
-    observers = Observer.objects.filter(is_receiving_all_incident=True)
+    observers = Observer.objects.all()
     for obs in observers:
-        observer_emails.append(obs.email_for_notification)
+        if obs.can_access_incident(incident):
+            observer_emails.append(obs.email_for_notification)
 
     recipient_list.extend(observer_emails)
 

@@ -299,6 +299,11 @@ class Observer(TranslatableModel):
 
         return combined_queryset
 
+    def can_access_incident(self, incident):
+        if incident in self.get_incidents():
+            return True
+        return False
+
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
         return name_translation or ""
