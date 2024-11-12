@@ -22,11 +22,10 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
-    filter_languages_not_translated,
     set_creator,
     user_in_group,
 )
-from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -156,7 +155,9 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class PredefinedAnswerAdmin(
+    PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     list_display = ["predefined_answer", "creator"]
     search_fields = ["translations__predefined_answer"]
     resource_class = PredefinedAnswerResource
@@ -165,35 +166,6 @@ class PredefinedAnswerAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        has_permission = obj and not self.has_change_permission(request, obj)
-        if has_permission:
-            context.update(
-                {
-                    "show_save": False,
-                    "show_save_and_continue": False,
-                    "show_save_and_add_another": False,
-                }
-            )
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if has_permission:
-            form = filter_languages_not_translated(form)
-        return form
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -218,7 +190,9 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(QuestionCategory, site=admin_site)
-class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class QuestionCategoryAdmin(
+    PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     list_display = ["label", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionCategoryResource
@@ -227,35 +201,6 @@ class QuestionCategoryAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        has_permission = obj and not self.has_change_permission(request, obj)
-        if has_permission:
-            context.update(
-                {
-                    "show_save": False,
-                    "show_save_and_continue": False,
-                    "show_save_and_add_another": False,
-                }
-            )
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if has_permission:
-            form = filter_languages_not_translated(form)
-        return form
 
 
 class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
@@ -284,24 +229,12 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         export_order = fields
 
 
-class QuestionOptionsInline(admin.TabularInline):
+class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     model = QuestionOptions
     verbose_name = _("Question Option")
     verbose_name_plural = _("Question Options")
     ordering = ["category_option__position", "position"]
     extra = 0
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def get_max_num(self, request, obj=None, **kwargs):
         max_num = super().get_max_num(request, obj, **kwargs)
@@ -312,9 +245,13 @@ class QuestionOptionsInline(admin.TabularInline):
     # filter the question category option on the report_id to avoid mixing report categories
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "category_option" and not request.POST:
-            kwargs["queryset"] = QuestionCategoryOptions.objects.filter(
-                questionoptions__report=self.parent_obj
-            ).exclude(questionoptions__report=None).distinct()
+            kwargs["queryset"] = (
+                QuestionCategoryOptions.objects.filter(
+                    questionoptions__report=self.parent_obj
+                )
+                .exclude(questionoptions__report=None)
+                .distinct()
+            )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -329,7 +266,7 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class QuestionAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["label", "question_type", "get_predefined_answers", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
@@ -339,35 +276,6 @@ class QuestionAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "tooltip",
     ]
     inlines = [PredefinedAnswerInline]
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        has_permission = obj and not self.has_change_permission(request, obj)
-        if has_permission:
-            context.update(
-                {
-                    "show_save": False,
-                    "show_save_and_continue": False,
-                    "show_save_and_add_another": False,
-                }
-            )
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if has_permission:
-            form = filter_languages_not_translated(form)
-        return form
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -670,7 +578,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(CustomTranslatableAdmin):
+class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
@@ -707,12 +615,6 @@ class WorkflowAdmin(CustomTranslatableAdmin):
             self.save_as = False
         return super().get_form(request, obj, **kwargs)
 
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
     def has_delete_permission(self, request, obj=None):
         permission = super().has_delete_permission(request, obj)
         if obj and permission:
@@ -731,23 +633,6 @@ class WorkflowAdmin(CustomTranslatableAdmin):
                     ),
                 )
         return permission
-
-    def render_change_form(
-        self, request, context, add=False, change=False, form_url="", obj=None
-    ):
-        has_permission = obj and not self.has_change_permission(request, obj)
-        if has_permission:
-            context.update(
-                {
-                    "show_save": False,
-                    "show_save_and_continue": False,
-                    "show_save_and_add_another": False,
-                }
-            )
-        form = super().render_change_form(request, context, add, change, form_url, obj)
-        if has_permission:
-            form = filter_languages_not_translated(form)
-        return form
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)

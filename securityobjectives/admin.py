@@ -1,12 +1,10 @@
-from django.contrib import admin, messages
-from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
+from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.helpers import can_change_or_delete_obj, set_creator
-from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.helpers import set_creator
+from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation
 from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
@@ -17,7 +15,6 @@ from securityobjectives.models import (
     SecurityObjectiveEmail,
     SecurityObjectivesInStandard,
     Standard,
-    StandardAnswer,
 )
 
 
@@ -59,29 +56,22 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Domain, site=admin_site)
 class DomainAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+    PermissionMixin,
+    ImportExportModelAdmin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     resource_class = DomainResource
     exclude = ["creator_name", "creator"]
     list_display = [
-        "label",
         "position",
+        "label",
+        "creator",
     ]
+    ordering = ["position"]
 
     def get_model_perms(self, request):
         return check_access(request)
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
@@ -127,13 +117,13 @@ class SecurityObjectiveInline(admin.TabularInline):
 
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+    PermissionMixin,
+    ImportExportModelAdmin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     resource_class = StandardResource
-    list_display = [
-        "label",
-        "description",
-    ]
+    list_display = ["label", "description", "regulator"]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
 
@@ -158,31 +148,6 @@ class StandardAdmin(
         user = request.user
         obj.regulator = user.regulators.first()
         super().save_model(request, obj, form, change)
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = bool(
-                can_change_or_delete_obj(request, obj)
-                and not StandardAnswer.objects.filter(standard=obj).exists()
-            )
-            if not permission and request._can_change_or_delete_obj:
-                messages.warning(
-                    request,
-                    mark_safe(
-                        _(
-                            f"<strong>Delete action is not allowed</strong><br>"
-                            f"- This {obj._meta.verbose_name.lower()} is either in use.<br>"
-                        )
-                    ),
-                )
-        return permission
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -212,29 +177,18 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(MaturityLevel, site=admin_site)
 class MaturityLevelAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+    PermissionMixin,
+    ImportExportModelAdmin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     resource_class = MaturityLevelResource
     exclude = ["creator_name", "creator"]
-    list_display = [
-        "level",
-        "label",
-    ]
+    list_display = ["level", "label", "creator"]
+    ordering = ["level"]
 
     def get_model_perms(self, request):
         return check_access(request)
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
@@ -312,14 +266,18 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 
 @admin.register(SecurityObjective, site=admin_site)
 class SecurityObjectiveAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+    PermissionMixin,
+    ImportExportModelAdmin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     resource_class = SecurityObjectiveResource
     list_display = [
+        "unique_code",
         "objective",
         "description",
-        "unique_code",
         "domain",
+        "creator",
     ]
     exclude = ["is_archived", "creator_name", "creator"]
 
@@ -333,18 +291,6 @@ class SecurityObjectiveAdmin(
 
     def get_model_perms(self, request):
         return check_access(request)
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
@@ -406,31 +352,18 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(SecurityMeasure, site=admin_site)
 class SecurityMeasureAdmin(
-    ImportExportModelAdmin, ExportActionModelAdmin, CustomTranslatableAdmin
+    PermissionMixin,
+    ImportExportModelAdmin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     resource_class = SecurityMeasureResource
-    list_display = [
-        "security_objective",
-        "description",
-        "position",
-    ]
+    list_display = ["security_objective", "position", "description", "creator"]
     exclude = ["creator_name", "creator", "is_archived"]
     ordering = ["security_objective__unique_code", "position"]
 
     def get_model_perms(self, request):
         return check_access(request)
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
@@ -471,27 +404,16 @@ class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(SecurityObjectiveEmail, site=admin_site)
-class SOEmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class SOEmailAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "name",
         "subject",
         "content",
+        "creator",
     ]
     search_fields = ["translations__subject", "translations__content"]
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
-
-    def has_change_permission(self, request, obj=None):
-        permission = super().has_change_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
-
-    def has_delete_permission(self, request, obj=None):
-        permission = super().has_delete_permission(request, obj)
-        if obj and permission:
-            permission = can_change_or_delete_obj(request, obj)
-        return permission
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)

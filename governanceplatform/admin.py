@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
@@ -12,7 +13,6 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
-from django.utils.text import capfirst
 
 from .forms import CustomTranslatableAdminForm
 from .helpers import (
@@ -23,19 +23,19 @@ from .helpers import (
 )
 from .mixins import TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
-    Functionality,
     Company,
     EntityCategory,
+    Functionality,
     Observer,
     ObserverRegulation,
     ObserverUser,
     Regulation,
     Regulator,
     RegulatorUser,
+    ScriptLogEntry,
     Sector,
     SectorCompanyContact,
     User,
-    ScriptLogEntry,
 )
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -63,7 +63,7 @@ class CustomAdminSite(admin.AdminSite):
         """
         Override this method to organize models under custom sections.
         """
-        app_list = super(CustomAdminSite, self).get_app_list(request, app_label)
+        app_list = super().get_app_list(request, app_label)
 
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
@@ -83,9 +83,10 @@ class CustomAdminSite(admin.AdminSite):
                     }
                 )
             if app["name"] == "governanceplatform":
-                app['models'] = [
-                    model for model in app['models']
-                    if model['object_name'] != ScriptLogEntry._meta.object_name
+                app["models"] = [
+                    model
+                    for model in app["models"]
+                    if model["object_name"] != ScriptLogEntry._meta.object_name
                 ]
 
         return app_list
@@ -1501,9 +1502,15 @@ class RegulationAdmin(CustomTranslatableAdmin):
 
 @admin.register(ScriptLogEntry, site=admin_site)
 class ScriptLogEntryAdmin(admin.ModelAdmin):
-    list_display = ['action_time', 'action', 'object_repr', 'additional_info']
-    readonly_fields = ['action_time', 'action', 'object_id', 'object_repr', 'additional_info']
-    search_fields = ['object_repr']
+    list_display = ["action_time", "action", "object_repr", "additional_info"]
+    readonly_fields = [
+        "action_time",
+        "action",
+        "object_id",
+        "object_repr",
+        "additional_info",
+    ]
+    search_fields = ["object_repr"]
 
     def has_add_permission(self, request):
         return False  # Disable adding custom logs manually
