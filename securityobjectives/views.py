@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import (
+    BooleanField,
     Case,
     Count,
     Exists,
@@ -307,12 +308,17 @@ def declaration(request):
 
                     standard_answer.last_update = timezone.now()
                     standard_answer.save()
+                    objective_state = get_completion_objective(
+                        security_measure.security_objective, standard_answer
+                    )
+                    objective_state["id"] = security_measure.security_objective.pk
 
                     return JsonResponse(
                         {
                             "success": True,
                             "created": sma_created,
                             "data": field_to_update,
+                            "objective_state": objective_state,
                         },
                         status=201 if sma_created else 200,
                     )
@@ -326,6 +332,9 @@ def declaration(request):
 
     for so_in_standard in security_objectives_queryset:
         security_objective = so_in_standard.security_objective
+        security_objective.completion_state = get_completion_objective(
+            security_objective, standard_answer
+        )
         security_objective.declaration_status = standard_answer.status
         security_measures = security_objective.securitymeasure_set.all().order_by(
             "position"
@@ -953,3 +962,62 @@ def create_entry_log(user, standard_answer, action):
         action=action,
     )
     log.save()
+
+
+def get_completion_objective(security_objective, standard_answer):
+    queryset = SecurityMeasureAnswer.objects.filter(
+        security_measure__security_objective=security_objective,
+        standard_answer=standard_answer,
+    )
+
+    if not queryset.exists():
+        return {
+            "is_completed": False,
+            "is_partially": False,
+            "is_not_started": True,
+        }
+    else:
+        annotated_queryset = queryset.annotate(
+            is_completed=Case(
+                When(
+                    Q(
+                        is_implemented=True,
+                        justification__gt="",
+                    )
+                    | Q(
+                        security_measure__maturity_level__level=0,
+                        is_implemented=True,
+                    ),
+                    then=True,
+                ),
+                default=False,
+                output_field=BooleanField(),
+            ),
+            is_partially=Case(
+                When(
+                    (
+                        (Q(is_implemented=True) & Q(justification=""))
+                        | (~Q(is_implemented=True) & Q(justification__gt=""))
+                    )
+                    & ~Q(
+                        security_measure__maturity_level__level=0, is_implemented=True
+                    ),
+                    then=True,
+                ),
+                default=False,
+                output_field=BooleanField(),
+            ),
+        )
+
+    completed_count = annotated_queryset.filter(is_completed=True).count()
+    partially_count = annotated_queryset.filter(is_partially=True).count()
+
+    total_count = annotated_queryset.count()
+    all_completed = completed_count == total_count
+    any_partially = partially_count > 0
+
+    return {
+        "is_completed": all_completed,
+        "is_partially": any_partially,
+        "is_not_started": total_count == 0,
+    }
