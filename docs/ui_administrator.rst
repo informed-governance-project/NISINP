@@ -1,5 +1,5 @@
 Administration interface
-=========================
+===========================
 
 Access to the administration page
 -----------------------------------
@@ -39,7 +39,8 @@ When clicking on a module, e.g. "Impacts" as illustrated below, you see a list o
 2. On the right, you can filter the list according to some attributes,
 3. Just above the filter box, some buttons if present allow you to import or export the list in several formats (JSON, CSV, etc.),
 4. A button in the same zone allows to add a new object,
-4. Some group actions are also available, for that you need to tick the case corresponding to the entries you want to modify and select the appropriate action above the list.
+5. Some group actions are also available, for that you need to tick the case corresponding to the entries you want to modify and select the appropriate action above the list.
+
 
 Standard add / change function
 -----------------------------------

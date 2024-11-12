@@ -252,7 +252,8 @@ class Observer(TranslatableModel):
         default=False, verbose_name=_("Receives all incidents")
     )
     functionalities = models.ManyToManyField(
-        Functionality, verbose_name=_("Functionalities")
+        Functionality, verbose_name=_("Functionalities"),
+        blank=True,
     )
 
     def get_incidents(self):
@@ -298,6 +299,11 @@ class Observer(TranslatableModel):
             combined_queryset = Incident.objects.none()
 
         return combined_queryset
+
+    def can_access_incident(self, incident):
+        if incident in self.get_incidents():
+            return True
+        return False
 
     def __str__(self):
         name_translation = self.safe_translation_getter("name", any_language=True)
