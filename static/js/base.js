@@ -12,7 +12,7 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 
 $('.create_so_declaration').on( "click", function() {
   var $popup = $("#create_so_declaration");
-  var popup_url = '/securityobjectives/create_so_declaration';
+  var popup_url = '/securityobjectives/create';
 
   $(".modal-dialog", $popup).load(popup_url, function () {
       $popup.modal("show");

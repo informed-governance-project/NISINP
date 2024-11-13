@@ -34,7 +34,7 @@ urlpatterns = [
     # Root
     path("", get_security_objectives, name="securityobjectives"),
     # Select SO standard
-    path("create_so_declaration", create_so_declaration, name="create_so_declaration"),
+    path("create", create_so_declaration, name="create_so_declaration"),
     # SO declaration
     path("declaration", declaration, name="so_declaration"),
     # Copy SO declaration
