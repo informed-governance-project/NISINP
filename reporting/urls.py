@@ -1,11 +1,12 @@
 from django.urls import path
 
 from reporting import views
+
 from .views import risk_analysis_submission
 
 urlpatterns = [
-    # Root
-    path("", views.report_generation, name="report_generation"),
-    path("risk_analysis_submission", risk_analysis_submission, name="risk_analysis_submission"),
-    # Admin
+    # Report generation
+    path("generate", views.report_generation, name="report_generation"),
+    # Import risk analysis
+    path("import_risk_analysis", risk_analysis_submission, name="import_risk_analysis"),
 ]
