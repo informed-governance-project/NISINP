@@ -17,6 +17,13 @@ from .forms import RiskAnalysisSubmissionForm
 
 
 @login_required
+@otp_required
+def reporting(request):
+    return render(request, "home/base.html")
+
+
+@login_required
+@otp_required
 def report_generation(request):
     try:
         pdf_report = get_pdf_report(request)
