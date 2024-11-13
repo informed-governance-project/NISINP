@@ -684,7 +684,16 @@ def import_so_declaration(request):
 
     sector_list = get_sectors_grouped(sectors_queryset)
 
-    company_list = [(company.id, str(company)) for company in Company.objects.all()]
+    companies_queryset = (
+        Company.objects.filter(
+            sector_contacts__in=user.get_sectors().values_list("id", flat=True)
+        ).distinct()
+        if user_in_group(user, "RegulatorUser")
+        else Company.objects.all()
+    )
+
+    company_list = [(company.id, str(company)) for company in companies_queryset]
+
     initial = {
         "standard": standard_list,
         "company": company_list,
