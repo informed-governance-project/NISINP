@@ -32,6 +32,7 @@ from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
+    get_sectors_grouped,
     is_user_operator,
     is_user_regulator,
     user_in_group,
@@ -963,26 +964,6 @@ def calculate_so_score(security_measure, standard_answer):
             break
 
     return final_score
-
-
-def get_sectors_grouped(sectors):
-    categs = defaultdict(list)
-    for sector in sectors:
-        sector_name = sector.get_safe_translation()
-
-        if sector.parent:
-            parent_name = sector.parent.get_safe_translation()
-            categs[parent_name].append([sector.id, sector_name])
-        else:
-            if not categs.get(sector_name):
-                categs[sector_name].append([sector.id, sector_name])
-
-    sectors_grouped = (
-        (sector, sorted(options, key=lambda item: item[1]))
-        for sector, options in categs.items()
-    )
-
-    return sorted(sectors_grouped, key=lambda item: item[0])
 
 
 def create_entry_log(user, standard_answer, action):

@@ -1,4 +1,5 @@
 import secrets
+from collections import defaultdict
 from typing import Any, Optional
 
 from django.contrib import messages
@@ -342,3 +343,23 @@ def filter_languages_not_translated(form):
     form.context_data["language_tabs"] = filtered_languages
 
     return form
+
+
+def get_sectors_grouped(sectors):
+    categs = defaultdict(list)
+    for sector in sectors:
+        sector_name = sector.get_safe_translation()
+
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs[parent_name].append([sector.id, sector_name])
+        else:
+            if not categs.get(sector_name):
+                categs[sector_name].append([sector.id, sector_name])
+
+    sectors_grouped = (
+        (sector, sorted(options, key=lambda item: item[1]))
+        for sector, options in categs.items()
+    )
+
+    return sorted(sectors_grouped, key=lambda item: item[0])
