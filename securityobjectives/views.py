@@ -525,7 +525,9 @@ def review_comment_declaration(request, standard_answer_id: int):
         return redirect("securityobjectives")
 
     initial = model_to_dict(standard_answer, fields=["review_comment", "deadline"])
-    initial["is_readonly"] = is_user_operator(user)
+    if is_user_operator(user):
+        create_entry_log(user, standard_answer, "READ")
+        initial["is_readonly"] = is_user_operator(user)
 
     if request.method == "POST":
         form = ReviewForm(request.POST, initial=initial)
