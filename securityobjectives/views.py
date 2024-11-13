@@ -199,6 +199,17 @@ def declaration(request):
                 },
                 status=403,
             )
+        if (
+            field_name in ["is_implemented", "justification"]
+            and not standard_answer.status == "UNDE"
+        ):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"No permission to update the {field_name}",
+                },
+                status=403,
+            )
         if field_name == "status":
             form = SecurityObjectiveStatusForm(data)
             if form.is_valid():
