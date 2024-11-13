@@ -40,13 +40,24 @@ class SecurityObjectiveAnswerForm(forms.Form):
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial", None)
         super().__init__(*args, **kwargs)
+
+        def set_readonly(field_name):
+            field = self.fields[field_name]
+            field_classes = field.widget.attrs.get("class", "")
+            field.widget.attrs.update({"class": f"{field_classes} readonly_field"})
+            field.disabled = True
+
         if initial:
             is_readonly = initial.get("is_readonly", True)
             is_regulator = initial.get("is_regulator", True)
-            self.fields["is_implemented"].disabled = is_readonly or is_regulator
-            self.fields["justification"].disabled = is_readonly or is_regulator
-            self.fields["review_comment"].disabled = is_readonly
-            if not is_readonly and not is_regulator:
+
+            if is_readonly or is_regulator:
+                set_readonly("is_implemented")
+                set_readonly("justification")
+
+            if is_readonly:
+                set_readonly("review_comment")
+            elif not is_regulator:
                 self.fields["review_comment"].widget = forms.HiddenInput()
                 self.initial["review_comment"] = None
 
