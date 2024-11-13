@@ -664,7 +664,15 @@ def import_so_declaration(request):
     standard_list = [
         (standard.id, str(standard)) for standard in Standard.objects.all()
     ]
-    sector_list = get_sectors_grouped(Sector.objects.all())
+
+    sectors_queryset = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
+    sector_list = get_sectors_grouped(sectors_queryset)
+
     company_list = [(company.id, str(company)) for company in Company.objects.all()]
     initial = {
         "standard": standard_list,
