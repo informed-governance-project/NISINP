@@ -29,6 +29,10 @@ class RestrictViewsMiddleware:
                 ):
                     return redirect("admin:index")
 
+            if user_in_group(user, "IncidentUser"):
+                if request.path.startswith("/securityobjectives/"):
+                    return redirect("incidents")
+
             if is_user_regulator(user) and not request.session.get(
                 "is_regulator_incidents", False
             ):
