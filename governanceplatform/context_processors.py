@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from governanceplatform import __version__
 
 from .helpers import is_observer_user, is_user_regulator, user_in_group
+from .models import Functionality
 from .settings import REGULATOR_CONTACT, SITE_NAME
 
 
@@ -39,6 +40,18 @@ def instance_configurations(request):
     }
 
     return configurations
+
+
+def app_module_available(request):
+    app_module_available = {
+        "app_module_available": list(
+            Functionality.objects.filter(regulator__isnull=False).values_list(
+                "type", flat=True
+            )
+        )
+    }
+
+    return app_module_available
 
 
 def user_module_permissions(request):

@@ -2,13 +2,13 @@ from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django.utils.timezone import now
 
-from governanceplatform.globals import FUNCTIONALITIES
 from governanceplatform.helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
 )
+from governanceplatform.models import Functionality
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
 
 
@@ -111,18 +111,26 @@ class CheckFunctionalityAccessMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # don't redirect in unfiltered URL
-        if resolve(request.path).route.split("/")[0] not in FUNCTIONALITIES:
-            return self.get_response(request)
-        # regulator case
-        if request.user.regulators.first() is not None:
-            regulator = request.user.regulators.first()
-            functionalities = regulator.functionalities
-            redir = True
-            for f in functionalities.all():
-                if request.path.startswith(reverse(f.type)):
-                    redir = False
-            if redir:
+        user = request.user
+        if user.is_authenticated:
+            functionalities_types = Functionality.objects.filter(
+                regulator__isnull=False
+            ).values_list("type", flat=True)
+
+            functionality_path = resolve(request.path).route.split("/")[0]
+            if not Functionality.objects.filter(type=functionality_path).exists():
+                return self.get_response(request)
+
+            if functionality_path not in functionalities_types:
                 return redirect("incidents")
+
+            # regulator case
+            if request.user.regulators.first() is not None:
+                regulator = request.user.regulators.first()
+                regulator_functionalities = regulator.functionalities.values_list(
+                    "type", flat=True
+                )
+                if functionality_path not in regulator_functionalities:
+                    return redirect("incidents")
 
         return self.get_response(request)
