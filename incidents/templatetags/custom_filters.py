@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from incidents.models import IncidentWorkflow, SectorRegulationWorkflow
-from reporting.viewLogic import SO_COLOR_PALETTE
+from reporting.views import SO_COLOR_PALETTE
 
 register = template.Library()
 
