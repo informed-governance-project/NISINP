@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import set_language
@@ -23,6 +24,8 @@ from two_factor.views import LoginView
 from governanceplatform import views
 from governanceplatform.admin import admin_site
 from governanceplatform.settings import API_ENABLED, DEBUG, REGULATOR_CONTACT, SITE_NAME
+
+handler404 = "governanceplatform.views.custom_404_view"
 
 urlpatterns = [
     # Root
@@ -97,6 +100,7 @@ urlpatterns = [
     # contact
     path("contact/", views.contact, name="contact"),
 ]
+
 
 # API
 if API_ENABLED:

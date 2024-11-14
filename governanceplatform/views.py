@@ -35,7 +35,7 @@ def index(request):
         return redirect("admin:index")
 
     if not request.session.get("company_in_use") and user.companies.exists():
-        if user.companies.count() > 1:
+        if user.companies.distinct().count() > 1:
             return select_company(request)
 
         request.session["company_in_use"] = user.companies.first().id
@@ -149,3 +149,7 @@ def accept_terms(request):
 
 def contact(request):
     return render(request, "home/contact.html")
+
+
+def custom_404_view(request, exception):
+    return render(request, "404.html", status=404)

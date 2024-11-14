@@ -1,14 +1,15 @@
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django.utils.timezone import now
 
-from governanceplatform.globals import FUNCTIONALITIES
 from governanceplatform.helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
 )
+from governanceplatform.models import Functionality
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
 
 
@@ -29,6 +30,15 @@ class RestrictViewsMiddleware:
                 ):
                     return redirect("admin:index")
 
+            if user_in_group(user, "IncidentUser"):
+                if (
+                    request.path.startswith("/securityobjectives/")
+                    or request.path.startswith("/reporting/")
+                    or request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                ):
+                    raise Http404()
+
             if is_user_regulator(user) and not request.session.get(
                 "is_regulator_incidents", False
             ):
@@ -36,15 +46,12 @@ class RestrictViewsMiddleware:
                     request.path == reverse("declaration")
                     or request.path.startswith("/incidents/delete/")
                     or request.path == reverse("create_workflow")
-                ):
-                    return redirect("incidents")
-                if (
-                    request.path.startswith("/securityobjectives/delete/")
+                    or request.path.startswith("/securityobjectives/delete/")
                     or request.path.startswith("/securityobjectives/submit/")
                     or request.path.startswith("/securityobjectives/copy/")
                     or request.path == reverse("create_so_declaration")
                 ):
-                    return redirect("securityobjectives")
+                    raise Http404()
 
             if is_observer_user(user):
                 if (
@@ -56,15 +63,16 @@ class RestrictViewsMiddleware:
                     or request.path == reverse("edit_workflow")
                     or request.path.startswith("/securityobjectives/")
                 ):
-                    return redirect("incidents")
+                    raise Http404()
 
             if is_user_operator(user):
-                if request.path.startswith(
-                    "/incidents/incident/"
-                ) or request.path == reverse("regulator_incidents"):
-                    return redirect(reverse("incidents"))
-                if request.path == reverse("import_so_declaration"):
-                    return redirect("securityobjectives")
+                if (
+                    request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                    or request.path.startswith("/reporting/")
+                    or request.path == reverse("import_so_declaration")
+                ):
+                    raise Http404()
 
         return self.get_response(request)
 
@@ -107,18 +115,26 @@ class CheckFunctionalityAccessMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # don't redirect in unfiltered URL
-        if resolve(request.path).route.split("/")[0] not in FUNCTIONALITIES:
-            return self.get_response(request)
-        # regulator case
-        if request.user.regulators.first() is not None:
-            regulator = request.user.regulators.first()
-            functionalities = regulator.functionalities
-            redir = True
-            for f in functionalities.all():
-                if request.path.startswith(reverse(f.type)):
-                    redir = False
-            if redir:
-                return redirect("incidents")
+        user = request.user
+        if user.is_authenticated:
+            functionalities_types = Functionality.objects.filter(
+                regulator__isnull=False
+            ).values_list("type", flat=True)
+
+            functionality_path = resolve(request.path).route.split("/")[0]
+            if not Functionality.objects.filter(type=functionality_path).exists():
+                return self.get_response(request)
+
+            if functionality_path not in functionalities_types:
+                raise Http404()
+
+            # regulator case
+            if request.user.regulators.first() is not None:
+                regulator = request.user.regulators.first()
+                regulator_functionalities = regulator.functionalities.values_list(
+                    "type", flat=True
+                )
+                if functionality_path not in regulator_functionalities:
+                    raise Http404()
 
         return self.get_response(request)
