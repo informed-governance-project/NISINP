@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django.utils.timezone import now
@@ -30,8 +31,13 @@ class RestrictViewsMiddleware:
                     return redirect("admin:index")
 
             if user_in_group(user, "IncidentUser"):
-                if request.path.startswith("/securityobjectives/"):
-                    return redirect("incidents")
+                if (
+                    request.path.startswith("/securityobjectives/")
+                    or request.path.startswith("/reporting/")
+                    or request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                ):
+                    raise Http404()
 
             if is_user_regulator(user) and not request.session.get(
                 "is_regulator_incidents", False
@@ -40,15 +46,12 @@ class RestrictViewsMiddleware:
                     request.path == reverse("declaration")
                     or request.path.startswith("/incidents/delete/")
                     or request.path == reverse("create_workflow")
-                ):
-                    return redirect("incidents")
-                if (
-                    request.path.startswith("/securityobjectives/delete/")
+                    or request.path.startswith("/securityobjectives/delete/")
                     or request.path.startswith("/securityobjectives/submit/")
                     or request.path.startswith("/securityobjectives/copy/")
                     or request.path == reverse("create_so_declaration")
                 ):
-                    return redirect("securityobjectives")
+                    raise Http404()
 
             if is_observer_user(user):
                 if (
@@ -60,17 +63,16 @@ class RestrictViewsMiddleware:
                     or request.path == reverse("edit_workflow")
                     or request.path.startswith("/securityobjectives/")
                 ):
-                    return redirect("incidents")
+                    raise Http404()
 
             if is_user_operator(user):
                 if (
                     request.path.startswith("/incidents/incident/")
                     or request.path == reverse("regulator_incidents")
                     or request.path.startswith("/reporting/")
+                    or request.path == reverse("import_so_declaration")
                 ):
-                    return redirect(reverse("incidents"))
-                if request.path == reverse("import_so_declaration"):
-                    return redirect("securityobjectives")
+                    raise Http404()
 
         return self.get_response(request)
 
@@ -124,7 +126,7 @@ class CheckFunctionalityAccessMiddleware:
                 return self.get_response(request)
 
             if functionality_path not in functionalities_types:
-                return redirect("incidents")
+                raise Http404()
 
             # regulator case
             if request.user.regulators.first() is not None:
@@ -133,6 +135,6 @@ class CheckFunctionalityAccessMiddleware:
                     "type", flat=True
                 )
                 if functionality_path not in regulator_functionalities:
-                    return redirect("incidents")
+                    raise Http404()
 
         return self.get_response(request)
