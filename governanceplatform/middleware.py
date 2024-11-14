@@ -63,9 +63,11 @@ class RestrictViewsMiddleware:
                     return redirect("incidents")
 
             if is_user_operator(user):
-                if request.path.startswith(
-                    "/incidents/incident/"
-                ) or request.path == reverse("regulator_incidents"):
+                if (
+                    request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                    or request.path.startswith("/reporting/")
+                ):
                     return redirect(reverse("incidents"))
                 if request.path == reverse("import_so_declaration"):
                     return redirect("securityobjectives")
