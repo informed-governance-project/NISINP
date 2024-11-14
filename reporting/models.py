@@ -317,6 +317,9 @@ class ObservationRecommendation(TranslatableModel):
         max_length=255,
         verbose_name=_("Recommendation name"),
     )
+    is_generic = models.BooleanField(
+        default=False, verbose_name=_("Is Generic ?")
+    )
 
     class Meta:
         verbose_name_plural = _("Recommendations for observation")
