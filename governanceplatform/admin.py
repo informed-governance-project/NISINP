@@ -518,7 +518,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             return queryset.filter(
                 sectorcompanycontact__user=user,
                 sectorcompanycontact__is_company_administrator=True,
-            )
+            ).distinct()
 
         return queryset
 
