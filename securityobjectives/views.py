@@ -67,13 +67,16 @@ def get_security_objectives(request):
     standard_answer_queryset = StandardAnswer.objects.none()
     template = "operator/so_dashboard.html"
     if is_user_regulator(user):
+        regulator = user.regulators.first()
         template = "regulator/so_dashboard.html"
         is_regulator_admin = user_in_group(user, "RegulatorAdmin")
         standard_answer_queryset = StandardAnswer.objects.filter(
-            sectors__in=user.get_sectors().all()
+            standard__regulator=regulator, sectors__in=user.get_sectors().all()
         )
         if is_regulator_admin:
-            standard_answer_queryset = StandardAnswer.objects.all()
+            standard_answer_queryset = StandardAnswer.objects.filter(
+                standard__regulator=regulator
+            )
 
         standard_answer_queryset = standard_answer_queryset.exclude(status="UNDE")
 
@@ -672,8 +675,10 @@ def download_declaration_pdf(request, standard_answer_id: int):
 @otp_required
 def import_so_declaration(request):
     user = request.user
+    regulator = user.regulators.first()
     standard_list = [
-        (standard.id, str(standard)) for standard in Standard.objects.all()
+        (standard.id, str(standard))
+        for standard in Standard.objects.filter(regulator=regulator)
     ]
 
     sectors_queryset = (
@@ -888,8 +893,12 @@ def has_change_permission(request, standard_answer, action):
             is_user_operator(user) and standard_answer.submitter_company == user_company
         )
         standard_sectors = standard_answer.sectors.all()
-        is_user_regulator_sector = user_in_group(user, "RegulatorAdmin") or (
+        is_user_regulator_sector = (
+            user_in_group(user, "RegulatorAdmin")
+            and standard_answer.standard.regulator == user.regulators.first()
+        ) or (
             is_user_regulator(user)
+            and standard_answer.standard.regulator == user.regulators.first()
             and any(sector in standard_sectors for sector in user_sectors)
         )
 
