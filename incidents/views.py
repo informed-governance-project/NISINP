@@ -118,7 +118,7 @@ def get_incidents(request):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
             company__id=request.session.get("company_in_use"),
-            affected_sectors__in=user.sectors.all(),
+            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()

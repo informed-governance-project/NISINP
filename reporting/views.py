@@ -70,7 +70,6 @@ def risk_analysis_submission(request):
         for file in files:
             try:
                 validate_json_file(file)
-                print(file.name)
                 file_messages["success"].append(
                     f"{file.name}: Risk Analysis submitted successfully"
                 )

@@ -104,7 +104,7 @@ def set_regulator_staff_permissions(user):
         group_name="RegulatorUser",
         permissions={
             "user": ["add", "view", "import", "export"],
-            "sectorcompanycontact": ["add", "view", "change", "delete"],
+            "companyuser": ["add", "view", "change", "delete"],
             "company": ["add", "view", "change", "delete"],
             "sector": ["change"],
         },
@@ -119,7 +119,7 @@ def set_operator_admin_permissions(user):
         group_name="OperatorAdmin",
         permissions={
             "user": ["add", "change"],
-            "sectorcompanycontact": ["add", "change", "delete"],
+            "companyuser": ["add", "change", "delete"],
             "company": ["change"],
         },
     )

@@ -70,9 +70,10 @@ def get_security_objectives(request):
         regulator = user.regulators.first()
         template = "regulator/so_dashboard.html"
         is_regulator_admin = user_in_group(user, "RegulatorAdmin")
-        standard_answer_queryset = StandardAnswer.objects.filter(
-            standard__regulator=regulator, sectors__in=user.get_sectors().all()
-        )
+        if not is_regulator_admin:
+            standard_answer_queryset = StandardAnswer.objects.filter(
+                standard__regulator=regulator, sectors__in=user.get_sectors().all()
+            )
         if is_regulator_admin:
             standard_answer_queryset = StandardAnswer.objects.filter(
                 standard__regulator=regulator

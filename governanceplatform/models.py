@@ -151,12 +151,6 @@ class Company(models.Model):
         default=None,
         null=True,
     )
-    sector_contacts = models.ManyToManyField(
-        Sector,
-        through="SectorCompanyContact",
-        verbose_name=_("Sector contacts"),
-    )
-
     types = models.ManyToManyField(
         OperatorType,
         verbose_name=_("Types"),
@@ -172,7 +166,9 @@ class Company(models.Model):
     @admin.display(description="sectors")
     def get_sectors(self):
         sectors = []
-        for sector in self.sector_contacts.all().distinct():
+        for sector in Sector.objects.filter(
+            id__in=self.companyuser_set.all().distinct().values_list("sectors", flat=True)
+        ):
             if sector.name is not None and sector.parent is not None:
                 sectors.append(sector.parent.name + " --> " + sector.name)
             elif sector.name is not None and sector.parent is None:
@@ -333,13 +329,8 @@ class User(AbstractUser, PermissionsMixin):
     )
     companies = models.ManyToManyField(
         Company,
-        through="SectorCompanyContact",
+        through="CompanyUser",
         verbose_name=_("Companies"),
-    )
-    sectors = models.ManyToManyField(
-        Sector,
-        through="SectorCompanyContact",
-        verbose_name=_("Sectors"),
     )
     regulators = models.ManyToManyField(
         Regulator,
@@ -401,8 +392,10 @@ class User(AbstractUser, PermissionsMixin):
         if governanceplatform.helpers.user_in_group(self, "RegulatorUser"):
             ru = RegulatorUser.objects.filter(user=self).first()
             return ru.sectors
-        else:
-            return self.sectors
+        elif governanceplatform.helpers.user_in_group(
+            self, "OperatorAdmin"
+        ) or governanceplatform.helpers.user_in_group(self, "OperatorUser"):
+            return self.companyuser_set.all().values_list("sectors")
 
     def get_module_permissions(self):
         user_entity = None
@@ -421,7 +414,7 @@ class User(AbstractUser, PermissionsMixin):
         )
 
 
-class SectorCompanyContact(models.Model):
+class CompanyUser(models.Model):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -432,13 +425,10 @@ class SectorCompanyContact(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("User"),
     )
-    sector = models.ForeignKey(
+    sectors = models.ManyToManyField(
         Sector,
-        on_delete=models.CASCADE,
-        verbose_name=_("Sector"),
-    )
-    is_sector_contact = models.BooleanField(
-        default=False, verbose_name=_("Contact person")
+        verbose_name=_("Sectors"),
+        blank=True,
     )
     is_company_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
@@ -447,11 +437,11 @@ class SectorCompanyContact(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "sector", "company"], name="unique_SectorCompanyContact"
+                fields=["user", "company"], name="unique_CompanyUser"
             ),
         ]
-        verbose_name = _("Sector contact")
-        verbose_name_plural = _("Sectors contact")
+        verbose_name = _("Company User")
+        verbose_name_plural = _("Company Users")
 
     def __str__(self):
         return ""
