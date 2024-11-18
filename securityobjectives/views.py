@@ -692,7 +692,7 @@ def import_so_declaration(request):
 
     companies_queryset = (
         Company.objects.filter(
-            sector_contacts__in=user.get_sectors().values_list("id", flat=True)
+            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
         ).distinct()
         if user_in_group(user, "RegulatorUser")
         else Company.objects.all()
