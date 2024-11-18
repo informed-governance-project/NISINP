@@ -71,7 +71,7 @@ from .pdf_generation import get_pdf_report
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
-    incidents = Incident.objects.order_by("-incident_notification_date")
+    incidents = Incident.objects.order_by("incident_notification_date")
     html_view = "operator/incidents.html"
 
     # Save filter params in user's session
@@ -118,7 +118,9 @@ def get_incidents(request):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
             company__id=request.session.get("company_in_use"),
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
