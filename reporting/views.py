@@ -14,8 +14,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db.models import Avg, Count, F, OuterRef, Subquery
+from django.db.models.functions import Floor
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
@@ -32,16 +34,22 @@ from reporting.models import (
     ThreatData,
     VulnerabilityData,
 )
-from securityobjectives.models import Domain, MaturityLevel
+from securityobjectives.models import (
+    Domain,
+    MaturityLevel,
+    SecurityObjectivesInStandard,
+    SecurityObjectiveStatus,
+    StandardAnswer,
+)
 
-from .forms import ImportRiskAnalysisForm
+from .forms import ImportRiskAnalysisForm, ReportGenerationForm
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
-
 
 SO_SOPHISTICATION_LEVELS = [
     str(level) for level in MaturityLevel.objects.order_by("level")
 ]
+
 
 SO_DOMAINS = [str(domain) for domain in Domain.objects.order_by("position")]
 
@@ -113,17 +121,90 @@ def reporting(request):
 @login_required
 @otp_required
 def report_generation(request):
-    pdf_report = get_pdf_report(request)
-    # try:
-    #     pdf_report = get_pdf_report(request)
-    # except Exception:
-    #     messages.warning(request, _("An error occurred while generating the report."))
-    #     return HttpResponseRedirect(reverse("incidents"))
+    user = request.user
+    sectors_queryset = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
 
-    response = HttpResponse(pdf_report, content_type="application/pdf")
-    response["Content-Disposition"] = "attachment;filename=annual_report.pdf"
+    sector_list = get_sectors_grouped(sectors_queryset)
 
-    return response
+    companies_queryset = (
+        Company.objects.filter(
+            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
+        ).distinct()
+        if user_in_group(user, "RegulatorUser")
+        else Company.objects.all()
+    )
+    so_queryset = SecurityObjectivesInStandard.objects.filter(
+        standard__regulator=user.regulators.first()
+    ).order_by("position")
+
+    company_list = [(company.id, str(company)) for company in companies_queryset]
+    so_list = [
+        (so.security_objective.id, str(so.security_objective)) for so in so_queryset
+    ]
+
+    initial = {
+        "company": company_list,
+        "sectors": sector_list,
+        "so": so_list,
+    }
+    if request.method == "POST":
+        form = ReportGenerationForm(request.POST, initial=initial)
+        if form.is_valid():
+            try:
+                company_id = form.cleaned_data["company"]
+                sector_id = form.cleaned_data["sector"]
+                year = int(form.cleaned_data["year"])
+                company = Company.objects.get(pk=company_id)
+                sector = Sector.objects.get(pk=sector_id)
+            except (Company.DoesNotExist, Sector.DoesNotExist):
+                messages.error(
+                    request,
+                    _("Data not found for generate the report"),
+                )
+                return redirect("report_generation")
+
+            security_objectives_declaration = StandardAnswer.objects.filter(
+                submitter_company=company,
+                sectors=sector,
+                year_of_submission=year,
+                status="PASS",
+            ).order_by("submit_date")
+
+            if not security_objectives_declaration:
+                messages.error(
+                    request,
+                    _("No data found for security objectives report"),
+                )
+                return redirect("report_generation")
+
+            cleaned_data = {
+                "company": company,
+                "sector": sector,
+                "year": year,
+                "nb_years": int(form.cleaned_data["nb_years"]),
+                "security_objectives_declaration": security_objectives_declaration.last(),
+                "so_excluded": form.cleaned_data["so_exclude"],
+            }
+
+            pdf_report = get_pdf_report(request, cleaned_data)
+            # try:
+            #     pdf_report = get_pdf_report(request)
+            # except Exception:
+            #     messages.warning(request, _("An error occurred while generating the report."))
+            #     return HttpResponseRedirect(reverse("incidents"))
+
+            response = HttpResponse(pdf_report, content_type="application/pdf")
+            response["Content-Disposition"] = "attachment;filename=annual_report.pdf"
+
+            return response
+
+    form = ReportGenerationForm(initial=initial)
+    context = {"form": form}
+    return render(request, "reporting/report_generation.html", context=context)
 
 
 # To DO : restrict acces to incidentuser
@@ -170,7 +251,7 @@ def import_risk_analysis(request):
 
     companies_queryset = (
         Company.objects.filter(
-            sector_contacts__in=user.get_sectors().values_list("id", flat=True)
+            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
         ).distinct()
         if user_in_group(user, "RegulatorUser")
         else Company.objects.all()
@@ -227,13 +308,79 @@ def get_data_by_so_list():
     return data
 
 
-def get_data_so_average():
-    data = {
-        "Operator 2019": [1, 0, 18, 6],
-        "Operator 2020": [0, 0, 21, 4],
-        "Sector Avg 2019": [1, 7, 15, 2],
-        "Sector Avg 2020": [1, 7, 15, 2],
-    }
+def get_data_so_average(cleaned_data):
+    company = cleaned_data["company"]
+    sector = cleaned_data["sector"]
+    current_year = cleaned_data["year"]
+    nb_years = cleaned_data["nb_years"]
+    data = {}
+    for nb_year in range(0, nb_years):
+        year = current_year - nb_years + nb_year + 1
+        security_objectives_declaration = StandardAnswer.objects.filter(
+            submitter_company=company,
+            sectors=sector,
+            year_of_submission=year,
+            status="PASS",
+        )
+
+        score_list = [0] * len(SO_SOPHISTICATION_LEVELS)
+
+        if security_objectives_declaration.exists():
+            last_declaration = security_objectives_declaration.latest("submit_date")
+            aggregated_scores = (
+                last_declaration.securityobjectivestatus_set.annotate(
+                    level=Floor(F("score"))
+                )
+                .values("level")
+                .annotate(count=Count("level"))
+            )
+            for score_data in aggregated_scores:
+                index = int(score_data["level"])
+                score_list[index] = score_data["count"]
+
+        data[f"{company} {year}"] = score_list
+
+    for nb_year in range(0, nb_years):
+        year = current_year - nb_years + nb_year + 1
+        latest_submit_date_per_company = (
+            StandardAnswer.objects.filter(
+                submitter_company=OuterRef("submitter_company"),
+                sectors=sector,
+                year_of_submission=year,
+                # status="PASS",
+            )
+            .order_by("-last_update")
+            .values("last_update")[:1]
+        )
+
+        latest_answers = StandardAnswer.objects.filter(
+            sectors=sector,
+            year_of_submission=year,
+            # status="PASS",
+            last_update=Subquery(latest_submit_date_per_company),
+        ).distinct()
+        if latest_answers.exists():
+            aggregated_scores = (
+                SecurityObjectiveStatus.objects.filter(
+                    standard_answer__in=latest_answers
+                )
+                .annotate(level=Floor(F("score")))
+                .values("security_objective", "level")
+                .annotate(
+                    avg_score=Avg("score"),
+                    count=Count("level"),
+                )
+                .order_by("security_objective")
+            )
+
+            for score_data in aggregated_scores:
+                print(
+                    f"{year} ",
+                    f"Security Objective: {score_data['security_objective']}, "
+                    f"Level: {score_data['level']}, "
+                    f"Average Score: {score_data['avg_score']}, "
+                    f"Count: {score_data['count']}",
+                )
 
     return data
 
@@ -317,7 +464,7 @@ def generate_bar_chart(data, labels):
     return graph
 
 
-def generate_radar_chart(data, labels):
+def generate_radar_chart(data, labels, levels):
     fig = go.Figure()
     labels = text_wrap(labels)
     for name, values in data.items():
@@ -335,7 +482,7 @@ def generate_radar_chart(data, labels):
             bgcolor="white",
             gridshape="linear",
             radialaxis=dict(
-                range=[0, len(SO_SOPHISTICATION_LEVELS) - 1],
+                range=[0, len(levels) - 1],
                 gridcolor="lightgrey",
                 angle=90,
                 tickangle=90,
@@ -713,17 +860,19 @@ def parsing_risk_data_json(risk_analysis_json):
             extract_risks(instance_data)
 
 
-def get_pdf_report(request: HttpRequest):
+def get_pdf_report(request: HttpRequest, cleaned_data: dict):
     static_dir = settings.STATIC_ROOT
     charts = {
         "colorbar": generate_colorbar(),
         "security_measures_1": generate_bar_chart(
-            get_data_so_average(), SO_SOPHISTICATION_LEVELS
+            get_data_so_average(cleaned_data), SO_SOPHISTICATION_LEVELS
         ),
         "security_measures_5a": generate_radar_chart(
-            get_data_by_so_domains(), SO_DOMAINS
+            get_data_by_so_domains(), SO_DOMAINS, SO_SOPHISTICATION_LEVELS
         ),
-        "security_measures_5b": generate_radar_chart(get_data_by_so_list(), SO_LIST),
+        "security_measures_5b": generate_radar_chart(
+            get_data_by_so_list(), SO_LIST, SO_SOPHISTICATION_LEVELS
+        ),
         "risks_1": generate_bar_chart(get_data_risks_average(), OPERATOR_SERVICES),
         "risks_3": generate_bar_chart(get_data_high_risks_average(), OPERATOR_SERVICES),
         "risks_4": generate_bar_chart(
@@ -734,6 +883,9 @@ def get_pdf_report(request: HttpRequest):
     output_from_parsed_template = render_to_string(
         "reporting/template.html",
         {
+            "company": cleaned_data["company"],
+            "year": cleaned_data["year"],
+            "sector": cleaned_data["sector"],
             "charts": charts,
             "years": YEARS,
             "sophistication_levels": SO_SOPHISTICATION_LEVELS,
