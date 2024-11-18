@@ -25,18 +25,13 @@ class RestrictViewsMiddleware:
         user = request.user
         if user.is_authenticated:
             if user_in_group(user, "PlatformAdmin"):
-                if request.path.startswith("/incidents/") or request.path.startswith(
-                    "/securityobjectives/"
-                ):
+                if request.path.startswith("/incidents/"):
                     return redirect("admin:index")
 
             if user_in_group(user, "IncidentUser"):
-                if (
-                    request.path.startswith("/securityobjectives/")
-                    or request.path.startswith("/reporting/")
-                    or request.path.startswith("/incidents/incident/")
-                    or request.path == reverse("regulator_incidents")
-                ):
+                if request.path.startswith(
+                    "/incidents/incident/"
+                ) or request.path == reverse("regulator_incidents"):
                     raise Http404()
 
             if is_user_regulator(user) and not request.session.get(
@@ -46,10 +41,6 @@ class RestrictViewsMiddleware:
                     request.path == reverse("declaration")
                     or request.path.startswith("/incidents/delete/")
                     or request.path == reverse("create_workflow")
-                    or request.path.startswith("/securityobjectives/delete/")
-                    or request.path.startswith("/securityobjectives/submit/")
-                    or request.path.startswith("/securityobjectives/copy/")
-                    or request.path == reverse("create_so_declaration")
                 ):
                     raise Http404()
 
@@ -61,17 +52,13 @@ class RestrictViewsMiddleware:
                     or request.path.startswith("/incidents/incident/")
                     or request.path == reverse("create_workflow")
                     or request.path == reverse("edit_workflow")
-                    or request.path.startswith("/securityobjectives/")
                 ):
                     raise Http404()
 
             if is_user_operator(user):
-                if (
-                    request.path.startswith("/incidents/incident/")
-                    or request.path == reverse("regulator_incidents")
-                    or request.path.startswith("/reporting/")
-                    or request.path == reverse("import_so_declaration")
-                ):
+                if request.path.startswith(
+                    "/incidents/incident/"
+                ) or request.path == reverse("regulator_incidents"):
                     raise Http404()
 
         return self.get_response(request)

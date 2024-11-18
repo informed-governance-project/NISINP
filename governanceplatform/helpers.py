@@ -15,16 +15,6 @@ from incidents.models import (
     QuestionCategoryOptions,
     Workflow,
 )
-from securityobjectives.models import (
-    Domain,
-    MaturityLevel,
-    SecurityMeasure,
-    SecurityMeasureAnswer,
-    SecurityObjective,
-    SecurityObjectiveEmail,
-    Standard,
-    StandardAnswer,
-)
 
 from .models import Company, User
 
@@ -125,7 +115,9 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True
@@ -169,7 +161,9 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True
@@ -205,7 +199,9 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True
@@ -280,36 +276,6 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
 
     # [Workflow] in_use flag is set to False
     if isinstance(obj, Workflow):
-        in_use = False
-
-    # [Standard] Check if obj is already in use
-    if isinstance(obj, Standard):
-        in_use = StandardAnswer.objects.filter(standard=obj).exists()
-
-    # [SecurityObjective] Check if obj is already in use
-    if isinstance(obj, SecurityObjective):
-        in_use = SecurityMeasureAnswer.objects.filter(
-            security_measure__security_objective=obj
-        ).exists()
-
-    # [SecurityMeasure] Check if obj is already in use
-    if isinstance(obj, SecurityMeasure):
-        in_use = SecurityMeasureAnswer.objects.filter(security_measure=obj).exists()
-
-    # [MaturityLevel] Check if obj is already in use
-    if isinstance(obj, MaturityLevel):
-        in_use = SecurityMeasureAnswer.objects.filter(
-            security_measure__maturity_level=obj
-        ).exists()
-
-    # [Domain] Check if obj is already in use
-    if isinstance(obj, Domain):
-        in_use = SecurityMeasureAnswer.objects.filter(
-            security_measure__security_objective__domain=obj
-        ).exists()
-
-    # [SecurityObjectiveEmail] Set in use flag to false
-    if isinstance(obj, SecurityObjectiveEmail):
         in_use = False
 
     regulator = request.user.regulators.first()
