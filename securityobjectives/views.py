@@ -71,9 +71,10 @@ def get_security_objectives(request):
         regulator = user.regulators.first()
         template = "regulator/so_dashboard.html"
         is_regulator_admin = user_in_group(user, "RegulatorAdmin")
-        standard_answer_queryset = StandardAnswer.objects.filter(
-            standard__regulator=regulator, sectors__in=user.get_sectors().all()
-        )
+        if not is_regulator_admin:
+            standard_answer_queryset = StandardAnswer.objects.filter(
+                standard__regulator=regulator, sectors__in=user.get_sectors().all()
+            )
         if is_regulator_admin:
             standard_answer_queryset = StandardAnswer.objects.filter(
                 standard__regulator=regulator
@@ -692,7 +693,7 @@ def import_so_declaration(request):
 
     companies_queryset = (
         Company.objects.filter(
-            sector_contacts__in=user.get_sectors().values_list("id", flat=True)
+            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
         ).distinct()
         if user_in_group(user, "RegulatorUser")
         else Company.objects.all()

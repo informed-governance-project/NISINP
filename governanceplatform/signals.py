@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from governanceplatform.models import User
-from .models import ObserverUser, RegulatorUser, SectorCompanyContact
+from .models import ObserverUser, RegulatorUser, CompanyUser
 from .permissions import (
     set_observer_admin_permissions,
     set_observer_user_permissions,
@@ -57,13 +57,13 @@ def log_user_logout(sender, request, user, **kwargs):
 user_logged_out.connect(log_user_logout)
 
 
-@receiver(post_save, sender=SectorCompanyContact)
+@receiver(post_save, sender=CompanyUser)
 def update_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
 
-    some_company_is_administrator = user.sectorcompanycontact_set.filter(
+    some_company_is_administrator = user.companyuser_set.filter(
         is_company_administrator=True
     )
 
@@ -105,7 +105,7 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
         return
 
 
-@receiver(post_delete, sender=SectorCompanyContact)
+@receiver(post_delete, sender=CompanyUser)
 @receiver(post_delete, sender=RegulatorUser)
 @receiver(post_delete, sender=ObserverUser)
 def delete_user_groups(sender, instance, **kwargs):
@@ -144,7 +144,7 @@ def delete_user_groups(sender, instance, **kwargs):
                     user.groups.add(new_group)
                 user.is_active = False
 
-    if not user.sectorcompanycontact_set.exists():
+    if not user.companyuser_set.exists():
         user.is_staff = False
         user.is_superuser = False
 

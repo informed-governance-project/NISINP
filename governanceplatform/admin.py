@@ -34,7 +34,7 @@ from .models import (  # OperatorType,; Service,
     RegulatorUser,
     ScriptLogEntry,
     Sector,
-    SectorCompanyContact,
+    CompanyUser,
     User,
 )
 from .settings import SITE_NAME
@@ -290,29 +290,32 @@ class CompanyResource(resources.ModelResource):
     class Meta:
         import_id_fields = ("identifier",)
         model = Company
-        exclude = ("sector_contacts", "types")
+        exclude = ("types")
 
 
-class SectorCompanyContactInline(admin.TabularInline):
-    model = SectorCompanyContact
-    verbose_name = _("Contact for sector")
-    verbose_name_plural = _("Contacts for sectors")
+class CompanyUserInline(admin.TabularInline):
+    model = CompanyUser
+    verbose_name = _("Contact for company")
+    verbose_name_plural = _("Contacts for company")
     extra = 0
     min_num = 1
     max_num = 1
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "sector":
+    filter_horizontal = [
+        "sectors",
+    ]
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
             user = request.user
-            # User
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.get_sectors().distinct()
-            # Operator Admin
             if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = user.sectors.all().distinct()
+                kwargs["queryset"] = Sector.objects.filter(
+                    id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True)
+                    )
 
-            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
         platformAdminGroupId = get_group_id("PlatformAdmin")
         observerAdminGroupId = get_group_id("ObserverAdmin")
         observerUserGroupId = get_group_id("ObserverUser")
@@ -346,7 +349,9 @@ class SectorCompanyContactInline(admin.TabularInline):
             if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = (
                     Company.objects.all()
-                    .filter(sector_contacts__in=user.get_sectors().all())
+                    .filter(
+                        id__in=user.companyuser_set.filter(sectors__in=user.get_sectors().all()).values_list("company", flat=True)
+                    )
                     .order_by("name")
                 )
             # Operator Admin
@@ -354,8 +359,7 @@ class SectorCompanyContactInline(admin.TabularInline):
                 kwargs["queryset"] = (
                     Company.objects.all()
                     .filter(
-                        sectorcompanycontact__user=user,
-                        sectorcompanycontact__is_company_administrator=True,
+                        id__in=user.companyuser_set.filter(is_company_administrator=True).values_list("company", flat=True),
                     )
                     .order_by("name")
                 )
@@ -396,29 +400,28 @@ class SectorCompanyContactInline(admin.TabularInline):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
-                sector__in=user.sectors.all().distinct(),
-                company__in=user.companies.all()
-                .filter(sectorcompanycontact__is_company_administrator=True)
-                .distinct(),
+                is_company_administrator=True
             )
 
         return queryset
 
 
-class SectorCompanyContactMultipleInline(SectorCompanyContactInline):
+class CompanyUserMultipleInline(CompanyUserInline):
     max_num = None
 
 
 class CompanySectorListFilter(SimpleListFilter):
     title = _("Sectors")
-    parameter_name = "sector_contacts"
+    parameter_name = "companyuser_set__sectors"
 
     def lookups(self, request, model_admin):
         sectors = Sector.objects.all()
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            sectors = Sector.objects.filter(id__in=user.sectors.all())
+            sectors = Sector.objects.filter(
+                    id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True)
+                )
 
         sectors_list = []
         for sector in sectors:
@@ -428,7 +431,9 @@ class CompanySectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(sector_contacts=value).distinct()
+            return queryset.filter(
+                id__in=CompanyUser.objects.filter(sectors=value).values_list("company", flat=True)
+            ).distinct()
         return queryset
 
 
@@ -446,7 +451,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
     search_fields = ["name"]
-    inlines = (SectorCompanyContactMultipleInline,)
+    inlines = (CompanyUserMultipleInline,)
     fieldsets = [
         (
             _("Contact information"),
@@ -482,7 +487,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude SectorCompanyContactMultipleInline for RegulatorAdmin / OperatorAdmin
+        # Exclude CompanyUserMultipleInline for RegulatorAdmin / OperatorAdmin
         # because if we go for user creation it asks company and that's not good
         if user_in_group(user, "RegulatorAdmin") or user_in_group(
             user, "OperatorAdmin"
@@ -516,8 +521,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
-                sectorcompanycontact__user=user,
-                sectorcompanycontact__is_company_administrator=True,
+                id__in=user.companyuser_set.filter(is_company_administrator=True).distinct().values_list("company", flat=True)
             ).distinct()
 
         return queryset
@@ -568,7 +572,7 @@ class UserResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=TranslatedNameM2MWidget(SectorCompanyContact, separator="|"),
+        widget=TranslatedNameM2MWidget(CompanyUser, separator="|"),
     )
 
     # override save_m2m to save the through table SectorCompanyContact
@@ -597,10 +601,10 @@ class UserResource(resources.ModelResource):
                     if sectors is not None and companies is not None:
                         for company in companies:
                             for sector in sectors:
-                                if not SectorCompanyContact.objects.filter(
+                                if not CompanyUser.objects.filter(
                                     user=obj, sector=sector, company=company
                                 ).exists():
-                                    sc = SectorCompanyContact(
+                                    sc = CompanyUser(
                                         user=obj, sector=sector, company=company
                                     )
                                     if "administrator" in data:
@@ -829,7 +833,7 @@ class UserSectorListFilter(SimpleListFilter):
             sectors = Sector.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            sectors = Sector.objects.filter(id__in=user.sectors.all())
+            sectors = Sector.objects.filter(id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True))
 
         sectors_list = []
 
@@ -840,7 +844,7 @@ class UserSectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(sectors=value)
+            return queryset.filter(id__in=CompanyUser.objects.filter(sectors=value).values_list("user", flat=True))
         return queryset
 
 
@@ -1002,7 +1006,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and is_user_operator(obj):
                 inline_instances = [
-                    SectorCompanyContactInline(self.model, self.admin_site)
+                    CompanyUserInline(self.model, self.admin_site)
                 ]
 
         # RegulatorUser inlines
@@ -1011,12 +1015,12 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
                 inline_instances = [
-                    SectorCompanyContactInline(self.model, self.admin_site)
+                    CompanyUserInline(self.model, self.admin_site)
                 ]
 
         # OperatorAdmin inlines
         if user_in_group(user, "OperatorAdmin"):
-            inline_instances = [SectorCompanyContactInline(self.model, self.admin_site)]
+            inline_instances = [CompanyUserInline(self.model, self.admin_site)]
 
         return inline_instances
 
