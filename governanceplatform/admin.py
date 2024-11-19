@@ -512,6 +512,8 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             readonly_fields += ("identifier",)
+        if not user_in_group(user, "RegulatorUser"):
+            readonly_fields += ("entity_categories",)
 
         return readonly_fields
 
