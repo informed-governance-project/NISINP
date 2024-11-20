@@ -1,10 +1,9 @@
 import base64
 import json
 import os
-import random
 import textwrap
 import uuid
-from collections import Counter
+from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
 from typing import List
 
@@ -14,7 +13,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Avg, Count, F, OuterRef, Subquery
+from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -22,6 +21,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
+from plotly.subplots import make_subplots
 from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
@@ -37,6 +37,7 @@ from reporting.models import (
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
+    SecurityObjective,
     SecurityObjectivesInStandard,
     SecurityObjectiveStatus,
     StandardAnswer,
@@ -45,19 +46,6 @@ from securityobjectives.models import (
 from .forms import ImportRiskAnalysisForm, ReportGenerationForm
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
-
-SO_SOPHISTICATION_LEVELS = [
-    str(level) for level in MaturityLevel.objects.order_by("level")
-]
-
-
-SO_DOMAINS = [str(domain) for domain in Domain.objects.order_by("position")]
-
-YEARS = [
-    "2022",
-    "2023",
-    "2024",
-]
 
 SO_COLOR_PALETTE = [
     (0, "#F8696B"),
@@ -289,100 +277,223 @@ def import_risk_analysis(request):
     )
 
 
-def get_data_by_so_domains():
-    data = {
-        "DummyLux 2023": [random.choice(range(4)) for _ in range(len(SO_DOMAINS))],
-        "DummyLux 2024": [random.choice(range(4)) for _ in range(len(SO_DOMAINS))],
-        "Secteur": [random.choice(range(4)) for _ in range(len(SO_DOMAINS))],
-    }
-
-    return data
-
-
-def get_data_by_so_list():
-    data = {
-        "DummyLux 2023": [random.choice(range(4)) for _ in range(len(SO_LIST))],
-        "DummyLux 2024": [random.choice(range(4)) for _ in range(len(SO_LIST))],
-    }
-
-    return data
-
-
-def get_data_so_average(cleaned_data):
+def get_so_data(cleaned_data):
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
-    data = {}
-    for nb_year in range(0, nb_years):
-        year = current_year - nb_years + nb_year + 1
-        security_objectives_declaration = StandardAnswer.objects.filter(
-            submitter_company=company,
-            sectors=sector,
-            year_of_submission=year,
-            status="PASS",
-        )
+    maturity_levels_queryset = MaturityLevel.objects.order_by("level")
+    maturity_levels = [str(level) for level in maturity_levels_queryset]
+    domains_list = []
+    unique_codes_list = []
+    years_list = []
+    legend_sector_translation = _("Sector average")
+    sector_so_by_year_desc = OrderedDict()
+    sector_so_by_year_asc = OrderedDict()
+    bar_chart_data_by_level = defaultdict()
+    company_so_by_year = defaultdict(lambda: {})
+    company_so_by_domain = defaultdict(lambda: {})
+    radar_chart_data_by_domain = defaultdict()
+    radar_chart_data_by_year = defaultdict()
+    so_data = defaultdict()
 
-        score_list = [0] * len(SO_SOPHISTICATION_LEVELS)
+    for offset in range(nb_years):
+        year = current_year - nb_years + offset + 1
+        company_so_by_level = defaultdict(list)
 
-        if security_objectives_declaration.exists():
-            last_declaration = security_objectives_declaration.latest("submit_date")
-            aggregated_scores = (
-                last_declaration.securityobjectivestatus_set.annotate(
-                    level=Floor(F("score"))
-                )
-                .values("level")
-                .annotate(count=Count("level"))
-            )
-            for score_data in aggregated_scores:
-                index = int(score_data["level"])
-                score_list[index] = score_data["count"]
-
-        data[f"{company} {year}"] = score_list
-
-    for nb_year in range(0, nb_years):
-        year = current_year - nb_years + nb_year + 1
-        latest_submit_date_per_company = (
+        latest_submit_date = (
             StandardAnswer.objects.filter(
                 submitter_company=OuterRef("submitter_company"),
                 sectors=sector,
                 year_of_submission=year,
-                # status="PASS",
+                status="PASS",
             )
-            .order_by("-last_update")
-            .values("last_update")[:1]
+            .order_by("-submit_date")
+            .values("submit_date")[:1]
         )
 
         latest_answers = StandardAnswer.objects.filter(
+            submitter_company=company,
             sectors=sector,
             year_of_submission=year,
-            # status="PASS",
-            last_update=Subquery(latest_submit_date_per_company),
+            status="PASS",
+            submit_date=Subquery(latest_submit_date),
         ).distinct()
+
         if latest_answers.exists():
-            aggregated_scores = (
-                SecurityObjectiveStatus.objects.filter(
-                    standard_answer__in=latest_answers
-                )
-                .annotate(level=Floor(F("score")))
-                .values("security_objective", "level")
-                .annotate(
-                    avg_score=Avg("score"),
-                    count=Count("level"),
-                )
-                .order_by("security_objective")
+            years_list.append(year)
+
+        floored_company_queryset = SecurityObjectiveStatus.objects.filter(
+            standard_answer__in=latest_answers
+        ).annotate(floored_score=Floor(F("score")))
+
+        so_domain_company_queryset = (
+            floored_company_queryset.values("security_objective__domain")
+            .annotate(avg_score=Avg("score"))
+            .order_by("security_objective__domain")
+        )
+
+        for score in so_domain_company_queryset:
+            domain_id = score["security_objective__domain"]
+            avg_score = score["avg_score"]
+            domain = Domain.objects.get(pk=domain_id)
+            previous_year = year - 1
+            previous_data = company_so_by_domain[domain].get(previous_year)
+            evolution = None
+            if previous_data:
+                previous_score = previous_data["score"]
+                if previous_score > avg_score:
+                    evolution = False
+                elif previous_score < avg_score:
+                    evolution = True
+
+            company_so_by_domain[domain][year] = {
+                "score": avg_score,
+                "evolution": evolution,
+            }
+
+        sorted_company_queryset = floored_company_queryset.annotate(
+            min_position=Min(
+                "security_objective__securityobjectivesinstandard__position"
+            )
+        )
+
+        for score in sorted_company_queryset.order_by("min_position"):
+            security_objective = score.security_objective
+            previous_year = year - 1
+            previous_data = company_so_by_year[security_objective].get(previous_year)
+            evolution = None
+            if previous_data:
+                previous_score = previous_data["score"]
+                if previous_score > score.floored_score:
+                    evolution = False
+                elif previous_score < score.floored_score:
+                    evolution = True
+
+            company_so_by_year[security_objective][year] = {
+                "score": score.floored_score,
+                "evolution": evolution,
+            }
+
+        for score_data in sorted_company_queryset.order_by(
+            "floored_score", "min_position"
+        ):
+            level = maturity_levels_queryset.filter(
+                level=int(score_data.floored_score)
+            ).first()
+            security_objective = score_data.security_objective
+            company_so_by_level[str(level)].append(security_objective)
+
+        aggregated_scores = floored_company_queryset.values("floored_score").annotate(
+            count=Count("floored_score")
+        )
+
+        company_counts = Counter(
+            {
+                score_data["floored_score"]: score_data["count"]
+                for score_data in aggregated_scores
+            }
+        )
+
+        company_score_list = [
+            company_counts.get(level, 0)
+            for level in range(maturity_levels_queryset.count())
+        ]
+
+        max_of_company_count = max(company_score_list)
+
+        bar_chart_data_by_level[f"{company} {year}"] = company_score_list
+
+        latest_answers_sector = StandardAnswer.objects.filter(
+            sectors=sector,
+            year_of_submission=year,
+            status="PASS",
+            submit_date=Subquery(latest_submit_date),
+        ).distinct()
+
+        sector_queryset = SecurityObjectiveStatus.objects.filter(
+            standard_answer__in=latest_answers_sector
+        )
+
+        sector_score_by_domain = (
+            sector_queryset.values("security_objective__domain")
+            .annotate(avg_score=Avg("score"))
+            .order_by("security_objective__domain")
+        )
+
+        for score in sector_score_by_domain:
+            domain_id = score["security_objective__domain"]
+            avg_score = score["avg_score"]
+            domain = Domain.objects.get(pk=domain_id)
+            company_so_by_domain[domain][year]["sector_avg"] = avg_score
+
+        sector_scores = sector_queryset.values("security_objective").annotate(
+            avg_score=Floor(Avg("score"))
+        )
+
+        sector_so_by_year_asc[year] = [
+            SecurityObjective.objects.get(pk=score["security_objective"])
+            for score in sector_scores.order_by("avg_score")
+        ]
+
+        sector_so_by_year_desc[year] = list(sector_so_by_year_asc[year])
+        sector_so_by_year_desc[year].reverse()
+
+        avg_counts = Counter(
+            {
+                score_data["avg_score"]: sector_scores.filter(
+                    avg_score=score_data["avg_score"]
+                ).count()
+                for score_data in sector_scores
+            }
+        )
+
+        sector_avg_list = [
+            avg_counts.get(level, 0)
+            for level in range(maturity_levels_queryset.count())
+        ]
+
+        bar_chart_data_by_level[f"{legend_sector_translation} {year}"] = sector_avg_list
+
+    bar_chart_data_by_level_sorted = sorted(
+        bar_chart_data_by_level.items(),
+        key=lambda x: (x[0] != legend_sector_translation, x[0]),
+    )
+
+    for domain, years in company_so_by_domain.items():
+        domains_list.append(str(domain))
+        for year, values in years.items():
+            year_label = f"{company} {year}"
+            radar_chart_data_by_domain.setdefault(year_label, []).append(
+                values["score"]
             )
 
-            for score_data in aggregated_scores:
-                print(
-                    f"{year} ",
-                    f"Security Objective: {score_data['security_objective']}, "
-                    f"Level: {score_data['level']}, "
-                    f"Average Score: {score_data['avg_score']}, "
-                    f"Count: {score_data['count']}",
-                )
+            if year == current_year:
+                radar_chart_data_by_domain.setdefault(
+                    f"{legend_sector_translation} {current_year}", []
+                ).append(values["sector_avg"])
 
-    return data
+    for security_objective, years in company_so_by_year.items():
+        unique_codes_list.append(security_objective.unique_code)
+        for year, values in years.items():
+            year_label = f"{company} {year}"
+            radar_chart_data_by_year.setdefault(year_label, []).append(values["score"])
+
+    so_data["years"] = years_list
+    so_data["domains"] = domains_list
+    so_data["maturity_levels"] = maturity_levels
+    so_data["unique_codes_list"] = unique_codes_list
+    so_data["level_breakdown"] = dict(bar_chart_data_by_level_sorted)
+    so_data["sector_so_by_year_desc"] = dict(sector_so_by_year_desc)
+    so_data["sector_so_by_year_asc"] = dict(sector_so_by_year_asc)
+    so_data["company_so_by_level"] = dict(company_so_by_level)
+    so_data["company_so_by_domain"] = dict(company_so_by_domain)
+    so_data["radar_chart_data_by_domain"] = dict(radar_chart_data_by_domain)
+    so_data["company_so_by_year"] = dict(company_so_by_year)
+    so_data["radar_chart_data_by_year"] = dict(radar_chart_data_by_year)
+    so_data["max_of_company_count"] = max_of_company_count
+
+    return so_data
 
 
 def get_data_risks_average():
@@ -417,21 +528,35 @@ def get_data_evolution_highest_risks():
 
 
 def generate_bar_chart(data, labels):
-    fig = go.Figure()
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     labels = text_wrap(labels)
-    colors_palette = ["lightskyblue", "royalblue", "lavenderblush", "hotpink"]
+    # colors_palette = ["lightskyblue", "royalblue", "lavenderblush", "hotpink"]
 
-    for index, (name, values) in enumerate(data.items()):
-        fig.add_trace(
-            go.Bar(
-                x=labels,
-                y=values,
-                name=name,
-                marker_color=colors_palette[index],
-                text=values,
-                textposition="outside",
+    for __index, (name, values) in enumerate(data.items()):
+        if str(_("average")) in name:
+            fig.add_trace(
+                go.Scatter(
+                    x=labels,
+                    y=values,
+                    name=name,
+                    # marker_color=colors_palette[index],
+                    text=values,
+                ),
+                secondary_y=True,
             )
-        )
+
+        else:
+            fig.add_trace(
+                go.Bar(
+                    x=labels,
+                    y=values,
+                    name=name,
+                    # marker_color=colors_palette[index],
+                    text=values,
+                    textposition="outside",
+                ),
+                secondary_y=False,
+            )
 
     fig.update_layout(
         barmode="group",
@@ -444,12 +569,16 @@ def generate_bar_chart(data, labels):
             gridcolor="lightgray",
             linecolor="black",
         ),
+        yaxis2=dict(
+            showgrid=False,
+            linecolor="black",
+        ),
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,
         legend=dict(
             orientation="h",
             x=0.5,
-            y=-0.1,
+            y=-0.2,
             xanchor="center",
             yanchor="top",
             traceorder="normal",
@@ -472,7 +601,7 @@ def generate_radar_chart(data, labels, levels):
             go.Scatterpolar(
                 r=values + [values[0]],
                 theta=labels + [labels[0]],
-                name=name,
+                name=str(name),
                 fillcolor="rgba(0,0,0,0)",
             )
         )
@@ -862,16 +991,21 @@ def parsing_risk_data_json(risk_analysis_json):
 
 def get_pdf_report(request: HttpRequest, cleaned_data: dict):
     static_dir = settings.STATIC_ROOT
+    so_data = get_so_data(cleaned_data)
     charts = {
         "colorbar": generate_colorbar(),
         "security_measures_1": generate_bar_chart(
-            get_data_so_average(cleaned_data), SO_SOPHISTICATION_LEVELS
+            so_data["level_breakdown"], so_data["maturity_levels"]
         ),
         "security_measures_5a": generate_radar_chart(
-            get_data_by_so_domains(), SO_DOMAINS, SO_SOPHISTICATION_LEVELS
+            so_data["radar_chart_data_by_domain"],
+            so_data["domains"],
+            so_data["maturity_levels"],
         ),
         "security_measures_5b": generate_radar_chart(
-            get_data_by_so_list(), SO_LIST, SO_SOPHISTICATION_LEVELS
+            so_data["radar_chart_data_by_year"],
+            so_data["unique_codes_list"],
+            so_data["maturity_levels"],
         ),
         "risks_1": generate_bar_chart(get_data_risks_average(), OPERATOR_SERVICES),
         "risks_3": generate_bar_chart(get_data_high_risks_average(), OPERATOR_SERVICES),
@@ -887,9 +1021,8 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "year": cleaned_data["year"],
             "sector": cleaned_data["sector"],
             "charts": charts,
-            "years": YEARS,
-            "sophistication_levels": SO_SOPHISTICATION_LEVELS,
-            "so_categories": SO_DOMAINS,
+            "so_data": so_data,
+            "nb_years": cleaned_data["nb_years"],
             "so_list": SO_LIST,
             "service_color_palette": SERVICES_COLOR_PALETTE,
             "static_dir": os.path.abspath(static_dir),
