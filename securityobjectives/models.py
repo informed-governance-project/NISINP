@@ -196,6 +196,7 @@ class SecurityObjectivesInStandard(models.Model):
         on_delete=models.CASCADE,
     )
     position = models.IntegerField(default=0)
+    priority = models.IntegerField(default=0)
 
 
 # link between security measure, SO and maturity
