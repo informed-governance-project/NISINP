@@ -21,7 +21,6 @@ from django.template.loader import render_to_string
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
-from plotly.subplots import make_subplots
 from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
@@ -56,40 +55,6 @@ SO_COLOR_PALETTE = [
     (2.5, "#98CE7F"),
     (3, "#63BE7B"),
 ]
-
-
-SO_LIST = [
-    "SO1",
-    "SO2",
-    "SO3",
-    "SO4",
-    "SO5",
-    "SO6",
-    "SO7",
-    "SO8",
-    "SO9",
-    "SO10",
-    "SO11",
-    "SO12",
-    "SO13",
-    "SO14",
-    "SO15",
-    "SO16",
-    "SO17",
-    "SO18",
-    "SO19",
-    "SO20",
-    "SO21",
-    "SO22",
-    "SO23",
-    "SO24",
-    "SO25",
-    "SO26",
-    "SO27",
-    "SO28",
-    "SO29",
-]
-
 
 OPERATOR_SERVICES = [
     "All services",
@@ -184,9 +149,11 @@ def report_generation(request):
             # except Exception:
             #     messages.warning(request, _("An error occurred while generating the report."))
             #     return HttpResponseRedirect(reverse("incidents"))
-
+            filename = (
+                f"{_('annual_report')}_{year}_{company.name} - {_('annual_report')}"
+            )
             response = HttpResponse(pdf_report, content_type="application/pdf")
-            response["Content-Disposition"] = "attachment;filename=annual_report.pdf"
+            response["Content-Disposition"] = f"attachment;filename={filename}.pdf"
 
             return response
 
@@ -293,6 +260,7 @@ def get_so_data(cleaned_data):
     bar_chart_data_by_level = defaultdict()
     company_so_by_year = defaultdict(lambda: {})
     company_so_by_domain = defaultdict(lambda: {})
+    company_so_by_priority = defaultdict(lambda: {})
     radar_chart_data_by_domain = defaultdict()
     radar_chart_data_by_year = defaultdict()
     so_data = defaultdict()
@@ -383,6 +351,31 @@ def get_so_data(cleaned_data):
             ).first()
             security_objective = score_data.security_objective
             company_so_by_level[str(level)].append(security_objective)
+
+        company_by_priority_queryset = floored_company_queryset.annotate(
+            min_priority=Min(
+                "security_objective__securityobjectivesinstandard__priority"
+            )
+        ).order_by("floored_score", "min_priority")
+
+        for score in company_by_priority_queryset:
+            security_objective = score.security_objective
+            previous_year = year - 1
+            previous_data = company_so_by_priority[security_objective].get(
+                previous_year
+            )
+            evolution = None
+            if previous_data:
+                previous_score = previous_data["score"]
+                if previous_score > score.floored_score:
+                    evolution = False
+                elif previous_score < score.floored_score:
+                    evolution = True
+
+            company_so_by_priority[security_objective][year] = {
+                "score": score.floored_score,
+                "evolution": evolution,
+            }
 
         aggregated_scores = floored_company_queryset.values("floored_score").annotate(
             count=Count("floored_score")
@@ -491,6 +484,7 @@ def get_so_data(cleaned_data):
     so_data["radar_chart_data_by_domain"] = dict(radar_chart_data_by_domain)
     so_data["company_so_by_year"] = dict(company_so_by_year)
     so_data["radar_chart_data_by_year"] = dict(radar_chart_data_by_year)
+    so_data["company_so_by_priority"] = dict(company_so_by_priority)
     so_data["max_of_company_count"] = max_of_company_count
 
     return so_data
@@ -528,22 +522,33 @@ def get_data_evolution_highest_risks():
 
 
 def generate_bar_chart(data, labels):
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = go.Figure()
     labels = text_wrap(labels)
-    # colors_palette = ["lightskyblue", "royalblue", "lavenderblush", "hotpink"]
+    bar_colors_palette = pc.qualitative.Pastel1
+    average_colors_palette = pc.qualitative.Set1
+    avg_index = 0
+    bar_index = 0
 
-    for __index, (name, values) in enumerate(data.items()):
+    for name, values in data.items():
+        group_name = str(name)[-4:]
+
         if str(_("average")) in name:
             fig.add_trace(
                 go.Scatter(
                     x=labels,
                     y=values,
                     name=name,
-                    # marker_color=colors_palette[index],
-                    text=values,
+                    mode="markers",
+                    marker=dict(
+                        size=12,
+                        symbol="diamond",
+                        color=average_colors_palette[avg_index],
+                    ),
+                    offsetgroup=group_name,
+                    legendgroup=group_name,
                 ),
-                secondary_y=True,
             )
+            avg_index += 1
 
         else:
             fig.add_trace(
@@ -551,26 +556,26 @@ def generate_bar_chart(data, labels):
                     x=labels,
                     y=values,
                     name=name,
-                    # marker_color=colors_palette[index],
+                    marker_color=bar_colors_palette[bar_index],
                     text=values,
                     textposition="outside",
+                    offsetgroup=group_name,
+                    legendgroup=group_name,
                 ),
-                secondary_y=False,
             )
+            bar_index += 1
 
     fig.update_layout(
+        hovermode="closest",
         barmode="group",
-        bargroupgap=0.5,
+        scattermode="group",
+        bargroupgap=0.2,
         xaxis=dict(
             linecolor="black",
         ),
         yaxis=dict(
             showgrid=True,
             gridcolor="lightgray",
-            linecolor="black",
-        ),
-        yaxis2=dict(
-            showgrid=False,
             linecolor="black",
         ),
         plot_bgcolor="rgba(0,0,0,0)",
@@ -596,15 +601,40 @@ def generate_bar_chart(data, labels):
 def generate_radar_chart(data, labels, levels):
     fig = go.Figure()
     labels = text_wrap(labels)
+    line_colors_palette = pc.qualitative.Pastel1
+    marker_colors_palette = pc.qualitative.Set1
+    index = 0
+
     for name, values in data.items():
+        line_style = "solid"
+        line_color = line_colors_palette[index]
+        marker_color = marker_colors_palette[index]
+        symbol = "circle"
+
+        if str(_("average")) in name:
+            line_style = "dash"
+            line_color = "#666666"
+            marker_color = "#222A2A"
+            symbol = "triangle-up"
+
         fig.add_trace(
             go.Scatterpolar(
                 r=values + [values[0]],
                 theta=labels + [labels[0]],
                 name=str(name),
                 fillcolor="rgba(0,0,0,0)",
+                marker=dict(
+                    symbol=symbol,
+                    color=marker_color,
+                ),
+                mode="lines+markers",
+                line=dict(
+                    color=line_color,
+                    dash=line_style,
+                ),
             )
         )
+        index += 1
 
     fig.update_layout(
         polar=dict(
@@ -636,7 +666,7 @@ def generate_radar_chart(data, labels, levels):
             itemwidth=70,
             valign="middle",
         ),
-        margin=dict(l=50, r=50, t=50, b=50),
+        margin=dict(l=0, r=0, t=50, b=0),
     )
 
     graph = convert_graph_to_base64(fig)
@@ -1023,7 +1053,6 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "charts": charts,
             "so_data": so_data,
             "nb_years": cleaned_data["nb_years"],
-            "so_list": SO_LIST,
             "service_color_palette": SERVICES_COLOR_PALETTE,
             "static_dir": os.path.abspath(static_dir),
         },
