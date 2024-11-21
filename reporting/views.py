@@ -249,6 +249,7 @@ def get_so_data(cleaned_data):
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
+    so_excluded = cleaned_data["so_excluded"]
     maturity_levels_queryset = MaturityLevel.objects.order_by("level")
     maturity_levels = [str(level) for level in maturity_levels_queryset]
     domains_list = []
@@ -291,9 +292,11 @@ def get_so_data(cleaned_data):
         if latest_answers.exists():
             years_list.append(year)
 
-        floored_company_queryset = SecurityObjectiveStatus.objects.filter(
-            standard_answer__in=latest_answers
-        ).annotate(floored_score=Floor(F("score")))
+        floored_company_queryset = (
+            SecurityObjectiveStatus.objects.filter(standard_answer__in=latest_answers)
+            .exclude(security_objective__in=so_excluded)
+            .annotate(floored_score=Floor(F("score")))
+        )
 
         so_domain_company_queryset = (
             floored_company_queryset.values("security_objective__domain")
@@ -406,7 +409,7 @@ def get_so_data(cleaned_data):
 
         sector_queryset = SecurityObjectiveStatus.objects.filter(
             standard_answer__in=latest_answers_sector
-        )
+        ).exclude(security_objective__in=so_excluded)
 
         sector_score_by_domain = (
             sector_queryset.values("security_objective__domain")
