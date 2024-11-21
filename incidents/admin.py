@@ -351,7 +351,7 @@ class ImpactSectorListFilter(SimpleListFilter):
         if self.value():
             return queryset.filter(
                 Q(sectors=self.value()) | Q(sectors__parent=self.value())
-            )
+            ).distinct()
 
 
 class ImpactRegulationListFilter(SimpleListFilter):
