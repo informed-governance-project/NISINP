@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentUrl = window.location.href.split('?')[0];
     const urlId = currentUrl.split("/admin/")[1];
     const langTabs = Array.from(document.querySelectorAll(langTabsSelector))
-    .filter(tab => !tab.classList.contains('deletelink'));
+        .filter(tab => !tab.classList.contains('deletelink'));
     let clear_session_storage = true;
 
     function saveUrlId() {
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function checkUrlId() {
-        const storedUrlId  = sessionStorage.getItem('urlId');
+        const storedUrlId = sessionStorage.getItem('urlId');
 
         if (urlId && !window.location.href.includes(storedUrlId) && clear_session_storage) {
             sessionStorage.clear();
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (continueButton) {
         continueButton.addEventListener('click', function () {
-            clear_session_storage= false;
+            clear_session_storage = false;
         });
     }
 });
