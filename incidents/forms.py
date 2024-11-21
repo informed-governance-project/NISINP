@@ -296,7 +296,7 @@ class QuestionForm(forms.Form):
 
         category_question_options = workflow.questionoptions_set.filter(
             category_option__id=category
-        )
+        ).order_by("position")
 
         for question_option in category_question_options:
             self.create_question(question_option, incident_workflow, incident)
