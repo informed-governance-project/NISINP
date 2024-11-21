@@ -80,7 +80,7 @@ class ReportGenerationForm(forms.Form):
     year = forms.ChoiceField(
         choices=[
             (year, year)
-            for year in range(timezone.now().year - 3, timezone.now().year + 2)
+            for year in range(timezone.now().year - 2, timezone.now().year + 1)
         ],
         required=True,
         initial=timezone.now().year,
