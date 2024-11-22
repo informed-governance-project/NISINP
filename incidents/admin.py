@@ -25,7 +25,7 @@ from governanceplatform.helpers import (
     set_creator,
     user_in_group,
 )
-from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
+from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin, ShowReminderForTranslationsMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -266,7 +266,7 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
+class QuestionAdmin(ShowReminderForTranslationsMixin, PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["label", "question_type", "get_predefined_answers", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
@@ -372,7 +372,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class ImpactAdmin(ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -561,7 +561,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class EmailAdmin(ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "name",
         "subject",
@@ -578,7 +578,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
+class WorkflowAdmin(ShowReminderForTranslationsMixin, PermissionMixin, CustomTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
@@ -661,7 +661,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(CustomTranslatableAdmin):
+class SectorRegulationAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -750,7 +750,7 @@ class SectorRegulationWorkflowEmailResource(
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
+class SectorRegulationWorkflowEmailAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "sector_regulation_workflow",
