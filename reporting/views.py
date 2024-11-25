@@ -245,6 +245,80 @@ def import_risk_analysis(request):
 
 
 def get_so_data(cleaned_data):
+    def get_latest_answers(company, sector, year):
+        latest_submit_date = (
+            StandardAnswer.objects.filter(
+                submitter_company=OuterRef("submitter_company"),
+                sectors=sector,
+                year_of_submission=year,
+                status="PASS",
+            )
+            .order_by("-submit_date")
+            .values("submit_date")[:1]
+        )
+
+        queryset = StandardAnswer.objects.filter(
+            sectors=sector,
+            year_of_submission=year,
+            status="PASS",
+            submit_date=Subquery(latest_submit_date),
+        ).distinct()
+
+        if company is not None:
+            queryset = queryset.filter(submitter_company=company)
+
+        return queryset
+
+    def calculate_evolution(previous_data, current_score):
+        if previous_data:
+            previous_score = previous_data["score"]
+            if previous_score > current_score:
+                return False
+            elif previous_score < current_score:
+                return True
+        return None
+
+    def build_dict_scores(queryset, target_dict, key_func, year, sector_values=False):
+        for item in queryset:
+            key = key_func(item)
+            score_field = "score_value"
+
+            if isinstance(item, dict):
+                score = item[score_field]
+            else:
+                score = getattr(item, score_field)
+
+            if sector_values:
+                target_dict[key][year]["sector_avg"] = score
+            else:
+                previous_year = year - 1
+                previous_data = target_dict[key].get(previous_year)
+                evolution = calculate_evolution(previous_data, score)
+                target_dict[key][year] = {
+                    "score": score,
+                    "evolution": evolution,
+                }
+
+    def build_radar_data(data_dict, sector_avg_field=None):
+        radar_data = defaultdict()
+        score_field = "score"
+        for __key, years in data_dict.items():
+            for year, values in years.items():
+                year_label = f"{company} {year}"
+                radar_data.setdefault(year_label, []).append(values[score_field])
+
+                if sector_avg_field and year == current_year:
+                    radar_data.setdefault(
+                        f"{legend_sector_translation} {current_year}", []
+                    ).append(values[sector_avg_field])
+
+        return dict(radar_data)
+
+    def build_bar_chart_by_level_data(counts, label):
+        levels_count = maturity_levels_queryset.count()
+        score_list = [counts.get(level, 0) for level in range(levels_count)]
+        bar_chart_data_by_level[label] = score_list
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
@@ -252,8 +326,6 @@ def get_so_data(cleaned_data):
     so_excluded = cleaned_data["so_excluded"]
     maturity_levels_queryset = MaturityLevel.objects.order_by("level")
     maturity_levels = [str(level) for level in maturity_levels_queryset]
-    domains_list = []
-    unique_codes_list = []
     years_list = []
     legend_sector_translation = _("Sector average")
     sector_so_by_year_desc = OrderedDict()
@@ -269,59 +341,24 @@ def get_so_data(cleaned_data):
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
         company_so_by_level = defaultdict(list)
-
-        latest_submit_date = (
-            StandardAnswer.objects.filter(
-                submitter_company=OuterRef("submitter_company"),
-                sectors=sector,
-                year_of_submission=year,
-                status="PASS",
-            )
-            .order_by("-submit_date")
-            .values("submit_date")[:1]
-        )
-
-        latest_answers = StandardAnswer.objects.filter(
-            submitter_company=company,
-            sectors=sector,
-            year_of_submission=year,
-            status="PASS",
-            submit_date=Subquery(latest_submit_date),
-        ).distinct()
+        latest_answers = get_latest_answers(company, sector, year)
 
         if latest_answers.exists():
             years_list.append(year)
 
+        # Company Querysets
+
         floored_company_queryset = (
             SecurityObjectiveStatus.objects.filter(standard_answer__in=latest_answers)
             .exclude(security_objective__in=so_excluded)
-            .annotate(floored_score=Floor(F("score")))
+            .annotate(score_value=Floor(F("score")))
         )
 
         so_domain_company_queryset = (
             floored_company_queryset.values("security_objective__domain")
-            .annotate(avg_score=Avg("score"))
+            .annotate(score_value=Avg("score"))
             .order_by("security_objective__domain")
         )
-
-        for score in so_domain_company_queryset:
-            domain_id = score["security_objective__domain"]
-            avg_score = score["avg_score"]
-            domain = Domain.objects.get(pk=domain_id)
-            previous_year = year - 1
-            previous_data = company_so_by_domain[domain].get(previous_year)
-            evolution = None
-            if previous_data:
-                previous_score = previous_data["score"]
-                if previous_score > avg_score:
-                    evolution = False
-                elif previous_score < avg_score:
-                    evolution = True
-
-            company_so_by_domain[domain][year] = {
-                "score": avg_score,
-                "evolution": evolution,
-            }
 
         sorted_company_queryset = floored_company_queryset.annotate(
             min_position=Min(
@@ -329,166 +366,140 @@ def get_so_data(cleaned_data):
             )
         )
 
-        for score in sorted_company_queryset.order_by("min_position"):
-            security_objective = score.security_objective
-            previous_year = year - 1
-            previous_data = company_so_by_year[security_objective].get(previous_year)
-            evolution = None
-            if previous_data:
-                previous_score = previous_data["score"]
-                if previous_score > score.floored_score:
-                    evolution = False
-                elif previous_score < score.floored_score:
-                    evolution = True
-
-            company_so_by_year[security_objective][year] = {
-                "score": score.floored_score,
-                "evolution": evolution,
-            }
-
-        for score_data in sorted_company_queryset.order_by(
-            "floored_score", "min_position"
-        ):
-            level = maturity_levels_queryset.filter(
-                level=int(score_data.floored_score)
-            ).first()
-            security_objective = score_data.security_objective
-            company_so_by_level[str(level)].append(security_objective)
-
         company_by_priority_queryset = floored_company_queryset.annotate(
             min_priority=Min(
                 "security_objective__securityobjectivesinstandard__priority"
             )
-        ).order_by("floored_score", "min_priority")
+        ).order_by("score_value", "min_priority")
 
-        for score in company_by_priority_queryset:
-            security_objective = score.security_objective
-            previous_year = year - 1
-            previous_data = company_so_by_priority[security_objective].get(
-                previous_year
-            )
-            evolution = None
-            if previous_data:
-                previous_score = previous_data["score"]
-                if previous_score > score.floored_score:
-                    evolution = False
-                elif previous_score < score.floored_score:
-                    evolution = True
+        aggregated_scores_queryset = floored_company_queryset.values(
+            "score_value"
+        ).annotate(count=Count("score_value"))
 
-            company_so_by_priority[security_objective][year] = {
-                "score": score.floored_score,
-                "evolution": evolution,
-            }
+        # Sector Querysets
 
-        aggregated_scores = floored_company_queryset.values("floored_score").annotate(
-            count=Count("floored_score")
-        )
-
-        company_counts = Counter(
-            {
-                score_data["floored_score"]: score_data["count"]
-                for score_data in aggregated_scores
-            }
-        )
-
-        company_score_list = [
-            company_counts.get(level, 0)
-            for level in range(maturity_levels_queryset.count())
-        ]
-
-        max_of_company_count = max(company_score_list)
-
-        bar_chart_data_by_level[f"{company} {year}"] = company_score_list
-
-        latest_answers_sector = StandardAnswer.objects.filter(
-            sectors=sector,
-            year_of_submission=year,
-            status="PASS",
-            submit_date=Subquery(latest_submit_date),
-        ).distinct()
+        latest_answers_sector = get_latest_answers(None, sector, year)
 
         sector_queryset = SecurityObjectiveStatus.objects.filter(
             standard_answer__in=latest_answers_sector
         ).exclude(security_objective__in=so_excluded)
 
-        sector_score_by_domain = (
+        sector_score_by_domain_queryset = (
             sector_queryset.values("security_objective__domain")
-            .annotate(avg_score=Avg("score"))
+            .annotate(score_value=Avg("score"))
             .order_by("security_objective__domain")
         )
 
-        for score in sector_score_by_domain:
-            domain_id = score["security_objective__domain"]
-            avg_score = score["avg_score"]
-            domain = Domain.objects.get(pk=domain_id)
-            company_so_by_domain[domain][year]["sector_avg"] = avg_score
-
-        sector_scores = sector_queryset.values("security_objective").annotate(
-            avg_score=Floor(Avg("score"))
+        sector_scores_queryset = sector_queryset.values("security_objective").annotate(
+            score_value=Floor(Avg("score"))
         )
+
+        # Dictionaries
+
+        # by_level
+        for score_data in sorted_company_queryset.order_by(
+            "score_value", "min_position"
+        ):
+            level = maturity_levels_queryset.filter(
+                level=int(score_data.score_value)
+            ).first()
+            security_objective = score_data.security_objective
+            company_so_by_level[str(level)].append(security_objective)
+
+        # by_domain
+        build_dict_scores(
+            so_domain_company_queryset,
+            company_so_by_domain,
+            lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
+            year,
+        )
+
+        # by_domain [sector]
+        build_dict_scores(
+            sector_score_by_domain_queryset,
+            company_so_by_domain,
+            lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
+            year,
+            True,
+        )
+
+        # by_year
+        build_dict_scores(
+            sorted_company_queryset.order_by("min_position"),
+            company_so_by_year,
+            lambda x: x.security_objective,
+            year,
+        )
+
+        # by_priority
+        build_dict_scores(
+            company_by_priority_queryset,
+            company_so_by_priority,
+            lambda x: x.security_objective,
+            year,
+        )
+
+        # Bar chart by level
+        company_counts = Counter(
+            {
+                score_data["score_value"]: score_data["count"]
+                for score_data in aggregated_scores_queryset
+            }
+        )
+
+        sector_counts = Counter(
+            {
+                score_data["score_value"]: sector_scores_queryset.filter(
+                    score_value=score_data["score_value"]
+                ).count()
+                for score_data in sector_scores_queryset
+            }
+        )
+
+        build_bar_chart_by_level_data(
+            counts=company_counts,
+            label=f"{company} {year}",
+        )
+
+        build_bar_chart_by_level_data(
+            counts=sector_counts,
+            label=f"{legend_sector_translation} {year}",
+        )
+
+        # Sector asc and desc lists by score
 
         sector_so_by_year_asc[year] = [
             SecurityObjective.objects.get(pk=score["security_objective"])
-            for score in sector_scores.order_by("avg_score")
+            for score in sector_scores_queryset.order_by("score_value")
         ]
 
         sector_so_by_year_desc[year] = list(sector_so_by_year_asc[year])
         sector_so_by_year_desc[year].reverse()
-
-        avg_counts = Counter(
-            {
-                score_data["avg_score"]: sector_scores.filter(
-                    avg_score=score_data["avg_score"]
-                ).count()
-                for score_data in sector_scores
-            }
-        )
-
-        sector_avg_list = [
-            avg_counts.get(level, 0)
-            for level in range(maturity_levels_queryset.count())
-        ]
-
-        bar_chart_data_by_level[f"{legend_sector_translation} {year}"] = sector_avg_list
 
     bar_chart_data_by_level_sorted = sorted(
         bar_chart_data_by_level.items(),
         key=lambda x: (x[0] != legend_sector_translation, x[0]),
     )
 
-    for domain, years in company_so_by_domain.items():
-        domains_list.append(str(domain))
-        for year, values in years.items():
-            year_label = f"{company} {year}"
-            radar_chart_data_by_domain.setdefault(year_label, []).append(
-                values["score"]
-            )
+    radar_chart_data_by_domain = build_radar_data(company_so_by_domain, "sector_avg")
+    radar_chart_data_by_year = build_radar_data(company_so_by_year)
 
-            if year == current_year:
-                radar_chart_data_by_domain.setdefault(
-                    f"{legend_sector_translation} {current_year}", []
-                ).append(values["sector_avg"])
-
-    for security_objective, years in company_so_by_year.items():
-        unique_codes_list.append(security_objective.unique_code)
-        for year, values in years.items():
-            year_label = f"{company} {year}"
-            radar_chart_data_by_year.setdefault(year_label, []).append(values["score"])
-
-    so_data["years"] = years_list
-    so_data["domains"] = domains_list
-    so_data["maturity_levels"] = maturity_levels
-    so_data["unique_codes_list"] = unique_codes_list
-    so_data["level_breakdown"] = dict(bar_chart_data_by_level_sorted)
-    so_data["sector_so_by_year_desc"] = dict(sector_so_by_year_desc)
-    so_data["sector_so_by_year_asc"] = dict(sector_so_by_year_asc)
-    so_data["company_so_by_level"] = dict(company_so_by_level)
-    so_data["company_so_by_domain"] = dict(company_so_by_domain)
-    so_data["radar_chart_data_by_domain"] = dict(radar_chart_data_by_domain)
-    so_data["company_so_by_year"] = dict(company_so_by_year)
-    so_data["radar_chart_data_by_year"] = dict(radar_chart_data_by_year)
-    so_data["company_so_by_priority"] = dict(company_so_by_priority)
-    so_data["max_of_company_count"] = max_of_company_count
+    so_data = {
+        "years": years_list,
+        "domains": [str(domain) for domain in company_so_by_domain.keys()],
+        "maturity_levels": maturity_levels,
+        "unique_codes_list": [so.unique_code for so in company_so_by_year.keys()],
+        "max_of_company_count": max(company_counts.values()),
+        "bar_chart_data_by_level": dict(bar_chart_data_by_level_sorted),
+        "company_so_by_level": dict(company_so_by_level),
+        "company_so_by_domain": dict(company_so_by_domain),
+        "company_so_by_year": dict(company_so_by_year),
+        "company_so_by_priority": dict(company_so_by_priority),
+        "sector_so_by_year_desc": dict(sector_so_by_year_desc),
+        "sector_so_by_year_asc": dict(sector_so_by_year_asc),
+        "radar_chart_data_by_domain": radar_chart_data_by_domain,
+        "radar_chart_data_by_year": radar_chart_data_by_year,
+    }
 
     return so_data
 
@@ -1028,7 +1039,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
     charts = {
         "colorbar": generate_colorbar(),
         "security_measures_1": generate_bar_chart(
-            so_data["level_breakdown"], so_data["maturity_levels"]
+            so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
         ),
         "security_measures_5a": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
