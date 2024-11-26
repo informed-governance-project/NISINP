@@ -249,6 +249,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "governanceplatform.validators.NoReusePasswordValidator",
+    },
 ]
 
 # User Model

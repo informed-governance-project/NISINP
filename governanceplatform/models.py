@@ -167,7 +167,9 @@ class Company(models.Model):
     def get_sectors(self):
         sectors = []
         for sector in Sector.objects.filter(
-            id__in=self.companyuser_set.all().distinct().values_list("sectors", flat=True)
+            id__in=self.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True)
         ):
             if sector.name is not None and sector.parent is not None:
                 sectors.append(sector.parent.name + " --> " + sector.name)
@@ -248,7 +250,8 @@ class Observer(TranslatableModel):
         default=False, verbose_name=_("Receives all incidents")
     )
     functionalities = models.ManyToManyField(
-        Functionality, verbose_name=_("Functionalities"),
+        Functionality,
+        verbose_name=_("Functionalities"),
         blank=True,
     )
 
@@ -412,6 +415,13 @@ class User(AbstractUser, PermissionsMixin):
             ("import_user", "Can import user"),
             ("export_user", "Can export user"),
         )
+
+
+# Password User History
+class PasswordUserHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hashed_password = models.CharField(max_length=128)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
 
 class CompanyUser(models.Model):
