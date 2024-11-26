@@ -71,6 +71,7 @@ def get_pdf_report(
             "incident_workflows_impact": incident_workflows_impact,
             "sectors": sectors,
             "report_name": report_name,
+            "report_list": report_list,
         },
         request=request,
     )
