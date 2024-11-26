@@ -404,6 +404,10 @@ PHONENUMBER_DB_FORMAT = "INTERNATIONAL"
 # TIMEOUT
 SESSION_SAVE_EVERY_REQUEST = True  # the timeout is extended at each action
 SESSION_COOKIE_AGE = config.SESSION_COOKIE_AGE
+try:
+    CSRF_COOKIE_AGE = config.CSRF_COOKIE_AGE
+except AttributeError:
+    CSRF_COOKIE_AGE = 15 * 60
 
 BOOTSTRAP_DATEPICKER_PLUS = {
     # Options for all input widgets
