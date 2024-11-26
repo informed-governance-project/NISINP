@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
 
 from theme.globals import REGIONAL_AREA
+from django_countries import countries
 
 from .models import Answer, Incident, IncidentWorkflow
 
@@ -16,6 +17,8 @@ def get_pdf_report(
 ):
     # TO DO : improve for more than 2 level ?
     sectors: Dict[str, List[str]] = {}
+    # boolean to see if it's report or incident
+    report_name = None
 
     for sector in incident.affected_sectors.all():
         sector_name = sector.get_safe_translation()
@@ -34,6 +37,7 @@ def get_pdf_report(
         report_list = incident.get_latest_incident_workflows()
     else:
         report_list = [incident_workflow]
+        report_name = incident_workflow.workflow.name
 
     for incident_workflow in report_list:
         workflow_name = incident_workflow.workflow
@@ -66,6 +70,8 @@ def get_pdf_report(
             "incident_workflows_answer": incident_workflows_answer,
             "incident_workflows_impact": incident_workflows_impact,
             "sectors": sectors,
+            "report_name": report_name,
+            "report_list": report_list,
         },
         request=request,
     )
@@ -94,6 +100,13 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
             REGIONAL_AREA_DICT = dict(REGIONAL_AREA)
             region_name_list = [
                 REGIONAL_AREA_DICT.get(region_code, region_code)
+                for region_code in filter(None, str(answer).split(","))
+            ]
+            answer_string = " - ".join(map(str, region_name_list))
+        if answer.question_options.question.question_type == "CL":
+            COUNTRY_DICT = dict(countries)
+            region_name_list = [
+                COUNTRY_DICT.get(region_code, region_code)
                 for region_code in filter(None, str(answer).split(","))
             ]
             answer_string = " - ".join(map(str, region_name_list))

@@ -518,7 +518,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
     response = HttpResponse(pdf_report, content_type="application/pdf")
     response[
         "Content-Disposition"
-    ] = f"attachment;filename=Incident_{incident_workflow}_{date.today()}.pdf"
+    ] = f"attachment;filename={incident.incident_id}_{incident_workflow.workflow.name}_{date.today()}.pdf"
 
     return response
 
