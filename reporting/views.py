@@ -42,7 +42,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .forms import ImportRiskAnalysisForm, ReportGenerationForm
+from .forms import CompanySelectFormSet, ImportRiskAnalysisForm, ReportGenerationForm
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
 
@@ -68,7 +68,19 @@ OPERATOR_SERVICES = [
 @login_required
 @otp_required
 def reporting(request):
-    return render(request, "home/base.html")
+    if request.method == "POST":
+        formset = CompanySelectFormSet(request.POST)
+        if formset.is_valid():
+            selected_companies = [
+                form.instance for form in formset if form.cleaned_data.get("selected")
+            ]
+            for company in selected_companies:
+                print(company.name)
+            return redirect("article_action")
+    else:
+        formset = CompanySelectFormSet(queryset=Company.objects.all())
+
+    return render(request, "reporting/dashboard.html", {"formset": formset})
 
 
 @login_required

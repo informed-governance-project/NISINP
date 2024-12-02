@@ -1,7 +1,9 @@
 from django import forms
+from django.forms import modelformset_factory
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from governanceplatform.models import Company
 from incidents.forms import DropdownCheckboxSelectMultiple
 
 # from .models import RiskAnalysisJson
@@ -120,3 +122,18 @@ class ReportGenerationForm(forms.Form):
             self.fields["company"].disabled = True
             self.fields["year"].disabled = True
             self.fields["sector"].disabled = True
+
+
+class CompanySelectForm(forms.ModelForm):
+    selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+
+    class Meta:
+        model = Company
+        fields = ["id", "selected", "name"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].widget = forms.HiddenInput()
+
+
+CompanySelectFormSet = modelformset_factory(Company, form=CompanySelectForm, extra=0)
