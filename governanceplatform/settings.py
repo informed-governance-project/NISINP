@@ -47,6 +47,8 @@ try:
 
     API_ENABLED = config.API_ENABLED
 
+    COOKIEBANNER = config.COOKIEBANNER
+
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
         config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     )
@@ -121,6 +123,7 @@ INSTALLED_APPS = [
     "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
+    "cookiebanner",
 ]
 
 AUTHENTICATION_BACKENDS = [

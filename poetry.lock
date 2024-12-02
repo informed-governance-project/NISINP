@@ -766,6 +766,20 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-cookiebanner"
+version = "0.2.8"
+description = ""
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "django_cookiebanner-0.2.8-py3-none-any.whl", hash = "sha256:4a4f949825f9fd047e0e177a964c49d51bfbc0f0279e9ce0968bc189737a3795"},
+    {file = "django_cookiebanner-0.2.8.tar.gz", hash = "sha256:fe2ba06f5199aa88aa37c5f615a9da66db7a8325990535db67ac315d27f5a339"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+
+[[package]]
 name = "django-cors-headers"
 version = "4.5.0"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
@@ -3154,4 +3168,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "389ee0a925facada793376729c3e55f1ca05e008a806e31f71ab804c4bf53baf"
+content-hash = "9bf1e1cf69795652db7b7a3b153c6fd13b761fb82b8499761cecd79707ccc0ec"
