@@ -8,7 +8,7 @@ class NoReusePasswordValidator:
     """
 
     def validate(self, password, user=None):
-        if user is None:
+        if user or user.pk is None:
             return
 
         if user.check_password(password):
