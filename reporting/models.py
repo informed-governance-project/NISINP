@@ -10,7 +10,6 @@ from .globals import RISK_TREATMENT
 
 # Store the JSON
 class RiskAnalysisJson(models.Model):
-    data = models.JSONField(verbose_name=_("Data"))
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
@@ -270,11 +269,11 @@ class RecommendationData(models.Model):
 
 
 # store the configuration
-class ReportConfiguration(models.Model):
-    company = models.ForeignKey(
-        "governanceplatform.Company",
+class SectorReportConfiguration(models.Model):
+    sector = models.ForeignKey(
+        "governanceplatform.Sector",
         on_delete=models.CASCADE,
-        verbose_name=_("Company"),
+        verbose_name=_("Sector"),
     )
     threshold_for_high_risk = models.FloatField(
         verbose_name=_("High risk rate threshold"),
@@ -320,6 +319,13 @@ class ObservationRecommendation(TranslatableModel):
     is_generic = models.BooleanField(
         default=False, verbose_name=_("Is Generic ?")
     )
+    sectors = models.ManyToManyField(
+        "governanceplatform.Company",
+        verbose_name=_("Sectors"),
+    )
+    creation_date = models.DateTimeField(
+        verbose_name=_("Creation date"), default=timezone.now
+    )
 
     class Meta:
         verbose_name_plural = _("Recommendations for observation")
@@ -336,30 +342,8 @@ class Observation(models.Model):
     observation_recommendations = models.ManyToManyField(
         ObservationRecommendation,
         verbose_name=_("Observation recommendations"),
-        through="ObservationRecommendationSelection",
     )
 
     class Meta:
         verbose_name_plural = _("Observations")
         verbose_name = _("Observation")
-
-
-class ObservationRecommendationSelection(models.Model):
-    ObservationRecommendation = models.ForeignKey(
-        ObservationRecommendation,
-        on_delete=models.CASCADE,
-        verbose_name=_("Recommendation for observation"),
-    )
-    Observation = models.ForeignKey(
-        Observation,
-        on_delete=models.CASCADE,
-        verbose_name=_("Observation"),
-    )
-    introduction_date = models.DateTimeField(
-        verbose_name=_("Introduction date"), default=timezone.now
-    )
-    introducer = models.ForeignKey(
-        "governanceplatform.User",
-        on_delete=models.CASCADE,
-        verbose_name=_("Introducer"),
-    )

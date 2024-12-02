@@ -24,7 +24,4 @@ class Migration(migrations.Migration):
                 verbose_name="Type",
             ),
         ),
-        migrations.DeleteModel(
-            name="SectorCompanyContact",
-        ),
     ]
