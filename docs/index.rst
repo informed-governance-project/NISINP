@@ -1,4 +1,4 @@
-NIS Incident Notification Platform
+Incident Notification Module
 ==================================
 
 
@@ -60,14 +60,12 @@ NIS Incident Notification Platform
 Presentation
 ------------
 
-The Incident Notification Platform is developed and maintained by
+The Incident Notification Module is developed and maintained by
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
-The platform is dedicated to national regulators and Operators of Essential Services
-(Energy, Transport, etc.) in the context of
-`NIS 2 <https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2021)689333>`_.
-Different regulations are supported.
+The incident notification module is designed to be used as a national incident notification tool. It is multi-regulator, i.e. any regulator or competent authority of the country can use it and receive the incident notifications. It is multi-regulation, i.e. it can completely be configured, and each regulator is responsible to configure the regulations he is responsible for.
+The operators under supervision can use it to notify their incidents.
 
 This project is lead by `NC3-LU <https://www.nc3.lu>`__.
 Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
@@ -79,7 +77,7 @@ Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 
    Screenshot of the list of incidents from the regulator view.
 
-This document is intended to be a documentation for operators and users of the platform.
+This document is intended to be a documentation for operators and users of the module.
 If you find errors or omission, please don't hesitate to submit
 `an issue <https://github.com/informed-governance-project/NISINP/issues/new?labels=documentation&template=bug_report.md>`_
 or open a pull request with a fix.
