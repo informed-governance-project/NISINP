@@ -1,11 +1,14 @@
 import base64
+import io
 import json
 import os
 import textwrap
 import uuid
+import zipfile
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
 from typing import List
+from urllib.parse import quote as urlquote
 
 import plotly.colors as pc
 import plotly.graph_objects as go
@@ -74,9 +77,122 @@ def reporting(request):
             selected_companies = [
                 form.instance for form in formset if form.cleaned_data.get("selected")
             ]
-            for company in selected_companies:
-                print(company.name)
-            return redirect("article_action")
+            year = 2023
+            nb_years = 3
+
+            if len(selected_companies) > 1:
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                    for company in selected_companies:
+                        sectors = company.get_queryset_sectors()
+                        for sector in sectors:
+                            security_objectives_declaration = (
+                                StandardAnswer.objects.filter(
+                                    submitter_company=company,
+                                    sectors=sector,
+                                    year_of_submission=year,
+                                    status="PASS",
+                                ).order_by("submit_date")
+                            )
+
+                            if not security_objectives_declaration:
+                                continue
+
+                            report_data = {
+                                "company": company,
+                                "sector": sector,
+                                "year": year,
+                                "nb_years": nb_years,
+                                "so_excluded": [],
+                            }
+
+                            pdf_report = get_pdf_report(request, report_data)
+                            sector_name = sector.get_safe_translation()
+                            filename = urlquote(
+                                f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                            )
+                            zip_file.writestr(filename, pdf_report.read())
+
+                zip_buffer.seek(0)
+
+                response = HttpResponse(zip_buffer, content_type="application/zip")
+                response["Content-Disposition"] = 'attachment; filename="reports.zip"'
+            else:
+                company = selected_companies[0]
+                sectors = company.get_queryset_sectors()
+                if sectors.count() > 1:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                        for sector in sectors:
+                            security_objectives_declaration = (
+                                StandardAnswer.objects.filter(
+                                    submitter_company=company,
+                                    sectors=sector,
+                                    year_of_submission=year,
+                                    status="PASS",
+                                ).order_by("submit_date")
+                            )
+
+                            if not security_objectives_declaration:
+                                messages.error(
+                                    request,
+                                    _("No data found for security objectives report"),
+                                )
+                                return redirect("report_generation")
+
+                            report_data = {
+                                "company": company,
+                                "sector": sector,
+                                "year": year,
+                                "nb_years": nb_years,
+                                "so_excluded": [],
+                            }
+
+                            pdf_report = get_pdf_report(request, report_data)
+                            sector_name = sector.get_safe_translation()
+                            filename = urlquote(
+                                f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                            )
+                            zip_file.writestr(filename, pdf_report.read())
+                    zip_buffer.seek(0)
+                    response = HttpResponse(zip_buffer, content_type="application/zip")
+                    response[
+                        "Content-Disposition"
+                    ] = 'attachment; filename="reports.zip"'
+                else:
+                    sector = sectors.first()
+                    security_objectives_declaration = StandardAnswer.objects.filter(
+                        submitter_company=company,
+                        sectors=sector,
+                        year_of_submission=year,
+                        status="PASS",
+                    ).order_by("submit_date")
+
+                    if not security_objectives_declaration:
+                        messages.error(
+                            request,
+                            _("No data found for security objectives report"),
+                        )
+                        return redirect("report_generation")
+
+                    report_data = {
+                        "company": company,
+                        "sector": sector,
+                        "year": year,
+                        "nb_years": nb_years,
+                        "so_excluded": [],
+                    }
+                    pdf_report = get_pdf_report(request, report_data)
+                    sector_name = sector.get_safe_translation()
+                    filename = urlquote(
+                        f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                    )
+                    response = HttpResponse(pdf_report, content_type="application/pdf")
+                    response[
+                        "Content-Disposition"
+                    ] = f'attachment; filename="{filename}"'
+
+            return response
     else:
         formset = CompanySelectFormSet(queryset=Company.objects.all())
 
@@ -161,7 +277,7 @@ def report_generation(request):
             # except Exception:
             #     messages.warning(request, _("An error occurred while generating the report."))
             #     return HttpResponseRedirect(reverse("incidents"))
-            filename = (
+            filename = urlquote(
                 f"{_('annual_report')}_{year}_{company.name} - {_('annual_report')}"
             )
             response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -1091,7 +1207,11 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
         CSS(os.path.join(static_dir, "css/report.css")),
     ]
 
-    return htmldoc.write_pdf(stylesheets=stylesheets)
+    pdf_buffer = io.BytesIO()
+    htmldoc.write_pdf(pdf_buffer, stylesheets=stylesheets)
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
 
 
 def validate_json_file(file):
