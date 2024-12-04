@@ -275,26 +275,21 @@ class SectorReportConfiguration(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Sector"),
     )
+    reporting_year = models.PositiveIntegerField(
+        verbose_name=_("Reporting year"),
+    )
+
+    number_of_year = models.PositiveSmallIntegerField(
+        verbose_name=_("Number of year to compare"),
+    )
+
     threshold_for_high_risk = models.FloatField(
         verbose_name=_("High risk rate threshold"),
     )
-    number_of_year_considered = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of year considered"),
-    )
-    high_risk_number_for_top = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of high risks for top"),
-    )
-    threat_number_for_top = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of threats for top"),
-    )
-    vulnerability_number_for_top = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of vulnerabilities for top"),
-    )
-    asset_number_for_top = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of assets for top"),
-    )
-    asset_recommendation_for_top = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of recommendations for top"),
+
+    top_ranking = models.PositiveSmallIntegerField(
+        verbose_name=_("Ranking"),
+        choices=[(3, _("Top 3")), (5, ("Top 5")), (10, ("Top 10"))],
     )
 
     class Meta:
