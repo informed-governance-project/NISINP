@@ -9,7 +9,7 @@ from .globals import RISK_TREATMENT
 
 
 # Store the JSON
-class RiskAnalysisJson(models.Model):
+class CompanyReporting(models.Model):
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
@@ -112,8 +112,8 @@ class ServiceStat(models.Model):
         verbose_name=_("Asset"),
     )
 
-    risk_analysis = models.ForeignKey(
-        RiskAnalysisJson,
+    company_reporting = models.ForeignKey(
+        CompanyReporting,
         on_delete=models.CASCADE,
         verbose_name=_("Risk Analysis"),
     )
@@ -316,9 +316,7 @@ class ObservationRecommendation(TranslatableModel):
         max_length=255,
         verbose_name=_("Recommendation name"),
     )
-    is_generic = models.BooleanField(
-        default=False, verbose_name=_("Is Generic ?")
-    )
+    is_generic = models.BooleanField(default=False, verbose_name=_("Is Generic ?"))
     sectors = models.ManyToManyField(
         "governanceplatform.Company",
         verbose_name=_("Sectors"),
@@ -334,8 +332,8 @@ class ObservationRecommendation(TranslatableModel):
 
 # observation of regulator
 class Observation(models.Model):
-    risk_analysis = models.ForeignKey(
-        RiskAnalysisJson,
+    company_reporting = models.ForeignKey(
+        CompanyReporting,
         on_delete=models.CASCADE,
         verbose_name=_("Risk Analysis"),
     )
