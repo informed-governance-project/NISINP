@@ -600,9 +600,11 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         category_tree.append(IncidenteDateForm)
         if workflow is None:
             workflow = incident.get_next_step()
-        categories = workflow.questionoptions_set.values_list(
-            "category_option", flat=True
-        ).distinct()
+        categories = (
+            workflow.questionoptions_set.filter(category_option__isnull=False)
+            .values_list("category_option", flat=True)
+            .distinct()
+        )
         for _category in categories:
             category_tree.append(QuestionForm)
         if workflow.is_impact_needed:

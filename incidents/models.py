@@ -852,9 +852,7 @@ class QuestionOptions(models.Model):
     position = models.IntegerField(verbose_name=_("Position"))
     category_option = models.ForeignKey(
         QuestionCategoryOptions,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.PROTECT,
     )
 
     def __str__(self):
