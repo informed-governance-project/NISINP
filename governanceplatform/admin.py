@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -422,7 +422,10 @@ class CompanySectorListFilter(SimpleListFilter):
     parameter_name = "companyuser_set__sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
+        sectors = Sector.objects.annotate(
+                child_count=Count('children')
+            ).exclude(parent=None, child_count__gt=0)
+        sectors_list = []
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
@@ -709,6 +712,15 @@ class userRegulatorInline(admin.TabularInline):
         else:
             return qs
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count('children')
+            ).exclude(parent=None, child_count__gt=0)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
             user = request.user
@@ -864,7 +876,10 @@ class UserSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
+        sectors = Sector.objects.annotate(
+                child_count=Count('children')
+            ).exclude(parent=None, child_count__gt=0)
+        sectors_list = []
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin") or user_in_group(user, "ObserverAdmin"):

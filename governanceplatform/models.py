@@ -24,6 +24,7 @@ class Sector(TranslatableModel):
         blank=True,
         default=None,
         verbose_name=_("Parent"),
+        related_name="children",
     )
     acronym = models.CharField(verbose_name=_("Acronym"), max_length=4)
 
