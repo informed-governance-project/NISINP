@@ -171,10 +171,7 @@ class Company(models.Model):
             .distinct()
             .values_list("sectors", flat=True)
         ):
-            if sector.name is not None and sector.parent is not None:
-                sectors.append(sector.parent.name + " --> " + sector.name)
-            elif sector.name is not None and sector.parent is None:
-                sectors.append(sector.name)
+            sectors.append(sector)
 
         return sectors
 
