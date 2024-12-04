@@ -8,14 +8,14 @@ from parler.models import TranslatableModel, TranslatedFields
 from .globals import RISK_TREATMENT
 
 
-# Store the JSON
+# Store company and year of submission risk analysis data
 class CompanyReporting(models.Model):
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
         verbose_name=_("Company"),
     )
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    year = models.PositiveIntegerField()
 
 
 # Store the statistic by sector, should be updated each time a company from the sector changed
