@@ -1,4 +1,4 @@
-API v1
+API v1.
 ======
 
 The OpenAPI specicification should be avaible with
