@@ -45,6 +45,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
+from .filters import CompanyFilter
 from .forms import CompanySelectFormSet, ImportRiskAnalysisForm, ReportGenerationForm
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
@@ -194,17 +195,40 @@ def reporting(request):
                     ] = f'attachment; filename="{filename}"'
 
             return response
-    else:
-        companies_queryset = (
-            Company.objects.filter(
-                companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-            ).distinct()
-            if user_in_group(user, "RegulatorUser")
-            else Company.objects.all()
-        )
-        formset = CompanySelectFormSet(queryset=companies_queryset)
 
-    return render(request, "reporting/dashboard.html", {"formset": formset})
+    companies_queryset = (
+        Company.objects.filter(
+            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
+        ).distinct()
+        if user_in_group(user, "RegulatorUser")
+        else Company.objects.all()
+    )
+
+    # Filter
+    if "reset" in request.GET:
+        if "reporting_filter_params" in request.session:
+            del request.session["reporting_filter_params"]
+        return redirect("reporting")
+
+    if request.GET:
+        request.session["reporting_filter_params"] = request.GET
+
+    reporting_filter_params = request.session.get(
+        "reporting_filter_params", request.GET
+    )
+    company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
+
+    is_filtered = {k: v for k, v in reporting_filter_params.items() if k != "page"}
+
+    formset = CompanySelectFormSet(queryset=company_filter.qs)
+
+    context = {
+        "formset": formset,
+        "filter": company_filter,
+        "is_filtered": bool(is_filtered),
+    }
+
+    return render(request, "reporting/dashboard.html", context)
 
 
 @login_required
