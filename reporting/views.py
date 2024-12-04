@@ -71,6 +71,7 @@ OPERATOR_SERVICES = [
 @login_required
 @otp_required
 def reporting(request):
+    user = request.user
     if request.method == "POST":
         formset = CompanySelectFormSet(request.POST)
         if formset.is_valid():
@@ -194,7 +195,14 @@ def reporting(request):
 
             return response
     else:
-        formset = CompanySelectFormSet(queryset=Company.objects.all())
+        companies_queryset = (
+            Company.objects.filter(
+                companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
+            ).distinct()
+            if user_in_group(user, "RegulatorUser")
+            else Company.objects.all()
+        )
+        formset = CompanySelectFormSet(queryset=companies_queryset)
 
     return render(request, "reporting/dashboard.html", {"formset": formset})
 
