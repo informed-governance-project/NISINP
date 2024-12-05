@@ -28,14 +28,6 @@ from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
 from governanceplatform.models import Company, Sector
-from reporting.models import (
-    AssetData,
-    RecommendationData,
-    RiskData,
-    ServiceStat,
-    ThreatData,
-    VulnerabilityData,
-)
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -46,7 +38,21 @@ from securityobjectives.models import (
 )
 
 from .filters import CompanyFilter
-from .forms import CompanySelectFormSet, ImportRiskAnalysisForm, ReportGenerationForm
+from .forms import (
+    CompanySelectFormSet,
+    ConfigurationReportForm,
+    ImportRiskAnalysisForm,
+    ReportGenerationForm,
+)
+from .models import (
+    AssetData,
+    RecommendationData,
+    RiskData,
+    SectorReportConfiguration,
+    ServiceStat,
+    ThreatData,
+    VulnerabilityData,
+)
 
 SERVICES_COLOR_PALETTE = pc.DEFAULT_PLOTLY_COLORS
 
@@ -79,15 +85,24 @@ def reporting(request):
             selected_companies = [
                 form.instance for form in formset if form.cleaned_data.get("selected")
             ]
-            year = 2023
-            nb_years = 3
-
             if len(selected_companies) > 1:
                 zip_buffer = io.BytesIO()
+                error_messages = []
                 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                     for company in selected_companies:
                         sectors = company.get_queryset_sectors()
                         for sector in sectors:
+                            try:
+                                sector_configuration = (
+                                    SectorReportConfiguration.objects.get(sector=sector)
+                                )
+                                year = sector_configuration.reporting_year
+                                nb_years = sector_configuration.number_of_year
+                            except SectorReportConfiguration.DoesNotExist:
+                                error_message = f"No data found in sector: {str(sector)} and year: {year}"
+                                error_messages.append(error_message)
+                                continue
+
                             security_objectives_declaration = (
                                 StandardAnswer.objects.filter(
                                     submitter_company=company,
@@ -98,6 +113,8 @@ def reporting(request):
                             )
 
                             if not security_objectives_declaration:
+                                error_message = f"{company}: No data found in sector: {str(sector)} and year: {year}"
+                                error_messages.append(error_message)
                                 continue
 
                             report_data = {
@@ -115,6 +132,10 @@ def reporting(request):
                             )
                             zip_file.writestr(filename, pdf_report.read())
 
+                    if error_messages:
+                        error_log = "\n".join(error_messages)
+                        zip_file.writestr("error_log.txt", error_log)
+
                 zip_buffer.seek(0)
 
                 response = HttpResponse(zip_buffer, content_type="application/zip")
@@ -124,8 +145,22 @@ def reporting(request):
                 sectors = company.get_queryset_sectors()
                 if sectors.count() > 1:
                     zip_buffer = io.BytesIO()
+                    error_messages = []
                     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                         for sector in sectors:
+                            try:
+                                sector_configuration = (
+                                    SectorReportConfiguration.objects.get(sector=sector)
+                                )
+                                year = sector_configuration.reporting_year
+                                nb_years = sector_configuration.number_of_year
+                            except SectorReportConfiguration.DoesNotExist:
+                                error_message = (
+                                    f"No configuration for sector: {str(sector)}"
+                                )
+                                error_messages.append(error_message)
+                                continue
+
                             security_objectives_declaration = (
                                 StandardAnswer.objects.filter(
                                     submitter_company=company,
@@ -136,11 +171,9 @@ def reporting(request):
                             )
 
                             if not security_objectives_declaration:
-                                messages.error(
-                                    request,
-                                    _("No data found for security objectives report"),
-                                )
-                                return redirect("report_generation")
+                                error_message = f"No data found in sector: {str(sector)} and year: {year}"
+                                error_messages.append(error_message)
+                                continue
 
                             report_data = {
                                 "company": company,
@@ -156,6 +189,9 @@ def reporting(request):
                                 f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
                             )
                             zip_file.writestr(filename, pdf_report.read())
+                        if error_messages:
+                            error_log = "\n".join(error_messages)
+                            zip_file.writestr("error_log.txt", error_log)
                     zip_buffer.seek(0)
                     response = HttpResponse(zip_buffer, content_type="application/zip")
                     response[
@@ -163,6 +199,18 @@ def reporting(request):
                     ] = 'attachment; filename="reports.zip"'
                 else:
                     sector = sectors.first()
+                    try:
+                        sector_configuration = SectorReportConfiguration.objects.get(
+                            sector=sector
+                        )
+                        year = sector_configuration.reporting_year
+                        nb_years = sector_configuration.number_of_year
+                    except SectorReportConfiguration.DoesNotExist:
+                        messages.error(
+                            request,
+                            _("No configuration for sector"),
+                        )
+                        return redirect("reporting")
                     security_objectives_declaration = StandardAnswer.objects.filter(
                         submitter_company=company,
                         sectors=sector,
@@ -175,7 +223,7 @@ def reporting(request):
                             request,
                             _("No data found for security objectives report"),
                         )
-                        return redirect("report_generation")
+                        return redirect("reporting")
 
                     report_data = {
                         "company": company,
@@ -229,6 +277,101 @@ def reporting(request):
     }
 
     return render(request, "reporting/dashboard.html", context)
+
+
+@login_required
+@otp_required
+def report_configuration(request):
+    user = request.user
+    report_configuration_queryset = (
+        SectorReportConfiguration.objects.filter(
+            sector__in=user.get_sectors().values_list("id", flat=True)
+        ).distinct()
+        if user_in_group(user, "RegulatorUser")
+        else SectorReportConfiguration.objects.all()
+    )
+
+    context = {"report_configurations": report_configuration_queryset}
+    return render(request, "reporting/report_configuration.html", context=context)
+
+
+@login_required
+@otp_required
+def add_report_configuration(request):
+    user = request.user
+    user_sectors = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
+    report_configuration_queryset = (
+        SectorReportConfiguration.objects.filter(
+            sector__in=user_sectors.values_list("id", flat=True)
+        ).distinct()
+        if user_in_group(user, "RegulatorUser")
+        else SectorReportConfiguration.objects.all()
+    )
+
+    sectors_queryset = (
+        user_sectors if user_in_group(user, "RegulatorUser") else Sector.objects.all()
+    )
+
+    initial_sectors_queryset = sectors_queryset.exclude(
+        id__in=report_configuration_queryset.values_list("sector__id", flat=True)
+    )
+    if not initial_sectors_queryset:
+        messages.error(
+            request,
+            _("All sectors have been configured"),
+        )
+        return redirect("report_configuration")
+
+    initial = {"sectors": initial_sectors_queryset}
+    if request.method == "POST":
+        form = ConfigurationReportForm(request.POST, initial=initial)
+        if form.is_valid():
+            new_configuration = SectorReportConfiguration(**form.cleaned_data)
+            new_configuration.save()
+            return redirect("report_configuration")
+
+    form = ConfigurationReportForm(initial=initial)
+    context = {"form": form}
+    return render(request, "reporting/add_report_configuration.html", context=context)
+
+
+@login_required
+@otp_required
+def edit_report_configuration(request, report_configuration_id: int):
+    user = request.user
+
+    try:
+        report_configuration = SectorReportConfiguration.objects.get(
+            pk=report_configuration_id
+        )
+    except SectorReportConfiguration.DoesNotExist:
+        messages.error(request, _("Configuration not found"))
+        return redirect("report_configuration")
+
+    user_sectors = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
+    if report_configuration.sector not in user_sectors:
+        messages.error(request, _("Forbidden"))
+        return redirect("report_configuration")
+
+    if request.method == "POST":
+        form = ConfigurationReportForm(request.POST, instance=report_configuration)
+        if form.is_valid():
+            form.save()
+            return redirect("report_configuration")
+
+    form = ConfigurationReportForm(instance=report_configuration)
+    context = {"form": form}
+    return render(request, "reporting/add_report_configuration.html", context=context)
 
 
 @login_required

@@ -6,6 +6,8 @@ from django.utils.translation import gettext as _
 from governanceplatform.models import Company
 from incidents.forms import DropdownCheckboxSelectMultiple
 
+from .models import SectorReportConfiguration
+
 # from .models import RiskAnalysisJson
 
 
@@ -121,6 +123,31 @@ class ReportGenerationForm(forms.Form):
         if not initial["company"] and not initial["sector"]:
             self.fields["company"].disabled = True
             self.fields["year"].disabled = True
+            self.fields["sector"].disabled = True
+
+
+class ConfigurationReportForm(forms.ModelForm):
+    class Meta:
+        model = SectorReportConfiguration
+        fields = "__all__"
+
+    def __init__(self, *args, user=None, **kwargs):
+        initial = kwargs.get("initial", {})
+        instance = kwargs.get("instance", None)
+        super().__init__(*args, **kwargs)
+
+        current_year = timezone.now().year
+        self.fields["reporting_year"].widget = forms.Select(
+            choices=[
+                (year, year) for year in range(current_year - 2, current_year + 1)
+            ],
+        )
+
+        sectors = initial.get("sectors")
+        if sectors:
+            self.fields["sector"].queryset = sectors
+
+        if instance:
             self.fields["sector"].disabled = True
 
 
