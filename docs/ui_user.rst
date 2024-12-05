@@ -4,7 +4,7 @@ User interface
 The login page
 ---------------
 
-On this page you can log in or create an account in case you have to notify an incident and you don't have your credential.
+On this page you can log in or create an account in case you have to notify an incident and you don't have credentials.
 
 .. figure:: _static/SER_1.png
    :alt: Login page.
@@ -39,7 +39,7 @@ Please note that the following password restrictions apply:
 Enable two-factor authentication
 ---------------------------------
 
-Once you click on '**Register**', you are logged into the SERIMA Platform. Since this is your first login, the system suggests you enable two-factor authentication. Click on the button '**Enable Two-Factor Authentication**'.
+Once you click on '**Register**', you are logged into the SERIMA Platform. Since this is your first login, the system suggests you to enable the two-factor authentication. Click on the button '**Enable Two-Factor Authentication**'.
 
 .. figure:: _static/SER_3.png
    :alt: 2FA.
@@ -71,7 +71,7 @@ In case you have successfully enabled two-factor authentication, you are greeted
 
    2FA
 
-Please click on the grey button and log in again. Provide your email address and password and click on '**Log in**'. Then, open your authenticator on your smartphone and type in the randomly generated Token and click '**Log in**'.
+Please click on the grey button and log in again. Provide your email address and password and click on '**Log in**'. Then, open your authenticator app on your smartphone and type in the randomly generated Token and click '**Log in**'.
 
 .. figure:: _static/SER_7.png
    :alt: 2FA.
@@ -80,7 +80,7 @@ Please click on the grey button and log in again. Provide your email address and
    2FA
 
 As an '**Operator**' or '**User**', this is your main page where you land whenever you open this application. 
-Since this is your first login, there is no incident in the platform to show.
+Since this is your first login, there is no incident displayed in the incident dashboard.
 
 .. figure:: _static/SER_8.png
    :alt: Logged in.
@@ -114,7 +114,7 @@ In the top right-hand corner, you can see your name with a drop-down menu. If yo
 Report an incident 
 -------------------
 
-The main function of this platform is to make it possible for you to report incidents. To report an incident, click on the ’Report an incident’ button in the top right-hand corner:
+The main function of this module is to make it possible for you to report incidents. To report an incident, click on the ’Report an incident’ button in the top right-hand corner:
 
 .. figure:: _static/SER_11.png
    :alt: notification button.
@@ -176,13 +176,13 @@ As the final step in the incident reporting process, you should provide the date
 
 If the detection date field is filled in correctly, click the '**Report**' button to complete the incident reporting process. You will be directed back to the main screen (Incident List View) where you can see the newly created incident reports.
 
-The table contains, on the one hand, the aspects that you filled in during the preparation of the incident report, as well as new columns: for example, the Significant impact, the Incident status, or the Action columns.
+The table contains, on the one hand, the items that you filled in during the preparation of the incident report, as well as new columns: for example, the Significant impact, the Incident status, or the Action columns.
 
 .. figure:: _static/SER_17.png
    :alt: Detection date form.
    :target: _static/SER_17.png
 
-This is the page (**Incident List View**) where you can see the incident reports you sent and the information about them. If there are many incidents in the table, you can sort them in alphabetical order using the arrows at the top of the columns. Only one sorting aspect can be active at a time and the active aspect is shown by a darker grey triangle:
+This is the page (**Incident List View**) where you can see the incident reports you sent and the information about them. If there are many incidents in the table, you can sort them in alphabetical order using the arrows at the top of the columns. Only one sorting criteria can be activated at a time and the active sorting criteria is shown by a darker grey triangle:
 
 .. figure:: _static/SER_18.png
    :alt: Sort incident.
@@ -215,7 +215,7 @@ Each report has a status: '**Not delivered**', '**Delivered but not yet reviewed
 Search among incidents
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The filter function of the platform can be very useful if there are many incidents and you want to filter among them according to different aspects to find the incident you are looking for.
+The filter function of the platform can be very useful if there are many incidents and you want to filter among them according to different criteria to find the incident you are looking for.
 
 To make the filters visible, click on the down-pointing arrow at the right end of the filter field:
 
@@ -238,7 +238,7 @@ You can filter all your incidents and expand/collapse the filter area. The filte
 Security Obejctives 
 ---------------------
 
-Security objectives are accessible by clicking on the menu at the top of the page. 
+The security objective self-assessment is accessible by clicking on the menu at the top of the page. 
 
 .. figure:: _static/SO_01.png
    :alt: Security Objectives main page.
@@ -246,7 +246,7 @@ Security objectives are accessible by clicking on the menu at the top of the pag
 
 If you already had some security objective reported, you can have a list like the above. Else you need to declare a new one by clicking on the blue button **New declaration**
 
-The list is similar to the incident one. The only difference is you have to submit your declaration by clicking on the green icon in the action menu. 
+The list is similar to the incident one. The only difference is that you have to submit your declaration by clicking on the green icon in the action menu. 
 
 .. figure:: _static/SO_05.png
    :alt: Action menu.
@@ -289,9 +289,9 @@ This is the page to fill a SO. At the top you have the list of all the security 
 
 As you can see, security objectives can have 3 states: 
 
-- **Green** one are correctly filled
-- **Orange** one are filled but some information are missing
-- **Blank** one are not filled 
+- **Green** correctly filled
+- **Orange** filled but some information are missing
+- **Blank** not filled 
 
 You have to tick the "measure in place" and put a justification to go to the green, you can switch between the different SO by clicking on the number or using the blue arrow at the bottom of the page. 
 
