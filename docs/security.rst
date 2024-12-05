@@ -9,7 +9,7 @@ Security policy
 Supported Versions
 ``````````````````
 
-Last stable version this software always provides security updates.
+Last stable version of this software always provides security updates.
 There will be no security patches for other releases (tagged or not).
 
 Reporting a Vulnerability
