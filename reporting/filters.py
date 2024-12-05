@@ -1,14 +1,28 @@
 import django_filters
 from django.db.models import F, Q
+from django.utils import timezone
 
 from governanceplatform.models import Company, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
+
+
+class YearChoiceFilter(django_filters.ChoiceFilter):
+    def filter(self, qs, value):
+        return qs
 
 
 class CompanyFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(
         lookup_expr="icontains",
         label="Name",
+    )
+
+    year = YearChoiceFilter(
+        label="Year",
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 2, timezone.now().year + 1)
+        ],
     )
 
     sectors = django_filters.ModelMultipleChoiceFilter(
@@ -46,20 +60,3 @@ class CompanyFilter(django_filters.FilterSet):
         ]
 
         return queryset.filter(id__in=filtered_company_ids)
-
-    # def __init__(self, *args, **kwargs):
-    #     queryset = kwargs.get("queryset", StandardAnswer.objects.none())
-    #     super().__init__(*args, **kwargs)
-    #     submitter_user_ids = set(queryset.values_list("submitter_user", flat=True))
-
-    #     submitter_companies_ids = set(
-    #         queryset.values_list("submitter_company", flat=True)
-    #     )
-
-    #     self.filters["submitter_user"].queryset = User.objects.filter(
-    #         id__in=submitter_user_ids
-    #     )
-
-    #     self.filters["submitter_company"].queryset = Company.objects.filter(
-    #         id__in=submitter_companies_ids
-    # )

@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import modelformset_factory
+from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -153,6 +153,7 @@ class ConfigurationReportForm(forms.ModelForm):
 
 class CompanySelectForm(forms.ModelForm):
     selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+    year = forms.IntegerField(required=False)
 
     class Meta:
         model = Company
@@ -163,4 +164,18 @@ class CompanySelectForm(forms.ModelForm):
         self.fields["name"].widget = forms.HiddenInput()
 
 
-CompanySelectFormSet = modelformset_factory(Company, form=CompanySelectForm, extra=0)
+class CompanySelectFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.year = kwargs.pop("year", None)
+        super().__init__(*args, **kwargs)
+
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+
+        if self.year:
+            form.initial["year"] = self.year
+
+
+CompanySelectFormSet = modelformset_factory(
+    Company, form=CompanySelectForm, formset=CompanySelectFormSet, extra=0
+)
