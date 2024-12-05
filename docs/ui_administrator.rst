@@ -6,10 +6,10 @@ Access to the administration page
 
 Through the "Administration" link, left of the profile icon, above on the Incidents page, the following roles have access to the ``site administration`` interface, that allows to create and modify some database objects :
 
-- PlatformAdmin : can create regulations, regulators, observers
-- RegulatorAdmin : can create workflows for incidents, RegulatorUser for its regulator
-- RegulatorUser : can create companies
-- OperatorAdmin : can create OperatorUser for its company
+- PlatformAdmin : can create regulations, regulators, observers, other platform administrators
+- RegulatorAdmin : can create workflows for incidents, RegulatorUser for its regulator, other regulator administrators
+- RegulatorUser : can create companies and operator administrators
+- OperatorAdmin : can create OperatorUser for its company and other operator administrators
 - ObserverAdmin : can create ObserverUser for its Observer entity
 
 .. figure:: _static/ui_admin_overview.png
@@ -20,7 +20,7 @@ Through the "Administration" link, left of the profile icon, above on the Incide
 
 The administrator page is composed of 3 parts:
 
-1. The navigation bar, above, where you can change your account settings, language, also leaves the website and return to the user website that shows incidents
+1. The navigation bar, above, where you can change your account settings, language, also leave the website and return to the user website that shows incidents
 2. A list of modules on the left, where you can select one type of objects related to incidents or users, and add or modify those
 3. A list of your recent actions on the platform, on the right
 
@@ -45,7 +45,7 @@ When clicking on a module, e.g. "Impacts" as illustrated below, you see a list o
 Standard add / change function
 -----------------------------------
 
-When clicking on the "Add" button or the first field of an object, you are directed to the "change" page, like shown below. When editng an existing object, the values are prefilled with the current properties of the object. When adding a new object, the form is blank.
+When clicking on the "Add" button or the first field of an object, you are directed to the "change" page, like shown below. When editing an existing object, the values are prefilled with the current properties of the object. When adding a new object, the form is blank.
 
 .. figure:: _static/ui_standard_add_edit.png
    :alt: edit page.
@@ -53,9 +53,9 @@ When clicking on the "Add" button or the first field of an object, you are direc
 
    Screenshot of an edition page.
 
-1. Above the form, language tabs allow you to input several alternative versions of teh object, since the platform is multi-linual. Note that you always need to fill at least the first language, as it is used as fallback, would some fields be left blank in the other languages. **Also note that you need to save each language separately**. You can do that using the "Save and continue editing" button.
+1. Above the form, language tabs allow you to input several alternative versions of the object, since the platform is multi-linual. Note that you always need to fill at least the first language, as it is used as fallback, would some fields be left blank in the other languages. **Also note that you need to save each language separately**. You can do that using the "Save and continue editing" button.
 2. In the upper right part of the window, an "History" button allows you to see the history of the object (all the modifications done)
-3. In the lower part of the window, you are offered different possibilities to save the object. You may also be able to delete the object. If you choose to delete the object, a confirmation message will be shown with the impacts on other entities.
+3. In the lower part of the window, different possibilities are proposed to save the object. You may also be able to delete the object. If you choose to delete the object, a confirmation message will be shown with the impacts on other entities.
 
 
 Creation of workflow for incident notification
@@ -65,17 +65,17 @@ The RegulatorAdmin role is the one who defines the workflows for incident notifi
 
 Here, the standard way to create a workflow:
 
-1.   First create an item in the ``Incident notification workflows`` module (e.g. NIS2, CER, GDPR, etc.).
+1.   First create an item in the ``Incident notification workflows`` module corresponding to the regulation (e.g. NIS2, CER, GDPR, etc.).
 
 2.   Then create the different steps of your workflow, that are called ``incident reports`` (e.g. Early Warning, Final Report, etc.).
 
-3.   Now you link ``incident reports`` with  ``incident notification workflow``, for that go on ``incident notification workflow`` and choose the incident reports. The position defines the order of the reports.
+3.   Now link the ``incident reports`` with the  ``incident notification workflow``, for that go on ``incident notification workflow`` and choose the incident reports. The position defines the order of the reports.
 
-4.   Each incident report is made of a list of ``questions``, organised in tabs called ``question category``. The  ``question category`` can be created directly in the question form. You have to create the category only one time, after you can reuse it. 
+4.   Each incident report is made of a list of ``questions``, organised in tabs called ``question category``. The  ``question category`` can be created directly in the question form. You have to create the category only one time, after you can reuse it. For a question, the ``question category`` should never remain blank.
 
    .. note:: The ``question category`` helps for the rendering of the form for the user who submits the notification. There are different types of questions, such as FreeText or Multiple choice. Some can have ``predefined answers``. 
 
-   .. caution::  **It's important to use one answer only for one question**. You can create the predefined answer directly in the question form.**If you want to translate in several language, you must first fill one language, click on "save and continue editing" and go to the other language, if you don't do that you will loose the content for the predefined answer**.
+   .. caution::  **It's important to use one answer only for one question**. You can create the predefined answer directly in the question form.**If you want to translate in several languages, you must first fill one language, click on "save and continue editing" and go to the other language, if you don't do that you will loose the content of the predefined answer**.
 
 5.   Your incident workflow is now done.
 
@@ -96,9 +96,9 @@ Each ``incident notification workflow`` has:
 
 The three elements above reference an ``Email template`` that has to be defined.
 
-Those email can be completed by the ``Emails for incident notification workflows``. For each incident reports (e.g. Early Warning), it's possible to send other emails
+Those emails can be completed by clicking on the ``Emails for incident notification workflows``. For each incident reports (e.g. Early Warning), it's possible to send further emails
 like reminder, for that in the ``Emails for incident notification workflows`` you can define emails which are sent with delay, the delay can start from the Notification Date of the report
 or the date of the previous incident report.
 
-For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If one impact is ticked by the
+For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If at least one impact is ticked by the
 person who submits the incident, the incident is qualified as "significative".
