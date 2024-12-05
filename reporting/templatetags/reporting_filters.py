@@ -37,3 +37,13 @@ def get_color(value):
 @register.filter
 def range_list(value):
     return range(int(value))
+
+
+@register.filter
+def security_objective_exists(instance, year):
+    return instance.security_objective_exists(year)
+
+
+@register.filter
+def risk_analysis_exists(instance, year):
+    return instance.risk_analysis_exists(year)

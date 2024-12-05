@@ -31,3 +31,7 @@ a.changelink {
 .select-break-spaces {
     white-space: break-spaces
 }
+
+.no-opacity {
+    opacity: 1 !important;
+}

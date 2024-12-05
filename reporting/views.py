@@ -21,6 +21,7 @@ from django.db.models.functions import Floor
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
@@ -79,6 +80,11 @@ OPERATOR_SERVICES = [
 @otp_required
 def reporting(request):
     user = request.user
+    year = (
+        int(request.GET.get("year"))
+        if request.GET.get("year", None)
+        else int(timezone.now().year)
+    )
     if request.method == "POST":
         formset = CompanySelectFormSet(request.POST)
         if formset.is_valid():
@@ -96,7 +102,6 @@ def reporting(request):
                                 sector_configuration = (
                                     SectorReportConfiguration.objects.get(sector=sector)
                                 )
-                                year = sector_configuration.reporting_year
                                 nb_years = sector_configuration.number_of_year
                             except SectorReportConfiguration.DoesNotExist:
                                 error_message = f"No data found in sector: {str(sector)} and year: {year}"
@@ -152,7 +157,6 @@ def reporting(request):
                                 sector_configuration = (
                                     SectorReportConfiguration.objects.get(sector=sector)
                                 )
-                                year = sector_configuration.reporting_year
                                 nb_years = sector_configuration.number_of_year
                             except SectorReportConfiguration.DoesNotExist:
                                 error_message = (
@@ -203,7 +207,6 @@ def reporting(request):
                         sector_configuration = SectorReportConfiguration.objects.get(
                             sector=sector
                         )
-                        year = sector_configuration.reporting_year
                         nb_years = sector_configuration.number_of_year
                     except SectorReportConfiguration.DoesNotExist:
                         messages.error(
@@ -268,7 +271,7 @@ def reporting(request):
 
     is_filtered = {k: v for k, v in reporting_filter_params.items() if k != "page"}
 
-    formset = CompanySelectFormSet(queryset=company_filter.qs)
+    formset = CompanySelectFormSet(queryset=company_filter.qs, year=year)
 
     context = {
         "formset": formset,
