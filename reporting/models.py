@@ -281,6 +281,7 @@ class SectorReportConfiguration(models.Model):
 
     number_of_year = models.PositiveSmallIntegerField(
         verbose_name=_("Number of year to compare"),
+        choices=[(nb_year, str(nb_year)) for nb_year in range(1, 4)],
     )
 
     threshold_for_high_risk = models.FloatField(
@@ -289,7 +290,7 @@ class SectorReportConfiguration(models.Model):
 
     top_ranking = models.PositiveSmallIntegerField(
         verbose_name=_("Ranking"),
-        choices=[(3, _("Top 3")), (5, ("Top 5")), (10, ("Top 10"))],
+        choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
     )
 
     class Meta:
