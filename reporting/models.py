@@ -9,13 +9,25 @@ from .globals import RISK_TREATMENT
 
 
 # Store company and year of submission risk analysis data
-class CompanyReporting(models.Model):
+class CompanyReporting(TranslatableModel):
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
         verbose_name=_("Company"),
     )
     year = models.PositiveIntegerField()
+    sectors = models.ManyToManyField(
+        "governanceplatform.Sector",
+        verbose_name=_("Sectors"),
+    )
+    translations = TranslatedFields(
+        comment=models.TextField(
+            verbose_name=_("comment"),
+            blank=True,
+            default=None,
+            null=True,
+        ),
+    )
 
 
 # Store the statistic by sector, should be updated each time a company from the sector changed
@@ -312,9 +324,8 @@ class ObservationRecommendation(TranslatableModel):
         max_length=255,
         verbose_name=_("Recommendation name"),
     )
-    is_generic = models.BooleanField(default=False, verbose_name=_("Is Generic ?"))
     sectors = models.ManyToManyField(
-        "governanceplatform.Company",
+        "governanceplatform.Sector",
         verbose_name=_("Sectors"),
     )
     creation_date = models.DateTimeField(
