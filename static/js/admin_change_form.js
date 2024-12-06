@@ -93,7 +93,6 @@ document.addEventListener("DOMContentLoaded", function () {
             clear_session_storage = true;
             const urlParams = new URLSearchParams(window.location.href.split('?')[1]);
             language_code = urlParams.get('language');
-            console.log(language_code)
             removeCurrentTabData(language_code)
 
         });
