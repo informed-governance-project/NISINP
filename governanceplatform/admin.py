@@ -573,26 +573,29 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     # assure that the correct sectors are saved
     def save_related(self, request, form, formsets, change):
-        user = request.user
-        sectors = dict()
-        # Access and modify inline objects
-        for formset in formsets:
-            if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
-                ru = RegulatorUser.objects.get(user=user, regulator=user.regulators.first())
-                for obj in formset.save(commit=False):  # Inline objects are here
-                    sects = []
-                    for sect in obj.sectors.all():
-                        if sect not in ru.sectors.all():
-                            sects.append(sect.id)
-                    sectors[obj] = sects
-        super().save_related(request, form, formsets, change)
-        # re assign sectors which are not assigned to the current regulatoruser
-        for formset in formsets:
-            if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
-                for obj in formset.save(commit=False):  # Inline objects are here
-                    if sectors[obj] is not None:
-                        obj.sectors.add(*sectors[obj])
-                        obj.save()  # Explicitly save changes
+        if change:
+            user = request.user
+            sectors = dict()
+            # Access and modify inline objects
+            for formset in formsets:
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
+                    ru = RegulatorUser.objects.get(user=user, regulator=user.regulators.first())
+                    for obj in formset.save(commit=False):  # Inline objects are here
+                        sects = []
+                        for sect in obj.sectors.all():
+                            if sect not in ru.sectors.all():
+                                sects.append(sect.id)
+                        sectors[obj] = sects
+            super().save_related(request, form, formsets, change)
+            # re assign sectors which are not assigned to the current regulatoruser
+            for formset in formsets:
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
+                    for obj in formset.save(commit=False):  # Inline objects are here
+                        if sectors[obj] is not None:
+                            obj.sectors.add(*sectors[obj])
+                            obj.save()  # Explicitly save changes
+        else:
+            super().save_related(request, form, formsets, change)
 
 
 class UserResource(resources.ModelResource):
