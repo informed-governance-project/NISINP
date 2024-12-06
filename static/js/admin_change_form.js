@@ -41,6 +41,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function removeCurrentTabData(languageCode) {
+        document.querySelectorAll(fieldsetsSelector).forEach(fieldset => {
+            fieldset.querySelectorAll(inputSelector).forEach(input => {
+                sessionStorage.removeItem(`${languageCode}_${input.name}`);
+            });
+        });
+    }
+
     function getLanguageCodeFromTab(tab) {
         const urlParams = new URLSearchParams(tab.href.split('?')[1]);
         return urlParams.get('language');
@@ -82,7 +90,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (continueButton) {
         continueButton.addEventListener('click', function () {
-            clear_session_storage = false;
+            clear_session_storage = true;
+            const urlParams = new URLSearchParams(window.location.href.split('?')[1]);
+            language_code = urlParams.get('language');
+            console.log(language_code)
+            removeCurrentTabData(language_code)
+
         });
     }
 });
