@@ -97,7 +97,19 @@ def reporting(request):
     reporting_filter_params = request.session.get(
         "reporting_filter_params", request.GET
     )
+    sectors_filters = request.GET.getlist("sectors")
     company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
+
+    # Filter
+    if "reset" in request.GET:
+        if "reporting_filter_params" in request.session:
+            del request.session["reporting_filter_params"]
+        return redirect("reporting")
+
+    if request.GET:
+        request.session["reporting_filter_params"] = request.GET
+
+    is_filtered = {k: v for k, v in reporting_filter_params.items()}
 
     if request.method == "POST":
         formset = CompanySelectFormSet(
@@ -112,116 +124,82 @@ def reporting(request):
                 for form in formset
                 if form.cleaned_data.get("selected")
             ]
-            if len(selected_companies) > 1:
-                zip_buffer = io.BytesIO()
-                error_messages = []
-                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                    for select_company in selected_companies:
-                        company = select_company.get("company")
-                        sector = select_company.get("sector")
-                        try:
-                            sector_configuration = (
-                                SectorReportConfiguration.objects.get(sector=sector)
-                            )
-                            nb_years = sector_configuration.number_of_year
-                        except SectorReportConfiguration.DoesNotExist:
+            is_multiple_selected_companies = bool(len(selected_companies) > 1)
+            zip_buffer = io.BytesIO()
+            error_messages = []
+            with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                for select_company in selected_companies:
+                    company = select_company.get("company")
+                    sector = select_company.get("sector")
+                    try:
+                        sector_configuration = SectorReportConfiguration.objects.get(
+                            sector=sector
+                        )
+                        nb_years = sector_configuration.number_of_year
+                    except SectorReportConfiguration.DoesNotExist:
+                        if is_multiple_selected_companies:
                             error_message = f"No data found in sector: {str(sector)} and year: {year}"
                             error_messages.append(error_message)
                             continue
+                        else:
+                            messages.error(
+                                request,
+                                _("No configuration for sector"),
+                            )
+                            return redirect("reporting")
 
-                        security_objectives_declaration = StandardAnswer.objects.filter(
-                            submitter_company=company,
-                            sectors=sector,
-                            year_of_submission=year,
-                            status="PASS",
-                        ).order_by("submit_date")
+                    security_objectives_declaration = StandardAnswer.objects.filter(
+                        submitter_company=company,
+                        sectors=sector,
+                        year_of_submission=year,
+                        status="PASS",
+                    ).order_by("submit_date")
 
-                        if not security_objectives_declaration:
+                    if not security_objectives_declaration:
+                        if is_multiple_selected_companies:
                             error_message = f"{company}: No data found in sector: {str(sector)} and year: {year}"
                             error_messages.append(error_message)
                             continue
+                        else:
+                            messages.error(
+                                request,
+                                _("No data found for security objectives report"),
+                            )
+                            return redirect("reporting")
 
-                        report_data = {
-                            "company": company,
-                            "sector": sector,
-                            "year": year,
-                            "nb_years": nb_years,
-                            "so_excluded": [],
-                        }
+                    report_data = {
+                        "company": company,
+                        "sector": sector,
+                        "year": year,
+                        "nb_years": nb_years,
+                        "so_excluded": [],
+                    }
 
-                        pdf_report = get_pdf_report(request, report_data)
-                        sector_name = sector.get_safe_translation()
-                        filename = urlquote(
-                            f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
-                        )
-                        zip_file.writestr(filename, pdf_report.read())
+                    pdf_report = get_pdf_report(request, report_data)
+                    sector_name = sector.get_safe_translation()
+                    filename = urlquote(
+                        f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                    )
+                    zip_file.writestr(filename, pdf_report.read())
 
-                    if error_messages:
-                        error_log = "\n".join(error_messages)
-                        zip_file.writestr("error_log.txt", error_log)
+                if error_messages:
+                    error_log = "\n".join(error_messages)
+                    zip_file.writestr("error_log.txt", error_log)
 
-                zip_buffer.seek(0)
+            zip_buffer.seek(0)
 
+            if is_multiple_selected_companies:
                 response = HttpResponse(zip_buffer, content_type="application/zip")
                 response["Content-Disposition"] = 'attachment; filename="reports.zip"'
             else:
-                company = selected_companies[0].get("company")
-                sector = selected_companies[0].get("sector")
-                try:
-                    sector_configuration = SectorReportConfiguration.objects.get(
-                        sector=sector
-                    )
-                    nb_years = sector_configuration.number_of_year
-                except SectorReportConfiguration.DoesNotExist:
-                    messages.error(
-                        request,
-                        _("No configuration for sector"),
-                    )
-                    return redirect("reporting")
-
-                security_objectives_declaration = StandardAnswer.objects.filter(
-                    submitter_company=company,
-                    sectors=sector.id,
-                    year_of_submission=year,
-                    status="PASS",
-                ).order_by("submit_date")
-
-                if not security_objectives_declaration:
-                    messages.error(
-                        request,
-                        _("No data found for security objectives report"),
-                    )
-                    return redirect("reporting")
-
-                report_data = {
-                    "company": company,
-                    "sector": sector,
-                    "year": year,
-                    "nb_years": nb_years,
-                    "so_excluded": [],
-                }
-                pdf_report = get_pdf_report(request, report_data)
-                sector_name = sector.get_safe_translation()
-                filename = urlquote(
-                    f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
-                )
                 response = HttpResponse(pdf_report, content_type="application/pdf")
                 response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
             return response
 
-    # Filter
-    if "reset" in request.GET:
-        if "reporting_filter_params" in request.session:
-            del request.session["reporting_filter_params"]
-        return redirect("reporting")
-
-    if request.GET:
-        request.session["reporting_filter_params"] = request.GET
-
-    is_filtered = {k: v for k, v in reporting_filter_params.items() if k != "page"}
-
-    formset = CompanySelectFormSet(queryset=company_filter.qs, year=year)
+    formset = CompanySelectFormSet(
+        queryset=company_filter.qs, year=year, sectors_filter=sectors_filters
+    )
 
     context = {
         "formset": formset,
