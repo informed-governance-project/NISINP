@@ -182,15 +182,19 @@ class Company(models.Model):
             .values_list("sectors", flat=True)
         )
 
-    def security_objective_exists(self, year):
-        if year:
+    def security_objective_exists(self, year, sector):
+        if year and sector:
             return self.standardanswer_set.filter(
-                year_of_submission=year, status="PASS"
+                year_of_submission=year, sectors__in=[sector.id], status="PASS"
             ).exists()
+        return False
 
-    def risk_analysis_exists(self, year):
-        if year:
-            return self.companyreporting_set.filter(year=year).exists()
+    def risk_analysis_exists(self, year, sector):
+        if year and sector:
+            return self.companyreporting_set.filter(
+                year=year, sectors__in=[sector.id]
+            ).exists()
+        return False
 
     class Meta:
         verbose_name = _("Company")
