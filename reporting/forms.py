@@ -170,13 +170,17 @@ class CompanySelectForm(forms.ModelForm):
 class CompanySelectFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         self.year = kwargs.pop("year", None)
+        self.sectors_filter = kwargs.pop("sectors_filter", None)
         queryset = kwargs.get("queryset")
         self.company_sectors = []
 
         if queryset:
             for company in queryset:
                 for sector in company.get_queryset_sectors():
-                    self.company_sectors.append({"company": company, "sector": sector})
+                    if not self.sectors_filter or str(sector.id) in self.sectors_filter:
+                        self.company_sectors.append(
+                            {"company": company, "sector": sector}
+                        )
 
         kwargs["queryset"] = Company.objects.none()
         super().__init__(*args, **kwargs)
