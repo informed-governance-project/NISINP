@@ -39,11 +39,11 @@ def range_list(value):
     return range(int(value))
 
 
-@register.filter
-def security_objective_exists(instance, year):
-    return instance.security_objective_exists(year)
+@register.simple_tag
+def security_objective_exists(instance, year, sector):
+    return instance.security_objective_exists(year, sector)
 
 
-@register.filter
-def risk_analysis_exists(instance, year):
-    return instance.risk_analysis_exists(year)
+@register.simple_tag
+def risk_analysis_exists(instance, year, sector):
+    return instance.risk_analysis_exists(year, sector)
