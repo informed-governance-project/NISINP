@@ -307,7 +307,7 @@ class QuestionForm(forms.Form):
 class ContactForm(forms.Form):
     company_name = forms.CharField(
         required=True,
-        label="Company name",
+        label=_("Name of the Operator"),
         max_length=100,
         widget=forms.TextInput(attrs={"class": "company_name"}),
     )
@@ -390,8 +390,9 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "To make your incident easier to locate and track, please include a reference "
-                    "(e.g., an identifier, internal reference, CERT reference, etc.)."
+                    "Please include a reference "
+                    "(e.g., an identifier, internal reference, CERT reference, etc.) "
+                    "to facilitate incident tracking."
                 ),
                 "data-bs-toggle": "tooltip",
             }
@@ -403,7 +404,8 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "Insert a police report that you have filed with the police"
+                    "Insert the file number of a criminal complaint "
+                    "that you have filed with the police."
                 ),
                 "data-bs-toggle": "tooltip",
             }

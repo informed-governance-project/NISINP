@@ -175,7 +175,7 @@ def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
     if not workflow_id and not incident_id:
-        messages.error(request, _("Missing data to create the incident report"))
+        messages.error(request, _("Missing data, incident report not created"))
         return redirect("incidents")
 
     incident = Incident.objects.filter(pk=incident_id).first()
@@ -675,7 +675,9 @@ class FormWizardView(SessionWizardView):
         if step == "2":
             step1data = self.get_cleaned_data_for_step("1")
             if step1data is None:
-                messages.warning(self.request, _("Please select at least 1 regulator"))
+                messages.warning(
+                    self.request, _("Please select at least one regulator")
+                )
 
         return super().get_form(step, data, files)
 
@@ -684,8 +686,8 @@ class FormWizardView(SessionWizardView):
 
         context["steps"] = [
             _("Contact"),
-            ("Competent authorities"),
-            _("Regulations"),
+            ("Regulators"),
+            _("Legal bases"),
             _("Sectors"),
             _("Detection date"),
         ]
@@ -1066,7 +1068,7 @@ class WorkflowWizardView(SessionWizardView):
             categories = []
             for categ in categories_options:
                 categories.append(categ.question_category)
-            context["steps"].append(_("Timeline"))
+            context["steps"].append(_("Incident Timeline"))
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
