@@ -267,6 +267,7 @@ class QuestionForm(forms.Form):
                 initial_data = list(filter(None, str(answer).split(",")))
 
             self.fields[field_name] = forms.MultipleChoiceField(
+                required=question_option.is_mandatory,
                 choices=countries if question_type == "CL" else REGIONAL_AREA,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
