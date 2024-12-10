@@ -35,7 +35,7 @@ class Impact(TranslatableModel):
     regulation = models.ForeignKey(
         "governanceplatform.Regulation",
         on_delete=models.CASCADE,
-        verbose_name=_("Regulation"),
+        verbose_name=_("Legal basis"),
     )
 
     sectors = models.ManyToManyField(
@@ -95,8 +95,8 @@ class QuestionCategory(TranslatableModel):
         return label_translation or ""
 
     class Meta:
-        verbose_name = _("Category of question")
-        verbose_name_plural = _("Categories of questions")
+        verbose_name = _("Step in notification form")
+        verbose_name_plural = _("Steps in notification form")
 
 
 # questions asked during the Incident notification process
@@ -223,8 +223,8 @@ class Email(TranslatableModel, models.Model):
         return self.name or ""
 
     class Meta:
-        verbose_name_plural = _("Email templates")
-        verbose_name = _("Email template")
+        verbose_name_plural = _("Emails")
+        verbose_name = _("Email")
 
 
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
@@ -234,13 +234,13 @@ class Workflow(TranslatableModel):
         name=models.CharField(verbose_name=_("Name"), max_length=255)
     )
     is_impact_needed = models.BooleanField(
-        default=False, verbose_name=_("Impacts are needed")
+        default=False, verbose_name=_("Impacts disclosure required")
     )
     questions = models.ManyToManyField(Question, verbose_name=_("Questions"))
 
     submission_email = models.ForeignKey(
         Email,
-        verbose_name=_("Submision e-mail"),
+        verbose_name=_("Submision email"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -285,7 +285,7 @@ class SectorRegulation(TranslatableModel):
     regulation = models.ForeignKey(
         "governanceplatform.Regulation",
         on_delete=models.CASCADE,
-        verbose_name=_("Regulation"),
+        verbose_name=_("Legal basis"),
     )
     regulator = models.ForeignKey(
         "governanceplatform.Regulator",
@@ -300,12 +300,12 @@ class SectorRegulation(TranslatableModel):
         "governanceplatform.Sector", verbose_name=_("Sectors"), default=None, blank=True
     )
     is_detection_date_needed = models.BooleanField(
-        default=False, verbose_name=_("Incident detection date needed")
+        default=False, verbose_name=_("Incident detection date required")
     )
     # email
     opening_email = models.ForeignKey(
         Email,
-        verbose_name=_("Opening e-mail"),
+        verbose_name=_("Opening email"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -314,7 +314,7 @@ class SectorRegulation(TranslatableModel):
     )
     closing_email = models.ForeignKey(
         Email,
-        verbose_name=_("Closing e-mail"),
+        verbose_name=_("Closing email"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -323,7 +323,7 @@ class SectorRegulation(TranslatableModel):
     )
     report_status_changed_email = models.ForeignKey(
         Email,
-        verbose_name=_("Email for status change"),
+        verbose_name=_("Status update email"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -353,17 +353,17 @@ class SectorRegulationWorkflow(models.Model):
     )
     # the delay after the trigger event
     delay_in_hours_before_deadline = models.IntegerField(
-        verbose_name=_("Delay in hours before deadline"), default=0
+        verbose_name=_("Deadline in hours"), default=0
     )
     trigger_event_before_deadline = models.CharField(
-        verbose_name=_("Trigger event before deadline"),
+        verbose_name=_("Event triggering deadline"),
         max_length=15,
         choices=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT,
         blank=False,
         default=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT[0][0],
     )
     emails = models.ManyToManyField(
-        Email, verbose_name=_("E-mails"), through="SectorRegulationWorkflowEmail"
+        Email, verbose_name=_("Emails"), through="SectorRegulationWorkflowEmail"
     )
 
     class Meta:
@@ -374,8 +374,8 @@ class SectorRegulationWorkflow(models.Model):
                 deferrable=Deferrable.DEFERRED,
             ),
         ]
-        verbose_name_plural = _("Link between workflow and report")
-        verbose_name = _("Links between workflow and report")
+        verbose_name_plural = _("Report")
+        verbose_name = _("Reports")
 
     def __str__(self):
         return (
@@ -388,15 +388,15 @@ class SectorRegulationWorkflow(models.Model):
 # for emailing during each workflow
 class SectorRegulationWorkflowEmail(TranslatableModel):
     translations = TranslatedFields(
-        headline=models.CharField(verbose_name=_("Headline"), max_length=255),
+        headline=models.CharField(verbose_name=_("Email subject"), max_length=255),
     )
 
     sector_regulation_workflow = models.ForeignKey(
         SectorRegulationWorkflow,
-        verbose_name=_("Link between workflow and report"),
+        verbose_name=_("Report"),
         on_delete=models.CASCADE,
     )
-    email = models.ForeignKey(Email, verbose_name=_("E-mail"), on_delete=models.CASCADE)
+    email = models.ForeignKey(Email, verbose_name=_("Email"), on_delete=models.CASCADE)
     # the trigger event which send the email
     trigger_event = models.CharField(
         verbose_name=_("Trigger event"),
@@ -406,11 +406,11 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         default=INCIDENT_EMAIL_TRIGGER_EVENT[0][0],
     )
     # the delay after the trigger event
-    delay_in_hours = models.IntegerField(verbose_name=_("Delay in hour"), default=0)
+    delay_in_hours = models.IntegerField(verbose_name=_("Delay in hours"), default=0)
 
     class Meta:
-        verbose_name_plural = _("Emails for Incident notification workflows")
-        verbose_name = _("Email for Incident notification workflow")
+        verbose_name_plural = _("Reminder emails")
+        verbose_name = _("Reminder email")
 
     def __str__(self):
         headline_translation = self.safe_translation_getter(
@@ -425,7 +425,7 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
 # incident
 class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
-    incident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
+    incident_id = models.CharField(max_length=22, verbose_name=_("Incident ID"))
     incident_timezone = models.CharField(
         max_length=50,
         choices=[(tz, tz) for tz in pytz.all_timezones],
@@ -434,10 +434,12 @@ class Incident(models.Model):
     incident_notification_date = models.DateTimeField(default=timezone.now)
     incident_detection_date = models.DateTimeField(blank=True, null=True)
     incident_starting_date = models.DateTimeField(blank=True, null=True)
-    company_name = models.CharField(max_length=100, verbose_name=_("Company name"))
+    company_name = models.CharField(
+        max_length=100, verbose_name=_("Name of the Operator")
+    )
     company = models.ForeignKey(
         "governanceplatform.Company",
-        verbose_name=_("Company"),
+        verbose_name=_("Operator"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -466,8 +468,10 @@ class Incident(models.Model):
     contact_firstname = models.CharField(
         max_length=100, verbose_name=_("contact first name")
     )
-    contact_title = models.CharField(max_length=100, verbose_name=_("contact title"))
-    contact_email = models.CharField(max_length=100, verbose_name=_("contact e-mail"))
+    contact_title = models.CharField(
+        max_length=100, verbose_name=_("Contact job title")
+    )
+    contact_email = models.CharField(max_length=100, verbose_name=_("Contact email"))
     contact_telephone = models.CharField(
         max_length=100, verbose_name=_("contact telephone")
     )
@@ -479,24 +483,24 @@ class Incident(models.Model):
         max_length=100, verbose_name=_("technical first name")
     )
     technical_title = models.CharField(
-        max_length=100, verbose_name=_("technical title")
+        max_length=100, verbose_name=_("Technical job title")
     )
     technical_email = models.CharField(
-        max_length=100, verbose_name=_("technical e-mail")
+        max_length=100, verbose_name=_("Technical email")
     )
     technical_telephone = models.CharField(
         max_length=100, verbose_name=_("technical telephone")
     )
 
     incident_reference = models.CharField(
-        verbose_name=_("Incident reference"), max_length=255
+        verbose_name=_("Internal incident reference"), max_length=255
     )
     complaint_reference = models.CharField(
-        verbose_name=_("Police report reference"), max_length=255
+        verbose_name=_("Criminal complaint file number"), max_length=255
     )
 
     affected_services = models.ManyToManyField(
-        "governanceplatform.Service", verbose_name=_("Affected Service")
+        "governanceplatform.Service", verbose_name=_("Impacted service")
     )
     sector_regulation = models.ForeignKey(
         SectorRegulation,
@@ -508,7 +512,7 @@ class Incident(models.Model):
     )
     # keep a trace of selected sectors
     affected_sectors = models.ManyToManyField(
-        "governanceplatform.Sector", verbose_name=_("Affected sectors")
+        "governanceplatform.Sector", verbose_name=_("Impacted sectors")
     )
     workflows = models.ManyToManyField(
         Workflow, through="IncidentWorkflow", verbose_name=_("Incident reports")
@@ -526,7 +530,7 @@ class Incident(models.Model):
     authorities = models.ManyToManyField(
         "governanceplatform.Regulator",
         related_name="authorities",
-        verbose_name=_("Authorities"),
+        verbose_name=_("Regulators"),
     )
 
     # status
@@ -535,7 +539,7 @@ class Incident(models.Model):
         choices=REVIEW_STATUS,
         blank=False,
         default=REVIEW_STATUS[0][0],
-        verbose_name=_("Review status"),
+        verbose_name=_("Report status"),
     )
     incident_status = models.CharField(
         max_length=5,
@@ -732,7 +736,7 @@ class IncidentWorkflow(models.Model):
     # for versionning
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     review_status = models.CharField(
-        verbose_name=_("Review status"),
+        verbose_name=_("Report status"),
         max_length=5,
         choices=WORKFLOW_REVIEW_STATUS,
         blank=False,
@@ -808,17 +812,17 @@ class LogReportRead(models.Model):
     )
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     # save full name in case of the user is deleted to keep the name
-    user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    user_full_name = models.CharField(max_length=250, verbose_name=_("Full username"))
     incident_report = models.ForeignKey(
         IncidentWorkflow,
-        verbose_name=_("Incident report answered"),
+        verbose_name=_("Incident report processed"),
         on_delete=models.CASCADE,
         null=True,
         default=None,
     )
     incident = models.ForeignKey(
         Incident,
-        verbose_name=_("Incident report answered"),
+        verbose_name=_("Incident report processed"),
         on_delete=models.CASCADE,
         null=True,
         default=None,
@@ -863,7 +867,7 @@ class QuestionOptions(models.Model):
 class Answer(models.Model):
     incident_workflow = models.ForeignKey(
         IncidentWorkflow,
-        verbose_name=_("Incident report answered"),
+        verbose_name=_("Incident report processed"),
         on_delete=models.CASCADE,
     )
     answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)

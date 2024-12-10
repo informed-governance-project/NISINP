@@ -5,7 +5,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
@@ -348,9 +348,9 @@ class ImpactSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.annotate(
-                child_count=Count('children')
-            ).exclude(parent=None, child_count__gt=0)
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
         sectors_list = []
 
         for sector in sectors:
@@ -365,7 +365,7 @@ class ImpactSectorListFilter(SimpleListFilter):
 
 
 class ImpactRegulationListFilter(SimpleListFilter):
-    title = _("Regulation")
+    title = _("Legal basis")
     parameter_name = "regulation"
 
     def lookups(self, request, model_admin):
@@ -446,7 +446,7 @@ class ImpactAdmin(
         if db_field.name == "sectors":
             # exclude parent with children from the list
             kwargs["queryset"] = Sector.objects.annotate(
-                child_count=Count('children')
+                child_count=Count("children")
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
@@ -727,7 +727,7 @@ class SectorRegulationAdmin(ShowReminderForTranslationsMixin, CustomTranslatable
         if db_field.name == "sectors":
             # exclude parent with children from the list
             kwargs["queryset"] = Sector.objects.annotate(
-                child_count=Count('children')
+                child_count=Count("children")
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)

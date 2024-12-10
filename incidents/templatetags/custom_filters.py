@@ -49,13 +49,13 @@ def status_class(value):
 @register.simple_tag
 def status_class_without_incident_workflow(report, incident):
     value = is_deadline_exceeded(report, incident)
-    if value == _("Review passed"):
+    if value == _("Passed"):
         return "table-success"
-    elif value == _("Review failed"):
+    elif value == _("Failed"):
         return "table-danger"
     elif value == _("Submitted"):
         return "table-info"
-    elif value == _("Not submitted and deadline exceeded"):
+    elif value == _("Submission overdue"):
         return "table-dark"
     else:
         return "table-secondary"
@@ -64,15 +64,15 @@ def status_class_without_incident_workflow(report, incident):
 @register.simple_tag
 def get_review_status_name(value):
     if value == "PASS":
-        return _("Review passed")
+        return _("Passed")
     elif value == "FAIL":
-        return _("Review failed")
+        return _("Failed")
     elif value == "DELIV":
         return _("Submitted")
     elif value == "OUT":
-        return _("Not submitted and deadline exceeded")
+        return _("Submission overdue")
     else:
-        return _("Not submitted")
+        return _("Unsubmitted")
 
 
 @register.filter
@@ -155,14 +155,14 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not submitted and deadline exceeded")
+                    return _("Submission overdue")
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
                 math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                return _("Not submitted and deadline exceeded")
+                return _("Submission overdue")
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
             and incident.get_previous_workflow(report) is not False
@@ -180,9 +180,9 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Not submitted and deadline exceeded")
+                    return _("Submission overdue")
 
-    return _("Not submitted")
+    return _("Unsubmitted")
 
 
 # get the incident workflow by workflow and incident to see the historic for regulator

@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, Count
+from django.db.models import Count, Q
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -422,9 +422,9 @@ class CompanySectorListFilter(SimpleListFilter):
     parameter_name = "companyuser_set__sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.annotate(
-                child_count=Count('children')
-            ).exclude(parent=None, child_count__gt=0)
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
         sectors_list = []
         user = request.user
         # Operator Admin
@@ -556,7 +556,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             messages.add_message(
                 request,
                 messages.WARNING,
-                "Some Companies havn't been deleted because they contains users",
+                "Some companies haven't been deleted because they contains users",
             )
         queryset.delete()
 
@@ -578,8 +578,12 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             sectors = dict()
             # Access and modify inline objects
             for formset in formsets:
-                if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
-                    ru = RegulatorUser.objects.get(user=user, regulator=user.regulators.first())
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
+                    user, "RegulatorUser"
+                ):
+                    ru = RegulatorUser.objects.get(
+                        user=user, regulator=user.regulators.first()
+                    )
                     for obj in formset.save(commit=False):  # Inline objects are here
                         sects = []
                         for sect in obj.sectors.all():
@@ -589,7 +593,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             super().save_related(request, form, formsets, change)
             # re assign sectors which are not assigned to the current regulatoruser
             for formset in formsets:
-                if isinstance(formset, CompanyUserInline.formset) and user_in_group(user, "RegulatorUser"):
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
+                    user, "RegulatorUser"
+                ):
                     for obj in formset.save(commit=False):  # Inline objects are here
                         if sectors[obj] is not None:
                             obj.sectors.add(*sectors[obj])
@@ -719,7 +725,7 @@ class userRegulatorInline(admin.TabularInline):
         if db_field.name == "sectors":
             # exclude parent with children from the list
             kwargs["queryset"] = Sector.objects.annotate(
-                child_count=Count('children')
+                child_count=Count("children")
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
@@ -814,7 +820,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 
 class UserRegulatorsListFilter(SimpleListFilter):
-    title = _("Competent authorities")
+    title = _("Regulators")
     parameter_name = "regulators"
 
     def lookups(self, request, model_admin):
@@ -852,7 +858,7 @@ class ObserverUsersListFilter(SimpleListFilter):
 
 
 class UserCompaniesListFilter(SimpleListFilter):
-    title = _("Companies")
+    title = _("Operators")
     parameter_name = "companies"
 
     def lookups(self, request, model_admin):
@@ -879,9 +885,9 @@ class UserSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.annotate(
-                child_count=Count('children')
-            ).exclude(parent=None, child_count__gt=0)
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
         sectors_list = []
         user = request.user
         # Platform Admin
