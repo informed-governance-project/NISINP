@@ -80,11 +80,6 @@ OPERATOR_SERVICES = [
 @otp_required
 def reporting(request):
     user = request.user
-    year = (
-        int(request.GET.get("year"))
-        if request.GET.get("year", None)
-        else int(timezone.now().year)
-    )
 
     companies_queryset = (
         Company.objects.filter(
@@ -94,20 +89,23 @@ def reporting(request):
         else Company.objects.all()
     )
 
-    reporting_filter_params = request.session.get(
-        "reporting_filter_params", request.GET
-    )
-    sectors_filters = request.GET.getlist("sectors")
-    company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
-
-    # Filter
     if "reset" in request.GET:
-        if "reporting_filter_params" in request.session:
-            del request.session["reporting_filter_params"]
+        request.session.pop("reporting_filter_params", None)
         return redirect("reporting")
 
-    if request.GET:
-        request.session["reporting_filter_params"] = request.GET
+    current_params = request.session.get("reporting_filter_params", {}).copy()
+
+    for key, values in request.GET.lists():
+        current_params[key] = values if len(values) > 1 else values[0]
+
+    reporting_filter_params = current_params
+    request.session["reporting_filter_params"] = current_params
+
+    year = int(reporting_filter_params.get("year") or timezone.now().year)
+
+    sectors_filters = reporting_filter_params.get("sectors", [])
+
+    company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
 
     is_filtered = {k: v for k, v in reporting_filter_params.items()}
 
