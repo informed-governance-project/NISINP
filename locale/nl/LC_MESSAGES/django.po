@@ -1,198 +1,515 @@
 # This file was generated from traductions BE import.xlsx
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2024-12-10 15:07+0100\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-10 15:00+0100\n"
+"PO-Revision-Date: 2024-12-10 15:28+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: nl\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: xls-to-po 1.0\n"
+"X-Generator: Poedit 3.5\n"
 
+#: governanceplatform/admin.py:55 governanceplatform/context_processors.py:23
 msgid "Settings"
 msgstr "Instellingen"
 
-msgid "Contact for sector"
-msgstr "Aanspreekpunt voor sector"
+#: governanceplatform/admin.py:298
+msgid "Contact for company"
+msgstr ""
 
-msgid "Contacts for sectors"
-msgstr "Aanspreekpunten voor sector"
+#: governanceplatform/admin.py:299
+msgid "Contacts for company"
+msgstr ""
 
+#: governanceplatform/admin.py:421 governanceplatform/admin.py:884
+#: governanceplatform/models.py:64 governanceplatform/models.py:441
+#: incidents/admin.py:347 incidents/admin.py:417 incidents/admin.py:677
+#: incidents/models.py:42 incidents/models.py:300 incidents/views.py:691
 msgid "Sectors"
 msgstr "Sectoren"
 
+#: governanceplatform/admin.py:471 governanceplatform/admin.py:1008
+#: governanceplatform/admin.py:1021
 msgid "Contact information"
 msgstr "Informatie aanspreekpunt"
 
+#: governanceplatform/admin.py:482
 msgid "Configuration information"
 msgstr "Informatie over configuratie"
 
+#: governanceplatform/admin.py:491
+msgid "Entity Categories"
+msgstr ""
+
+#: governanceplatform/admin.py:814
 msgid "Reset 2FA"
 msgstr "2FA resetten"
 
+#: governanceplatform/admin.py:823 governanceplatform/models.py:223
+#: governanceplatform/models.py:342 governanceplatform/models.py:532
+#: incidents/models.py:533
 msgid "Regulators"
 msgstr "Bevoegde autoriteiten"
 
+#: governanceplatform/admin.py:842 governanceplatform/models.py:313
+#: governanceplatform/models.py:501 governanceplatform/models.py:579
 msgid "Observer"
 msgstr "Waarnemer"
 
+#: governanceplatform/admin.py:861 governanceplatform/models.py:184
+#: governanceplatform/models.py:337
 msgid "Operators"
 msgstr "Ondernemingen"
 
+#: governanceplatform/admin.py:922
 msgid "Roles"
 msgstr "Rollen"
 
+#: governanceplatform/admin.py:1393 governanceplatform/models.py:599
+msgid "Observer regulation"
+msgstr ""
+
+#: governanceplatform/admin.py:1394 governanceplatform/models.py:600
+msgid "Observer regulations"
+msgstr ""
+
+#: governanceplatform/admin.py:1401 governanceplatform/models.py:513
 msgid "Observer user"
 msgstr ""
 
+#: governanceplatform/admin.py:1402 governanceplatform/models.py:514
 msgid "Observer users"
 msgstr ""
 
+#: governanceplatform/config.py:96 governanceplatform/config_dev.py:101
+msgid "Dutch"
+msgstr ""
+
+#: governanceplatform/config.py:120 governanceplatform/config_dev.py:125
+msgid "Cookie settings"
+msgstr ""
+
+#: governanceplatform/config.py:124 governanceplatform/config_dev.py:129
+msgid "Essential"
+msgstr ""
+
+#: governanceplatform/config.py:126 governanceplatform/config_dev.py:131
+msgid ""
+"This website uses cookies and other similar technologies strictly "
+"necessary                 for its operation, without the use of personal "
+"data."
+msgstr ""
+
+#: governanceplatform/config.py:132 governanceplatform/config_dev.py:137
+msgid "Meta cookie for the cookies that are set."
+msgstr ""
+
+#: governanceplatform/config.py:133 governanceplatform/config_dev.py:138
+msgid "Accepted cookies"
+msgstr ""
+
+#: governanceplatform/config.py:134 governanceplatform/config_dev.py:139
+msgid "6 months"
+msgstr ""
+
+#: governanceplatform/config.py:138 governanceplatform/config_dev.py:143
+msgid "This cookie is necessary for user options"
+msgstr ""
+
+#: governanceplatform/config.py:139 governanceplatform/config_dev.py:144
+msgid "Session ID"
+msgstr ""
+
+#: governanceplatform/config.py:140 governanceplatform/config.py:148
+#: governanceplatform/config_dev.py:145 governanceplatform/config_dev.py:153
+msgid "15 minutes"
+msgstr ""
+
+#: governanceplatform/config.py:145 governanceplatform/config_dev.py:150
+msgid "This cookie prevents Cross-Site-Request-Forgery attacks."
+msgstr ""
+
+#: governanceplatform/config.py:147 governanceplatform/config_dev.py:152
+msgid "Token"
+msgstr ""
+
+#: governanceplatform/config.py:152 governanceplatform/config_dev.py:157
+msgid "Meta cookie for user language settings"
+msgstr ""
+
+#: governanceplatform/config.py:153 governanceplatform/config_dev.py:158
+msgid "Language settings"
+msgstr ""
+
+#: governanceplatform/config.py:154 governanceplatform/config.py:160
+#: governanceplatform/config_dev.py:159 governanceplatform/config_dev.py:165
+msgid "Session"
+msgstr ""
+
+#: governanceplatform/config.py:158 governanceplatform/config_dev.py:163
+msgid "Meta cookie for user theme settings"
+msgstr ""
+
+#: governanceplatform/config.py:159 governanceplatform/config_dev.py:164
+msgid "Theme dark/light settings"
+msgstr ""
+
+#: governanceplatform/forms.py:31
 msgid "Role"
 msgstr "Rol"
 
+#: governanceplatform/forms.py:97 governanceplatform/forms.py:171
+msgid "I accept and agree to the"
+msgstr ""
+
+#: governanceplatform/forms.py:98
+msgid "You must accept the Terms of Use to register."
+msgstr ""
+
+#: governanceplatform/forms.py:139
+#, python-format
+msgid ""
+"Default language translation (%(fallback_language_name)s) is missing. Please "
+"add it before saving."
+msgstr ""
+
+#: governanceplatform/forms.py:162
+msgid "This {self.instance._meta.verbose_name.lower()} already exist."
+msgstr ""
+
+#: governanceplatform/globals.py:12
+msgid "Addition"
+msgstr ""
+
+#: governanceplatform/globals.py:13
+msgid "Change"
+msgstr ""
+
+#: governanceplatform/globals.py:14
+msgid "Deletion"
+msgstr ""
+
+#: governanceplatform/globals.py:16
+msgid "Logged in"
+msgstr ""
+
+#: governanceplatform/globals.py:17
+msgid "Logged out"
+msgstr ""
+
+#: governanceplatform/globals.py:22
+msgid "Security Objective"
+msgstr ""
+
+#: governanceplatform/helpers.py:291
+msgid "<strong>Change or delete actions are not allowed</strong><br>"
+msgstr ""
+
+#: governanceplatform/managers.py:15
 msgid "User must have an email address"
 msgstr ""
 
+#: governanceplatform/managers.py:28
 msgid "Superuser must have is_staff=True."
 msgstr "Superuser moet is_staff=True hebben."
 
+#: governanceplatform/mixins.py:58
+msgid "Don't forget to save your object language by language"
+msgstr ""
+
+#: governanceplatform/models.py:19 governanceplatform/models.py:69
+#: governanceplatform/models.py:87 incidents/models.py:204
+#: incidents/models.py:234 incidents/models.py:283
+#: templates/home/privacy_policy.html:89
 msgid "Name"
 msgstr "Naam"
 
+#: governanceplatform/models.py:26
 msgid "Parent Sector"
 msgstr "Bovenliggend"
 
+#: governanceplatform/models.py:29 governanceplatform/models.py:73
+#: governanceplatform/models.py:131
 msgid "Acronym"
 msgstr "Acroniem"
 
-msgid "Creator name"
+#: governanceplatform/models.py:33
+msgid "Creator Name"
 msgstr ""
 
+#: governanceplatform/models.py:41 incidents/models.py:55
+#: incidents/models.py:86 incidents/models.py:125 incidents/models.py:175
+#: incidents/models.py:215 incidents/models.py:261
 msgid "Creator"
 msgstr ""
 
+#: governanceplatform/models.py:63 governanceplatform/models.py:71
 msgid "Sector"
 msgstr "Sector"
 
+#: governanceplatform/models.py:80
 msgid "Service"
 msgstr "Dienst"
 
+#: governanceplatform/models.py:81
 msgid "Services"
 msgstr "Diensten"
 
-msgid "Functionality"
-msgstr "Functie"
-
-msgid "Functionalities"
-msgstr "Functies"
-
+#: governanceplatform/models.py:91 governanceplatform/models.py:116
 msgid "Type"
 msgstr ""
 
-msgid "Country"
-msgstr "land"
+#: governanceplatform/models.py:109
+msgid "Functionality"
+msgstr "Functie"
 
-msgid "Address"
-msgstr "adres"
+#: governanceplatform/models.py:110 governanceplatform/models.py:120
+#: governanceplatform/models.py:213 governanceplatform/models.py:255
+msgid "Functionalities"
+msgstr "Functies"
 
+#: governanceplatform/models.py:133 governanceplatform/models.py:190
+#: governanceplatform/models.py:229
+msgid "name"
+msgstr ""
+
+#: governanceplatform/models.py:136 governanceplatform/models.py:202
+#: governanceplatform/models.py:241
+msgid "country"
+msgstr ""
+
+#: governanceplatform/models.py:140 governanceplatform/models.py:204
+#: governanceplatform/models.py:243
+msgid "address"
+msgstr ""
+
+#: governanceplatform/models.py:146 governanceplatform/models.py:321
 msgid "Email address"
 msgstr "mailadres"
 
+#: governanceplatform/models.py:149 governanceplatform/models.py:332
 msgid "Phone number"
 msgstr "Telefoonnummer"
 
-msgid "Sector contacts"
-msgstr ""
-
+#: governanceplatform/models.py:157
 msgid "Types"
 msgstr ""
 
+#: governanceplatform/models.py:161 governanceplatform/models.py:565
+msgid "Entity categories"
+msgstr ""
+
+#: governanceplatform/models.py:183 governanceplatform/models.py:432
+#: incidents/models.py:442
 msgid "Operator"
 msgstr "Onderneming"
 
-msgid "Full name"
-msgstr "volledige naam"
+#: governanceplatform/models.py:192 governanceplatform/models.py:231
+msgid "full name"
+msgstr ""
 
-msgid "Description"
-msgstr "beschrijving"
+#: governanceplatform/models.py:195 governanceplatform/models.py:234
+msgid "description"
+msgstr ""
 
+#: governanceplatform/models.py:206 governanceplatform/models.py:245
 msgid "E-mail address for incident notification"
 msgstr ""
 
-msgid "Receives all incident notifications"
-msgstr ""
-
-msgid "Observers"
-msgstr ""
-
-msgid "An account with this email address already exists."
-msgstr "Er bestaat al een account met dit mailadres"
-
-msgid "Administrator"
-msgstr "Administrator"
-
-msgid "Determines if the user can log in via the administration interface."
-msgstr "Geeft aan of een gebruiker via de beheerinterface kan inloggen."
-
-msgid "User"
-msgstr ""
-
-msgid "Contact person"
-msgstr "Aanspreekpunt"
-
-msgid "Is administrator"
-msgstr "is administrator"
-
-msgid "Sector contact"
-msgstr "Aanspreekpunt van de sector"
-
-msgid "Sectors contact"
-msgstr "Aanspreekpunt van de sectoren"
-
-msgid "Regulator user"
-msgstr "Gebruiker van de regulator"
-
-msgid "Regulator users"
-msgstr "Gebruikers van de regulator"
-
-msgid "Label"
-msgstr ""
-
-msgid "The account has been successfully saved."
-msgstr "Het opslaan van de account is geslaagd."
-
-msgid "Users"
-msgstr ""
-
-msgid "Predefined answer"
-msgstr "vooraf bepaald antwoord"
-
-msgid "Predefined answers"
-msgstr "vooraf bepaalde antwoorden"
-
-msgid "Legal basis"
-msgstr "Regulering"
-
+#: governanceplatform/models.py:222 governanceplatform/models.py:471
+#: incidents/admin.py:491 incidents/models.py:293 incidents/models.py:450
 msgid "Regulator"
 msgstr "Bevoegde autoriteit"
 
-msgid "Email type"
+#: governanceplatform/models.py:251
+msgid "Receives all incident notifications"
 msgstr ""
 
-msgid "Sector regulation"
+#: governanceplatform/models.py:314 governanceplatform/models.py:347
+msgid "Observers"
 msgstr ""
 
-msgid "Sectors regulations"
+#: governanceplatform/models.py:324
+msgid "An account with this email address already exists."
+msgstr "Er bestaat al een account met dit mailadres"
+
+#: governanceplatform/models.py:351
+msgid "Administrator"
+msgstr "Administrator"
+
+#: governanceplatform/models.py:354
+msgid "Determines if the user can log in via the administration interface."
+msgstr "Geeft aan of een gebruiker via de beheerinterface kan inloggen."
+
+#: governanceplatform/models.py:437 governanceplatform/models.py:466
+#: governanceplatform/models.py:496 incidents/models.py:810
+msgid "User"
 msgstr ""
 
+#: governanceplatform/models.py:445 governanceplatform/models.py:474
+#: governanceplatform/models.py:504
+msgid "is administrator"
+msgstr ""
+
+#: governanceplatform/models.py:454
+msgid "Company User"
+msgstr ""
+
+#: governanceplatform/models.py:455
+msgid "Company Users"
+msgstr ""
+
+#: governanceplatform/models.py:484
+msgid "Regulator user"
+msgstr "Gebruiker van de regulator"
+
+#: governanceplatform/models.py:485
+msgid "Regulator users"
+msgstr "Gebruikers van de regulator"
+
+#: governanceplatform/models.py:525 governanceplatform/models.py:552
+#: incidents/models.py:26 incidents/models.py:74 incidents/models.py:112
+msgid "Label"
+msgstr ""
+
+#: governanceplatform/models.py:557
+msgid "Code"
+msgstr ""
+
+#: governanceplatform/models.py:566
+msgid "Entity category"
+msgstr ""
+
+#: governanceplatform/models.py:574 incidents/admin.py:368
+#: incidents/models.py:38 incidents/models.py:288
+msgid "Legal basis"
+msgstr "Regulering"
+
+#: governanceplatform/models.py:582
+msgid "Incident rules"
+msgstr ""
+
+#: governanceplatform/models.py:608
+msgid "Action time"
+msgstr ""
+
+#: governanceplatform/models.py:609 incidents/admin.py:88
+msgid "Action flag"
+msgstr ""
+
+#: governanceplatform/models.py:610
+msgid "Object id"
+msgstr ""
+
+#: governanceplatform/models.py:612
+msgid "Object representation"
+msgstr ""
+
+#: governanceplatform/models.py:615
+msgid "Additional information"
+msgstr ""
+
+#: governanceplatform/models.py:619
+msgid "Script log entry"
+msgstr ""
+
+#: governanceplatform/models.py:620
+msgid "Script log entries"
+msgstr ""
+
+#: governanceplatform/validators.py:16
+msgid "Your new password cannot be the same as your current password."
+msgstr ""
+
+#: governanceplatform/validators.py:29
+msgid "You cannot reuse a previously used password."
+msgstr ""
+
+#: governanceplatform/validators.py:34
+msgid "Your password must not match any previously used passwords."
+msgstr ""
+
+#: governanceplatform/views.py:61
+msgid "The account has been successfully saved."
+msgstr "Het opslaan van de account is geslaagd."
+
+#: incidents/admin.py:63
+msgid "Users"
+msgstr ""
+
+#: incidents/admin.py:143
+msgid "action flag"
+msgstr ""
+
+#: incidents/admin.py:237
+msgid "Question Option"
+msgstr ""
+
+#: incidents/admin.py:238
+msgid "Question Options"
+msgstr ""
+
+#: incidents/admin.py:265
+msgid "predefined answer"
+msgstr ""
+
+#: incidents/admin.py:266
+msgid "predefined answers"
+msgstr ""
+
+#: incidents/admin.py:401 incidents/admin.py:573 incidents/admin.py:657
+msgid "Basic information"
+msgstr ""
+
+#: incidents/admin.py:408 incidents/admin.py:667
+msgid "Oversight"
+msgstr ""
+
+#: incidents/admin.py:508
+msgid "Email Type"
+msgstr ""
+
+#: incidents/admin.py:580 incidents/admin.py:683
+msgid "Email Notification"
+msgstr ""
+
+#: incidents/admin.py:614
+msgid "<strong>Delete action is not allowed</strong><br>"
+msgstr ""
+
+#: incidents/admin.py:635 incidents/models.py:274 incidents/models.py:349
+#: incidents/models.py:734
 msgid "Incident report"
 msgstr "Incidentverslag"
 
+#: incidents/admin.py:636 incidents/models.py:273 incidents/models.py:296
+#: incidents/models.py:518
 msgid "Incident reports"
 msgstr "Incidentverslagen"
 
-msgid "Date format yyyy-mm-dd hh:mm"
-msgstr "Datumnotatie JJJJ-MM-DD UU:MM"
+#: incidents/decorators.py:39
+msgid ""
+"The user account does not have any linked entities. Contact the administrator"
+msgstr ""
 
+#: incidents/forms.py:219
+msgid "Add precision"
+msgstr ""
+
+#: incidents/forms.py:243 incidents/forms.py:740 incidents/forms.py:748
+msgid "Date Format YYYY-MM-DD HH:MM"
+msgstr ""
+
+#: incidents/forms.py:310 incidents/models.py:438
+msgid "Name of the Operator"
+msgstr "Bedrijfsnaam"
+
+#: incidents/forms.py:393
 msgid ""
 "Please include a reference (e.g., an identifier, internal reference, CERT "
 "reference, etc.) to facilitate incident tracking."
@@ -200,290 +517,551 @@ msgstr ""
 "Voeg een verwijzing in om uw incident makkelijker terug te vinden en te "
 "volgen (bijv. identificatiecode, interne verwijzing, CERT-verwijzing, enz.)."
 
+#: incidents/forms.py:407
 msgid ""
 "Insert the file number of a criminal complaint that you have filed with the "
 "police."
 msgstr "Voeg uw aangifte bij de politie toe"
 
+#: incidents/forms.py:529 incidents/forms.py:726
 msgid "Select the incident time zone"
 msgstr ""
 
+#: incidents/globals.py:30
 msgid "Closed"
 msgstr "Afgesloten"
 
+#: incidents/globals.py:31
 msgid "Ongoing"
 msgstr "In behandeling"
 
+#: incidents/globals.py:35 incidents/globals.py:43
+#: incidents/templatetags/custom_filters.py:75
+#: incidents/templatetags/custom_filters.py:185
 msgid "Unsubmitted"
 msgstr "Niet voorgelegd"
 
+#: incidents/globals.py:36 incidents/globals.py:44
 msgid "Under review"
 msgstr "Voorgelegd maar onderzoek nog niet afgerond"
 
+#: incidents/globals.py:37 incidents/globals.py:45
+#: incidents/templatetags/custom_filters.py:52
+#: incidents/templatetags/custom_filters.py:67
 msgid "Passed"
 msgstr "Na onderzoek aanvaard"
 
+#: incidents/globals.py:38 incidents/globals.py:46
+#: incidents/templatetags/custom_filters.py:54
+#: incidents/templatetags/custom_filters.py:69
 msgid "Failed"
 msgstr "Na onderzoek geweigerd"
 
+#: incidents/globals.py:39 incidents/globals.py:47
+#: incidents/templatetags/custom_filters.py:58
+#: incidents/templatetags/custom_filters.py:73
+#: incidents/templatetags/custom_filters.py:158
+#: incidents/templatetags/custom_filters.py:165
+#: incidents/templatetags/custom_filters.py:183
 msgid "Submission overdue"
 msgstr "Niet voorgelegd en deadline verstreken"
 
-msgid "Email subject"
+#: incidents/models.py:28
+msgid "Headline"
 msgstr ""
 
+#: incidents/models.py:47 incidents/models.py:78 incidents/models.py:117
+#: incidents/models.py:167 incidents/models.py:207 incidents/models.py:253
+msgid "Creator name"
+msgstr ""
+
+#: incidents/models.py:67
 msgid "Impact"
 msgstr ""
 
+#: incidents/models.py:68 incidents/models.py:522 incidents/models.py:747
+#: incidents/views.py:1079
 msgid "Impacts"
 msgstr "Gevolgen"
 
-msgid "Position"
-msgstr ""
-
+#: incidents/models.py:98
 msgid "Step in notification form"
 msgstr "Categorie van vragen"
 
+#: incidents/models.py:99
 msgid "Steps in notification form"
 msgstr "Categorieën van vragen"
 
-msgid "Question type"
+#: incidents/models.py:109
+msgid "Question Type"
 msgstr ""
 
-msgid "Mandatory"
-msgstr "Verplicht"
-
+#: incidents/models.py:113
 msgid "Tooltip"
 msgstr ""
 
-msgid "Category"
-msgstr ""
-
-msgid "Question"
-msgstr ""
-
+#: incidents/models.py:148 incidents/models.py:239
 msgid "Questions"
 msgstr ""
 
+#: incidents/models.py:149 incidents/models.py:159
+msgid "Question"
+msgstr ""
+
+#: incidents/models.py:155 incidents/models.py:873 incidents/models.py:888
 msgid "Answer"
 msgstr ""
 
+#: incidents/models.py:191
 msgid "Question - predefined answers"
 msgstr ""
 
+#: incidents/models.py:192
 msgid "Question - predefined answer"
 msgstr ""
 
+#: incidents/models.py:199
 msgid "Subject"
 msgstr ""
 
+#: incidents/models.py:202 templates/home/privacy_policy.html:91
 msgid "Content"
 msgstr "Inhoud"
 
-msgid "Impacts disclosure required"
-msgstr "De gevolgen zijn vereist"
-
-msgid "Submission email"
-msgstr ""
-
-msgid "Incident detection date required"
-msgstr "De datum waarop het incident is ontdekt, is vereist"
-
-msgid "Opening email"
-msgstr ""
-
-msgid "Closing email"
-msgstr ""
-
-msgid "Status update email"
-msgstr ""
-
-msgid "Incident notification workflows"
-msgstr ""
-
-msgid "Incident notification workflow"
-msgstr ""
-
-msgid "Workflow"
-msgstr ""
-
-msgid "Deadline in hours"
-msgstr ""
-
-msgid "Event triggering deadline"
-msgstr ""
-
+#: incidents/models.py:226 incidents/models.py:366
 msgid "Emails"
 msgstr ""
 
-msgid "Report"
-msgstr ""
-
-msgid "Reports"
-msgstr ""
-
+#: incidents/models.py:227 incidents/models.py:399
 msgid "Email"
 msgstr "E-mail"
 
+#: incidents/models.py:237
+msgid "Impacts disclosure required"
+msgstr "De gevolgen zijn vereist"
+
+#: incidents/models.py:243
+msgid "Submision email"
+msgstr ""
+
+#: incidents/models.py:303
+msgid "Incident detection date required"
+msgstr "De datum waarop het incident is ontdekt, is vereist"
+
+#: incidents/models.py:308
+msgid "Opening email"
+msgstr ""
+
+#: incidents/models.py:317
+msgid "Closing email"
+msgstr ""
+
+#: incidents/models.py:326
+msgid "Status update email"
+msgstr ""
+
+#: incidents/models.py:335
+msgid "Incident notification workflows"
+msgstr ""
+
+#: incidents/models.py:336
+msgid "Incident notification workflow"
+msgstr ""
+
+#: incidents/models.py:346 incidents/models.py:507
+msgid "Workflow"
+msgstr ""
+
+#: incidents/models.py:352 incidents/models.py:840 incidents/models.py:856
+msgid "Position"
+msgstr ""
+
+#: incidents/models.py:356
+msgid "Deadline in hours"
+msgstr ""
+
+#: incidents/models.py:359
+msgid "Event triggering deadline"
+msgstr ""
+
+#: incidents/models.py:377 incidents/models.py:396
+msgid "Report"
+msgstr ""
+
+#: incidents/models.py:378
+msgid "Reports"
+msgstr ""
+
+#: incidents/models.py:391
+msgid "Email subject"
+msgstr ""
+
+#: incidents/models.py:402
 msgid "Trigger event"
 msgstr ""
 
+#: incidents/models.py:409
 msgid "Delay in hours"
 msgstr ""
 
+#: incidents/models.py:412
 msgid "Reminder emails"
 msgstr ""
 
+#: incidents/models.py:413
 msgid "Reminder email"
 msgstr ""
 
+#: incidents/models.py:428
 msgid "Incident ID"
 msgstr "Identificatiecode van het incident"
 
-msgid "Name of the Operator"
-msgstr "Bedrijfsnaam"
-
+#: incidents/models.py:459
 msgid "Contact user"
 msgstr ""
 
-msgid "Contact last name"
-msgstr "achternaam aanspreekpunt"
+#: incidents/models.py:466
+msgid "contact last name"
+msgstr ""
 
-msgid "Contact first name"
-msgstr "voornaam aanspreekpunt"
+#: incidents/models.py:469
+msgid "contact first name"
+msgstr ""
 
+#: incidents/models.py:472
 msgid "Contact job title"
 msgstr "titel aanspreekpunt"
 
+#: incidents/models.py:474
 msgid "Contact email"
 msgstr "e-mail aanspreekpunt"
 
-msgid "Contact telephone"
-msgstr "telefoon aanspreekpunt"
+#: incidents/models.py:476
+msgid "contact telephone"
+msgstr ""
 
-msgid "Technical last name"
-msgstr "achternaam technisch aanspreekpunt"
+#: incidents/models.py:480
+msgid "technical last name"
+msgstr ""
 
-msgid "Technical first name"
-msgstr "voornaam technisch aanspreekpunt"
+#: incidents/models.py:483
+msgid "technical first name"
+msgstr ""
 
+#: incidents/models.py:486
 msgid "Technical job title"
 msgstr "titel technisch aanspreekpunt"
 
+#: incidents/models.py:489
 msgid "Technical email"
 msgstr "e-mail technisch aanspreekpunt"
 
-msgid "Technical telephone"
-msgstr "telefoon technisch aanspreekpunt"
+#: incidents/models.py:492
+msgid "technical telephone"
+msgstr ""
 
+#: incidents/models.py:496
 msgid "Internal incident reference"
 msgstr "Verwijzing van het incident"
 
+#: incidents/models.py:499
 msgid "Criminal complaint file number"
 msgstr ""
 
+#: incidents/models.py:503
 msgid "Impacted service"
 msgstr ""
 
+#: incidents/models.py:515
 msgid "Impacted sectors"
 msgstr "Getroffen sectoren"
 
+#: incidents/models.py:526
 msgid "Significant impact"
 msgstr "Aanzienlijke impact"
 
+#: incidents/models.py:542 incidents/models.py:739
 msgid "Report status"
 msgstr "Status herzien"
 
+#: incidents/models.py:546
 msgid "Incident status"
 msgstr "Status incident"
 
+#: incidents/models.py:721 incidents/models.py:728 incidents/models.py:753
 msgid "Incident"
 msgstr ""
 
+#: incidents/models.py:722 incidents/models.py:754
 msgid "Incidents"
 msgstr ""
 
+#: incidents/models.py:737 incidents/models.py:813 incidents/models.py:882
 msgid "Timestamp"
 msgstr ""
 
+#: incidents/models.py:750 incidents/views.py:1083
 msgid "Comment"
 msgstr "Opmerking"
 
-msgid "Incident report processed"
-msgstr ""
-
-msgid "Answers"
-msgstr "Antwoorden"
-
+#: incidents/models.py:815
 msgid "Full username"
 msgstr ""
 
+#: incidents/models.py:818 incidents/models.py:825 incidents/models.py:870
+msgid "Incident report processed"
+msgstr ""
+
+#: incidents/models.py:831
 msgid "Action performed"
 msgstr ""
 
+#: incidents/models.py:846
+msgid "Question category options"
+msgstr ""
+
+#: incidents/models.py:847
+msgid "Question category option"
+msgstr ""
+
+#: incidents/models.py:855
+msgid "Mandatory"
+msgstr "Verplicht"
+
+#: incidents/models.py:876
+msgid "Question options"
+msgstr ""
+
+#: incidents/models.py:889
+msgid "Answers"
+msgstr "Antwoorden"
+
+#: incidents/templatetags/custom_filters.py:56
+#: incidents/templatetags/custom_filters.py:71
 msgid "Submitted"
 msgstr "Voorgelegd"
 
+#: incidents/views.py:178
 msgid "Missing data, incident report not created"
 msgstr "Data die ontbreken om het incidentverslag te maken"
 
+#: incidents/views.py:185 incidents/views.py:274
 msgid "Workflow not found"
 msgstr "Workflow niet gevonden"
 
+#: incidents/views.py:189 incidents/views.py:277 incidents/views.py:361
+#: incidents/views.py:435 incidents/views.py:472 incidents/views.py:536
 msgid "Incident not found"
 msgstr "Incident niet gevonden"
 
+#: incidents/views.py:193 incidents/views.py:200 incidents/views.py:253
+#: incidents/views.py:281 incidents/views.py:291 incidents/views.py:344
+#: incidents/views.py:439 incidents/views.py:476 incidents/views.py:509
+#: incidents/views.py:540
 msgid "Forbidden"
 msgstr "Verboden"
 
+#: incidents/views.py:219 incidents/views.py:225 incidents/views.py:268
+#: incidents/views.py:288 incidents/views.py:346 incidents/views.py:505
 msgid "No incident report could be found."
 msgstr "Geen incidentverslag gevonden."
 
+#: incidents/views.py:483 incidents/views.py:515
 msgid "An error occurred while generating the report."
 msgstr "Er is een fout opgetreden bij het genereren van het verslag."
 
+#: incidents/views.py:548
 msgid "The incident has been deleted."
 msgstr "Het incident is verwijderd."
 
+#: incidents/views.py:550
 msgid "The incident could not be deleted."
 msgstr "Het incident kon niet verwijderd worden."
 
+#: incidents/views.py:552
 msgid "An error occurred while deleting the incident."
 msgstr "Er is een fout opgetreden bij het verwijderen van het incident."
 
+#: incidents/views.py:567
 msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, "
-"a.u.b."
+"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, a.u."
+"b."
 
+#: incidents/views.py:679
 msgid "Please select at least one regulator"
 msgstr "Gelieve ten minste 1 regulator te selecteren"
 
+#: incidents/views.py:688
 msgid "Contact"
 msgstr "Aanspreekpunt"
 
+#: incidents/views.py:690
 msgid "Legal bases"
 msgstr "Voorschriften"
 
+#: incidents/views.py:692
 msgid "Detection date"
 msgstr "Datum van ontdekking"
 
+#: incidents/views.py:1071
 msgid "Incident Timeline"
 msgstr "Tijdlijn"
 
+#: templates/404.html:3
+msgid "404 Page Not Found"
+msgstr ""
+
+#: templates/404.html:10
+msgid "Page Not Found"
+msgstr ""
+
+#: templates/404.html:13
+msgid "Sorry, the page you're looking for doesn't exist."
+msgstr ""
+
+#: templates/500.html:3
+msgid "500 Server Error"
+msgstr ""
+
+#: templates/500.html:10
+msgid "Server Error"
+msgstr ""
+
+#: templates/500.html:13
+msgid "Sorry, something went wrong on our end."
+msgstr ""
+
+#: templates/500.html:14
+msgid "Please try again later."
+msgstr ""
+
+#: templates/account/edit.html:6
 msgid "Account"
 msgstr "Account"
 
+#: templates/account/edit.html:8
 msgid "Account management"
 msgstr "Account bewerken"
 
+#: templates/admin/base_site.html:8
 msgid "Django admin area"
 msgstr "Beheer van Django"
 
-msgid "Account security"
-msgstr "Beveiliging van account"
+#: templates/admin/base_site.html:13
+msgid "Account Security"
+msgstr ""
 
+#: templates/admin/base_site.html:14
 msgid "Password change"
 msgstr "Wijziging van wachtwoord"
+
+#: templates/admin/base_site.html:16
+msgid "Return to user interface"
+msgstr ""
+
+#: templates/admin/base_site.html:18
+msgid "Log out"
+msgstr ""
+
+#: templates/home/contact.html:9
+msgid "Dear entity, should you need any assistance please contact us on "
+msgstr ""
+
+#: templates/home/privacy_policy.html:90
+msgid "Description"
+msgstr "beschrijving"
+
+#: templates/home/privacy_policy.html:92
+msgid "Maximum duration"
+msgstr ""
+
+#: templates/registration/base.html:13
+msgid "Log in"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:7
+msgid "Enable Two-Factor Authentication"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:12
+msgid ""
+"Congratulations, you have successfully activated two-factor authentication."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:20
+msgid "Two-Factor Authentication has been set. Please log in again."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:25
+msgid ""
+"However, there may be instances where you do not have access to your main "
+"token. To enable account recovery, add a phone number."
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:32
+msgid "Back to Account Security"
+msgstr ""
+
+#: templates/two_factor/core/setup_complete.html:36
+msgid "Add Phone Number"
+msgstr ""
+
+#~ msgid "Contact for sector"
+#~ msgstr "Aanspreekpunt voor sector"
+
+#~ msgid "Contacts for sectors"
+#~ msgstr "Aanspreekpunten voor sector"
+
+#~ msgid "Country"
+#~ msgstr "land"
+
+#~ msgid "Address"
+#~ msgstr "adres"
+
+#~ msgid "Full name"
+#~ msgstr "volledige naam"
+
+#~ msgid "Contact person"
+#~ msgstr "Aanspreekpunt"
+
+#~ msgid "Is administrator"
+#~ msgstr "is administrator"
+
+#~ msgid "Sector contact"
+#~ msgstr "Aanspreekpunt van de sector"
+
+#~ msgid "Sectors contact"
+#~ msgstr "Aanspreekpunt van de sectoren"
+
+#~ msgid "Predefined answer"
+#~ msgstr "vooraf bepaald antwoord"
+
+#~ msgid "Predefined answers"
+#~ msgstr "vooraf bepaalde antwoorden"
+
+#~ msgid "Date format yyyy-mm-dd hh:mm"
+#~ msgstr "Datumnotatie JJJJ-MM-DD UU:MM"
+
+#~ msgid "Contact last name"
+#~ msgstr "achternaam aanspreekpunt"
+
+#~ msgid "Contact first name"
+#~ msgstr "voornaam aanspreekpunt"
+
+#~ msgid "Contact telephone"
+#~ msgstr "telefoon aanspreekpunt"
+
+#~ msgid "Technical last name"
+#~ msgstr "achternaam technisch aanspreekpunt"
+
+#~ msgid "Technical first name"
+#~ msgstr "voornaam technisch aanspreekpunt"
+
+#~ msgid "Technical telephone"
+#~ msgstr "telefoon technisch aanspreekpunt"
+
+#~ msgid "Account security"
+#~ msgstr "Beveiliging van account"
