@@ -1,18 +1,15 @@
-from django.contrib.auth.models import Group
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 
-from governanceplatform.admin import (
-    CustomTranslatableAdmin,
-    admin_site,
-)
-
+from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
-from .models import (  # OperatorType,; Service,
-    ObservationRecommendation
-)
+from governanceplatform.models import Sector
+from governanceplatform.widgets import TranslatedNameM2MWidget
+
+from .models import ObservationRecommendation  # OperatorType,; Service,
 
 
 # get the id of a group by name
@@ -25,7 +22,9 @@ def get_group_id(name=""):
     return group_id
 
 
-class ObservationRecommendationResource(TranslationUpdateMixin, resources.ModelResource):
+class ObservationRecommendationResource(
+    TranslationUpdateMixin, resources.ModelResource
+):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -39,24 +38,35 @@ class ObservationRecommendationResource(TranslationUpdateMixin, resources.ModelR
         attribute="description",
     )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
-        if instance:
-            instance.is_generic = True
+    sectors = fields.Field(
+        column_name="sectors",
+        attribute="sectors",
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator="|"),
+    )
 
     class Meta:
         model = ObservationRecommendation
+        fields = (
+            "id",
+            "code",
+            "description",
+            "sectors",
+        )
+        export_order = fields
 
 
 @admin.register(ObservationRecommendation, site=admin_site)
 class ObservationRecommendationAdmin(CustomTranslatableAdmin, ImportExportModelAdmin):
-    list_display = ["code", "description"]
-    search_fields = ["code", "description"]
     resource_class = ObservationRecommendationResource
+    list_display = ["code", "description", "get_sector_name"]
+    search_fields = ["code", "description"]
+    filter_horizontal = ("sectors",)
     fields = (
-        "description",
         "code",
+        "description",
+        "sectors",
     )
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.filter(is_generic=True)
+    @admin.display(description="Sectors")
+    def get_sector_name(self, obj):
+        return [sector for sector in obj.sectors.all()]
