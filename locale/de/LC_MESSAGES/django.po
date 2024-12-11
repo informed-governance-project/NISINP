@@ -1,18 +1,13 @@
-# This file was generated from traductions BE import.xlsx
+# This file was generated from serima_backend_translations_v0.9.xlsx
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-10 15:00+0100\n"
-"PO-Revision-Date: 2024-12-10 15:26+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2024-12-11 09:33+0100\n"
+"PO-Revision-Date: 2024-12-11 09:32+0100\n"
 "Language: de\n"
-"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: xls-to-po 1.0\n"
-"X-Generator: Poedit 3.5\n"
 
 #: governanceplatform/admin.py:55 governanceplatform/context_processors.py:23
 msgid "Settings"
@@ -42,8 +37,9 @@ msgstr "Kontaktinformationen"
 msgid "Configuration information"
 msgstr "Informationen zur Konfiguration"
 
-#: governanceplatform/admin.py:491
-msgid "Entity Categories"
+#: governanceplatform/admin.py:491 governanceplatform/models.py:161
+#: governanceplatform/models.py:565
+msgid "Entity categories"
 msgstr ""
 
 #: governanceplatform/admin.py:814
@@ -202,8 +198,8 @@ msgstr ""
 msgid "Logged out"
 msgstr ""
 
-#: governanceplatform/globals.py:22
-msgid "Security Objective"
+#: governanceplatform/globals.py:21
+msgid "Security objective"
 msgstr ""
 
 #: governanceplatform/helpers.py:291
@@ -223,8 +219,9 @@ msgid "Don't forget to save your object language by language"
 msgstr ""
 
 #: governanceplatform/models.py:19 governanceplatform/models.py:69
-#: governanceplatform/models.py:87 incidents/models.py:204
-#: incidents/models.py:234 incidents/models.py:283
+#: governanceplatform/models.py:87 governanceplatform/models.py:133
+#: governanceplatform/models.py:190 governanceplatform/models.py:229
+#: incidents/models.py:204 incidents/models.py:234 incidents/models.py:283
 #: templates/home/privacy_policy.html:89
 msgid "Name"
 msgstr "Name"
@@ -238,9 +235,11 @@ msgstr "Übergeordneter Sektor"
 msgid "Acronym"
 msgstr "Akronym"
 
-#: governanceplatform/models.py:33
-msgid "Creator Name"
-msgstr ""
+#: governanceplatform/models.py:33 incidents/models.py:47
+#: incidents/models.py:78 incidents/models.py:117 incidents/models.py:167
+#: incidents/models.py:207 incidents/models.py:253
+msgid "Creator name"
+msgstr "Ersteller Name"
 
 #: governanceplatform/models.py:41 incidents/models.py:55
 #: incidents/models.py:86 incidents/models.py:125 incidents/models.py:175
@@ -273,20 +272,15 @@ msgstr "Funktionalität"
 msgid "Functionalities"
 msgstr "Funktionalitäten"
 
-#: governanceplatform/models.py:133 governanceplatform/models.py:190
-#: governanceplatform/models.py:229
-msgid "name"
-msgstr ""
-
 #: governanceplatform/models.py:136 governanceplatform/models.py:202
 #: governanceplatform/models.py:241
-msgid "country"
-msgstr ""
+msgid "Country"
+msgstr "Land"
 
 #: governanceplatform/models.py:140 governanceplatform/models.py:204
 #: governanceplatform/models.py:243
-msgid "address"
-msgstr ""
+msgid "Address"
+msgstr "Adresse"
 
 #: governanceplatform/models.py:146 governanceplatform/models.py:321
 msgid "Email address"
@@ -300,22 +294,19 @@ msgstr "Telefonnummer"
 msgid "Types"
 msgstr "Typen"
 
-#: governanceplatform/models.py:161 governanceplatform/models.py:565
-msgid "Entity categories"
-msgstr ""
-
 #: governanceplatform/models.py:183 governanceplatform/models.py:432
 #: incidents/models.py:442
 msgid "Operator"
 msgstr "Betreiber"
 
 #: governanceplatform/models.py:192 governanceplatform/models.py:231
-msgid "full name"
-msgstr ""
+msgid "Full name"
+msgstr "Vollständiger Name"
 
 #: governanceplatform/models.py:195 governanceplatform/models.py:234
-msgid "description"
-msgstr ""
+#: templates/home/privacy_policy.html:90
+msgid "Description"
+msgstr "Beschreibung"
 
 #: governanceplatform/models.py:206 governanceplatform/models.py:245
 msgid "E-mail address for incident notification"
@@ -355,8 +346,8 @@ msgstr "Benutzer"
 
 #: governanceplatform/models.py:445 governanceplatform/models.py:474
 #: governanceplatform/models.py:504
-msgid "is administrator"
-msgstr ""
+msgid "Is administrator"
+msgstr "Ist Administrator"
 
 #: governanceplatform/models.py:454
 msgid "Company User"
@@ -401,6 +392,7 @@ msgid "Action time"
 msgstr ""
 
 #: governanceplatform/models.py:609 incidents/admin.py:88
+#: incidents/admin.py:143
 msgid "Action flag"
 msgstr ""
 
@@ -444,25 +436,21 @@ msgstr "Das Konto wurde erfolgreich gespeichert."
 msgid "Users"
 msgstr "Benutzer"
 
-#: incidents/admin.py:143
-msgid "action flag"
-msgstr ""
-
 #: incidents/admin.py:237
-msgid "Question Option"
+msgid "Question option"
 msgstr ""
 
-#: incidents/admin.py:238
-msgid "Question Options"
+#: incidents/admin.py:238 incidents/models.py:876
+msgid "Question options"
 msgstr ""
 
 #: incidents/admin.py:265
-msgid "predefined answer"
-msgstr ""
+msgid "Predefined answer"
+msgstr "Vordefinierte Antwort"
 
 #: incidents/admin.py:266
-msgid "predefined answers"
-msgstr ""
+msgid "Predefined answers"
+msgstr "Vordefinierte Antworten"
 
 #: incidents/admin.py:401 incidents/admin.py:573 incidents/admin.py:657
 msgid "Basic information"
@@ -473,8 +461,8 @@ msgid "Oversight"
 msgstr ""
 
 #: incidents/admin.py:508
-msgid "Email Type"
-msgstr ""
+msgid "Email type"
+msgstr "E-Mail-Typ"
 
 #: incidents/admin.py:580 incidents/admin.py:683
 msgid "Email Notification"
@@ -504,8 +492,8 @@ msgid "Add precision"
 msgstr ""
 
 #: incidents/forms.py:243 incidents/forms.py:740 incidents/forms.py:748
-msgid "Date Format YYYY-MM-DD HH:MM"
-msgstr ""
+msgid "Date format yyyy-mm-dd hh:mm"
+msgstr "Datumsformat JJJJ-MM-TT HH:MM"
 
 #: incidents/forms.py:310 incidents/models.py:438
 msgid "Name of the Operator"
@@ -574,11 +562,6 @@ msgstr "Bericht-Einreichung überfällig"
 msgid "Headline"
 msgstr ""
 
-#: incidents/models.py:47 incidents/models.py:78 incidents/models.py:117
-#: incidents/models.py:167 incidents/models.py:207 incidents/models.py:253
-msgid "Creator name"
-msgstr "Ersteller Name"
-
 #: incidents/models.py:67
 msgid "Impact"
 msgstr "Auswirkung"
@@ -645,8 +628,8 @@ msgid "Impacts disclosure required"
 msgstr "Angabe der Auswirkungen erforderlich"
 
 #: incidents/models.py:243
-msgid "Submision email"
-msgstr ""
+msgid "Submission email"
+msgstr "Einreichungs-E-Mail"
 
 #: incidents/models.py:303
 msgid "Incident detection date required"
@@ -725,12 +708,12 @@ msgid "Contact user"
 msgstr "Ansprechpartner"
 
 #: incidents/models.py:466
-msgid "contact last name"
-msgstr ""
+msgid "Contact last name"
+msgstr "Nachname des Ansprechpartners"
 
 #: incidents/models.py:469
-msgid "contact first name"
-msgstr ""
+msgid "Contact first name"
+msgstr "Vorname des Ansprechpartners"
 
 #: incidents/models.py:472
 msgid "Contact job title"
@@ -741,16 +724,16 @@ msgid "Contact email"
 msgstr "E-Mail des Ansprechpartners"
 
 #: incidents/models.py:476
-msgid "contact telephone"
-msgstr ""
+msgid "Contact telephone"
+msgstr "Telefon des Ansprechpartners"
 
 #: incidents/models.py:480
-msgid "technical last name"
-msgstr ""
+msgid "Technical last name"
+msgstr "Name des technischen Ansprechpartners"
 
 #: incidents/models.py:483
-msgid "technical first name"
-msgstr ""
+msgid "Technical first name"
+msgstr "Vorname des technischen Ansprechpartners"
 
 #: incidents/models.py:486
 msgid "Technical job title"
@@ -761,8 +744,8 @@ msgid "Technical email"
 msgstr "E-Mail des technischen Ansprechpartners"
 
 #: incidents/models.py:492
-msgid "technical telephone"
-msgstr ""
+msgid "Technical telephone"
+msgstr "Telefon des technischen Ansprechpartners"
 
 #: incidents/models.py:496
 msgid "Internal incident reference"
@@ -831,10 +814,6 @@ msgstr ""
 #: incidents/models.py:855
 msgid "Mandatory"
 msgstr "Erforderlich"
-
-#: incidents/models.py:876
-msgid "Question options"
-msgstr ""
 
 #: incidents/models.py:889
 msgid "Answers"
@@ -954,61 +933,64 @@ msgstr "Kontoverwaltung"
 msgid "Django admin area"
 msgstr "Verwaltung von Django"
 
-#: templates/admin/base_site.html:13
-msgid "Account Security"
-msgstr ""
-
 #: templates/admin/base_site.html:14
+msgid "Account security"
+msgstr "Kontosicherheit"
+
+#: templates/admin/base_site.html:17
 msgid "Password change"
 msgstr "Änderung des Passworts"
 
-#: templates/admin/base_site.html:16
+#: templates/admin/base_site.html:21
 msgid "Return to user interface"
-msgstr ""
+msgstr "Zurück zur Benutzeroberfläche"
 
-#: templates/admin/base_site.html:18
+#: templates/admin/base_site.html:25
 msgid "Log out"
-msgstr ""
+msgstr "Abmelden"
 
 #: templates/home/contact.html:9
 msgid "Dear entity, should you need any assistance please contact us on "
 msgstr ""
 
-#: templates/home/privacy_policy.html:90
-msgid "Description"
-msgstr "Beschreibung"
-
 #: templates/home/privacy_policy.html:92
 msgid "Maximum duration"
-msgstr ""
+msgstr "Maximale Dauer"
 
 #: templates/registration/base.html:13
 msgid "Log in"
-msgstr ""
+msgstr "Einloggen"
 
 #: templates/two_factor/core/setup_complete.html:7
 msgid "Enable Two-Factor Authentication"
-msgstr ""
+msgstr "Aktivieren Sie die Zwei-Faktor-Authentifizierung"
 
 #: templates/two_factor/core/setup_complete.html:12
 msgid ""
 "Congratulations, you have successfully activated two-factor authentication."
 msgstr ""
+"Herzlichen Glückwunsch, Sie haben die Zwei-Faktor-Authentifizierung "
+"erfolgreich aktiviert."
 
 #: templates/two_factor/core/setup_complete.html:20
 msgid "Two-Factor Authentication has been set. Please log in again."
 msgstr ""
+"Die Zwei-Faktor-Authentifizierung wurde festgelegt. Bitte melden Sie sich "
+"erneut an."
 
 #: templates/two_factor/core/setup_complete.html:25
 msgid ""
 "However, there may be instances where you do not have access to your main "
 "token. To enable account recovery, add a phone number."
 msgstr ""
+"Es kann jedoch vorkommen, dass Sie keinen Zugriff auf Ihr Haupttoken haben. "
+"Um die Wiederherstellung des Kontos zu ermöglichen, fügen Sie eine "
+"Telefonnummer hinzu."
 
 #: templates/two_factor/core/setup_complete.html:32
-msgid "Back to Account Security"
-msgstr ""
+msgid "Back to Account security"
+msgstr "Zurück zur Kontosicherheit"
 
 #: templates/two_factor/core/setup_complete.html:36
 msgid "Add Phone Number"
-msgstr ""
+msgstr "Telefonnummer hinzufügen"
