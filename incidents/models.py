@@ -240,7 +240,7 @@ class Workflow(TranslatableModel):
 
     submission_email = models.ForeignKey(
         Email,
-        verbose_name=_("Submision email"),
+        verbose_name=_("Submission email"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -463,24 +463,24 @@ class Incident(models.Model):
         default=None,
     )
     contact_lastname = models.CharField(
-        max_length=100, verbose_name=_("contact last name")
+        max_length=100, verbose_name=_("Contact last name")
     )
     contact_firstname = models.CharField(
-        max_length=100, verbose_name=_("contact first name")
+        max_length=100, verbose_name=_("Contact first name")
     )
     contact_title = models.CharField(
         max_length=100, verbose_name=_("Contact job title")
     )
     contact_email = models.CharField(max_length=100, verbose_name=_("Contact email"))
     contact_telephone = models.CharField(
-        max_length=100, verbose_name=_("contact telephone")
+        max_length=100, verbose_name=_("Contact telephone")
     )
     # technical contact
     technical_lastname = models.CharField(
-        max_length=100, verbose_name=_("technical last name")
+        max_length=100, verbose_name=_("Technical last name")
     )
     technical_firstname = models.CharField(
-        max_length=100, verbose_name=_("technical first name")
+        max_length=100, verbose_name=_("Technical first name")
     )
     technical_title = models.CharField(
         max_length=100, verbose_name=_("Technical job title")
@@ -489,7 +489,7 @@ class Incident(models.Model):
         max_length=100, verbose_name=_("Technical email")
     )
     technical_telephone = models.CharField(
-        max_length=100, verbose_name=_("technical telephone")
+        max_length=100, verbose_name=_("Technical telephone")
     )
 
     incident_reference = models.CharField(

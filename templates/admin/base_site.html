@@ -10,12 +10,20 @@
 {% endblock %}
 {% block nav-global %}
     <div class="header-links">
-        <a href="{% url 'two_factor:profile' %}">{% trans 'Account Security' %}</a>
-        <a href="{% url 'password_change' %}">{% trans 'Password change' %}</a>
+        <a href="{% url 'two_factor:profile' %}">
+            {% translate 'Account security' %}
+        </a>
+        <a href="{% url 'password_change' %}">
+            {% translate 'Password change' %}
+        </a>
         {% if site_url and not is_only_admin %}
-                <a href="{{ site_url }}">{% translate 'Return to user interface' %}</a>
+                <a href="{{ site_url }}">
+                    {% translate 'Return to user interface' %}
+                </a>
         {% endif %}
-        <a href="{% url 'logout' %}">{% translate 'Log out' %}</a>
+        <a href="{% url 'logout' %}">
+            {% translate 'Log out' %}
+        </a>
         {% include "home/language_selector.html" %}
     </div>
 {% endblock %}

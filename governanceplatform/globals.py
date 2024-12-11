@@ -9,15 +9,13 @@ CONNECTION = 5
 DECONNECTION = 6
 
 ACTION_FLAG_CHOICES = {
-    ADDITION: _('Addition'),
-    CHANGE: _('Change'),
-    DELETION: _('Deletion'),
+    ADDITION: _("Addition"),
+    CHANGE: _("Change"),
+    DELETION: _("Deletion"),
     # VIEW: _('View'),
-    CONNECTION: _('Logged in'),
-    DECONNECTION: _('Logged out'),
+    CONNECTION: _("Logged in"),
+    DECONNECTION: _("Logged out"),
 }
 
 # Functionalities list
-FUNCTIONALITIES = {
-    "securityobjectives": _('Security Objective')
-}
+FUNCTIONALITIES = {"securityobjectives": _("Security objective")}

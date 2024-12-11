@@ -30,7 +30,7 @@ class Sector(TranslatableModel):
 
     # name of the regulator who create the object
     creator_name = models.CharField(
-        verbose_name=_("Creator Name"),
+        verbose_name=_("Creator name"),
         max_length=255,
         blank=True,
         default=None,
@@ -130,14 +130,14 @@ class Company(models.Model):
     identifier = models.CharField(
         max_length=4, verbose_name=_("Acronym")
     )  # requirement from business concat(name_country_regulator)
-    name = models.CharField(max_length=64, verbose_name=_("name"))
+    name = models.CharField(max_length=64, verbose_name=_("Name"))
     country = models.CharField(
         max_length=200,
-        verbose_name=_("country"),
+        verbose_name=_("Country"),
         null=True,
         choices=list(CountryField().choices),
     )
-    address = models.CharField(max_length=255, verbose_name=_("address"))
+    address = models.CharField(max_length=255, verbose_name=_("Address"))
     email = models.CharField(
         max_length=100,
         blank=True,
@@ -187,21 +187,21 @@ class Company(models.Model):
 # Regulator
 class Regulator(TranslatableModel):
     translations = TranslatedFields(
-        name=models.CharField(max_length=64, verbose_name=_("name")),
+        name=models.CharField(max_length=64, verbose_name=_("Name")),
         full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("full name")
+            blank=True, default="", null=True, verbose_name=_("Full name")
         ),
         description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("description")
+            blank=True, default="", null=True, verbose_name=_("Description")
         ),
     )
     country = models.CharField(
         max_length=200,
         null=True,
         choices=list(CountryField().choices),
-        verbose_name=_("country"),
+        verbose_name=_("Country"),
     )
-    address = models.CharField(max_length=255, verbose_name=_("address"))
+    address = models.CharField(max_length=255, verbose_name=_("Address"))
     email_for_notification = models.EmailField(
         verbose_name=_("E-mail address for incident notification"),
         default=None,
@@ -226,21 +226,21 @@ class Regulator(TranslatableModel):
 # Observer
 class Observer(TranslatableModel):
     translations = TranslatedFields(
-        name=models.CharField(default="", max_length=64, verbose_name=_("name")),
+        name=models.CharField(default="", max_length=64, verbose_name=_("Name")),
         full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("full name")
+            blank=True, default="", null=True, verbose_name=_("Full name")
         ),
         description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("description")
+            blank=True, default="", null=True, verbose_name=_("Description")
         ),
     )
     country = models.CharField(
         max_length=200,
         null=True,
         choices=list(CountryField().choices),
-        verbose_name=_("country"),
+        verbose_name=_("Country"),
     )
-    address = models.CharField(max_length=255, verbose_name=_("address"))
+    address = models.CharField(max_length=255, verbose_name=_("Address"))
     email_for_notification = models.EmailField(
         verbose_name=_("E-mail address for incident notification"),
         default=None,
@@ -442,7 +442,7 @@ class CompanyUser(models.Model):
         blank=True,
     )
     is_company_administrator = models.BooleanField(
-        default=False, verbose_name=_("is administrator")
+        default=False, verbose_name=_("Is administrator")
     )
 
     class Meta:
@@ -471,7 +471,7 @@ class RegulatorUser(models.Model):
         verbose_name=_("Regulator"),
     )
     is_regulator_administrator = models.BooleanField(
-        default=False, verbose_name=_("is administrator")
+        default=False, verbose_name=_("Is administrator")
     )
     sectors = models.ManyToManyField(Sector, blank=True)
 
@@ -501,7 +501,7 @@ class ObserverUser(models.Model):
         verbose_name=_("Observer"),
     )
     is_observer_administrator = models.BooleanField(
-        default=False, verbose_name=_("is administrator")
+        default=False, verbose_name=_("Is administrator")
     )
 
     class Meta:

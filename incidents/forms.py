@@ -240,7 +240,7 @@ class QuestionForm(forms.Form):
                 ),
                 required=question_option.is_mandatory,
                 initial=initial_data,
-                help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
+                help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
             )
             self.fields[field_name].label = question.label
         elif question_type == "FREETEXT":
@@ -737,7 +737,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
-        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
+        help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_starting_date = forms.DateTimeField(
@@ -745,7 +745,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
-        help_text=gettext_lazy("Date Format YYYY-MM-DD HH:MM"),
+        help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
     )
 
     def __init__(self, *args, **kwargs):

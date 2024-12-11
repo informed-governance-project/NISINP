@@ -140,7 +140,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
-    @admin.display(description=_("action flag"))
+    @admin.display(description=_("Action flag"))
     def _action_flag(self, obj):
         return ACTION_FLAG_CHOICES[obj.action_flag]
 
@@ -234,8 +234,8 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     model = QuestionOptions
-    verbose_name = _("Question Option")
-    verbose_name_plural = _("Question Options")
+    verbose_name = _("Question option")
+    verbose_name_plural = _("Question options")
     ordering = ["category_option__position", "position"]
     extra = 0
 
@@ -262,8 +262,8 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
 class PredefinedAnswerInline(CustomTranslatableTabularInline):
     model = PredefinedAnswer
     fields = ["predefined_answer", "position"]
-    verbose_name = _("predefined answer")
-    verbose_name_plural = _("predefined answers")
+    verbose_name = _("Predefined answer")
+    verbose_name_plural = _("Predefined answers")
     ordering = ["position"]
     extra = 0
 
@@ -505,7 +505,7 @@ class EmailRegulatorListFilter(SimpleListFilter):
 
 
 class EmailTypeListFilter(SimpleListFilter):
-    title = _("Email Type")
+    title = _("Email type")
     parameter_name = ""
 
     def lookups(self, request, model_admin):
