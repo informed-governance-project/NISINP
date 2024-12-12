@@ -9,25 +9,27 @@ from .globals import RISK_TREATMENT
 
 
 # Store company and year of submission risk analysis data
-class CompanyReporting(TranslatableModel):
+class CompanyReporting(models.Model):
     company = models.ForeignKey(
         "governanceplatform.Company",
         on_delete=models.CASCADE,
         verbose_name=_("Company"),
     )
     year = models.PositiveIntegerField()
-    sectors = models.ManyToManyField(
+    sector = models.ForeignKey(
         "governanceplatform.Sector",
-        verbose_name=_("Sectors"),
+        on_delete=models.CASCADE,
+        verbose_name=_("Sector"),
     )
-    translations = TranslatedFields(
-        comment=models.TextField(
-            verbose_name=_("comment"),
-            blank=True,
-            default=None,
-            null=True,
-        ),
+    comment = models.TextField(
+        verbose_name=_("Comment"),
+        blank=True,
+        default=None,
+        null=True,
     )
+
+    class Meta:
+        unique_together = ["company", "sector", "year"]
 
 
 # Store the statistic by sector, should be updated each time a company from the sector changed
@@ -287,9 +289,6 @@ class SectorReportConfiguration(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Sector"),
     )
-    reporting_year = models.PositiveIntegerField(
-        verbose_name=_("Reporting year"),
-    )
 
     number_of_year = models.PositiveSmallIntegerField(
         verbose_name=_("Number of year to compare"),
@@ -303,6 +302,11 @@ class SectorReportConfiguration(models.Model):
     top_ranking = models.PositiveSmallIntegerField(
         verbose_name=_("Ranking"),
         choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
+    )
+
+    so_excluded = models.ManyToManyField(
+        "securityobjectives.SecurityObjective",
+        verbose_name=_("Security objectives excluded"),
     )
 
     class Meta:
