@@ -2,11 +2,12 @@ from django import forms
 from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from parler.forms import TranslatableModelForm
 
 from governanceplatform.models import Company, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import SectorReportConfiguration
+from .models import ObservationRecommendation, SectorReportConfiguration
 
 # from .models import RiskAnalysisJson
 
@@ -136,12 +137,7 @@ class ConfigurationReportForm(forms.ModelForm):
         instance = kwargs.get("instance", None)
         super().__init__(*args, **kwargs)
 
-        current_year = timezone.now().year
-        self.fields["reporting_year"].widget = forms.Select(
-            choices=[
-                (year, year) for year in range(current_year - 2, current_year + 1)
-            ],
-        )
+        self.fields["so_excluded"].required = False
 
         sectors = initial.get("sectors")
         if sectors:
@@ -149,6 +145,17 @@ class ConfigurationReportForm(forms.ModelForm):
 
         if instance:
             self.fields["sector"].disabled = True
+
+    def save(self, commit=True):
+        # Save the instance first
+        instance = super().save(commit=False)
+
+        # Save the ManyToMany field separately
+        if commit:
+            instance.save()  # Save the instance if commit=True
+            self.save_m2m()  # Save M2M fields explicitly
+
+        return instance
 
 
 class CompanySelectForm(forms.ModelForm):
@@ -234,4 +241,22 @@ class CompanySelectFormSet(BaseModelFormSet):
 
 CompanySelectFormSet = modelformset_factory(
     Company, form=CompanySelectForm, formset=CompanySelectFormSet, extra=0
+)
+
+
+class RecommendationsSelectForm(TranslatableModelForm):
+    selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+
+    class Meta:
+        model = ObservationRecommendation
+        fields = ["id", "selected", "code", "description", "sectors"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["code"].required = False
+        self.fields["sectors"].required = False
+
+
+RecommendationsSelectFormSet = modelformset_factory(
+    ObservationRecommendation, form=RecommendationsSelectForm, extra=0
 )
