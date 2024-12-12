@@ -18,9 +18,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
@@ -38,15 +39,19 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .filters import CompanyFilter
+from .filters import CompanyFilter, RecommendationFilter
 from .forms import (
     CompanySelectFormSet,
     ConfigurationReportForm,
     ImportRiskAnalysisForm,
+    RecommendationsSelectFormSet,
     ReportGenerationForm,
 )
 from .models import (
     AssetData,
+    CompanyReporting,
+    Observation,
+    ObservationRecommendation,
     RecommendationData,
     RiskData,
     SectorReportConfiguration,
@@ -301,6 +306,157 @@ def edit_report_configuration(request, report_configuration_id: int):
     form = ConfigurationReportForm(instance=report_configuration)
     context = {"form": form}
     return render(request, "reporting/add_report_configuration.html", context=context)
+
+
+@login_required
+@otp_required
+def report_recommendations(request, company_id, sector_id, year):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+    report_recommendations = company.get_report_recommandations(year, sector)
+
+    context = {
+        "recommendations": report_recommendations,
+        "company": company,
+        "sector": sector,
+        "year": year,
+    }
+
+    return render(request, "reporting/recommendations.html", context=context)
+
+
+@login_required
+@otp_required
+def add_report_recommendations(request, company_id, sector_id, year):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+
+    redirect_url = reverse(
+        "add_report_recommendations", args=[company.id, sector.id, year]
+    )
+
+    if "reset" in request.GET:
+        request.session.pop("report_recommendations_filter_params", None)
+        return redirect(redirect_url)
+
+    current_params = request.session.get(
+        "report_recommendations_filter_params", {}
+    ).copy()
+
+    for key, values in request.GET.lists():
+        current_params[key] = values if key == "sectors" else values[0]
+
+    filter_params = current_params
+    request.session["report_recommendations_filter_params"] = current_params
+
+    report_recommendations = company.get_report_recommandations(year, sector)
+    recommendations_ids = [rec.id for rec in report_recommendations]
+
+    recommendations_queryset = ObservationRecommendation.objects.exclude(
+        id__in=recommendations_ids
+    )
+
+    recommendation_filter = RecommendationFilter(
+        filter_params, queryset=recommendations_queryset
+    )
+
+    is_filtered = {k: v for k, v in filter_params.items()}
+
+    if request.method == "POST":
+        formset = RecommendationsSelectFormSet(request.POST)
+        if formset.is_valid():
+            selected_recommendations = [
+                form.instance for form in formset if form.cleaned_data.get("selected")
+            ]
+
+            add_new_report_recommendations(
+                company, sector, year, selected_recommendations
+            )
+            messages.success(
+                request,
+                _("Recommendations have been added successfully"),
+            )
+            redirect_url = reverse(
+                "report_recommendations", args=[company.id, sector.id, year]
+            )
+
+            return redirect(redirect_url)
+
+    formset = RecommendationsSelectFormSet(queryset=recommendation_filter.qs)
+
+    context = {
+        "formset": formset,
+        "filter": recommendation_filter,
+        "is_filtered": bool(is_filtered),
+        "company": company,
+        "sector": sector,
+        "year": year,
+    }
+
+    return render(request, "reporting/add_recommendations.html", context=context)
+
+
+@login_required
+@otp_required
+def copy_report_recommendations(request, company_id, sector_id, year):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+    last_year = year - 1
+    report_recommendations = company.get_report_recommandations(last_year, sector)
+    if not report_recommendations:
+        messages.error(
+            request,
+            _(f"No recommendations from { last_year }"),
+        )
+    else:
+        add_new_report_recommendations(company, sector, year, report_recommendations)
+        messages.success(
+            request,
+            _(f"Recommendations have been copied from { last_year }"),
+        )
+
+    redirect_url = reverse("report_recommendations", args=[company_id, sector_id, year])
+    return redirect(redirect_url)
+
+
+@login_required
+@otp_required
+def delete_report_recommendation(request, company_id, sector_id, year, report_rec_id):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+
+    try:
+        company_reporting = CompanyReporting.objects.get(
+            company=company, year=year, sector=sector
+        )
+        observation = Observation.objects.get(
+            company_reporting=company_reporting,
+            observation_recommendations__in=[report_rec_id],
+        )
+
+        recommendation = ObservationRecommendation.objects.get(id=report_rec_id)
+
+    except (
+        Observation.DoesNotExist,
+        CompanyReporting.DoesNotExist,
+        ObservationRecommendation.DoesNotExist,
+    ):
+        messages.error(request, _("No report recommendation found"))
+        return redirect("reporting")
+
+    observation.observation_recommendations.remove(recommendation)
+    messages.success(request, _("The report recommendation has been deleted."))
+    redirect_url = reverse("report_recommendations", args=[company.id, sector.id, year])
+
+    return redirect(redirect_url)
 
 
 @login_required
@@ -1334,3 +1490,52 @@ def validate_json_file(file):
         raise ValidationError(_("Missing 'instances' key in the JSON file."))
 
     return json_data
+
+
+def validate_url_arguments(request, company_id, sector_id, year):
+    try:
+        company = Company.objects.get(id=company_id)
+    except Company.DoesNotExist:
+        messages.error(
+            request,
+            _("No company found"),
+        )
+        return redirect("reporting")
+
+    try:
+        sector = Sector.objects.get(id=sector_id)
+    except Sector.DoesNotExist:
+        messages.error(
+            request,
+            _("No sector found"),
+        )
+        return redirect("reporting")
+
+    try:
+        year = int(year)
+    except ValueError:
+        messages.error(
+            request,
+            _("Year value is not a valid number"),
+        )
+        return redirect("reporting")
+
+    current_year = timezone.now().year
+    if year < 2020 or year > current_year:
+        messages.error(
+            request,
+            _("Invalid year. Please provide a valid year."),
+        )
+        return redirect("reporting")
+
+    return company, sector, year
+
+
+def add_new_report_recommendations(company, sector, year, report_recommendations):
+    company_reporting_obj, created = CompanyReporting.objects.get_or_create(
+        company=company, year=year, sector=sector
+    )
+    observation_obj, created = Observation.objects.get_or_create(
+        company_reporting=company_reporting_obj
+    )
+    observation_obj.observation_recommendations.add(*report_recommendations)
