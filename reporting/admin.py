@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -9,17 +7,7 @@ from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget
 
-from .models import ObservationRecommendation  # OperatorType,; Service,
-
-
-# get the id of a group by name
-def get_group_id(name=""):
-    try:
-        group_id = Group.objects.get(name=name).id
-    except ObjectDoesNotExist:
-        group_id = None
-
-    return group_id
+from .models import ObservationRecommendation
 
 
 class ObservationRecommendationResource(
