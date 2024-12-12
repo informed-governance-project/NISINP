@@ -182,19 +182,36 @@ class Company(models.Model):
             .values_list("sectors", flat=True)
         )
 
-    def security_objective_exists(self, year, sector):
-        if year and sector:
-            return self.standardanswer_set.filter(
-                year_of_submission=year, sectors__in=[sector.id], status="PASS"
-            ).exists()
-        return False
+    def security_objective_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
 
-    def risk_analysis_exists(self, year, sector):
-        if year and sector:
-            return self.companyreporting_set.filter(
-                year=year, sectors__in=[sector.id]
-            ).exists()
-        return False
+        return self.standardanswer_set.filter(
+            year_of_submission=year, sectors__in=[sector.id], status="PASS"
+        ).exists()
+
+    def risk_analysis_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
+
+        return self.companyreporting_set.filter(
+            year=year, sector=sector, servicestat__isnull=False
+        ).exists()
+
+    def get_report_recommandations(self, year=None, sector=None):
+        if not (year and sector):
+            return self.companyreporting_set.none()
+
+        companyreporting = self.companyreporting_set.filter(
+            year=year, sector=sector, observation__isnull=False
+        ).first()
+
+        if not companyreporting:
+            return self.companyreporting_set.none()
+
+        return (
+            companyreporting.observation_set.first().observation_recommendations.all()
+        )
 
     class Meta:
         verbose_name = _("Company")
