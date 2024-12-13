@@ -88,6 +88,7 @@ TERMS_ACCEPTANCE_TIME_IN_DAYS = 365
 
 # TIMEOUT
 SESSION_COOKIE_AGE = 15 * 60  # 15 Minutes
+CSRF_COOKIE_AGE = 15 * 60
 
 # INTERNATIONALIZATION
 LANGUAGE_CODE = "en-us"
@@ -117,4 +118,53 @@ PARLER_LANGUAGES = {
             "code": "de",
         },  # German
     ),
+}
+
+# COOKIEBANNER
+COOKIEBANNER = {
+    "title": _("Cookie settings"),
+    "groups": [
+        {
+            "id": "essential",
+            "name": _("Essential"),
+            "description": _(
+                "This website uses cookies and other similar technologies strictly necessary \
+                for its operation, without the use of personal data."
+            ),
+            "cookies": [
+                {
+                    "pattern": "cookiebanner",
+                    "description": _("Meta cookie for the cookies that are set."),
+                    "content": _("Accepted cookies"),
+                    "max_age": _("6 months"),  # Set in cookie_banner.js
+                },
+                {
+                    "pattern": "sessionid",
+                    "description": _("This cookie is necessary for user options"),
+                    "content": _("Session ID"),
+                    "max_age": _("15 minutes"),  # SESSION_COOKIE_AGE
+                },
+                {
+                    "pattern": "csrftoken",
+                    "description": _(
+                        "This cookie prevents Cross-Site-Request-Forgery attacks."
+                    ),
+                    "content": _("Token"),
+                    "max_age": _("15 minutes"),  # CSRF_COOKIE_AGE
+                },
+                {
+                    "pattern": "django_language",
+                    "description": _("Meta cookie for user language settings"),
+                    "content": _("Language settings"),
+                    "max_age": _("Session"),
+                },
+                {
+                    "pattern": "theme",
+                    "description": _("Meta cookie for user theme settings"),
+                    "content": _("Theme dark/light settings"),
+                    "max_age": _("Session"),
+                },
+            ],
+        }
+    ],
 }

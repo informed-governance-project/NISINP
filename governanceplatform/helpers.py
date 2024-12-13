@@ -126,7 +126,9 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True
@@ -170,7 +172,9 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True
@@ -206,7 +210,9 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         and Incident.objects.filter(
             pk=incident.id,
             company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True),
+            affected_sectors__in=user.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True),
         ).exists()
     ):
         return True

@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -24,6 +24,7 @@ from .helpers import (
 from .mixins import TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
     Company,
+    CompanyUser,
     EntityCategory,
     Functionality,
     Observer,
@@ -34,7 +35,6 @@ from .models import (  # OperatorType,; Service,
     RegulatorUser,
     ScriptLogEntry,
     Sector,
-    CompanyUser,
     User,
 )
 from .settings import SITE_NAME
@@ -290,7 +290,7 @@ class CompanyResource(resources.ModelResource):
     class Meta:
         import_id_fields = ("identifier",)
         model = Company
-        exclude = ("types")
+        exclude = "types"
 
 
 class CompanyUserInline(admin.TabularInline):
@@ -308,10 +308,15 @@ class CompanyUserInline(admin.TabularInline):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "sectors":
             user = request.user
+            if user_in_group(user, "RegulatorUser"):
+                kwargs["queryset"] = user.get_sectors().distinct()
+
             if user_in_group(user, "OperatorAdmin"):
                 kwargs["queryset"] = Sector.objects.filter(
-                    id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True)
-                    )
+                    id__in=user.companyuser_set.all()
+                    .distinct()
+                    .values_list("sectors", flat=True)
+                )
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -350,7 +355,9 @@ class CompanyUserInline(admin.TabularInline):
                 kwargs["queryset"] = (
                     Company.objects.all()
                     .filter(
-                        id__in=user.companyuser_set.filter(sectors__in=user.get_sectors().all()).values_list("company", flat=True)
+                        id__in=user.companyuser_set.filter(
+                            sectors__in=user.get_sectors().all()
+                        ).values_list("company", flat=True)
                     )
                     .order_by("name")
                 )
@@ -359,7 +366,9 @@ class CompanyUserInline(admin.TabularInline):
                 kwargs["queryset"] = (
                     Company.objects.all()
                     .filter(
-                        id__in=user.companyuser_set.filter(is_company_administrator=True).values_list("company", flat=True),
+                        id__in=user.companyuser_set.filter(
+                            is_company_administrator=True
+                        ).values_list("company", flat=True),
                     )
                     .order_by("name")
                 )
@@ -399,9 +408,7 @@ class CompanyUserInline(admin.TabularInline):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(
-                is_company_administrator=True
-            )
+            return queryset.filter(is_company_administrator=True)
 
         return queryset
 
@@ -415,13 +422,18 @@ class CompanySectorListFilter(SimpleListFilter):
     parameter_name = "companyuser_set__sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
+        sectors_list = []
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             sectors = Sector.objects.filter(
-                    id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True)
-                )
+                id__in=user.companyuser_set.all()
+                .distinct()
+                .values_list("sectors", flat=True)
+            )
 
         sectors_list = []
         for sector in sectors:
@@ -432,7 +444,9 @@ class CompanySectorListFilter(SimpleListFilter):
         value = self.value()
         if value:
             return queryset.filter(
-                id__in=CompanyUser.objects.filter(sectors=value).values_list("company", flat=True)
+                id__in=CompanyUser.objects.filter(sectors=value).values_list(
+                    "company", flat=True
+                )
             ).distinct()
         return queryset
 
@@ -512,6 +526,8 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             readonly_fields += ("identifier",)
+        if not user_in_group(user, "RegulatorUser"):
+            readonly_fields += ("entity_categories",)
 
         return readonly_fields
 
@@ -521,7 +537,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
-                id__in=user.companyuser_set.filter(is_company_administrator=True).distinct().values_list("company", flat=True)
+                id__in=user.companyuser_set.filter(is_company_administrator=True)
+                .distinct()
+                .values_list("company", flat=True)
             ).distinct()
 
         return queryset
@@ -538,7 +556,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             messages.add_message(
                 request,
                 messages.WARNING,
-                "Some Companies havn't been deleted because they contains users",
+                "Some companies haven't been deleted because they contains users",
             )
         queryset.delete()
 
@@ -552,6 +570,38 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             )
         else:
             obj.delete()
+
+    # assure that the correct sectors are saved
+    def save_related(self, request, form, formsets, change):
+        if change:
+            user = request.user
+            sectors = dict()
+            # Access and modify inline objects
+            for formset in formsets:
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
+                    user, "RegulatorUser"
+                ):
+                    ru = RegulatorUser.objects.get(
+                        user=user, regulator=user.regulators.first()
+                    )
+                    for obj in formset.save(commit=False):  # Inline objects are here
+                        sects = []
+                        for sect in obj.sectors.all():
+                            if sect not in ru.sectors.all():
+                                sects.append(sect.id)
+                        sectors[obj] = sects
+            super().save_related(request, form, formsets, change)
+            # re assign sectors which are not assigned to the current regulatoruser
+            for formset in formsets:
+                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
+                    user, "RegulatorUser"
+                ):
+                    for obj in formset.save(commit=False):  # Inline objects are here
+                        if sectors[obj] is not None:
+                            obj.sectors.add(*sectors[obj])
+                            obj.save()  # Explicitly save changes
+        else:
+            super().save_related(request, form, formsets, change)
 
 
 class UserResource(resources.ModelResource):
@@ -671,6 +721,15 @@ class userRegulatorInline(admin.TabularInline):
         else:
             return qs
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count("children")
+            ).exclude(parent=None, child_count__gt=0)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulator":
             user = request.user
@@ -761,7 +820,7 @@ def reset_2FA(modeladmin, request, queryset):
 
 
 class UserRegulatorsListFilter(SimpleListFilter):
-    title = _("Competent authorities")
+    title = _("Regulators")
     parameter_name = "regulators"
 
     def lookups(self, request, model_admin):
@@ -799,7 +858,7 @@ class ObserverUsersListFilter(SimpleListFilter):
 
 
 class UserCompaniesListFilter(SimpleListFilter):
-    title = _("Companies")
+    title = _("Operators")
     parameter_name = "companies"
 
     def lookups(self, request, model_admin):
@@ -826,14 +885,21 @@ class UserSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
+        sectors_list = []
         user = request.user
         # Platform Admin
         if user_in_group(user, "PlatformAdmin") or user_in_group(user, "ObserverAdmin"):
             sectors = Sector.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            sectors = Sector.objects.filter(id__in=user.companyuser_set.all().distinct().values_list("sectors", flat=True))
+            sectors = Sector.objects.filter(
+                id__in=user.companyuser_set.all()
+                .distinct()
+                .values_list("sectors", flat=True)
+            )
 
         sectors_list = []
 
@@ -844,7 +910,11 @@ class UserSectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value:
-            return queryset.filter(id__in=CompanyUser.objects.filter(sectors=value).values_list("user", flat=True))
+            return queryset.filter(
+                id__in=CompanyUser.objects.filter(sectors=value).values_list(
+                    "user", flat=True
+                )
+            )
         return queryset
 
 
@@ -1005,18 +1075,14 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and is_user_regulator(obj):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and is_user_operator(obj):
-                inline_instances = [
-                    CompanyUserInline(self.model, self.admin_site)
-                ]
+                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):
             if obj and user_in_group(obj, "RegulatorUser"):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
-                inline_instances = [
-                    CompanyUserInline(self.model, self.admin_site)
-                ]
+                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
 
         # OperatorAdmin inlines
         if user_in_group(user, "OperatorAdmin"):

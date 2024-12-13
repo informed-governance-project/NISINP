@@ -5,8 +5,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Case, Q, Value, When
-from django.db.models.functions import Concat
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
@@ -25,7 +24,11 @@ from governanceplatform.helpers import (
     set_creator,
     user_in_group,
 )
-from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
+from governanceplatform.mixins import (
+    PermissionMixin,
+    ShowReminderForTranslationsMixin,
+    TranslationUpdateMixin,
+)
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
@@ -244,7 +247,7 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
 
     # filter the question category option on the report_id to avoid mixing report categories
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "category_option" and not request.POST:
+        if db_field.name == "category_option" and not request.POST.get("_saveasnew"):
             kwargs["queryset"] = (
                 QuestionCategoryOptions.objects.filter(
                     questionoptions__report=self.parent_obj
@@ -266,7 +269,12 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
 
 
 @admin.register(Question, site=admin_site)
-class QuestionAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
+class QuestionAdmin(
+    ShowReminderForTranslationsMixin,
+    PermissionMixin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
+):
     list_display = ["label", "question_type", "get_predefined_answers", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
@@ -340,7 +348,9 @@ class ImpactSectorListFilter(SimpleListFilter):
     parameter_name = "sectors"
 
     def lookups(self, request, model_admin):
-        sectors = Sector.objects.all()
+        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
         sectors_list = []
 
         for sector in sectors:
@@ -351,11 +361,11 @@ class ImpactSectorListFilter(SimpleListFilter):
         if self.value():
             return queryset.filter(
                 Q(sectors=self.value()) | Q(sectors__parent=self.value())
-            )
+            ).distinct()
 
 
 class ImpactRegulationListFilter(SimpleListFilter):
-    title = _("Regulation")
+    title = _("Legal basis")
     parameter_name = "regulation"
 
     def lookups(self, request, model_admin):
@@ -372,7 +382,9 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class ImpactAdmin(
+    ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     list_display = [
         "regulation",
         "get_sector_name",
@@ -431,43 +443,11 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         return sectors
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        # TO DO : display a hierarchy
-        # Energy
-        #   -> ELEC
-        #   -> GAZ
-        # See MPTT
         if db_field.name == "sectors":
-            language = get_language()
-            parents = (
-                Sector.objects.translated(language)
-                .filter(parent__isnull=True)
-                .values_list("id", "translations__name")
-            )
-            # put the conditions here to use the value of parents variable
-            whens = [
-                When(
-                    parent__id=key,
-                    then=Concat(
-                        Value(value),
-                        Value(" --> "),
-                        "translations__name",
-                    ),
-                )
-                for key, value in parents
-            ]
-
-            queryset = (
-                Sector.objects.translated(language)
-                .annotate(
-                    full_name=Case(
-                        *whens,
-                        default="translations__name",
-                    )
-                )
-                .order_by("full_name")
-                .distinct()
-            )
-            kwargs["queryset"] = queryset
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count("children")
+            ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -561,7 +541,9 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class EmailAdmin(
+    ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     list_display = [
         "name",
         "subject",
@@ -578,7 +560,9 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
+class WorkflowAdmin(
+    ShowReminderForTranslationsMixin, PermissionMixin, CustomTranslatableAdmin
+):
     list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
@@ -661,7 +645,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(CustomTranslatableAdmin):
+class SectorRegulationAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -739,6 +723,15 @@ class SectorRegulationAdmin(CustomTranslatableAdmin):
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count("children")
+            ).exclude(parent=None, child_count__gt=0)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 
 class SectorRegulationWorkflowEmailResource(
     TranslationUpdateMixin, resources.ModelResource
@@ -750,7 +743,9 @@ class SectorRegulationWorkflowEmailResource(
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
+class SectorRegulationWorkflowEmailAdmin(
+    ShowReminderForTranslationsMixin, CustomTranslatableAdmin
+):
     list_display = [
         "regulation",
         "sector_regulation_workflow",

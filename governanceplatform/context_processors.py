@@ -4,7 +4,7 @@ from governanceplatform import __version__
 
 from .helpers import is_observer_user, is_user_regulator, user_in_group
 from .models import Functionality
-from .settings import REGULATOR_CONTACT, SITE_NAME
+from .settings import COOKIEBANNER, REGULATOR_CONTACT, SITE_NAME
 
 
 def extra_content_for_all_templates(request):
@@ -37,6 +37,7 @@ def get_version(request):
 def instance_configurations(request):
     configurations = {
         "regulator": REGULATOR_CONTACT,
+        "cookiebanner": COOKIEBANNER,
     }
 
     return configurations
