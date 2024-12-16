@@ -96,7 +96,9 @@ class RegistrationForm(UserCreationForm):
     accept_terms = forms.BooleanField(
         label=_("I acknowledge and agree to the"),
         error_messages={
-            "required": _("Acceptance of the Terms of Use is required for registration")
+            "required": _(
+                "Acceptance of the Terms of Use is required for registration."
+            )
         },
     )
     email = forms.TextInput()

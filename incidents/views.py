@@ -686,10 +686,10 @@ class FormWizardView(SessionWizardView):
 
         context["steps"] = [
             _("Contact"),
-            ("Regulators"),
+            _("Regulators"),
             _("Legal bases"),
             _("Sectors"),
-            _("Incident detection date"),
+            _("Detection date"),
         ]
         context["action"] = "Create"
 
@@ -1068,7 +1068,7 @@ class WorkflowWizardView(SessionWizardView):
             categories = []
             for categ in categories_options:
                 categories.append(categ.question_category)
-            context["steps"].append(_("Incident timeline"))
+            context["steps"].append(_("Incident Timeline"))
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
