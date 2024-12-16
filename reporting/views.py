@@ -127,7 +127,7 @@ def reporting(request):
                 for form in formset
                 if form.cleaned_data.get("selected")
             ]
-            is_multiple_selected_companies = bool(len(selected_companies) > 1)
+            is_multiple_selected_companies = len(selected_companies) > 1
             zip_buffer = io.BytesIO()
             error_messages = []
             with zipfile.ZipFile(zip_buffer, "w") as zip_file:
@@ -139,6 +139,7 @@ def reporting(request):
                             sector=sector
                         )
                         nb_years = sector_configuration.number_of_year
+                        so_excluded = sector_configuration.so_excluded.all()
                     except SectorReportConfiguration.DoesNotExist:
                         if is_multiple_selected_companies:
                             error_message = f"No data found in sector: {str(sector)} and year: {year}"
@@ -175,7 +176,7 @@ def reporting(request):
                         "sector": sector,
                         "year": year,
                         "nb_years": nb_years,
-                        "so_excluded": [],
+                        "so_excluded": so_excluded,
                     }
 
                     pdf_report = get_pdf_report(request, report_data)
@@ -195,6 +196,7 @@ def reporting(request):
                 response = HttpResponse(zip_buffer, content_type="application/zip")
                 response["Content-Disposition"] = 'attachment; filename="reports.zip"'
             else:
+                pdf_report.seek(0)
                 response = HttpResponse(pdf_report, content_type="application/pdf")
                 response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
