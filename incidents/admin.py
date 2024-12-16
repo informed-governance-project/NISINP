@@ -85,7 +85,7 @@ class LogUserFilter(SimpleListFilter):
 
 # filter by action
 class ActionFlagFilter(SimpleListFilter):
-    title = _("Action flag")
+    title = _("Activity")
     parameter_name = "action_flag"
 
     def lookups(self, request, model_admin):
@@ -140,7 +140,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
-    @admin.display(description=_("Action flag"))
+    @admin.display(description=_("Activity"))
     def _action_flag(self, obj):
         return ACTION_FLAG_CHOICES[obj.action_flag]
 
