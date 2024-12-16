@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-11 09:33+0100\n"
+"POT-Creation-Date: 2024-12-16 13:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgstr ""
 
 #: governanceplatform/admin.py:823 governanceplatform/models.py:223
 #: governanceplatform/models.py:342 governanceplatform/models.py:532
-#: incidents/models.py:533
+#: incidents/models.py:533 incidents/views.py:689
 msgid "Regulators"
 msgstr ""
 
@@ -95,7 +95,7 @@ msgid "Dutch"
 msgstr ""
 
 #: governanceplatform/config.py:120 governanceplatform/config_dev.py:125
-msgid "Cookie settings"
+msgid "Cookie Notice"
 msgstr ""
 
 #: governanceplatform/config.py:124 governanceplatform/config_dev.py:129
@@ -104,85 +104,86 @@ msgstr ""
 
 #: governanceplatform/config.py:126 governanceplatform/config_dev.py:131
 msgid ""
-"This website uses cookies and other similar technologies strictly "
-"necessary                 for its operation, without the use of personal "
-"data."
-msgstr ""
-
-#: governanceplatform/config.py:132 governanceplatform/config_dev.py:137
-msgid "Meta cookie for the cookies that are set."
-msgstr ""
-
-#: governanceplatform/config.py:133 governanceplatform/config_dev.py:138
-msgid "Accepted cookies"
+"This website uses cookies and similar technologies essential for its "
+"operation,                 without processing personal data. By clicking "
+"‘Accept’,                 you consent to the use of cookies. For more "
+"details, please see:"
 msgstr ""
 
 #: governanceplatform/config.py:134 governanceplatform/config_dev.py:139
+msgid "Cookie used to store user’s consent to the use of cookies."
+msgstr ""
+
+#: governanceplatform/config.py:136 governanceplatform/config_dev.py:141
+msgid "The user’s cookie preferences."
+msgstr ""
+
+#: governanceplatform/config.py:137 governanceplatform/config_dev.py:142
 msgid "6 months"
 msgstr ""
 
-#: governanceplatform/config.py:138 governanceplatform/config_dev.py:143
-msgid "This cookie is necessary for user options"
+#: governanceplatform/config.py:142 governanceplatform/config_dev.py:147
+msgid "Cookie essential for maintaining user session options."
 msgstr ""
 
-#: governanceplatform/config.py:139 governanceplatform/config_dev.py:144
+#: governanceplatform/config.py:144 governanceplatform/config_dev.py:149
 msgid "Session ID"
 msgstr ""
 
-#: governanceplatform/config.py:140 governanceplatform/config.py:148
-#: governanceplatform/config_dev.py:145 governanceplatform/config_dev.py:153
+#: governanceplatform/config.py:145 governanceplatform/config.py:153
+#: governanceplatform/config_dev.py:150 governanceplatform/config_dev.py:158
 msgid "15 minutes"
 msgstr ""
 
-#: governanceplatform/config.py:145 governanceplatform/config_dev.py:150
-msgid "This cookie prevents Cross-Site-Request-Forgery attacks."
-msgstr ""
-
-#: governanceplatform/config.py:147 governanceplatform/config_dev.py:152
-msgid "Token"
+#: governanceplatform/config.py:150 governanceplatform/config_dev.py:155
+msgid "Cookie used to prevent Cross-Site Request Forgery (CSRF) attacks."
 msgstr ""
 
 #: governanceplatform/config.py:152 governanceplatform/config_dev.py:157
-msgid "Meta cookie for user language settings"
+msgid "Token"
 msgstr ""
 
-#: governanceplatform/config.py:153 governanceplatform/config_dev.py:158
-msgid "Language settings"
-msgstr ""
-
-#: governanceplatform/config.py:154 governanceplatform/config.py:160
-#: governanceplatform/config_dev.py:159 governanceplatform/config_dev.py:165
-msgid "Session"
+#: governanceplatform/config.py:157 governanceplatform/config_dev.py:162
+msgid "Cookie used to store user language preferences."
 msgstr ""
 
 #: governanceplatform/config.py:158 governanceplatform/config_dev.py:163
-msgid "Meta cookie for user theme settings"
+msgid "Language settings"
 msgstr ""
 
-#: governanceplatform/config.py:159 governanceplatform/config_dev.py:164
-msgid "Theme dark/light settings"
+#: governanceplatform/config.py:159 governanceplatform/config.py:165
+#: governanceplatform/config_dev.py:164 governanceplatform/config_dev.py:170
+msgid "Session"
+msgstr ""
+
+#: governanceplatform/config.py:163 governanceplatform/config_dev.py:168
+msgid "Cookie used to store user theme preferences."
+msgstr ""
+
+#: governanceplatform/config.py:164 governanceplatform/config_dev.py:169
+msgid "Dark/light theme settings"
 msgstr ""
 
 #: governanceplatform/forms.py:31
 msgid "Role"
 msgstr ""
 
-#: governanceplatform/forms.py:97 governanceplatform/forms.py:171
-msgid "I accept and agree to the"
+#: governanceplatform/forms.py:97 governanceplatform/forms.py:175
+msgid "I acknowledge and agree to the"
 msgstr ""
 
-#: governanceplatform/forms.py:98
-msgid "You must accept the Terms of Use to register."
+#: governanceplatform/forms.py:100
+msgid "Acceptance of the Terms of Use is required for registration."
 msgstr ""
 
-#: governanceplatform/forms.py:139
+#: governanceplatform/forms.py:143
 #, python-format
 msgid ""
 "Default language translation (%(fallback_language_name)s) is missing. Please "
 "add it before saving."
 msgstr ""
 
-#: governanceplatform/forms.py:162
+#: governanceplatform/forms.py:166
 msgid "This {self.instance._meta.verbose_name.lower()} already exist."
 msgstr ""
 
@@ -191,7 +192,7 @@ msgid "Addition"
 msgstr ""
 
 #: governanceplatform/globals.py:13
-msgid "Change"
+msgid "Modification"
 msgstr ""
 
 #: governanceplatform/globals.py:14
@@ -199,11 +200,11 @@ msgid "Deletion"
 msgstr ""
 
 #: governanceplatform/globals.py:16
-msgid "Logged in"
+msgid "Login"
 msgstr ""
 
 #: governanceplatform/globals.py:17
-msgid "Logged out"
+msgid "Logout"
 msgstr ""
 
 #: governanceplatform/globals.py:21
@@ -211,7 +212,7 @@ msgid "Security objective"
 msgstr ""
 
 #: governanceplatform/helpers.py:291
-msgid "<strong>Change or delete actions are not allowed</strong><br>"
+msgid "<strong>Modification and deletion actions are not allowed.</strong><br>"
 msgstr ""
 
 #: governanceplatform/managers.py:15
@@ -222,8 +223,8 @@ msgstr ""
 msgid "Superuser must have is_staff=True."
 msgstr ""
 
-#: governanceplatform/mixins.py:58
-msgid "Don't forget to save your object language by language"
+#: governanceplatform/mixins.py:59
+msgid "Save your changes before you leave the tab of the respective language."
 msgstr ""
 
 #: governanceplatform/models.py:19 governanceplatform/models.py:69
@@ -393,13 +394,14 @@ msgstr ""
 msgid "Incident rules"
 msgstr ""
 
-#: governanceplatform/models.py:608
-msgid "Action time"
+#: governanceplatform/models.py:608 incidents/models.py:737
+#: incidents/models.py:813 incidents/models.py:882
+msgid "Timestamp"
 msgstr ""
 
 #: governanceplatform/models.py:609 incidents/admin.py:88
 #: incidents/admin.py:143
-msgid "Action flag"
+msgid "Activity"
 msgstr ""
 
 #: governanceplatform/models.py:610
@@ -414,20 +416,16 @@ msgstr ""
 msgid "Additional information"
 msgstr ""
 
-#: governanceplatform/models.py:619
-msgid "Script log entry"
-msgstr ""
-
-#: governanceplatform/models.py:620
-msgid "Script log entries"
+#: governanceplatform/models.py:619 governanceplatform/models.py:620
+msgid "Script execution logs"
 msgstr ""
 
 #: governanceplatform/validators.py:16
-msgid "Your new password cannot be the same as your current password."
+msgid "Your new password must differ from your current password."
 msgstr ""
 
 #: governanceplatform/validators.py:29
-msgid "You cannot reuse a previously used password."
+msgid "Reusing a previously used password is not permitted."
 msgstr ""
 
 #: governanceplatform/validators.py:34
@@ -442,12 +440,12 @@ msgstr ""
 msgid "Users"
 msgstr ""
 
-#: incidents/admin.py:237
-msgid "Question option"
+#: incidents/admin.py:237 incidents/models.py:149 incidents/models.py:159
+msgid "Question"
 msgstr ""
 
 #: incidents/admin.py:238 incidents/models.py:876
-msgid "Question options"
+msgid "Questionnaire"
 msgstr ""
 
 #: incidents/admin.py:265
@@ -459,11 +457,11 @@ msgid "Predefined answers"
 msgstr ""
 
 #: incidents/admin.py:401 incidents/admin.py:573 incidents/admin.py:657
-msgid "Basic information"
+msgid "General"
 msgstr ""
 
 #: incidents/admin.py:408 incidents/admin.py:667
-msgid "Oversight"
+msgid "Supervision"
 msgstr ""
 
 #: incidents/admin.py:508
@@ -471,11 +469,11 @@ msgid "Email type"
 msgstr ""
 
 #: incidents/admin.py:580 incidents/admin.py:683
-msgid "Email Notification"
+msgid "Notification Email"
 msgstr ""
 
 #: incidents/admin.py:614
-msgid "<strong>Delete action is not allowed</strong><br>"
+msgid "<strong>Deletion forbidden</strong><br>"
 msgstr ""
 
 #: incidents/admin.py:635 incidents/models.py:274 incidents/models.py:349
@@ -490,11 +488,12 @@ msgstr ""
 
 #: incidents/decorators.py:39
 msgid ""
-"The user account does not have any linked entities. Contact the administrator"
+"The user account has currently no associated entities. Please contact the "
+"administrator."
 msgstr ""
 
 #: incidents/forms.py:219
-msgid "Add precision"
+msgid "Add details"
 msgstr ""
 
 #: incidents/forms.py:243 incidents/forms.py:740 incidents/forms.py:748
@@ -561,7 +560,7 @@ msgid "Submission overdue"
 msgstr ""
 
 #: incidents/models.py:28
-msgid "Headline"
+msgid "Title"
 msgstr ""
 
 #: incidents/models.py:67
@@ -591,10 +590,6 @@ msgstr ""
 
 #: incidents/models.py:148 incidents/models.py:239
 msgid "Questions"
-msgstr ""
-
-#: incidents/models.py:149 incidents/models.py:159
-msgid "Question"
 msgstr ""
 
 #: incidents/models.py:155 incidents/models.py:873 incidents/models.py:888
@@ -785,10 +780,6 @@ msgstr ""
 msgid "Incidents"
 msgstr ""
 
-#: incidents/models.py:737 incidents/models.py:813 incidents/models.py:882
-msgid "Timestamp"
-msgstr ""
-
 #: incidents/models.py:750 incidents/views.py:1083
 msgid "Comment"
 msgstr ""
@@ -902,7 +893,7 @@ msgid "Page Not Found"
 msgstr ""
 
 #: templates/404.html:13
-msgid "Sorry, the page you're looking for doesn't exist."
+msgid "Unfortunately, this page does not exist."
 msgstr ""
 
 #: templates/500.html:3
@@ -914,7 +905,7 @@ msgid "Server Error"
 msgstr ""
 
 #: templates/500.html:13
-msgid "Sorry, something went wrong on our end."
+msgid "We apologize for the inconvenience. An error occurred."
 msgstr ""
 
 #: templates/500.html:14
@@ -950,7 +941,9 @@ msgid "Log out"
 msgstr ""
 
 #: templates/home/contact.html:9
-msgid "Dear entity, should you need any assistance please contact us on "
+msgid ""
+"Dear entity, should you require any assistance, please do not hesitate to "
+"contact us at "
 msgstr ""
 
 #: templates/home/privacy_policy.html:92
