@@ -3,10 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputSelector = 'input:not([type="number"]):not([type="checkbox"]):not([type="hidden"]), textarea';
     const langTabsSelector = '.parler-language-tabs a';
     const saveButtonSelector = 'input[name="_save"]';
+    const addAnotherButtonSelector = 'input[name="_addanother"]';
+    const continueButtonSelector = 'input[name="_continue"]';
     const currentUrl = window.location.href.split('?')[0];
     const urlId = currentUrl.split("/admin/")[1];
     const langTabs = Array.from(document.querySelectorAll(langTabsSelector))
-    .filter(tab => !tab.classList.contains('deletelink'));
+        .filter(tab => !tab.classList.contains('deletelink'));
+    let clear_session_storage = true;
 
     function saveUrlId() {
         checkUrlId()
@@ -14,9 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function checkUrlId() {
-        const storedUrlId  = sessionStorage.getItem('urlId');
+        const storedUrlId = sessionStorage.getItem('urlId');
 
-        if (urlId && !window.location.href.includes(storedUrlId)) {
+        if (urlId && !window.location.href.includes(storedUrlId) && clear_session_storage) {
             sessionStorage.clear();
         }
     }
@@ -34,6 +37,14 @@ document.addEventListener("DOMContentLoaded", function () {
             fieldset.querySelectorAll(inputSelector).forEach(input => {
                 const savedValue = sessionStorage.getItem(`${languageCode}_${input.name}`);
                 if (savedValue !== null) input.value = savedValue;
+            });
+        });
+    }
+
+    function removeCurrentTabData(languageCode) {
+        document.querySelectorAll(fieldsetsSelector).forEach(fieldset => {
+            fieldset.querySelectorAll(inputSelector).forEach(input => {
+                sessionStorage.removeItem(`${languageCode}_${input.name}`);
             });
         });
     }
@@ -64,11 +75,26 @@ document.addEventListener("DOMContentLoaded", function () {
     if (currentTabElement) restoreTabData(currentTabElement.name);
 
     const saveButton = document.querySelector(saveButtonSelector);
+    const addAnotherButton = document.querySelector(addAnotherButtonSelector);
+    const continueButton = document.querySelector(continueButtonSelector);
+
     if (saveButton) {
         saveButton.addEventListener('click', function () {
             sessionStorage.clear();
         });
     }
+    if (addAnotherButton) {
+        addAnotherButton.addEventListener('click', function () {
+            sessionStorage.clear();
+        });
+    }
+    if (continueButton) {
+        continueButton.addEventListener('click', function () {
+            clear_session_storage = true;
+            const urlParams = new URLSearchParams(window.location.href.split('?')[1]);
+            language_code = urlParams.get('language');
+            removeCurrentTabData(language_code)
 
-
+        });
+    }
 });

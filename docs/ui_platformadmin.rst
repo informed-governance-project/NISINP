@@ -4,7 +4,7 @@ Platform Administrator interface
 log-in
 -------
 
-On this page you can log in or create an account in case you have to notify an incident and you don't have your credential.
+On this page you can log in or create an account in case you have to notify an incident and you don't have credentials.
 
 .. figure:: _static/ui_user_login_page.png
    :alt: Login page.
@@ -39,7 +39,7 @@ To define the rules of incident reception for observer, you need firt to create 
    Definition of an observer.
 
 
-- The checkbox ``Receives all incidents``, if it's checked the observer will receive all incident, **no matter of the regulation**. If you need specific rules you have to define ``observer regulations``
+- The checkbox ``Receives all incidents``, if it's checked the observer will receive all incidents, **no matter of the regulation**. If you need specific rules you have to define ``observer regulations``
 
 .. figure:: _static/ui_observer_regulation.png
    :alt: Observer regulation.
@@ -73,7 +73,7 @@ For observer regulation you need to define:
 In the case above the regulation receive the incident which are ``PUBLIC`` **OR** the incidents which are ``PRIVATE`` and ``CRITICAL_INFRA`` (e.g. NIS2 AND (PUBLIC OR(PRIVATE AND NOT CRITICAL_INFRA))). 
 PRIVATE, CRITICAL_INFRA and PUBLIC are ``code`` from ``Entity Category``.
 
-If we want to receive all incident of a regulation the ``incident rules`` should be {}. 
+If the observer should receive all incidents of a regulation the ``incident rules`` should be {}. 
 
 .. figure:: _static/ui_observer_regulation_CER.png
    :alt: Observer regulation.
@@ -81,7 +81,7 @@ If we want to receive all incident of a regulation the ``incident rules`` should
 
    Observer regulation.
 
-If we want to exclude incidents for ``incident_rules``, we can use the tag exclude in the JSON 
+If incidents should be excluded, the tag exclude can be used in the JSON 
 
 .. code-block:: 
 

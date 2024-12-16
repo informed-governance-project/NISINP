@@ -47,6 +47,8 @@ try:
 
     API_ENABLED = config.API_ENABLED
 
+    COOKIEBANNER = config.COOKIEBANNER
+
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
         config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     )
@@ -123,6 +125,7 @@ INSTALLED_APPS = [
     "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
+    "cookiebanner",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -250,6 +253,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+    {
+        "NAME": "governanceplatform.validators.NoReusePasswordValidator",
     },
 ]
 
@@ -406,6 +412,10 @@ PHONENUMBER_DB_FORMAT = "INTERNATIONAL"
 # TIMEOUT
 SESSION_SAVE_EVERY_REQUEST = True  # the timeout is extended at each action
 SESSION_COOKIE_AGE = config.SESSION_COOKIE_AGE
+try:
+    CSRF_COOKIE_AGE = config.CSRF_COOKIE_AGE
+except AttributeError:
+    CSRF_COOKIE_AGE = 15 * 60
 
 BOOTSTRAP_DATEPICKER_PLUS = {
     # Options for all input widgets

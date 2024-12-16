@@ -2,6 +2,7 @@
 
 {% load django_bootstrap5 %}
 {% load static %}
+{% load cookiebanner %}
 
 {% bootstrap_css %}
 {% bootstrap_javascript %}
@@ -13,10 +14,10 @@
 {% endblock %}
 
 {% block bootstrap5_extra_script %}
-    <script src='{% static "js/base.js" %}'></script>
     <script src='{% static "npm_components/@popperjs/core/dist/umd/popper.min.js" %}'></script>
     <script src='{% static "npm_components/jquery/dist/jquery.min.js" %}'></script>
     <script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+    <script src='{% static "js/base.js" %}'></script>
 {% endblock %}
 
 {% block bootstrap5_before_content %}
@@ -28,7 +29,13 @@
 {% block bootstrap5_content %}
     {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
     <div class="container-fluid px-4 py-2">
-        {% block content %}{% endblock %}
+        {% block cookiebanner %}
+            {% if cookiebanner %}
+                {% cookiebanner_modal 'bootstrap5' %}
+            {% endif %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
     </div>
     {% block app_modals %}
     <div class="modal fade" id="create_so_declaration" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"

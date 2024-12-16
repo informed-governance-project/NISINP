@@ -6,8 +6,8 @@
 
 {% bootstrap_css %}
 {% block bootstrap5_extra_head %}
+{{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'npm_components/bootstrap-icons/font/bootstrap-icons.css' %}" />
 {% endblock %}
 {% block bootstrap5_title %}
         {% block title %}{% translate "Log in" %}{% endblock %}

@@ -1,12 +1,15 @@
-from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 from django.contrib.admin.models import LogEntry
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.signals import post_delete, post_save, pre_save
+from django.dispatch import receiver
+
 from governanceplatform.models import User
-from .models import ObserverUser, RegulatorUser, CompanyUser
+
+from .helpers import user_in_group
+from .models import CompanyUser, ObserverUser, PasswordUserHistory, RegulatorUser
 from .permissions import (
     set_observer_admin_permissions,
     set_observer_user_permissions,
@@ -16,7 +19,18 @@ from .permissions import (
     set_regulator_staff_permissions,
 )
 
-from .helpers import user_in_group
+
+@receiver(pre_save, sender=User)
+def save_old_password(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            user = User.objects.get(pk=instance.pk)
+            if user.password != instance.password:
+                PasswordUserHistory.objects.create(
+                    user=user, hashed_password=user.password
+                )
+        except User.DoesNotExist:
+            pass
 
 
 # Add logs for user connection

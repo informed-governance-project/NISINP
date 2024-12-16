@@ -1,4 +1,7 @@
 from .helpers import can_change_or_delete_obj, filter_languages_not_translated
+from django.contrib import messages
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 
 class TranslationUpdateMixin:
@@ -44,3 +47,16 @@ class PermissionMixin:
         if has_permission:
             form = filter_languages_not_translated(form)
         return form
+
+
+class ShowReminderForTranslationsMixin:
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        messages.warning(
+                    request,
+                    mark_safe(
+                        _(
+                            "Don't forget to save your object language by language"
+                        )
+                    ),
+                )
+        return super().change_view(request, object_id, form_url, extra_context)

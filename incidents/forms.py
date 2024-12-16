@@ -267,6 +267,7 @@ class QuestionForm(forms.Form):
                 initial_data = list(filter(None, str(answer).split(",")))
 
             self.fields[field_name] = forms.MultipleChoiceField(
+                required=question_option.is_mandatory,
                 choices=countries if question_type == "CL" else REGIONAL_AREA,
                 widget=DropdownCheckboxSelectMultiple(),
                 label=question.label,
@@ -296,7 +297,7 @@ class QuestionForm(forms.Form):
 
         category_question_options = workflow.questionoptions_set.filter(
             category_option__id=category
-        )
+        ).order_by("position")
 
         for question_option in category_question_options:
             self.create_question(question_option, incident_workflow, incident)
@@ -306,7 +307,7 @@ class QuestionForm(forms.Form):
 class ContactForm(forms.Form):
     company_name = forms.CharField(
         required=True,
-        label="Company name",
+        label=_("Name of the Operator"),
         max_length=100,
         widget=forms.TextInput(attrs={"class": "company_name"}),
     )
@@ -389,8 +390,9 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "To make your incident easier to locate and track, please include a reference "
-                    "(e.g., an identifier, internal reference, CERT reference, etc.)."
+                    "Please include a reference "
+                    "(e.g., an identifier, internal reference, CERT reference, etc.) "
+                    "to facilitate incident tracking."
                 ),
                 "data-bs-toggle": "tooltip",
             }
@@ -402,7 +404,8 @@ class ContactForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "title": _(
-                    "Insert a police report that you have filed with the police"
+                    "Insert the file number of a criminal complaint "
+                    "that you have filed with the police."
                 ),
                 "data-bs-toggle": "tooltip",
             }
@@ -600,9 +603,11 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         category_tree.append(IncidenteDateForm)
         if workflow is None:
             workflow = incident.get_next_step()
-        categories = workflow.questionoptions_set.values_list(
-            "category_option", flat=True
-        ).distinct()
+        categories = (
+            workflow.questionoptions_set.filter(category_option__isnull=False)
+            .values_list("category_option", flat=True)
+            .distinct()
+        )
         for _category in categories:
             category_tree.append(QuestionForm)
         if workflow.is_impact_needed:

@@ -1,7 +1,7 @@
-Importing and exporting database tables (currently disabled for security)
---------------------------------------
+Importing and exporting database tables (currently disabled for security reasons)
+--------------------------------------------------------------------------------------
 
-Some model of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 2 exports. Same for the import.
+Some models of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 2 exports. Same for the import.
 
  .. figure:: _static/ui_admin_export.png
     :alt: import / export.
@@ -9,22 +9,20 @@ Some model of the application can be exported and/or imported. The import / expo
 
     Import export principle.
 
-1. Button to import. When you click on import, you can choose the format of your file. And the view displayed you the available field to import. **If you want to create, it's preferable to don't put the id field**.
-After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**.
-After that you have this view :
+1. Button to import. When you click on import, you can choose the format of your file. And the view shows you the available field to import. **If you want to create, it's preferable to not put the id field**.After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**. After that you have this view :
 
-.. .. figure:: _static/ui_admin_import.png
-..    :alt: import view.
-..    :target: _static/ui_admin_import.png
+ .. figure:: _static/ui_admin_import.png
+    :alt: import view.
+    :target: _static/ui_admin_import.png
 
     Import view.
 
- This view is summarizing the import, you can see the change.
+ This view is summarizing the import, you can see the changes.
 
-2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available.
- After clicking on it, you can choose the format, the easiest is to choose ``xlsx``.
+2. Button to export, when you export, the result of the export is the list which is displayed on the page. So you can reduce the list by searching or using a filter on the page if there are some available. After clicking on it, you can choose the format, the easiest is to choose ``xlsx``.
 
 3. Search bar to reduce the exported list.
+
 
 Questions of incident report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,7 +64,7 @@ After you have to import the ``predefined answers``:
 - ``question`` : The label of the question in the language you want to import
 - ``position`` : position of the answer, lower positions are shown in first during the incident report
 
-You have now your database in one language if you want to import other language, you can now export the model (e.g. questions, question categories, etc.) you want to translate to get the IDs.
+You have now your database in one language. If you want to import other languages, you can now export the model (e.g. questions, question categories, etc.) you want to translate to get the IDs.
 You have to follow the same procedure than before but putting the id to the file to have an update instead of a creation. And remember to **import in the right language**.
 
 Sectors
@@ -75,7 +73,7 @@ Sectors
 For importing sectors you need to respect the following rules:
 
 - If your sector has a parent, **please put the parent before** in the file, the parent has to be imported before
-- If there is no parent, **don't let the field blank**, put ``NULL`` or ``-`` into the field. Blank field raise errors
+- If there is no parent, **don't let the field blank**, put ``NULL`` or ``-`` into the field. Blank fields raise errors
 
 The fields are:
 
@@ -116,7 +114,7 @@ The fields are the following:
 Users
 ~~~~~~~~
 
-For importing users you need first to import the company or companies, they are linked and sector(s). You can only import ``OperatorUser``, ``OperatorAdmin``, ``IncidentUser``.
+For importing users, you need first to import the company or companies, they are linked to and sector(s). You can only import ``OperatorUser``, ``OperatorAdmin``, ``IncidentUser``.
 
 The system can't tolerate two users with the same email address.
 

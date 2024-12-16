@@ -23,7 +23,8 @@ class Sector(TranslatableModel):
         on_delete=models.CASCADE,
         blank=True,
         default=None,
-        verbose_name=_("Parent"),
+        verbose_name=_("Parent Sector"),
+        related_name="children",
     )
     acronym = models.CharField(verbose_name=_("Acronym"), max_length=4)
 
@@ -142,7 +143,7 @@ class Company(models.Model):
         blank=True,
         null=True,
         default=None,
-        verbose_name=_("e-mail address"),
+        verbose_name=_("Email address"),
     )
     phone_number = PhoneNumberField(
         verbose_name=_("Phone number"),
@@ -214,8 +215,8 @@ class Company(models.Model):
         )
 
     class Meta:
-        verbose_name = _("Company")
-        verbose_name_plural = _("Companies")
+        verbose_name = _("Operator")
+        verbose_name_plural = _("Operators")
 
 
 # Regulator
@@ -253,8 +254,8 @@ class Regulator(TranslatableModel):
         return name_translation or ""
 
     class Meta:
-        verbose_name = _("Competent authority")
-        verbose_name_plural = _("Competent authorities")
+        verbose_name = _("Regulator")
+        verbose_name_plural = _("Regulators")
 
 
 # Observer
@@ -282,7 +283,7 @@ class Observer(TranslatableModel):
         null=True,
     )
     is_receiving_all_incident = models.BooleanField(
-        default=False, verbose_name=_("Receives all incidents")
+        default=False, verbose_name=_("Receives all incident notifications")
     )
     functionalities = models.ManyToManyField(
         Functionality,
@@ -352,10 +353,10 @@ class Observer(TranslatableModel):
 class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(
-        verbose_name=_("e-mail address"),
+        verbose_name=_("Email address"),
         unique=True,
         error_messages={
-            "unique": _("An account with this email already exists"),
+            "unique": _("An account with this email address already exists."),
         },
     )
     phone_number = PhoneNumberField(
@@ -368,12 +369,12 @@ class User(AbstractUser, PermissionsMixin):
     companies = models.ManyToManyField(
         Company,
         through="CompanyUser",
-        verbose_name=_("Companies"),
+        verbose_name=_("Operators"),
     )
     regulators = models.ManyToManyField(
         Regulator,
         through="RegulatorUser",
-        verbose_name=_("Competent authorities"),
+        verbose_name=_("Regulators"),
     )
     observers = models.ManyToManyField(
         Observer,
@@ -385,7 +386,7 @@ class User(AbstractUser, PermissionsMixin):
         verbose_name=_("Administrator"),
         default=False,
         help_text=_(
-            "Specifies whether a user can log in via the administration interface."
+            "Determines if the user can log in via the administration interface."
         ),
     )
     accepted_terms = models.BooleanField(default=False)
@@ -452,11 +453,18 @@ class User(AbstractUser, PermissionsMixin):
         )
 
 
+# Password User History
+class PasswordUserHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hashed_password = models.CharField(max_length=128)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
 class CompanyUser(models.Model):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        verbose_name=_("Company"),
+        verbose_name=_("Operator"),
     )
     user = models.ForeignKey(
         User,
@@ -495,7 +503,7 @@ class RegulatorUser(models.Model):
     regulator = models.ForeignKey(
         Regulator,
         on_delete=models.CASCADE,
-        verbose_name=_("Competent authority"),
+        verbose_name=_("Regulator"),
     )
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("is administrator")
@@ -556,7 +564,7 @@ class Regulation(TranslatableModel):
         Regulator,
         default=None,
         blank=True,
-        verbose_name=_("Competent authorities"),
+        verbose_name=_("Regulators"),
     )
 
     @admin.display(description="regulators")
@@ -598,7 +606,7 @@ class ObserverRegulation(models.Model):
     regulation = models.ForeignKey(
         Regulation,
         on_delete=models.CASCADE,
-        verbose_name=_("Regulation"),
+        verbose_name=_("Legal basis"),
     )
     observer = models.ForeignKey(
         Observer,
