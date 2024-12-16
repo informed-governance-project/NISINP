@@ -36,7 +36,7 @@ def check_user_is_correct(view_func):
         messages.error(
             request,
             _(
-                "The user account does not have any linked entities. Contact the administrator"
+                "The user account has currently no associated entities. Please contact the administrator."
             ),
         )
         return redirect("logout")

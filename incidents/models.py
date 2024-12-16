@@ -25,7 +25,7 @@ class Impact(TranslatableModel):
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         headline=models.CharField(
-            verbose_name=_("Headline"),
+            verbose_name=_("Title"),
             max_length=255,
             blank=True,
             default=None,
@@ -873,7 +873,7 @@ class Answer(models.Model):
     answer = models.TextField(verbose_name=_("Answer"), null=True, blank=True)
     question_options = models.ForeignKey(
         QuestionOptions,
-        verbose_name=_("Question options"),
+        verbose_name=_("Questionnaire"),
         on_delete=models.CASCADE,
         null=True,
     )

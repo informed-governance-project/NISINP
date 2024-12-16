@@ -13,7 +13,7 @@ class NoReusePasswordValidator:
 
         if user.check_password(password):
             raise ValidationError(
-                _("Your new password cannot be the same as your current password."),
+                _("Your new password must differ from your current password."),
                 code="password_same_as_current",
             )
 
@@ -26,7 +26,7 @@ class NoReusePasswordValidator:
             user.password = old_password
             if user.check_password(password):
                 raise ValidationError(
-                    _("You cannot reuse a previously used password."),
+                    _("Reusing a previously used password is not permitted."),
                     code="password_reuse",
                 )
 

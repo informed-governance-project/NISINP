@@ -288,7 +288,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
         request,
         mark_safe(
             _(
-                f"<strong>Change or delete actions are not allowed</strong><br>"
+                f"<strong>Modification and deletion actions are not allowed.</strong><br>"
                 f"- This {verbose_name} is either in use.<br>"
                 f"- You are not its creator ({creator_name})"
             )

@@ -10,11 +10,11 @@ DECONNECTION = 6
 
 ACTION_FLAG_CHOICES = {
     ADDITION: _("Addition"),
-    CHANGE: _("Change"),
+    CHANGE: _("Modification"),
     DELETION: _("Deletion"),
     # VIEW: _('View'),
-    CONNECTION: _("Logged in"),
-    DECONNECTION: _("Logged out"),
+    CONNECTION: _("Login"),
+    DECONNECTION: _("Logout"),
 }
 
 # Functionalities list

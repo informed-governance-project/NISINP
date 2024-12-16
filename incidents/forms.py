@@ -216,7 +216,7 @@ class QuestionForm(forms.Form):
                             "data-bs-toggle": "tooltip",
                         }
                     ),
-                    label=_("Add precision"),
+                    label=_("Add details"),
                 )
         elif question_type == "DATE":
             if answer_queryset.exists():

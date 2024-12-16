@@ -605,8 +605,8 @@ class ObserverRegulation(models.Model):
 
 # class to record the script logs
 class ScriptLogEntry(models.Model):
-    action_time = models.DateTimeField(auto_now=True, verbose_name=_("Action time"))
-    action_flag = models.PositiveSmallIntegerField(verbose_name=_("Action flag"))
+    action_time = models.DateTimeField(auto_now=True, verbose_name=_("Timestamp"))
+    action_flag = models.PositiveSmallIntegerField(verbose_name=_("Activity"))
     object_id = models.TextField(null=True, blank=True, verbose_name=_("Object id"))
     object_repr = models.CharField(
         max_length=200, verbose_name=_("Object representation")
@@ -616,8 +616,8 @@ class ScriptLogEntry(models.Model):
     )
 
     class Meta:
-        verbose_name = _("Script log entry")
-        verbose_name_plural = _("Script log entries")
+        verbose_name = _("Script execution logs")
+        verbose_name_plural = _("Script execution logs")
 
     def __str__(self):
         return f"{self.action()} - {self.object_repr}"
