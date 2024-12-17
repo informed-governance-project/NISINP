@@ -138,6 +138,9 @@ class ConfigurationReportForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["so_excluded"].required = False
+        self.fields["so_excluded"].queryset = self.fields[
+            "so_excluded"
+        ].queryset.order_by("unique_code")
 
         sectors = initial.get("sectors")
         if sectors:
