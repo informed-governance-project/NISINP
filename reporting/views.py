@@ -34,7 +34,6 @@ from securityobjectives.models import (
     Domain,
     MaturityLevel,
     SecurityObjective,
-    SecurityObjectivesInStandard,
     SecurityObjectiveStatus,
     StandardAnswer,
 )
@@ -45,7 +44,6 @@ from .forms import (
     ConfigurationReportForm,
     ImportRiskAnalysisForm,
     RecommendationsSelectFormSet,
-    ReportGenerationForm,
 )
 from .models import (
     AssetData,
@@ -463,97 +461,6 @@ def delete_report_recommendation(request, company_id, sector_id, year, report_re
     redirect_url = reverse("report_recommendations", args=[company.id, sector.id, year])
 
     return redirect(redirect_url)
-
-
-@login_required
-@otp_required
-def report_generation(request):
-    user = request.user
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
-
-    sector_list = get_sectors_grouped(sectors_queryset)
-
-    companies_queryset = (
-        Company.objects.filter(
-            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-        ).distinct()
-        if user_in_group(user, "RegulatorUser")
-        else Company.objects.all()
-    )
-    so_queryset = SecurityObjectivesInStandard.objects.filter(
-        standard__regulator=user.regulators.first()
-    ).order_by("position")
-
-    company_list = [(company.id, str(company)) for company in companies_queryset]
-    so_list = [
-        (so.security_objective.id, str(so.security_objective)) for so in so_queryset
-    ]
-
-    initial = {
-        "company": company_list,
-        "sectors": sector_list,
-        "so": so_list,
-    }
-    if request.method == "POST":
-        form = ReportGenerationForm(request.POST, initial=initial)
-        if form.is_valid():
-            try:
-                company_id = form.cleaned_data["company"]
-                sector_id = form.cleaned_data["sector"]
-                year = int(form.cleaned_data["year"])
-                company = Company.objects.get(pk=company_id)
-                sector = Sector.objects.get(pk=sector_id)
-            except (Company.DoesNotExist, Sector.DoesNotExist):
-                messages.error(
-                    request,
-                    _("Data not found for generate the report"),
-                )
-                return redirect("report_generation")
-
-            security_objectives_declaration = StandardAnswer.objects.filter(
-                submitter_company=company,
-                sectors=sector,
-                year_of_submission=year,
-                status="PASS",
-            ).order_by("submit_date")
-
-            if not security_objectives_declaration:
-                messages.error(
-                    request,
-                    _("No data found for security objectives report"),
-                )
-                return redirect("report_generation")
-
-            cleaned_data = {
-                "company": company,
-                "sector": sector,
-                "year": year,
-                "nb_years": int(form.cleaned_data["nb_years"]),
-                "security_objectives_declaration": security_objectives_declaration.last(),
-                "so_excluded": form.cleaned_data["so_exclude"],
-            }
-
-            pdf_report = get_pdf_report(request, cleaned_data)
-            # try:
-            #     pdf_report = get_pdf_report(request)
-            # except Exception:
-            #     messages.warning(request, _("An error occurred while generating the report."))
-            #     return HttpResponseRedirect(reverse("incidents"))
-            filename = urlquote(
-                f"{_('annual_report')}_{year}_{company.name} - {_('annual_report')}"
-            )
-            response = HttpResponse(pdf_report, content_type="application/pdf")
-            response["Content-Disposition"] = f"attachment;filename={filename}.pdf"
-
-            return response
-
-    form = ReportGenerationForm(initial=initial)
-    context = {"form": form}
-    return render(request, "reporting/report_generation.html", context=context)
 
 
 # To DO : restrict acces to incidentuser

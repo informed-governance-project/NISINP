@@ -8,7 +8,6 @@ from .views import (
     edit_report_configuration,
     import_risk_analysis,
     report_configuration,
-    report_generation,
     report_recommendations,
     reporting,
 )
@@ -16,7 +15,6 @@ from .views import (
 urlpatterns = [
     # Report generation
     path("", reporting, name="reporting"),
-    path("generate", report_generation, name="report_generation"),
     path("configuration", report_configuration, name="report_configuration"),
     path(
         "configuration/add", add_report_configuration, name="add_report_configuration"

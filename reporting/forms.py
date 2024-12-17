@@ -76,57 +76,6 @@ class ImportRiskAnalysisForm(forms.Form):
             self.fields["sectors"].disabled = True
 
 
-class ReportGenerationForm(forms.Form):
-    company = forms.ChoiceField(
-        required=True,
-        label=_("Company"),
-    )
-
-    year = forms.ChoiceField(
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 2, timezone.now().year + 1)
-        ],
-        required=True,
-        initial=timezone.now().year,
-        label=_("Year"),
-    )
-
-    sector = forms.ChoiceField(
-        required=True,
-        label=_("Sector"),
-    )
-
-    nb_years = forms.ChoiceField(
-        choices=[(str(nb_year), str(nb_year)) for nb_year in range(1, 4)],
-        required=True,
-        label=_("Number of years to compare"),
-    )
-
-    so_exclude = forms.MultipleChoiceField(
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 3"}
-        ),
-        required=False,
-        label=_("Security objectives to exclude"),
-    )
-
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.pop("initial", None)
-        super().__init__(*args, **kwargs)
-        if initial["company"]:
-            self.fields["company"].choices = initial["company"]
-        if initial["sectors"]:
-            self.fields["sector"].choices = initial["sectors"]
-        if initial["so"]:
-            self.fields["so_exclude"].choices = initial["so"]
-
-        if not initial["company"] and not initial["sector"]:
-            self.fields["company"].disabled = True
-            self.fields["year"].disabled = True
-            self.fields["sector"].disabled = True
-
-
 class ConfigurationReportForm(forms.ModelForm):
     class Meta:
         model = SectorReportConfiguration
