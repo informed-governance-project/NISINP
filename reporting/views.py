@@ -169,12 +169,17 @@ def reporting(request):
                             )
                             return redirect("reporting")
 
+                    report_recommendations = company.get_report_recommandations(
+                        year, sector
+                    )
+
                     report_data = {
                         "company": company,
                         "sector": sector,
                         "year": year,
                         "nb_years": nb_years,
                         "so_excluded": so_excluded,
+                        "report_recommendations": report_recommendations,
                     }
 
                     pdf_report = get_pdf_report(request, report_data)
@@ -1365,6 +1370,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "company": cleaned_data["company"],
             "year": cleaned_data["year"],
             "sector": cleaned_data["sector"],
+            "report_recommendations": cleaned_data["report_recommendations"],
             "charts": charts,
             "so_data": so_data,
             "nb_years": cleaned_data["nb_years"],
