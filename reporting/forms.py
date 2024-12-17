@@ -146,7 +146,7 @@ class ConfigurationReportForm(forms.ModelForm):
         if sectors:
             self.fields["sector"].queryset = sectors
 
-        if instance:
+        if instance and instance.pk:
             self.fields["sector"].disabled = True
 
     def save(self, commit=True):

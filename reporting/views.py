@@ -267,8 +267,12 @@ def add_report_configuration(request):
     if request.method == "POST":
         form = ConfigurationReportForm(request.POST, initial=initial)
         if form.is_valid():
-            new_configuration = SectorReportConfiguration(**form.cleaned_data)
+            cleaned_data = form.cleaned_data.copy()
+            so_excluded = cleaned_data.pop("so_excluded", None)
+            new_configuration = SectorReportConfiguration(**cleaned_data)
             new_configuration.save()
+            if so_excluded:
+                new_configuration.so_excluded.set(so_excluded)
             return redirect("report_configuration")
 
     form = ConfigurationReportForm(initial=initial)
