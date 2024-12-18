@@ -584,7 +584,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     ru = RegulatorUser.objects.get(
                         user=user, regulator=user.regulators.first()
                     )
-                    for obj in formset.save(commit=False):  # Inline objects are here
+                    for obj in formset.save():  # Inline objects are here
                         sects = []
                         for sect in obj.sectors.all():
                             if sect not in ru.sectors.all():
