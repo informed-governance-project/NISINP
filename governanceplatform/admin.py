@@ -526,7 +526,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             readonly_fields += ("identifier",)
-        if not user_in_group(user, "RegulatorUser"):
+        if not (user_in_group(user, "RegulatorUser") or user_in_group(user, "RegulatorAdmin")):
             readonly_fields += ("entity_categories",)
 
         return readonly_fields
@@ -585,11 +585,12 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                         user=user, regulator=user.regulators.first()
                     )
                     for obj in formset.save(commit=False):  # Inline objects are here
-                        sects = []
-                        for sect in obj.sectors.all():
-                            if sect not in ru.sectors.all():
-                                sects.append(sect.id)
-                        sectors[obj] = sects
+                        if obj.pk is not None:
+                            sects = []
+                            for sect in obj.sectors.all():
+                                if sect not in ru.sectors.all():
+                                    sects.append(sect.id)
+                            sectors[obj] = sects
             super().save_related(request, form, formsets, change)
             # re assign sectors which are not assigned to the current regulatoruser
             for formset in formsets:
@@ -597,9 +598,10 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     user, "RegulatorUser"
                 ):
                     for obj in formset.save(commit=False):  # Inline objects are here
-                        if sectors[obj] is not None:
-                            obj.sectors.add(*sectors[obj])
-                            obj.save()  # Explicitly save changes
+                        if obj in sectors:
+                            if sectors[obj] is not None:
+                                obj.sectors.add(*sectors[obj])
+                                obj.save()  # Explicitly save changes
         else:
             super().save_related(request, form, formsets, change)
 
