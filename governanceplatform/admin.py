@@ -587,7 +587,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     for obj in formset.save(commit=False):  # Inline objects are here
                         if obj.pk is not None:
                             sects = []
-                            print(obj)
                             for sect in obj.sectors.all():
                                 if sect not in ru.sectors.all():
                                     sects.append(sect.id)
