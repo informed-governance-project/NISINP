@@ -435,6 +435,8 @@ class User(AbstractUser, PermissionsMixin):
             self, "OperatorAdmin"
         ) or governanceplatform.helpers.user_in_group(self, "OperatorUser"):
             return self.companyuser_set.all().values_list("sectors")
+        elif governanceplatform.helpers.user_in_group(self, "RegulatorAdmin"):
+            return Sector.objects
 
     def get_module_permissions(self):
         user_entity = None

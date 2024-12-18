@@ -837,7 +837,7 @@ def import_so_declaration(request):
                         },
                     )
 
-            create_entry_log(user, standard_answer, "IMPORT")
+            create_entry_log(user, new_standard_answer, "IMPORT")
             messages.info(
                 request, ("The security objectives declaration has been imported.")
             )
