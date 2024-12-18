@@ -40,6 +40,7 @@ class CompanyFilter(django_filters.FilterSet):
         widget=DropdownCheckboxSelectMultiple(
             attrs={"data-selected-text-format": "count > 2"}
         ),
+        method="filter_by_sector",
         label=_("Sectors"),
     )
 
@@ -48,6 +49,9 @@ class CompanyFilter(django_filters.FilterSet):
         fields = [
             "name",
         ]
+
+    def filter_by_sector(self, queryset, name, value):
+        return queryset
 
 
 class RecommendationFilter(django_filters.FilterSet):

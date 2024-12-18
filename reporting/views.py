@@ -99,7 +99,7 @@ def reporting(request):
     current_params = request.session.get("reporting_filter_params", {}).copy()
 
     for key, values in request.GET.lists():
-        current_params[key] = values if len(values) > 1 else values[0]
+        current_params[key] = values if key == "sectors" else values[0]
 
     reporting_filter_params = current_params
     request.session["reporting_filter_params"] = current_params
