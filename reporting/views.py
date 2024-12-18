@@ -527,27 +527,22 @@ def import_risk_analysis(request):
 
     if request.method == "POST":
         form = ImportRiskAnalysisForm(request.POST, request.FILES, initial=initial)
-        files = request.FILES.getlist("files")
-        file_messages = {"success": [], "error": []}
-        for file in files:
+        if form.is_valid():
+            json_file = form.cleaned_data["import_file"]
+            # company_id = form.cleaned_data["company"]
+            # sectors_id = form.cleaned_data["sectors"]
+            # year = form.cleaned_data["year"]
             try:
-                validate_json_file(file)
-                file_messages["success"].append(
-                    f"{file.name}: Risk Analysis submitted successfully"
-                )
+                validate_json_file(json_file)
             except ValidationError as e:
-                file_messages["error"].append(f"{file.name}: {str(e)}")
+                messages.error(request, f"Error: {str(e)}")
+                return redirect("import_risk_analysis")
 
-        for message in file_messages["success"]:
-            messages.success(request, message)
-        for message in file_messages["error"]:
-            messages.error(request, message)
+            parsing_risk_data_json(json_file)
 
     form = ImportRiskAnalysisForm(initial=initial)
     context = {"form": form}
-    return render(
-        request, "operator/reporting/risk_analysis_submission.html", context=context
-    )
+    return render(request, "reporting/risk_analysis_import.html", context=context)
 
 
 def get_so_data(cleaned_data):
@@ -1154,7 +1149,7 @@ def convert_graph_to_base64(fig):
     return graph
 
 
-def parsing_risk_data_json(risk_analysis_json):
+def parsing_risk_data_json(json_file):
     LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
         1: "REDUC",
@@ -1164,7 +1159,13 @@ def parsing_risk_data_json(risk_analysis_json):
         5: "UNTRE",
     }
 
-    data = risk_analysis_json.data
+    try:
+        # Reset file pointer and read content
+        json_file.seek(0)  # Ensure we start reading from the beginning
+        content = json_file.read().decode("utf-8")  # Decode to text
+        data = json.loads(content)  # Parse JSON
+    except json.JSONDecodeError as e:
+        raise ValidationError(f"Error decoding JSON: {str(e)}")
 
     def create_translations(class_model, values, field_name):
         new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
@@ -1194,7 +1195,7 @@ def parsing_risk_data_json(risk_analysis_json):
         new_service_asset = create_translations(AssetData, service_data, "name")
         new_service_stat, created = ServiceStat.objects.get_or_create(
             service=new_service_asset,
-            risk_analysis=risk_analysis_json,
+            risk_analysis=json_file,
         )
         return new_service_stat
 
@@ -1336,7 +1337,7 @@ def parsing_risk_data_json(risk_analysis_json):
             )
             root_service_data = instance
             instance_data["instance"]["parent_uuid"] = instance["uuid"]
-            extract_risks(instance_data)
+            # extract_risks(instance_data)
 
 
 def get_pdf_report(request: HttpRequest, cleaned_data: dict):

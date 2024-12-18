@@ -36,7 +36,9 @@ from .models import ObservationRecommendation, SectorReportConfiguration
 
 class ImportRiskAnalysisForm(forms.Form):
     import_file = forms.FileField(
+        widget=forms.FileInput(attrs={"accept": ".json"}),
         required=True,
+        label=_("JSON File"),
     )
 
     company = forms.ChoiceField(
