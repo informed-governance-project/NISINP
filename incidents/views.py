@@ -75,16 +75,17 @@ def get_incidents(request):
     html_view = "operator/incidents.html"
 
     # Save filter params in user's session
-
     if "reset" in request.GET:
-        if "filter_params" in request.session:
-            del request.session["filter_params"]
+        request.session.pop("incidents_filter_params", None)
         return redirect("incidents")
 
-    if request.GET:
-        request.session["filter_params"] = request.GET
+    current_params = request.session.get("incidents_filter_params", {}).copy()
 
-    filter_params = request.session.get("filter_params", request.GET)
+    for key, values in request.GET.lists():
+        current_params[key] = values if key == "affected_sectors" else values[0]
+
+    incidents_filter_params = current_params
+    request.session["incidents_filter_params"] = incidents_filter_params
 
     if is_user_regulator(user):
         html_view = "regulator/incidents.html"
@@ -105,15 +106,15 @@ def get_incidents(request):
             incidents = incidents.filter(
                 sector_regulation__regulator__in=user.regulators.all()
             )
-        f = IncidentFilter(filter_params, queryset=incidents)
+        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = user.observers.first().get_incidents()
-        f = IncidentFilter(filter_params, queryset=incidents.order_by("id"))
+        f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(filter_params, queryset=incidents)
+        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
@@ -124,15 +125,15 @@ def get_incidents(request):
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
-        f = IncidentFilter(filter_params, queryset=incidents)
+        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
-        f = IncidentFilter(filter_params, queryset=incidents)
+        f = IncidentFilter(incidents_filter_params, queryset=incidents)
 
     # Show 10 incidents per page.
     incident_list = f.qs
-    is_filtered = {k: v for k, v in filter_params.items() if k != "page"}
+    is_filtered = {k: v for k, v in incidents_filter_params.items() if k != "page"}
 
     return render(
         request,
