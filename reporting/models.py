@@ -1,7 +1,10 @@
 import uuid
+from datetime import datetime
 
+import pytz
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import is_naive, make_aware
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
@@ -280,6 +283,17 @@ class RecommendationData(models.Model):
     class Meta:
         verbose_name_plural = _("Recommendations")
         verbose_name = _("Recommendation")
+
+    def save(self, *args, **kwargs):
+        if isinstance(self.due_date, dict):
+            naive_due_date = datetime.strptime(
+                self.due_date["date"], "%Y-%m-%d %H:%M:%S.%f"
+            )
+            timezone = pytz.timezone(self.due_date["timezone"])
+            self.due_date = timezone.localize(naive_due_date)
+        elif self.due_date and is_naive(self.due_date):
+            self.due_date = make_aware(self.due_date)
+        super().save(*args, **kwargs)
 
 
 # store the configuration

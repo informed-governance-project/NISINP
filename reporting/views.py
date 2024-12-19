@@ -529,16 +529,44 @@ def import_risk_analysis(request):
         form = ImportRiskAnalysisForm(request.POST, request.FILES, initial=initial)
         if form.is_valid():
             json_file = form.cleaned_data["import_file"]
-            # company_id = form.cleaned_data["company"]
-            # sectors_id = form.cleaned_data["sectors"]
-            # year = form.cleaned_data["year"]
+            company_id = form.cleaned_data["company"]
+            sector_ids = form.cleaned_data["sectors"]
+            year = form.cleaned_data["year"]
             try:
                 validate_json_file(json_file)
             except ValidationError as e:
                 messages.error(request, f"Error: {str(e)}")
                 return redirect("import_risk_analysis")
 
-            parsing_risk_data_json(json_file)
+            for sector_id in sector_ids:
+                validate_result = validate_url_arguments(
+                    request, company_id, sector_id, year
+                )
+                if isinstance(validate_result, HttpResponseRedirect):
+                    return redirect("import_risk_analysis")
+
+                company, sector, year = validate_result
+                company_sectors = company.get_queryset_sectors()
+                if sector not in company_sectors:
+                    messages.error(
+                        request,
+                        f"Sector error: {str(sector)} is not linked to the {str(company)}",
+                    )
+                    continue
+
+                company_reporting_obj, created = CompanyReporting.objects.get_or_create(
+                    company=company, year=year, sector=sector
+                )
+
+                try:
+                    parsing_risk_data_json(
+                        json_file, company_reporting_obj, not created
+                    )
+                except Exception as e:
+                    messages.error(request, f"Parsing error: {str(e)}")
+                    return redirect("import_risk_analysis")
+
+                messages.success(request, _("Risk analysis successfully imported"))
 
     form = ImportRiskAnalysisForm(initial=initial)
     context = {"form": form}
@@ -1149,7 +1177,7 @@ def convert_graph_to_base64(fig):
     return graph
 
 
-def parsing_risk_data_json(json_file):
+def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
     LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
         1: "REDUC",
@@ -1159,22 +1187,16 @@ def parsing_risk_data_json(json_file):
         5: "UNTRE",
     }
 
-    try:
-        # Reset file pointer and read content
-        json_file.seek(0)  # Ensure we start reading from the beginning
-        content = json_file.read().decode("utf-8")  # Decode to text
-        data = json.loads(content)  # Parse JSON
-    except json.JSONDecodeError as e:
-        raise ValidationError(f"Error decoding JSON: {str(e)}")
-
     def create_translations(class_model, values, field_name):
         new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
 
         if created:
             for lang_index, lang_code in LANG_VALUES.items():
-                activate(lang_code)
-                new_object.set_current_language(lang_code)
-                new_object.name = values[field_name + str(lang_index)]
+                name_value = values[field_name + str(lang_index)]
+                if name_value:
+                    activate(lang_code)
+                    new_object.set_current_language(lang_code)
+                    new_object.name = name_value
 
             new_object.save()
             deactivate_all()
@@ -1191,13 +1213,50 @@ def parsing_risk_data_json(json_file):
 
         return str(new_uuid)
 
-    def create_service_stat(service_data):
-        new_service_asset = create_translations(AssetData, service_data, "name")
-        new_service_stat, created = ServiceStat.objects.get_or_create(
+    def create_service_stat(service_data, is_update=False):
+        new_service_asset = create_translations(AssetData, service_data, "label")
+        service_stat, created = ServiceStat.objects.get_or_create(
             service=new_service_asset,
-            risk_analysis=json_file,
+            company_reporting=company_reporting_obj,
         )
-        return new_service_stat
+        if not created and is_update:
+            ServiceStat.objects.filter(
+                service=new_service_asset, company_reporting=company_reporting_obj
+            ).update(
+                total_risks=0,
+                total_untreated_risks=0,
+                total_treated_risks=0,
+                total_reduced_risks=0,
+                total_denied_risks=0,
+                total_accepted_risks=0,
+                total_shared_risks=0,
+                total_high_risks_treated=0,
+                avg_high_risk_treated=0,
+                avg_residual_risks=0,
+            )
+
+        return service_stat
+
+    def update_service_stat(service_data):
+        new_service_asset = create_translations(AssetData, service_data, "label")
+        service_stat_exists = ServiceStat.objects.filter(
+            service=new_service_asset, company_reporting=company_reporting_obj
+        ).exists()
+        if service_stat_exists:
+            ServiceStat.objects.filter(
+                service=new_service_asset, company_reporting=company_reporting_obj
+            ).update(
+                total_risks=0,
+                total_untreated_risks=0,
+                total_treated_risks=0,
+                total_reduced_risks=0,
+                total_denied_risks=0,
+                total_accepted_risks=0,
+                total_shared_risks=0,
+                total_high_risks_treated=0,
+                avg_high_risk_treated=0,
+                avg_residual_risks=0,
+            )
 
     def update_average(current_avg, treated_risks, new_risks_values):
         if len(new_risks_values) > 0:
@@ -1218,7 +1277,7 @@ def parsing_risk_data_json(json_file):
             treatment_values = []
             residual_risk_values = []
             service_stat = create_service_stat(root_service_data)
-            new_asset = create_translations(AssetData, instance, "name")
+            new_asset = create_translations(AssetData, instance, "label")
 
             for risk in risks.values():
                 risk_amv_uuid = (
@@ -1263,32 +1322,33 @@ def parsing_risk_data_json(json_file):
                     recommendations.get(str(risk["id"]), []) if recommendations else []
                 )
 
-                new_risk = RiskData(
+                risk_data_object, created = RiskData.objects.update_or_create(
                     uuid=risk_uuid,
                     service=service_stat,
-                    asset=new_asset,
-                    threat=new_threat,
-                    threat_value=threat_value,
-                    vulnerability=new_vulnerability,
-                    vulnerability_value=vulnerability_value,
-                    residual_risk_level_value=residual_risk,
-                    risk_treatment=treatment,
-                    max_risk=max_risk,
-                    risk_c=risk_c,
-                    risk_i=risk_i,
-                    risk_a=risk_a,
-                    impact_c=impact_c,
-                    impact_i=impact_i,
-                    impact_a=impact_a,
+                    defaults={
+                        "asset": new_asset,
+                        "threat": new_threat,
+                        "threat_value": threat_value,
+                        "vulnerability": new_vulnerability,
+                        "vulnerability_value": vulnerability_value,
+                        "residual_risk_level_value": residual_risk,
+                        "risk_treatment": treatment,
+                        "max_risk": max_risk,
+                        "risk_c": risk_c,
+                        "risk_i": risk_i,
+                        "risk_a": risk_a,
+                        "impact_c": impact_c,
+                        "impact_i": impact_i,
+                        "impact_a": impact_a,
+                    },
                 )
-                new_risk.save()
 
                 if risks_recommendations:
                     for recommendation in risks_recommendations.values():
                         (
                             new_recommendation,
                             created,
-                        ) = RecommendationData.objects.get_or_create(
+                        ) = RecommendationData.objects.update_or_create(
                             uuid=recommendation["uuid"],
                             defaults={
                                 "code": recommendation["code"],
@@ -1297,7 +1357,8 @@ def parsing_risk_data_json(json_file):
                                 "status": recommendation["status"],
                             },
                         )
-                        new_risk.recommendations.add(new_recommendation)
+                        if created:
+                            risk_data_object.recommendations.add(new_recommendation)
 
             treatment_counts = Counter(treatment_values)
 
@@ -1327,7 +1388,13 @@ def parsing_risk_data_json(json_file):
                 child_data["instance"]["parent_uuid"] = instance["uuid"]
                 extract_risks(child_data)
 
-    # Extract the root instances and process them
+    try:
+        json_file.seek(0)
+        content = json_file.read().decode("utf-8")
+        data = json.loads(content)
+    except json.JSONDecodeError as e:
+        raise ValidationError(f"Error decoding JSON: {str(e)}")
+
     for instance_data in data["instances"].values():
         instance = instance_data["instance"]
         root_childrens = instance_data.get("children", [])
@@ -1335,9 +1402,11 @@ def parsing_risk_data_json(json_file):
             instance["uuid"] = generate_combined_uuid(
                 [instance["asset"], instance["object"]]
             )
-            root_service_data = instance
+            root_service_data = instance.copy()
             instance_data["instance"]["parent_uuid"] = instance["uuid"]
-            # extract_risks(instance_data)
+            if is_update:
+                update_service_stat(root_service_data)
+            extract_risks(instance_data)
 
 
 def get_pdf_report(request: HttpRequest, cleaned_data: dict):
