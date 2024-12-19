@@ -1004,7 +1004,6 @@ def get_completion_objective(security_objective, standard_answer):
         security_measure__security_objective=security_objective,
         standard_answer=standard_answer,
     )
-
     if not queryset.exists():
         return {
             "is_completed": False,
@@ -1021,7 +1020,6 @@ def get_completion_objective(security_objective, standard_answer):
                     )
                     | Q(
                         security_measure__maturity_level__level=0,
-                        is_implemented=True,
                     ),
                     then=True,
                 ),
@@ -1034,9 +1032,7 @@ def get_completion_objective(security_objective, standard_answer):
                         (Q(is_implemented=True) & Q(justification=""))
                         | (~Q(is_implemented=True) & Q(justification__gt=""))
                     )
-                    & ~Q(
-                        security_measure__maturity_level__level=0, is_implemented=True
-                    ),
+                    & ~Q(security_measure__maturity_level__level=0),
                     then=True,
                 ),
                 default=False,
