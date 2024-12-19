@@ -726,6 +726,7 @@ def import_so_declaration(request):
             company_id = form.cleaned_data["company"]
             year = form.cleaned_data["year"]
             sectors = form.cleaned_data["sectors"]
+            valid_sectors = []
 
             try:
                 standard = Standard.objects.get(pk=standard_id)
@@ -740,6 +741,19 @@ def import_so_declaration(request):
                     )
                     return redirect("securityobjectives")
 
+                company_sectors = company.get_queryset_sectors()
+                for sector in Sector.objects.filter(id__in=sectors):
+                    if sector not in company_sectors:
+                        messages.error(
+                            request,
+                            f"Sector error: {str(sector)} is not linked to the {str(company)}",
+                        )
+                    else:
+                        valid_sectors.append(sector)
+
+                if not valid_sectors:
+                    return redirect("securityobjectives")
+
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     status=REVIEW_STATUS[2][0],  # Default PASS
@@ -750,7 +764,7 @@ def import_so_declaration(request):
                     year_of_submission=year,
                 )
                 new_standard_answer.save()
-                new_standard_answer.sectors.set(sectors)
+                new_standard_answer.sectors.set(valid_sectors)
 
             except (Standard.DoesNotExist, Company.DoesNotExist):
                 messages.error(
@@ -838,7 +852,7 @@ def import_so_declaration(request):
                     )
 
             create_entry_log(user, new_standard_answer, "IMPORT")
-            messages.info(
+            messages.success(
                 request, ("The security objectives declaration has been imported.")
             )
 
