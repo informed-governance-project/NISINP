@@ -76,17 +76,6 @@ class ConfigurationReportForm(forms.ModelForm):
         if instance and instance.pk:
             self.fields["sector"].disabled = True
 
-    def save(self, commit=True):
-        # Save the instance first
-        instance = super().save(commit=False)
-
-        # Save the ManyToMany field separately
-        if commit:
-            instance.save()  # Save the instance if commit=True
-            self.save_m2m()  # Save M2M fields explicitly
-
-        return instance
-
 
 class CompanySelectForm(forms.ModelForm):
     selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
