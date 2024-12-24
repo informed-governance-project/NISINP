@@ -762,6 +762,7 @@ def import_so_declaration(request):
                     creator_name=user.get_full_name(),
                     creator_company_name=str(company),
                     year_of_submission=year,
+                    submit_date=timezone.now(),
                 )
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(valid_sectors)
