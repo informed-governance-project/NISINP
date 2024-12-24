@@ -122,9 +122,10 @@ class CompanySelectFormSet(BaseModelFormSet):
         seen = set()
         errors = []
         for company, sector in company_sector_pairs:
-            if (company.id, sector) in seen:
-                errors.append("Please correct the duplicate company-sector values.")
-            seen.add((company.id, sector))
+            if company is not None:
+                if (company.id, sector) in seen:
+                    errors.append("Please correct the duplicate company-sector values.")
+                seen.add((company.id, sector))
 
         if errors:
             raise forms.ValidationError(errors)

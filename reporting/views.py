@@ -676,7 +676,7 @@ def get_so_data(cleaned_data):
             years_list.append(year)
 
         # Company Querysets
-
+        # TO DO : manage the case when it's empty
         floored_company_queryset = (
             SecurityObjectiveStatus.objects.filter(standard_answer__in=latest_answers)
             .exclude(security_objective__in=so_excluded)
