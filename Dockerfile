@@ -25,7 +25,6 @@ COPY api /app/api
 COPY governanceplatform /app/governanceplatform
 COPY incidents /app/incidents
 COPY locale /app/locale
-COPY proxy /app/proxy
 COPY static /app/static
 COPY templates /app/templates
 COPY theme /app/theme
