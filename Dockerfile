@@ -12,6 +12,7 @@ RUN npm install
 FROM python:3.11-bullseye
 
 ARG APP_VERSION
+ARG GUNICORN_VERSION=23.0
 ENV APP_VERSION=$APP_VERSION
 
 WORKDIR /app
@@ -35,11 +36,15 @@ COPY manage.py /app/manage.py
 
 RUN mkdir -p /app/theme/static
 
-RUN python -m pip install .
+RUN python3 -m pip install .
+RUN python3 -m pip install gunicorn~=$GUNICORN_VERSION
 
 RUN apt-get update && apt-get install -y gettext && apt-get clean
 
 COPY docker-init.sh /app/docker-init.sh
 CMD /app/docker-init.sh
 
-EXPOSE 8888
+ENV APP_PORT="8888"
+ENV APP_WORKERS="4"
+
+EXPOSE $APP_PORT

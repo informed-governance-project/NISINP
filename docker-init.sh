@@ -6,4 +6,4 @@ python manage.py collectstatic
 python manage.py migrate
 python manage.py compilemessages
 
-exec python manage.py runserver 0.0.0.0:8888 --insecure
+exec gunicorn governanceplatform.wsgi --workers "$APP_WORKERS" --bind "0.0.0.0:$APP_PORT"
