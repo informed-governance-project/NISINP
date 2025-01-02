@@ -42,6 +42,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("governanceplatform", "0036_passworduserhistory"),
+        ("incidents", "0004_alter_impact_options_alter_impacttranslation_options_and_more"),
     ]
 
     operations = [
