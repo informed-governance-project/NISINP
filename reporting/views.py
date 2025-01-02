@@ -833,35 +833,104 @@ def get_so_data(cleaned_data):
     return so_data
 
 
-def get_data_risks_average():
-    data = {
-        "Operator 2019": [1.52, 1.42, 1.47, 1.6, 1.58],
-        "Operator 2020": [1.52, 1.41, 1.46, 1.6, 1.58],
-        "Sector Avg 2019": [2.49, 2.19, 2.33, 2.05, 1.78],
-        "Sector Avg 2020": [2.16, 2.19, 2.33, 2.05, 1.78],
+def get_risk_data(cleaned_data):
+
+    def get_latest_conpany_reporting(company, sector, year):
+        queryset = CompanyReporting.objects.filter(
+            sector=sector,
+            year=year,
+        ).distinct()
+
+        if company is not None:
+            queryset = queryset.filter(company=company)
+
+        return queryset
+
+    def get_services_from_company(company):
+        services_list = []
+        if company is not None:
+            company_reporting = get_latest_conpany_reporting(company, sector, current_year)
+            if company_reporting.exists():
+                cr = company_reporting.first()
+                services = ServiceStat.objects.filter(company_reporting=cr)
+                for service in services.all():
+                    services_list.append(service.service.name)
+                sorted(services_list)
+        print(services_list)
+        return services_list
+
+    # TO DO what is the correct value to take into account ?
+    def build_bar_chart_by_risk_average(service, label, dict):
+        total_risk = 0
+        risks = RiskData.objects.filter(service=service).all()
+        print(total_risk)
+        for risk in risks:
+            total_risk += risk.max_risk
+        if len(risks) != 0:
+            score_list = [total_risk/len(risks)]
+        else:
+            score_list = [0.0]
+        dict[label] = score_list
+
+    years_list = []
+    services_list = []
+    company = cleaned_data["company"]
+    sector = cleaned_data["sector"]
+    current_year = cleaned_data["year"]
+    nb_years = cleaned_data["nb_years"]
+    bar_chart_data_by_risk_average_level = defaultdict()
+
+    if company is not None:
+        services_list = get_services_from_company(company)
+
+    for offset in range(nb_years):
+        year = current_year - nb_years + offset + 1
+        latest_company_reporting = get_latest_conpany_reporting(company, sector, year)
+
+        if latest_company_reporting.exists():
+            years_list.append(year)
+
+        for service in latest_company_reporting.first().servicestat_set.all().order_by("service__translations__name"):
+            if service.service.name in services_list:
+                print("je passe")
+                build_bar_chart_by_risk_average(
+                    service=service,
+                    label=f"{year}",
+                    dict=bar_chart_data_by_risk_average_level,
+                )
+                print(bar_chart_data_by_risk_average_level)
+        # TO DO add sector value
+
+    data_risk_average = bar_chart_data_by_risk_average_level
+
+    def get_data_high_risks_average():
+        data = {
+            "Operator 2019": [0, 0, 0, 0, 0],
+            "Operator 2020": [0, 0, 0, 0, 0],
+            "Sector Avg 2019": [10.82, 11.06, 10.88, 8.62, 9.33],
+            "Sector Avg 2020": [8.95, 8.87, 8.83, 9.69, 9],
+        }
+
+        return data
+    data_high_risk_average = get_data_high_risks_average()
+
+    def get_data_evolution_highest_risks():
+        data = {
+            "DummyLux 2023": [18, 12, 12, 9, 8],
+            "DummyLux 2024": [12, 12, 3, 4, 8],
+        }
+
+        return data
+    data_evolution_highest_risks = get_data_high_risks_average()
+
+    risk_data = {
+        "get_data_risks_average": dict(data_risk_average),
+        "get_data_high_risks_average": dict(data_high_risk_average),
+        "get_data_evolution_highest_risks": dict(data_evolution_highest_risks),
+        "operator_services": services_list,
     }
 
-    return data
-
-
-def get_data_high_risks_average():
-    data = {
-        "Operator 2019": [0, 0, 0, 0, 0],
-        "Operator 2020": [0, 0, 0, 0, 0],
-        "Sector Avg 2019": [10.82, 11.06, 10.88, 8.62, 9.33],
-        "Sector Avg 2020": [8.95, 8.87, 8.83, 9.69, 9],
-    }
-
-    return data
-
-
-def get_data_evolution_highest_risks():
-    data = {
-        "DummyLux 2023": [18, 12, 12, 9, 8],
-        "DummyLux 2024": [12, 12, 3, 4, 8],
-    }
-
-    return data
+    return risk_data
 
 
 def generate_bar_chart(data, labels):
@@ -1412,6 +1481,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
 def get_pdf_report(request: HttpRequest, cleaned_data: dict):
     static_dir = settings.STATIC_ROOT
     so_data = get_so_data(cleaned_data)
+    risk_data = get_risk_data(cleaned_data)
     charts = {
         "colorbar": generate_colorbar(),
         "security_measures_1": generate_bar_chart(
@@ -1427,10 +1497,10 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             so_data["unique_codes_list"],
             so_data["maturity_levels"],
         ),
-        "risks_1": generate_bar_chart(get_data_risks_average(), OPERATOR_SERVICES),
-        "risks_3": generate_bar_chart(get_data_high_risks_average(), OPERATOR_SERVICES),
+        "risks_1": generate_bar_chart(risk_data["get_data_risks_average"], risk_data["operator_services"]),
+        "risks_3": generate_bar_chart(risk_data["get_data_high_risks_average"], risk_data["operator_services"]),
         "risks_4": generate_bar_chart(
-            get_data_evolution_highest_risks(), ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"]
+            risk_data["get_data_evolution_highest_risks"], ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"]
         ),
     }
 

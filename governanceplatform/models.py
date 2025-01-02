@@ -176,6 +176,7 @@ class Company(models.Model):
 
         return sectors
 
+    # TO DO : exclude company which are not self
     def get_queryset_sectors(self):
         return Sector.objects.filter(
             id__in=self.companyuser_set.all()
