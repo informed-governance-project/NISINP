@@ -11,6 +11,9 @@ RUN npm install
 
 FROM python:3.11-bullseye
 
+ARG APP_VERSION
+ENV APP_VERSION=$APP_VERSION
+
 WORKDIR /app
 
 # because package.json scripts.postinstall tries to be smart
