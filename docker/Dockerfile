@@ -41,7 +41,7 @@ RUN python3 -m pip install gunicorn~=$GUNICORN_VERSION
 
 RUN apt-get update && apt-get install -y gettext && apt-get clean
 
-COPY docker-init.sh /app/docker-init.sh
+COPY docker/docker-init.sh /app/docker-init.sh
 CMD /app/docker-init.sh
 
 ENV APP_PORT="8888"
