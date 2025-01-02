@@ -39,6 +39,15 @@ There are four volumes to setup:
 - `APP_PORT`: which port to bind to (defaults to `8888`)
 - `APP_BIND_ADDRESSS`: which address to bind to (defaults to `127.0.0.1`)
 
+## Scheduled tasks
+
+A contrib script is included in the built docker image in `/app/cronjob.sh`,
+you should configure this script to be executed every minute by a cronjob or systemd timer.
+
+`docker exec governanceplatform /app/cronjob.sh`
+
+Exit code will be `1` if any of the task fails
+
 ## Reverse proxy configuration
 
 Static assets are served directly by a web server/reverse proxy and not by the
