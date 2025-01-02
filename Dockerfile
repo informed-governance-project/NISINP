@@ -45,6 +45,7 @@ COPY docker-init.sh /app/docker-init.sh
 CMD /app/docker-init.sh
 
 ENV APP_PORT="8888"
+ENV APP_BIND_ADDRESS="127.0.0.1"
 ENV APP_WORKERS="4"
 
 EXPOSE $APP_PORT
