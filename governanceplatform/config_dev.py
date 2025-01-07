@@ -24,7 +24,7 @@ SITE_NAME = "NISINP"
 SECRET_KEY = "itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu"
 HASH_KEY = b"Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8="
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
 
 DATABASES = {
     "default": {

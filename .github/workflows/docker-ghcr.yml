@@ -10,6 +10,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  TEST_IMAGE_FULLNAME: "nisinp:test"
 
 jobs:
   build:
@@ -18,12 +19,62 @@ jobs:
       contents: read
       packages: write
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: "<user>"
+          POSTGRES_PASSWORD: "<password>"
+          POSTGRES_DB: "serima-governance"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: true
-    
+
+      - name: Build for test
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          context: .
+          load: true
+          tags: ${{ env.TEST_IMAGE_FULLNAME }}
+          build-args: |
+            APP_VERSION=${{ github.ref_name }}
+
+      - name: Test for any missing migration
+        run: >
+          docker run --rm --network=host -e DEBUG=false
+          -v $PWD/governanceplatform/config_dev.py:/app/governanceplatform/config.py:ro
+          --entrypoint bash
+          ${{ env.TEST_IMAGE_FULLNAME }}
+          -c '/app/manage.py makemigrations --check'
+
+      - name: Run test application
+        run: >
+          docker run --rm --network=host -e DEBUG=false
+          -v $PWD/governanceplatform/config_dev.py:/app/governanceplatform/config.py:ro
+          --detach
+          --name nisinp-test
+          ${{ env.TEST_IMAGE_FULLNAME }}
+
+      - name: Check healthz endpoint
+        # exponential backoff so --retry 6 is about 60 seconds
+        run: >
+          curl --fail -H "Accept: application/json" -v --retry-connrefused --retry 6 http://127.0.0.1:8888/healthz;
+
+      - name: Stop test application
+        run: >
+          docker stop nisinp-test || true
+
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -31,14 +82,14 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-    
+
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-    
+
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
