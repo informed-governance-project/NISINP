@@ -126,6 +126,8 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "django_filters",
     "cookiebanner",
+    "health_check",
+    "health_check.db",
 ]
 
 AUTHENTICATION_BACKENDS = [
