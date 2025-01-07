@@ -258,11 +258,12 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     return obj
 
 
-def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
-    if not hasattr(request, "_can_change_or_delete_obj"):
-        request._can_change_or_delete_obj = True
-    else:
-        return request._can_change_or_delete_obj
+def can_change_or_delete_obj(request: HttpRequest, obj: Any, check_request=True, send_message=True) -> bool:
+    if check_request:
+        if not hasattr(request, "_can_change_or_delete_obj"):
+            request._can_change_or_delete_obj = True
+        else:
+            return request._can_change_or_delete_obj
 
     if not obj.pk:
         return True
@@ -325,16 +326,17 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
 
     verbose_name = obj._meta.verbose_name.lower()
     creator_name = creator
-    messages.warning(
-        request,
-        mark_safe(
-            _(
-                f"<strong>Change or delete actions are not allowed</strong><br>"
-                f"- This {verbose_name} is either in use.<br>"
-                f"- You are not its creator ({creator_name})"
-            )
-        ),
-    )
+    if send_message:
+        messages.warning(
+            request,
+            mark_safe(
+                _(
+                    f"<strong>Change or delete actions are not allowed</strong><br>"
+                    f"- This {verbose_name} is either in use.<br>"
+                    f"- You are not its creator ({creator_name})"
+                )
+            ),
+        )
     request._can_change_or_delete_obj = False
 
     return False
