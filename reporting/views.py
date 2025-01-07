@@ -131,6 +131,7 @@ def reporting(request):
             is_multiple_selected_companies = len(selected_companies) > 1
             zip_buffer = io.BytesIO()
             error_messages = []
+            errors = 0
             with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                 for select_company in selected_companies:
                     company = select_company.get("company")
@@ -160,17 +161,34 @@ def reporting(request):
                         status="PASS",
                     ).order_by("submit_date")
 
+                    risk_analysis_stats = company.risk_analysis_exists(year, sector)
+
                     if not security_objectives_declaration:
                         if is_multiple_selected_companies:
-                            error_message = f"{company}: No data found in sector: {str(sector)} and year: {year}"
+                            error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
                             error_messages.append(error_message)
                             continue
                         else:
+                            errors += 1
                             messages.error(
                                 request,
                                 _("No data found for security objectives report"),
                             )
-                            return redirect("reporting")
+
+                    if not risk_analysis_stats:
+                        if is_multiple_selected_companies:
+                            error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
+                            error_messages.append(error_message)
+                            continue
+                        else:
+                            errors += 1
+                            messages.error(
+                                request,
+                                _("No data found for risk report"),
+                            )
+
+                    if errors > 0:
+                        return redirect("reporting")
 
                     report_recommendations = company.get_report_recommandations(
                         year, sector
@@ -855,9 +873,11 @@ def get_risk_data(cleaned_data):
             )
             if company_reporting.exists():
                 cr = company_reporting.first()
-                services = AssetData.objects.filter(
-                    servicestat__company_reporting=cr
-                ).distinct("id")
+                services = (
+                    AssetData.objects.filter(servicestat__company_reporting=cr)
+                    .distinct("id")
+                    .order_by("id")
+                )
 
         return services
 
