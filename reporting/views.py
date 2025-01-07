@@ -114,7 +114,10 @@ def reporting(request):
 
     if request.method == "POST":
         formset = CompanySelectFormSet(
-            request.POST, queryset=company_filter.qs, year=year
+            request.POST,
+            queryset=company_filter.qs,
+            year=year,
+            sectors_filter=sectors_filters,
         )
         if formset.is_valid():
             selected_companies = [
@@ -834,7 +837,6 @@ def get_so_data(cleaned_data):
 
 
 def get_risk_data(cleaned_data):
-
     def get_latest_conpany_reporting(company, sector, year):
         queryset = CompanyReporting.objects.filter(
             sector=sector,
@@ -847,27 +849,26 @@ def get_risk_data(cleaned_data):
         return queryset
 
     def get_services_from_company(company):
-        services_list = []
         if company is not None:
-            company_reporting = get_latest_conpany_reporting(company, sector, current_year)
+            company_reporting = get_latest_conpany_reporting(
+                company, sector, current_year
+            )
             if company_reporting.exists():
                 cr = company_reporting.first()
-                services = ServiceStat.objects.filter(company_reporting=cr)
-                for service in services.all():
-                    services_list.append(service.service.name)
-                sorted(services_list)
-        print(services_list)
-        return services_list
+                services = AssetData.objects.filter(
+                    servicestat__company_reporting=cr
+                ).distinct("id")
+
+        return services
 
     # TO DO what is the correct value to take into account ?
     def build_bar_chart_by_risk_average(service, label, dict):
         total_risk = 0
-        risks = RiskData.objects.filter(service=service).all()
-        print(total_risk)
-        for risk in risks:
+        risks = service.riskdata_set.all()
+        for risk in service.riskdata_set.all():
             total_risk += risk.max_risk
         if len(risks) != 0:
-            score_list = [total_risk/len(risks)]
+            score_list = [total_risk / len(risks)]
         else:
             score_list = [0.0]
         dict[label] = score_list
@@ -890,16 +891,13 @@ def get_risk_data(cleaned_data):
         if latest_company_reporting.exists():
             years_list.append(year)
 
-        for service in latest_company_reporting.first().servicestat_set.all().order_by("service__translations__name"):
-            if service.service.name in services_list:
-                print("je passe")
+            for service in services_list:
                 build_bar_chart_by_risk_average(
                     service=service,
                     label=f"{year}",
                     dict=bar_chart_data_by_risk_average_level,
                 )
-                print(bar_chart_data_by_risk_average_level)
-        # TO DO add sector value
+            # TO DO add sector value
 
     data_risk_average = bar_chart_data_by_risk_average_level
 
@@ -912,6 +910,7 @@ def get_risk_data(cleaned_data):
         }
 
         return data
+
     data_high_risk_average = get_data_high_risks_average()
 
     def get_data_evolution_highest_risks():
@@ -921,13 +920,16 @@ def get_risk_data(cleaned_data):
         }
 
         return data
+
     data_evolution_highest_risks = get_data_high_risks_average()
 
     risk_data = {
         "get_data_risks_average": dict(data_risk_average),
         "get_data_high_risks_average": dict(data_high_risk_average),
         "get_data_evolution_highest_risks": dict(data_evolution_highest_risks),
-        "operator_services": services_list,
+        "operator_services": list(
+            services_list.values_list("translations__name", flat=True)
+        ),
     }
 
     return risk_data
@@ -1497,10 +1499,15 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             so_data["unique_codes_list"],
             so_data["maturity_levels"],
         ),
-        "risks_1": generate_bar_chart(risk_data["get_data_risks_average"], risk_data["operator_services"]),
-        "risks_3": generate_bar_chart(risk_data["get_data_high_risks_average"], risk_data["operator_services"]),
+        "risks_1": generate_bar_chart(
+            risk_data["get_data_risks_average"], risk_data["operator_services"]
+        ),
+        "risks_3": generate_bar_chart(
+            risk_data["get_data_high_risks_average"], risk_data["operator_services"]
+        ),
         "risks_4": generate_bar_chart(
-            risk_data["get_data_evolution_highest_risks"], ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"]
+            risk_data["get_data_evolution_highest_risks"],
+            ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"],
         ),
     }
 
