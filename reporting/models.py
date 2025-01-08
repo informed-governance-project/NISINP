@@ -350,6 +350,9 @@ class ObservationRecommendation(TranslatableModel):
         verbose_name=_("Creation date"), default=timezone.now
     )
 
+    def __str__(self):
+        return self.code or ""
+
     class Meta:
         verbose_name_plural = _("Recommendations for observation")
         verbose_name = _("Recommendation for observation")
