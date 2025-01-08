@@ -137,6 +137,21 @@ def reporting(request):
                     company = select_company.get("company")
                     sector = select_company.get("sector")
                     try:
+                        company_reporting = CompanyReporting.objects.get(
+                            company=company, year=year, sector=sector
+                        )
+                    except SectorReportConfiguration.DoesNotExist:
+                        if is_multiple_selected_companies:
+                            error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
+                            error_messages.append(error_message)
+                            continue
+                        else:
+                            messages.error(
+                                request,
+                                _("No reporting data"),
+                            )
+                            return redirect("reporting")
+                    try:
                         sector_configuration = SectorReportConfiguration.objects.get(
                             sector=sector
                         )
@@ -201,6 +216,7 @@ def reporting(request):
                         "nb_years": nb_years,
                         "so_excluded": so_excluded,
                         "report_recommendations": report_recommendations,
+                        "company_reporting": company_reporting,
                     }
 
                     pdf_report = get_pdf_report(request, report_data)
@@ -855,69 +871,60 @@ def get_so_data(cleaned_data):
 
 
 def get_risk_data(cleaned_data):
-    def get_latest_conpany_reporting(company, sector, year):
+    def get_latest_company_reporting(company, sector, year):
         queryset = CompanyReporting.objects.filter(
+            company=company,
             sector=sector,
             year=year,
-        ).distinct()
-
-        if company is not None:
-            queryset = queryset.filter(company=company)
+        )
 
         return queryset
 
-    def get_services_from_company(company):
-        if company is not None:
-            company_reporting = get_latest_conpany_reporting(
-                company, sector, current_year
-            )
-            if company_reporting.exists():
-                cr = company_reporting.first()
-                services = (
-                    AssetData.objects.filter(servicestat__company_reporting=cr)
-                    .distinct("id")
-                    .order_by("id")
-                )
+    def get_services_from_company():
+        services = AssetData.objects.filter(
+            servicestat__company_reporting=company_reporting
+        ).order_by("id")
 
         return services
 
     # TO DO what is the correct value to take into account ?
-    def build_bar_chart_by_risk_average(service, label, dict):
-        total_risk = 0
-        risks = service.riskdata_set.all()
-        for risk in service.riskdata_set.all():
-            total_risk += risk.max_risk
-        if len(risks) != 0:
-            score_list = [total_risk / len(risks)]
-        else:
-            score_list = [0.0]
+    def build_bar_chart_by_risk_average(label, dict):
+        score_list = []
+        try:
+            company_reporting_queryset = CompanyReporting.objects.get(
+                company=company, sector=sector, year=year
+            )
+            service_stats = company_reporting_queryset.servicestat_set.all().order_by(
+                "service"
+            )
+            if service_stats.exists():
+                score_list = [
+                    f"{service_stat.avg_current_risks:2.2f}"
+                    for service_stat in service_stats
+                ]
+            else:
+                score_list = [0.0] * len(services_list)
+        except CompanyReporting.DoesNotExist:
+            score_list = [0.0] * len(services_list)
         dict[label] = score_list
 
     years_list = []
-    services_list = []
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
+    company_reporting = cleaned_data["company_reporting"]
     bar_chart_data_by_risk_average_level = defaultdict()
-
-    if company is not None:
-        services_list = get_services_from_company(company)
+    services_list = get_services_from_company()
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
-        latest_company_reporting = get_latest_conpany_reporting(company, sector, year)
+        years_list.append(year)
 
-        if latest_company_reporting.exists():
-            years_list.append(year)
-
-            for service in services_list:
-                build_bar_chart_by_risk_average(
-                    service=service,
-                    label=f"{year}",
-                    dict=bar_chart_data_by_risk_average_level,
-                )
-            # TO DO add sector value
+        build_bar_chart_by_risk_average(
+            label=f"{company} {year}",
+            dict=bar_chart_data_by_risk_average_level,
+        )
 
     data_risk_average = bar_chart_data_by_risk_average_level
 
@@ -941,7 +948,7 @@ def get_risk_data(cleaned_data):
 
         return data
 
-    data_evolution_highest_risks = get_data_high_risks_average()
+    data_evolution_highest_risks = get_data_evolution_highest_risks()
 
     risk_data = {
         "get_data_risks_average": dict(data_risk_average),
