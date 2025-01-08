@@ -6,6 +6,7 @@ from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget
+from django.db.models import Count
 
 from .models import ObservationRecommendation
 
@@ -58,3 +59,12 @@ class ObservationRecommendationAdmin(CustomTranslatableAdmin, ImportExportModelA
     @admin.display(description="Sectors")
     def get_sector_name(self, obj):
         return [sector for sector in obj.sectors.all()]
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count("children")
+            ).exclude(parent=None, child_count__gt=0)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
