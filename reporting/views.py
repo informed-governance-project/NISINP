@@ -7,6 +7,7 @@ import uuid
 import zipfile
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
+from statistics import mean
 from typing import List
 from urllib.parse import quote as urlquote
 
@@ -68,14 +69,6 @@ SO_COLOR_PALETTE = [
     (2, "#CCDD82"),
     (2.5, "#98CE7F"),
     (3, "#63BE7B"),
-]
-
-OPERATOR_SERVICES = [
-    "All services",
-    "Fixed data",
-    "Fixed voice",
-    "Mobile data",
-    "Mobile voice",
 ]
 
 
@@ -140,7 +133,7 @@ def reporting(request):
                         company_reporting = CompanyReporting.objects.get(
                             company=company, year=year, sector=sector
                         )
-                    except SectorReportConfiguration.DoesNotExist:
+                    except CompanyReporting.DoesNotExist:
                         if is_multiple_selected_companies:
                             error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
                             error_messages.append(error_message)
@@ -156,6 +149,9 @@ def reporting(request):
                             sector=sector
                         )
                         nb_years = sector_configuration.number_of_year
+                        threshold_for_high_risk = (
+                            sector_configuration.threshold_for_high_risk
+                        )
                         so_excluded = sector_configuration.so_excluded.all()
                     except SectorReportConfiguration.DoesNotExist:
                         if is_multiple_selected_companies:
@@ -213,6 +209,7 @@ def reporting(request):
                         "company": company,
                         "sector": sector,
                         "year": year,
+                        "threshold_for_high_risk": threshold_for_high_risk,
                         "nb_years": nb_years,
                         "so_excluded": so_excluded,
                         "report_recommendations": report_recommendations,
@@ -877,51 +874,59 @@ def get_so_data(cleaned_data):
 
 
 def get_risk_data(cleaned_data):
-    def get_latest_company_reporting(company, sector, year):
-        queryset = CompanyReporting.objects.filter(
-            company=company,
-            sector=sector,
-            year=year,
-        )
-
-        return queryset
-
-    def get_services_from_company():
-        services = AssetData.objects.filter(
-            servicestat__company_reporting=company_reporting
-        ).order_by("id")
-
-        return services
-
-    # TO DO what is the correct value to take into account ?
-    def build_bar_chart_by_risk_average(label, dict):
+    def build_bar_chart_by_risk_average(label, sector_avg=False):
         score_list = []
-        try:
-            company_reporting_queryset = CompanyReporting.objects.get(
-                company=company, sector=sector, year=year
-            )
-            service_stats = company_reporting_queryset.servicestat_set.all().order_by(
-                "service"
-            )
-            if service_stats.exists():
-                score_list = [
-                    f"{service_stat.avg_current_risks:2.2f}"
-                    for service_stat in service_stats
-                ]
-            else:
+        if sector_avg:
+            for service in services_list:
+                service_stats_by_year_sector = ServiceStat.objects.filter(
+                    service=service,
+                    company_reporting__year=year,
+                    company_reporting__sector=sector,
+                )
+
+                average_sector = service_stats_by_year_sector.aggregate(
+                    avg_current_risks=Avg("avg_current_risks")
+                )["avg_current_risks"]
+                average_sector = average_sector or 0.0
+                score_list.append(round(average_sector, 2))
+        else:
+            try:
+                company_reporting_queryset = CompanyReporting.objects.get(
+                    company=company, sector=sector, year=year
+                )
+
+                service_stats = (
+                    company_reporting_queryset.servicestat_set.all().order_by("service")
+                )
+                if service_stats.exists():
+                    score_list = [
+                        round(service_stat.avg_current_risks, 2)
+                        for service_stat in service_stats
+                    ]
+                else:
+                    score_list = [0.0] * len(services_list)
+            except CompanyReporting.DoesNotExist:
                 score_list = [0.0] * len(services_list)
-        except CompanyReporting.DoesNotExist:
-            score_list = [0.0] * len(services_list)
-        dict[label] = score_list
+
+        # Score mean for all services
+        score_list_mean = round(mean(score_list), 2)
+        score_list.insert(0, score_list_mean)
+
+        bar_chart_data_by_risk_average_level[label] = score_list
 
     years_list = []
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
+    threshold_for_high_risk = cleaned_data["threshold_for_high_risk"]
     company_reporting = cleaned_data["company_reporting"]
     bar_chart_data_by_risk_average_level = defaultdict()
-    services_list = get_services_from_company()
+    bar_chart_data_by_high_risk_rate = defaultdict()
+    services_list = AssetData.objects.filter(
+        servicestat__company_reporting=company_reporting
+    ).order_by("id")
+    legend_sector_translation = _("Sector average")
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
@@ -929,10 +934,52 @@ def get_risk_data(cleaned_data):
 
         build_bar_chart_by_risk_average(
             label=f"{company} {year}",
-            dict=bar_chart_data_by_risk_average_level,
+        )
+        build_bar_chart_by_risk_average(
+            label=f"{legend_sector_translation} {year}",
+            sector_avg=True,
         )
 
-    data_risk_average = bar_chart_data_by_risk_average_level
+        for service in services_list:
+            total_high_risks_treated = (
+                RiskData.objects.filter(
+                    service__service=service,
+                    service__company_reporting__year=year,
+                    service__company_reporting__company=company,
+                    service__company_reporting__sector=sector,
+                    max_risk__gt=threshold_for_high_risk,
+                )
+                .exclude(risk_treatment="UNTRE")
+                .count()
+            )
+            try:
+                service_stat_queryset = ServiceStat.objects.get(
+                    service=service,
+                    company_reporting__year=year,
+                    company_reporting__company=company,
+                    company_reporting__sector=sector,
+                )
+                total_risk_treated = service_stat_queryset.total_treated_risks
+            except ServiceStat.DoesNotExist:
+                total_risk_treated = 0
+
+            rate = (
+                round((total_high_risks_treated / total_risk_treated) * 100, 2)
+                if total_risk_treated
+                else 0
+            )
+            bar_chart_data_by_high_risk_rate.setdefault(
+                year, {"rate_labels": [], "rate_values": []}
+            )
+            bar_chart_data_by_high_risk_rate[year]["rate_labels"].append(
+                f"{total_high_risks_treated}/{int(total_risk_treated)}"
+            )
+            bar_chart_data_by_high_risk_rate[year]["rate_values"].append(rate)
+
+    data_risk_average = sorted(
+        bar_chart_data_by_risk_average_level.items(),
+        key=lambda x: (x[0] != legend_sector_translation, x[0]),
+    )
 
     def get_data_high_risks_average():
         data = {
@@ -957,12 +1004,12 @@ def get_risk_data(cleaned_data):
     data_evolution_highest_risks = get_data_evolution_highest_risks()
 
     risk_data = {
-        "get_data_risks_average": dict(data_risk_average),
-        "get_data_high_risks_average": dict(data_high_risk_average),
-        "get_data_evolution_highest_risks": dict(data_evolution_highest_risks),
-        "operator_services": list(
-            services_list.values_list("translations__name", flat=True)
-        ),
+        "data_risks_average": dict(data_risk_average),
+        "data_by_high_risk_rate": dict(bar_chart_data_by_high_risk_rate),
+        "data_high_risks_average": dict(data_high_risk_average),
+        "data_evolution_highest_risks": dict(data_evolution_highest_risks),
+        "operator_services": [_("All services")]
+        + list(services_list.values_list("translations__name", flat=True)),
     }
 
     return risk_data
@@ -1533,13 +1580,13 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             so_data["maturity_levels"],
         ),
         "risks_1": generate_bar_chart(
-            risk_data["get_data_risks_average"], risk_data["operator_services"]
+            risk_data["data_risks_average"], risk_data["operator_services"]
         ),
         "risks_3": generate_bar_chart(
-            risk_data["get_data_high_risks_average"], risk_data["operator_services"]
+            risk_data["data_high_risks_average"], risk_data["operator_services"]
         ),
         "risks_4": generate_bar_chart(
-            risk_data["get_data_evolution_highest_risks"],
+            risk_data["data_evolution_highest_risks"],
             ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"],
         ),
     }
