@@ -48,6 +48,20 @@ class PermissionMixin:
             form = filter_languages_not_translated(form)
         return form
 
+    def delete_queryset(self, request, queryset):
+        all_deleted = True
+        for obj in queryset:
+            if not can_change_or_delete_obj(request, obj, False, False):
+                queryset = queryset.exclude(id=obj.id)
+                all_deleted = False
+        if not all_deleted:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                "Some objects haven't been deleted because they are in used or you are not the owner",
+            )
+        super().delete_queryset(request, queryset)
+
 
 class ShowReminderForTranslationsMixin:
     def change_view(self, request, object_id, form_url='', extra_context=None):

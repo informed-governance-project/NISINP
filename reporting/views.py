@@ -278,7 +278,9 @@ def add_report_configuration(request):
     user_sectors = (
         user.get_sectors().all()
         if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
+        else Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
     )
 
     report_configuration_queryset = (
@@ -290,7 +292,11 @@ def add_report_configuration(request):
     )
 
     sectors_queryset = (
-        user_sectors if user_in_group(user, "RegulatorUser") else Sector.objects.all()
+        user_sectors
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.annotate(child_count=Count("children")).exclude(
+            parent=None, child_count__gt=0
+        )
     )
 
     initial_sectors_queryset = sectors_queryset.exclude(
