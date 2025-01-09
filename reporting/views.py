@@ -152,6 +152,7 @@ def reporting(request):
                         threshold_for_high_risk = (
                             sector_configuration.threshold_for_high_risk
                         )
+                        top_ranking = sector_configuration.top_ranking
                         so_excluded = sector_configuration.so_excluded.all()
                     except SectorReportConfiguration.DoesNotExist:
                         if is_multiple_selected_companies:
@@ -210,6 +211,7 @@ def reporting(request):
                         "sector": sector,
                         "year": year,
                         "threshold_for_high_risk": threshold_for_high_risk,
+                        "top_ranking": top_ranking,
                         "nb_years": nb_years,
                         "so_excluded": so_excluded,
                         "report_recommendations": report_recommendations,
@@ -921,15 +923,58 @@ def get_risk_data(cleaned_data):
             round_value(high_risks_average_by_sector["max_risk_avg"])
         )
 
+    def build_evolution_highest_risks_data(company_reporting):
+        risks_data = (
+            RiskData.objects.filter(
+                service__company_reporting=company_reporting,
+            )
+            .exclude(risk_treatment="UNTRE")
+            .annotate(total_impact=F("impact_c") + F("impact_i") + F("impact_a"))
+            .order_by(
+                "-max_risk",
+                "-total_impact",
+                "-threat_value",
+                "-vulnerability_value",
+                "asset__translations__name",
+            )
+        )
+
+        data_evolution_highest_risks[current_year] = [
+            round_value(max_risk)
+            for max_risk in risks_data[:top_ranking].values_list("max_risk", flat=True)
+        ]
+        i = nb_years
+        past_year = current_year
+        while i > 1:
+            i -= 1
+            past_year -= 1
+            data_evolution_highest_risks[past_year] = []
+            for risk in risks_data[:top_ranking]:
+                try:
+                    risk = RiskData.objects.get(
+                        uuid=risk.uuid,
+                        service__company_reporting__year=past_year,
+                        service__company_reporting__company=company,
+                        service__company_reporting__sector=sector,
+                    )
+                    max_risk = risk.max_risk
+                except RiskData.DoesNotExist:
+                    risk = RiskData.objects.none()
+                    max_risk = 0
+
+                data_evolution_highest_risks[past_year].append(round_value(max_risk))
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
     threshold_for_high_risk = cleaned_data["threshold_for_high_risk"]
+    top_ranking = cleaned_data["top_ranking"]
     company_reporting = cleaned_data["company_reporting"]
     data_by_risk_average = defaultdict()
     data_by_high_risk_rate = defaultdict()
     data_by_high_risk_average = defaultdict()
+    data_evolution_highest_risks = defaultdict(lambda: {})
     services_list = AssetData.objects.filter(
         servicestat__company_reporting=company_reporting
     ).order_by("id")
@@ -954,22 +999,16 @@ def get_risk_data(cleaned_data):
             data_by_high_risk_average[label].insert(
                 0, round_value(mean(data_by_high_risk_average[label]))
             )
-
-    def get_data_evolution_highest_risks():
-        data = {
-            "DummyLux 2023": [18, 12, 12, 9, 8],
-            "DummyLux 2024": [12, 12, 3, 4, 8],
-        }
-
-        return data
-
-    data_evolution_highest_risks = get_data_evolution_highest_risks()
+        if year == current_year:
+            build_evolution_highest_risks_data(company_reporting)
 
     risk_data = {
         "data_by_risk_average": dict(sort_legends(data_by_risk_average)),
         "data_by_high_risk_rate": dict(data_by_high_risk_rate),
         "data_by_high_risk_average": dict(sort_legends(data_by_high_risk_average)),
-        "data_evolution_highest_risks": dict(data_evolution_highest_risks),
+        "data_evolution_highest_risks": dict(
+            sort_legends(data_evolution_highest_risks)
+        ),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
