@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
+from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -923,6 +924,17 @@ def get_risk_data(cleaned_data):
             round_value(high_risks_average_by_sector["max_risk_avg"])
         )
 
+        # Stats by service data
+        service_stats.setdefault(service, {year: {}})
+        if service_stat_queryset:
+            service_stats[service][year] = model_to_dict(service_stat_queryset.first())
+            service_stats[service][year]["total_high_risks_treated"] = total_high_risks
+            service_stats[service][year][
+                "avg_high_risks_treated"
+            ] = high_risks_by_company["max_risk_avg"]
+        else:
+            service_stats[service][year] = {}
+
     def build_evolution_highest_risks_data(company_reporting):
         risks_data = (
             RiskData.objects.filter(
@@ -950,24 +962,122 @@ def get_risk_data(cleaned_data):
             past_year -= 1
             data_evolution_highest_risks[past_year] = []
             for risk in risks_data[:top_ranking]:
+                uuid = risk.uuid
+                if uuid not in risks_top_ranking:
+                    risks_top_ranking_ids.append(f"R{risk.id}")
+                    risks_top_ranking[uuid] = model_to_dict(risk)
+                    risks_top_ranking[uuid][
+                        "treatment"
+                    ] = risk.get_risk_treatment_display()
+                    risks_top_ranking[uuid]["asset"] = risk.asset.name
+                    risks_top_ranking[uuid]["threat"] = risk.threat.name
+                    risks_top_ranking[uuid]["vulnerability"] = risk.vulnerability.name
+                    risks_top_ranking[uuid]["impacts"] = {
+                        current_year: {
+                            "c": int(risk.impact_c),
+                            "i": int(risk.impact_i),
+                            "a": int(risk.impact_a),
+                        }
+                    }
+                    risks_top_ranking[uuid]["threat_values"] = {
+                        current_year: int(risk.threat_value)
+                    }
+                    risks_top_ranking[uuid]["vulnerability_values"] = {
+                        current_year: int(risk.vulnerability_value)
+                    }
+                    risks_top_ranking[uuid]["risks_values"] = {
+                        current_year: {
+                            "c": int(risk.risk_c) if risk.risk_c > -1 else None,
+                            "i": int(risk.risk_i) if risk.risk_i > -1 else None,
+                            "a": int(risk.risk_a) if risk.risk_a > -1 else None,
+                        }
+                    }
+
                 try:
                     risk = RiskData.objects.get(
-                        uuid=risk.uuid,
+                        uuid=uuid,
                         service__company_reporting__year=past_year,
                         service__company_reporting__company=company,
                         service__company_reporting__sector=sector,
                     )
                     max_risk = risk.max_risk
+                    impacts_dict = {
+                        "c": int(risk.impact_c),
+                        "i": int(risk.impact_i),
+                        "a": int(risk.impact_a),
+                    }
+
+                    threat_value = int(risk.threat_value)
+                    vulnerability_value = int(risk.vulnerability_value)
+                    risk_values_dict = {
+                        "c": int(risk.risk_c) if risk.risk_c > -1 else None,
+                        "i": int(risk.risk_i) if risk.risk_i > -1 else None,
+                        "a": int(risk.risk_a) if risk.risk_a > -1 else None,
+                    }
+
                 except RiskData.DoesNotExist:
-                    risk = RiskData.objects.none()
                     max_risk = 0
+                    impacts_dict = {
+                        "c": None,
+                        "i": None,
+                        "a": None,
+                    }
+                    threat_value = None
+                    vulnerability_value = None
+                    risk_values_dict = {
+                        "c": None,
+                        "i": None,
+                        "a": None,
+                    }
+
+                risks_top_ranking[uuid]["impacts"][past_year] = impacts_dict
+                risks_top_ranking[uuid]["threat_values"][past_year] = threat_value
+                risks_top_ranking[uuid]["vulnerability_values"][
+                    past_year
+                ] = vulnerability_value
+                risks_top_ranking[uuid]["risks_values"][past_year] = risk_values_dict
 
                 data_evolution_highest_risks[past_year].append(round_value(max_risk))
+
+    def build_top_ranking_risk_items(service):
+        # Querysets
+        risk_data_service_queryset = (
+            RiskData.objects.filter(
+                service__service=service,
+                service__company_reporting__year=year,
+                service__company_reporting__sector=sector,
+                service__company_reporting__company=company,
+            )
+            .exclude(risk_treatment="UNTRE")
+            .annotate(total_impact=F("impact_c") + F("impact_i") + F("impact_a"))
+            .distinct()
+        )
+        data = list(risk_data_service_queryset)
+        by_max_risk = sorted(data, key=lambda x: x.max_risk)
+        by_residual_risk = sorted(data, key=lambda x: x.residual_risk_level_value)
+        by_threat = sorted(data, key=lambda x: x.threat_value)
+        by_vulnerability = sorted(data, key=lambda x: x.vulnerability_value)
+        by_asset = sorted(data, key=lambda x: x.total_impact)
+
+        for index in range(top_ranking):
+            try:
+                top_ranking_dict = {
+                    "by_max_risk": by_max_risk[index],
+                    "by_residual_risk": by_residual_risk[index],
+                    "by_threat": by_threat[index],
+                    "by_vulnerability": by_vulnerability[index],
+                    "by_asset": by_asset[index],
+                }
+            except IndexError:
+                top_ranking_dict = {}
+
+            top_ranking_risks_items[service].append(top_ranking_dict)
 
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
+    years_list = []
     threshold_for_high_risk = cleaned_data["threshold_for_high_risk"]
     top_ranking = cleaned_data["top_ranking"]
     company_reporting = cleaned_data["company_reporting"]
@@ -975,6 +1085,10 @@ def get_risk_data(cleaned_data):
     data_by_high_risk_rate = defaultdict()
     data_by_high_risk_average = defaultdict()
     data_evolution_highest_risks = defaultdict(lambda: {})
+    risks_top_ranking = OrderedDict()
+    risks_top_ranking_ids = []
+    service_stats = OrderedDict()
+    top_ranking_risks_items = defaultdict(lambda: [])
     services_list = AssetData.objects.filter(
         servicestat__company_reporting=company_reporting
     ).order_by("id")
@@ -983,6 +1097,7 @@ def get_risk_data(cleaned_data):
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
+        years_list.append(year)
         company_label = f"{company} {year}"
         sector_label = f"{SECTOR_LEGEND} {year}"
         labels = [company_label, sector_label]
@@ -990,6 +1105,8 @@ def get_risk_data(cleaned_data):
         for service in services_list:
             build_risk_average_data(service)
             build_high_risk_data(service)
+            if year == current_year:
+                build_top_ranking_risk_items(service)
 
         # Score mean for all services
         for label in labels:
@@ -999,16 +1116,24 @@ def get_risk_data(cleaned_data):
             data_by_high_risk_average[label].insert(
                 0, round_value(mean(data_by_high_risk_average[label]))
             )
+
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
 
     risk_data = {
+        "years": years_list,
         "data_by_risk_average": dict(sort_legends(data_by_risk_average)),
         "data_by_high_risk_rate": dict(data_by_high_risk_rate),
         "data_by_high_risk_average": dict(sort_legends(data_by_high_risk_average)),
         "data_evolution_highest_risks": dict(
             sort_legends(data_evolution_highest_risks)
         ),
+        "data_risks_top_ranking": list(
+            values for uuid, values in risks_top_ranking.items()
+        ),
+        "risks_top_ranking_ids": risks_top_ranking_ids,
+        "service_stats": dict(service_stats),
+        "top_ranking_risks_items": dict(top_ranking_risks_items),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
@@ -1617,7 +1742,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
         ),
         "risks_4": generate_bar_chart(
             risk_data["data_evolution_highest_risks"],
-            ["Ra1", "Ra2", "Ra3", "Ra4", "Ra5"],
+            risk_data["risks_top_ranking_ids"],
         ),
     }
 
@@ -1630,6 +1755,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "report_recommendations": cleaned_data["report_recommendations"],
             "charts": charts,
             "so_data": so_data,
+            "risk_data": risk_data,
             "nb_years": cleaned_data["nb_years"],
             "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
             "static_dir": os.path.abspath(static_dir),
