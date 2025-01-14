@@ -1039,39 +1039,75 @@ def get_risk_data(cleaned_data):
 
                 data_evolution_highest_risks[past_year].append(round_value(max_risk))
 
-    def build_top_ranking_risk_items(service):
-        # Querysets
-        risk_data_service_queryset = (
+    def build_top_ranking_risk_items(service, is_last=False):
+        def get_distinct_sorted(data, sort_key, id_key):
+            seen = set()
+            return [
+                item
+                for item in sorted(data, key=lambda x: getattr(x, sort_key))
+                if not (
+                    getattr(item, id_key) in seen or seen.add(getattr(item, id_key))
+                )
+            ]
+
+        def get_sorted_data(data, sort_id_pairs):
+            return {
+                name: get_distinct_sorted(data, sort_key=key, id_key=id)
+                for name, (key, id) in sort_id_pairs.items()
+            }
+
+        def append_top_ranking(data, sort_id_pairs, target_key):
+            for index in range(top_ranking):
+                ranking_dict = {
+                    key: data[key][index]
+                    for key in sort_id_pairs.keys()
+                    if index < len(data[key])
+                }
+                top_ranking_risks_items[target_key].append(ranking_dict)
+
+        risk_data_reporting_queryset = (
             RiskData.objects.filter(
-                service__service=service,
                 service__company_reporting__year=year,
                 service__company_reporting__sector=sector,
                 service__company_reporting__company=company,
             )
             .exclude(risk_treatment="UNTRE")
             .annotate(total_impact=F("impact_c") + F("impact_i") + F("impact_a"))
-            .distinct()
         )
+
+        risk_data_service_queryset = risk_data_reporting_queryset.filter(
+            service__service=service
+        )
+
         data = list(risk_data_service_queryset)
-        by_max_risk = sorted(data, key=lambda x: x.max_risk)
-        by_residual_risk = sorted(data, key=lambda x: x.residual_risk_level_value)
-        by_threat = sorted(data, key=lambda x: x.threat_value)
-        by_vulnerability = sorted(data, key=lambda x: x.vulnerability_value)
-        by_asset = sorted(data, key=lambda x: x.total_impact)
+        if not data:
+            return
 
-        for index in range(top_ranking):
-            try:
-                top_ranking_dict = {
-                    "by_max_risk": by_max_risk[index],
-                    "by_residual_risk": by_residual_risk[index],
-                    "by_threat": by_threat[index],
-                    "by_vulnerability": by_vulnerability[index],
-                    "by_asset": by_asset[index],
-                }
-            except IndexError:
-                top_ranking_dict = {}
+        sort_id_pairs = {
+            "threat_by_max_risk": ("max_risk", "threat_id"),
+            "vulnerability_by_max_risk": ("max_risk", "vulnerability_id"),
+            "asset_by_max_risk": ("max_risk", "asset_id"),
+            "threat_by_residual_risk": ("residual_risk_level_value", "threat_id"),
+            "vulnerability_by_residual_risk": (
+                "residual_risk_level_value",
+                "vulnerability_id",
+            ),
+            "asset_by_residual_risk": ("residual_risk_level_value", "asset_id"),
+            "by_threat": ("threat_value", "threat_id"),
+            "by_vulnerability": ("vulnerability_value", "vulnerability_id"),
+            "by_asset": ("total_impact", "asset_id"),
+        }
 
-            top_ranking_risks_items[service].append(top_ranking_dict)
+        sorted_data = get_sorted_data(data, sort_id_pairs)
+        append_top_ranking(sorted_data, sort_id_pairs, service)
+
+        if is_last:
+            all_data = list(risk_data_reporting_queryset)
+            if all_data:
+                all_service_sorted_data = get_sorted_data(all_data, sort_id_pairs)
+                append_top_ranking(
+                    all_service_sorted_data, sort_id_pairs, _("All services")
+                )
 
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
@@ -1102,11 +1138,13 @@ def get_risk_data(cleaned_data):
         sector_label = f"{SECTOR_LEGEND} {year}"
         labels = [company_label, sector_label]
 
-        for service in services_list:
+        for index, service in enumerate(services_list):
             build_risk_average_data(service)
             build_high_risk_data(service)
+
             if year == current_year:
-                build_top_ranking_risk_items(service)
+                is_last = index == len(services_list) - 1
+                build_top_ranking_risk_items(service, is_last)
 
         # Score mean for all services
         for label in labels:
