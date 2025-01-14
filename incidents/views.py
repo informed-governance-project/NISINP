@@ -687,7 +687,7 @@ class FormWizardView(SessionWizardView):
 
         context["steps"] = [
             _("Contact"),
-            ("Regulators"),
+            _("Regulators"),
             _("Legal bases"),
             _("Sectors"),
             _("Detection date"),
