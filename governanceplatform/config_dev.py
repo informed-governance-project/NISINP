@@ -122,46 +122,51 @@ PARLER_LANGUAGES = {
 
 # COOKIEBANNER
 COOKIEBANNER = {
-    "title": _("Cookie settings"),
+    "title": _("Cookie Notice"),
     "groups": [
         {
             "id": "essential",
             "name": _("Essential"),
             "description": _(
-                "This website uses cookies and other similar technologies strictly necessary \
-                for its operation, without the use of personal data."
+                "This website uses cookies and similar technologies essential for its operation, \
+                without processing personal data. By clicking ‘Accept’, \
+                you consent to the use of cookies. For more details, please see:"
             ),
             "cookies": [
                 {
                     "pattern": "cookiebanner",
-                    "description": _("Meta cookie for the cookies that are set."),
-                    "content": _("Accepted cookies"),
+                    "description": _(
+                        "Cookie used to store user’s consent to the use of cookies."
+                    ),
+                    "content": _("The user’s cookie preferences."),
                     "max_age": _("6 months"),  # Set in cookie_banner.js
                 },
                 {
                     "pattern": "sessionid",
-                    "description": _("This cookie is necessary for user options"),
+                    "description": _(
+                        "Cookie essential for maintaining user session options."
+                    ),
                     "content": _("Session ID"),
                     "max_age": _("15 minutes"),  # SESSION_COOKIE_AGE
                 },
                 {
                     "pattern": "csrftoken",
                     "description": _(
-                        "This cookie prevents Cross-Site-Request-Forgery attacks."
+                        "Cookie used to prevent Cross-Site Request Forgery (CSRF) attacks."
                     ),
                     "content": _("Token"),
                     "max_age": _("15 minutes"),  # CSRF_COOKIE_AGE
                 },
                 {
                     "pattern": "django_language",
-                    "description": _("Meta cookie for user language settings"),
+                    "description": _("Cookie used to store user language preferences."),
                     "content": _("Language settings"),
                     "max_age": _("Session"),
                 },
                 {
                     "pattern": "theme",
-                    "description": _("Meta cookie for user theme settings"),
-                    "content": _("Theme dark/light settings"),
+                    "description": _("Cookie used to store user theme preferences."),
+                    "content": _("Dark/light theme settings"),
                     "max_age": _("Session"),
                 },
             ],

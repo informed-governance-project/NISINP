@@ -94,8 +94,12 @@ class SelectCompany(forms.Form):
 
 class RegistrationForm(UserCreationForm):
     accept_terms = forms.BooleanField(
-        label=_("I accept and agree to the"),
-        error_messages={"required": _("You must accept the Terms of Use to register.")},
+        label=_("I acknowledge and agree to the"),
+        error_messages={
+            "required": _(
+                "Acceptance of the Terms of Use is required for registration."
+            )
+        },
     )
     email = forms.TextInput()
     field_order = (
@@ -168,4 +172,4 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
 
 class TermsAcceptanceForm(forms.Form):
-    accept = forms.BooleanField(label=_("I accept and agree to the"))
+    accept = forms.BooleanField(label=_("I acknowledge and agree to the"))

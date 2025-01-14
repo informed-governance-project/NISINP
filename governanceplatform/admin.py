@@ -489,7 +489,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             },
         ),
         (
-            _("Entity Categories"),
+            _("Entity categories"),
             {
                 "classes": ["extrapretty"],
                 "fields": [
