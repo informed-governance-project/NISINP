@@ -1109,6 +1109,15 @@ def get_risk_data(cleaned_data):
                     all_service_sorted_data, sort_id_pairs, _("All services")
                 )
 
+    def build_recommendations_data(company_reporting):
+        return (
+            RecommendationData.objects.filter(
+                riskdata__service__company_reporting=company_reporting
+            )
+            .annotate(risk_count=Count("riskdata"))
+            .order_by("-risk_count")[:top_ranking]
+        )
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
@@ -1157,6 +1166,7 @@ def get_risk_data(cleaned_data):
 
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
+            most_recommendations_used = build_recommendations_data(company_reporting)
 
     risk_data = {
         "years": years_list,
@@ -1172,6 +1182,7 @@ def get_risk_data(cleaned_data):
         "risks_top_ranking_ids": risks_top_ranking_ids,
         "service_stats": dict(service_stats),
         "top_ranking_risks_items": dict(top_ranking_risks_items),
+        "most_recommendations_used": most_recommendations_used,
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
