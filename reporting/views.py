@@ -909,7 +909,7 @@ def get_risk_data(cleaned_data):
         data_by_high_risk_rate.setdefault(year, {"rate_labels": [], "rate_values": []})
 
         data_by_high_risk_rate[year]["rate_labels"].append(
-            f"{total_high_risks} / {int(total_risk)}"
+            f"{total_high_risks} / {total_risk}"
         )
         data_by_high_risk_rate[year]["rate_values"].append(rate)
 
@@ -974,22 +974,22 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid]["vulnerability"] = risk.vulnerability.name
                     risks_top_ranking[uuid]["impacts"] = {
                         current_year: {
-                            "c": int(risk.impact_c),
-                            "i": int(risk.impact_i),
-                            "a": int(risk.impact_a),
+                            "c": risk.impact_c,
+                            "i": risk.impact_i,
+                            "a": risk.impact_a,
                         }
                     }
                     risks_top_ranking[uuid]["threat_values"] = {
-                        current_year: int(risk.threat_value)
+                        current_year: risk.threat_value
                     }
                     risks_top_ranking[uuid]["vulnerability_values"] = {
-                        current_year: int(risk.vulnerability_value)
+                        current_year: risk.vulnerability_value
                     }
                     risks_top_ranking[uuid]["risks_values"] = {
                         current_year: {
-                            "c": int(risk.risk_c) if risk.risk_c > -1 else None,
-                            "i": int(risk.risk_i) if risk.risk_i > -1 else None,
-                            "a": int(risk.risk_a) if risk.risk_a > -1 else None,
+                            "c": risk.risk_c if risk.risk_c > -1 else None,
+                            "i": risk.risk_i if risk.risk_i > -1 else None,
+                            "a": risk.risk_a if risk.risk_a > -1 else None,
                         }
                     }
 
@@ -1002,17 +1002,17 @@ def get_risk_data(cleaned_data):
                     )
                     max_risk = risk.max_risk
                     impacts_dict = {
-                        "c": int(risk.impact_c),
-                        "i": int(risk.impact_i),
-                        "a": int(risk.impact_a),
+                        "c": risk.impact_c,
+                        "i": risk.impact_i,
+                        "a": risk.impact_a,
                     }
 
-                    threat_value = int(risk.threat_value)
-                    vulnerability_value = int(risk.vulnerability_value)
+                    threat_value = risk.threat_value
+                    vulnerability_value = risk.vulnerability_value
                     risk_values_dict = {
-                        "c": int(risk.risk_c) if risk.risk_c > -1 else None,
-                        "i": int(risk.risk_i) if risk.risk_i > -1 else None,
-                        "a": int(risk.risk_a) if risk.risk_a > -1 else None,
+                        "c": risk.risk_c if risk.risk_c > -1 else None,
+                        "i": risk.risk_i if risk.risk_i > -1 else None,
+                        "a": risk.risk_a if risk.risk_a > -1 else None,
                     }
 
                 except RiskData.DoesNotExist:
@@ -1087,12 +1087,12 @@ def get_risk_data(cleaned_data):
             "threat_by_max_risk": ("max_risk", "threat_id"),
             "vulnerability_by_max_risk": ("max_risk", "vulnerability_id"),
             "asset_by_max_risk": ("max_risk", "asset_id"),
-            "threat_by_residual_risk": ("residual_risk_level_value", "threat_id"),
+            "threat_by_residual_risk": ("residual_risk", "threat_id"),
             "vulnerability_by_residual_risk": (
-                "residual_risk_level_value",
+                "residual_risk",
                 "vulnerability_id",
             ),
-            "asset_by_residual_risk": ("residual_risk_level_value", "asset_id"),
+            "asset_by_residual_risk": ("residual_risk", "asset_id"),
             "by_threat": ("threat_value", "threat_id"),
             "by_vulnerability": ("vulnerability_value", "vulnerability_id"),
             "by_asset": ("total_impact", "asset_id"),
@@ -1570,8 +1570,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
                 total_denied_risks=0,
                 total_accepted_risks=0,
                 total_shared_risks=0,
-                total_high_risks_treated=0,
-                avg_high_risk_treated=0,
                 avg_residual_risks=0,
             )
 
@@ -1593,8 +1591,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
                 total_denied_risks=0,
                 total_accepted_risks=0,
                 total_shared_risks=0,
-                total_high_risks_treated=0,
-                avg_high_risk_treated=0,
                 avg_residual_risks=0,
             )
 
@@ -1671,7 +1667,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
                         "threat_value": threat_value,
                         "vulnerability": new_vulnerability,
                         "vulnerability_value": vulnerability_value,
-                        "residual_risk_level_value": residual_risk,
+                        "residual_risk": residual_risk,
                         "risk_treatment": treatment,
                         "max_risk": max_risk,
                         "risk_c": risk_c,

@@ -35,26 +35,6 @@ class CompanyReporting(models.Model):
         unique_together = ["company", "sector", "year"]
 
 
-# Store the statistic by sector, should be updated each time a company from the sector changed
-class SectorStatistic(models.Model):
-    sector = models.ForeignKey(
-        "governanceplatform.Sector",
-        on_delete=models.CASCADE,
-        verbose_name=_("Sector"),
-    )
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
-    high_risk_average = models.FloatField(
-        verbose_name=_("Average high risk"),
-    )
-    risk_average = models.FloatField(
-        verbose_name=_("High risk"),
-    )
-
-    class Meta:
-        verbose_name_plural = _("Sector stats")
-        verbose_name = _("Sector stat")
-
-
 # store asset
 class AssetData(TranslatableModel):
     translations = TranslatedFields(
@@ -135,38 +115,30 @@ class ServiceStat(models.Model):
         verbose_name=_("Risk Analysis"),
     )
 
-    total_risks = models.FloatField(verbose_name=_("Total of all risks"), default=0)
+    total_risks = models.IntegerField(verbose_name=_("Total of all risks"), default=0)
 
-    total_untreated_risks = models.FloatField(
+    total_untreated_risks = models.IntegerField(
         verbose_name=_("Total of untreated risks"), default=0
     )
 
-    total_treated_risks = models.FloatField(
+    total_treated_risks = models.IntegerField(
         verbose_name=_("Total of treated risks"), default=0
     )
 
-    total_reduced_risks = models.FloatField(
+    total_reduced_risks = models.IntegerField(
         verbose_name=_("Total of reduced risks"), default=0
     )
 
-    total_denied_risks = models.FloatField(
+    total_denied_risks = models.IntegerField(
         verbose_name=_("Total of denied risks"), default=0
     )
 
-    total_accepted_risks = models.FloatField(
+    total_accepted_risks = models.IntegerField(
         verbose_name=_("Total of accepted risks"), default=0
     )
 
-    total_shared_risks = models.FloatField(
+    total_shared_risks = models.IntegerField(
         verbose_name=_("Total of shared risks"), default=0
-    )
-
-    total_high_risks_treated = models.FloatField(
-        verbose_name=_("Total high risks treated"), default=0
-    )
-
-    avg_high_risk_treated = models.FloatField(
-        verbose_name=_("Average high risks treated"), default=0
     )
 
     avg_current_risks = models.FloatField(
@@ -203,7 +175,7 @@ class RiskData(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Threat"),
     )
-    threat_value = models.FloatField(
+    threat_value = models.IntegerField(
         verbose_name=_("Threat value"),
     )
     vulnerability = models.ForeignKey(
@@ -211,11 +183,11 @@ class RiskData(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Vulnerability"),
     )
-    vulnerability_value = models.FloatField(
+    vulnerability_value = models.IntegerField(
         verbose_name=_("Vulnerability value"),
     )
-    residual_risk_level_value = models.FloatField(
-        verbose_name=_("Residual risk level value"),
+    residual_risk = models.IntegerField(
+        verbose_name=_("Residual risk"),
         default=-1,
     )
     risk_treatment = models.CharField(
@@ -225,31 +197,31 @@ class RiskData(models.Model):
         blank=False,
         default=RISK_TREATMENT[1][0],
     )
-    max_risk = models.FloatField(
+    max_risk = models.IntegerField(
         verbose_name=_("Maximum risk"),
         default=-1,
     )
-    risk_c = models.FloatField(
+    risk_c = models.IntegerField(
         verbose_name=_("Confidentility risk"),
         default=-1,
     )
-    risk_i = models.FloatField(
+    risk_i = models.IntegerField(
         verbose_name=_("Integrity risk"),
         default=-1,
     )
-    risk_a = models.FloatField(
+    risk_a = models.IntegerField(
         verbose_name=_("Availability risk"),
         default=-1,
     )
-    impact_c = models.FloatField(
+    impact_c = models.IntegerField(
         verbose_name=_("Confidentility impact"),
         default=-1,
     )
-    impact_i = models.FloatField(
+    impact_i = models.IntegerField(
         verbose_name=_("Integrity impact"),
         default=-1,
     )
-    impact_a = models.FloatField(
+    impact_a = models.IntegerField(
         verbose_name=_("Availability impact"),
         default=-1,
     )
@@ -309,7 +281,7 @@ class SectorReportConfiguration(models.Model):
         choices=[(nb_year, str(nb_year)) for nb_year in range(1, 4)],
     )
 
-    threshold_for_high_risk = models.FloatField(
+    threshold_for_high_risk = models.IntegerField(
         verbose_name=_("High risk rate threshold"),
     )
 
