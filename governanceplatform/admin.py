@@ -37,6 +37,7 @@ from .models import (  # OperatorType,; Service,
     Sector,
     User,
 )
+from .permissions import set_platform_admin_permissions
 from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
@@ -526,7 +527,10 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             readonly_fields += ("identifier",)
-        if not (user_in_group(user, "RegulatorUser") or user_in_group(user, "RegulatorAdmin")):
+        if not (
+            user_in_group(user, "RegulatorUser")
+            or user_in_group(user, "RegulatorAdmin")
+        ):
             readonly_fields += ("entity_categories",)
 
         return readonly_fields
@@ -1238,6 +1242,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
                 if new_group:
                     obj.groups.add(new_group)
+                set_platform_admin_permissions(obj)
 
         super().save_model(request, obj, form, change)
 

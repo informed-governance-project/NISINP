@@ -247,7 +247,7 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
 
     # filter the question category option on the report_id to avoid mixing report categories
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "category_option" and not request.POST.get("_saveasnew"):
+        if db_field.name == "category_option" and not request.POST:
             kwargs["queryset"] = (
                 QuestionCategoryOptions.objects.filter(
                     questionoptions__report=self.parent_obj
