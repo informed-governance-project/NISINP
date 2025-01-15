@@ -1118,6 +1118,31 @@ def get_risk_data(cleaned_data):
             .order_by("-risk_count")[:top_ranking]
         )
 
+    def build_evolution_recommendations_data():
+        recommendations_by_year = RecommendationData.objects.filter(
+            riskdata__service__company_reporting__year=year,
+            riskdata__service__company_reporting__company=company,
+            riskdata__service__company_reporting__sector=sector,
+        )
+
+        if recommendations_by_year:
+            for recommendation in recommendations_by_year:
+                recommendation_key = generate_combined_uuid(
+                    [recommendation.code, recommendation.description]
+                )
+                status = _("Open") if year == current_year else _("Closed")
+                recommendations_evolution.setdefault(
+                    recommendation_key,
+                    {
+                        "code": recommendation.code,
+                        "description": recommendation.description,
+                    },
+                )
+                recommendations_evolution[recommendation_key]["status"] = status
+                recommendations_evolution[recommendation_key][
+                    year
+                ] = recommendation.due_date
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
@@ -1134,6 +1159,7 @@ def get_risk_data(cleaned_data):
     risks_top_ranking_ids = []
     service_stats = OrderedDict()
     top_ranking_risks_items = defaultdict(lambda: [])
+    recommendations_evolution = defaultdict(lambda: {})
     services_list = AssetData.objects.filter(
         servicestat__company_reporting=company_reporting
     ).order_by("id")
@@ -1168,6 +1194,8 @@ def get_risk_data(cleaned_data):
             build_evolution_highest_risks_data(company_reporting)
             most_recommendations_used = build_recommendations_data(company_reporting)
 
+        build_evolution_recommendations_data()
+
     risk_data = {
         "years": years_list,
         "data_by_risk_average": dict(sort_legends(data_by_risk_average)),
@@ -1183,6 +1211,7 @@ def get_risk_data(cleaned_data):
         "service_stats": dict(service_stats),
         "top_ranking_risks_items": dict(top_ranking_risks_items),
         "most_recommendations_used": most_recommendations_used,
+        "recommendations_evolution": dict(recommendations_evolution),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
@@ -1528,6 +1557,13 @@ def convert_graph_to_base64(fig):
     return graph
 
 
+def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
+    combined = "".join(str(i_uuid) for i_uuid in array_uuid)
+    new_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, combined)
+
+    return str(new_uuid)
+
+
 def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
     LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
@@ -1557,12 +1593,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
     def calculate_risk(impact, threat_value, vulnerability_value, factor):
         risk_value = impact * threat_value * vulnerability_value if factor else -1
         return max(risk_value, -1)
-
-    def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
-        combined = "".join(str(i_uuid) for i_uuid in array_uuid)
-        new_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, combined)
-
-        return str(new_uuid)
 
     def create_service_stat(service_data, is_update=False):
         new_service_asset = create_translations(AssetData, service_data, "label")
