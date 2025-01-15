@@ -1130,7 +1130,6 @@ def get_risk_data(cleaned_data):
                 recommendation_key = generate_combined_uuid(
                     [recommendation.code, recommendation.description]
                 )
-                status = _("Open") if year == current_year else _("Closed")
                 recommendations_evolution.setdefault(
                     recommendation_key,
                     {
@@ -1138,6 +1137,22 @@ def get_risk_data(cleaned_data):
                         "description": recommendation.description,
                     },
                 )
+
+                previous_year = year - 1
+                previous_due_date = recommendations_evolution[recommendation_key].get(
+                    previous_year
+                )
+
+                if previous_due_date:
+                    status = _("Postponed")
+                    if (
+                        previous_due_date == recommendation.due_date
+                        and recommendation.due_date.year == previous_year
+                    ):
+                        status = _("To check")
+                else:
+                    status = _("Open") if year == current_year else _("Closed")
+
                 recommendations_evolution[recommendation_key]["status"] = status
                 recommendations_evolution[recommendation_key][
                     year
