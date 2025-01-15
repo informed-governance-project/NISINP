@@ -78,7 +78,10 @@ class ConfigurationReportForm(forms.ModelForm):
 
 
 class CompanySelectForm(forms.ModelForm):
-    selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+    selected = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "company-select-checkbox"}),
+    )
     year = forms.IntegerField(required=False)
     sector = forms.ModelChoiceField(
         queryset=Sector.objects.all(), required=False, widget=forms.HiddenInput()
@@ -165,7 +168,10 @@ CompanySelectFormSet = modelformset_factory(
 
 
 class RecommendationsSelectForm(TranslatableModelForm):
-    selected = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+    selected = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "recommendation-select-checkbox"}),
+    )
 
     class Meta:
         model = ObservationRecommendation
