@@ -1030,7 +1030,7 @@ def get_risk_data(cleaned_data):
                         "a": ({"value": risk.risk_a} if risk.risk_a > -1 else None),
                     }
 
-                    if past_year == current_year - 1:
+                    if not past_year == current_year - 1:
                         values_changed = False
                         current_ranking = risks_top_ranking[uuid]
 
@@ -1075,10 +1075,8 @@ def get_risk_data(cleaned_data):
                         ]
                         current_max_value = max(filtered_values, default=None)
 
-                        if values_changed:
-                            for key, risk_item in current_year_risks.items():
-                                if not risk_item:
-                                    continue
+                        for key, risk_item in current_year_risks.items():
+                            if risk_item and values_changed:
                                 is_max_risk = (
                                     risk_values_dict[key]
                                     and risk_values_dict[key]["value"] == max_risk
