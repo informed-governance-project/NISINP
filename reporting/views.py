@@ -25,9 +25,8 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import activate, deactivate_all
+from django.utils.translation import activate, deactivate_all, gettext
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import gettext
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 
@@ -940,53 +939,53 @@ def get_risk_data(cleaned_data):
             service_stats[service][year] = {}
 
     def build_evolution_highest_risks_data(company_reporting):
-        def compare_values_with_past_year():
-            values_changed = False
-            current_ranking = risks_top_ranking[uuid]
+        # def compare_values_with_past_year():
+        #     values_changed = False
+        #     current_ranking = risks_top_ranking[uuid]
 
-            # Compare impacts
-            current_year_impacts = current_ranking["impacts"][current_year]
-            for key, impact in current_year_impacts.items():
-                impact_changed = impacts_dict[key]["value"] != impact["value"]
-                impact["changed"] = impact_changed
-                values_changed = values_changed or impact_changed
+        #     # Compare impacts
+        #     current_year_impacts = current_ranking["impacts"][current_year]
+        #     for key, impact in current_year_impacts.items():
+        #         impact_changed = impacts_dict[key]["value"] != impact["value"]
+        #         impact["changed"] = impact_changed
+        #         values_changed = values_changed or impact_changed
 
-            # Compare threat
-            current_year_threat = current_ranking["threat_values"][current_year]
-            threat_changed = risk.threat_value != current_year_threat["value"]
-            current_year_threat["changed"] = threat_changed
-            values_changed = values_changed or threat_changed
+        #     # Compare threat
+        #     current_year_threat = current_ranking["threat_values"][current_year]
+        #     threat_changed = risk.threat_value != current_year_threat["value"]
+        #     current_year_threat["changed"] = threat_changed
+        #     values_changed = values_changed or threat_changed
 
-            # Compare vulnerability
-            current_year_vulnerability = current_ranking["vulnerability_values"][
-                current_year
-            ]
-            vulnerability_changed = (
-                risk.vulnerability_value != current_year_vulnerability["value"]
-            )
-            current_year_vulnerability["changed"] = vulnerability_changed
-            values_changed = values_changed or vulnerability_changed
+        #     # Compare vulnerability
+        #     current_year_vulnerability = current_ranking["vulnerability_values"][
+        #         current_year
+        #     ]
+        #     vulnerability_changed = (
+        #         risk.vulnerability_value != current_year_vulnerability["value"]
+        #     )
+        #     current_year_vulnerability["changed"] = vulnerability_changed
+        #     values_changed = values_changed or vulnerability_changed
 
-            # Compare risks
-            current_year_risks = current_ranking["risks_values"][current_year]
-            filtered_values = [
-                item["value"]
-                for item in current_year_risks.values()
-                if item is not None
-            ]
-            current_max_value = max(filtered_values, default=None)
+        #     # Compare risks
+        #     current_year_risks = current_ranking["risks_values"][current_year]
+        #     filtered_values = [
+        #         item["value"]
+        #         for item in current_year_risks.values()
+        #         if item is not None
+        #     ]
+        #     current_max_value = max(filtered_values, default=None)
 
-            if values_changed:
-                for key, risk_item in current_year_risks.items():
-                    if not risk_item:
-                        continue
-                    is_max_risk = (
-                        risk_values_dict[key]
-                        and risk_values_dict[key]["value"] == max_risk
-                        and risk_item["value"] == current_max_value
-                    )
-                    risk_values_dict[key]["changed"] = is_max_risk
-                    risk_item["changed"] = is_max_risk
+        #     if values_changed:
+        #         for key, risk_item in current_year_risks.items():
+        #             if not risk_item:
+        #                 continue
+        #             is_max_risk = (
+        #                 risk_values_dict[key]
+        #                 and risk_values_dict[key]["value"] == max_risk
+        #                 and risk_item["value"] == current_max_value
+        #             )
+        #             risk_values_dict[key]["changed"] = is_max_risk
+        #             risk_item["changed"] = is_max_risk
 
         risks_data = (
             RiskData.objects.filter(
@@ -1079,8 +1078,8 @@ def get_risk_data(cleaned_data):
                         "a": ({"value": risk.risk_a} if risk.risk_a > -1 else None),
                     }
 
-                    if past_year == current_year - 1:
-                        compare_values_with_past_year()
+                    # if past_year == current_year - 1:
+                    #     compare_values_with_past_year()
 
                 except RiskData.DoesNotExist:
                     max_risk = 0
@@ -1111,7 +1110,9 @@ def get_risk_data(cleaned_data):
             seen = set()
             return [
                 item
-                for item in sorted(data, key=lambda x: getattr(x, sort_key), reverse=True)
+                for item in sorted(
+                    data, key=lambda x: getattr(x, sort_key), reverse=True
+                )
                 if not (
                     getattr(item, id_key) in seen or seen.add(getattr(item, id_key))
                 )
@@ -1242,9 +1243,11 @@ def get_risk_data(cleaned_data):
     service_stats = OrderedDict()
     top_ranking_risks_items = defaultdict(lambda: [])
     recommendations_evolution = defaultdict(lambda: {})
-    services_list = AssetData.objects.filter(
-        servicestat__company_reporting=company_reporting
-    ).order_by("id").distinct()
+    services_list = (
+        AssetData.objects.filter(servicestat__company_reporting=company_reporting)
+        .order_by("id")
+        .distinct()
+    )
     operator_services = list(services_list.values_list("translations__name", flat=True))
     operator_services_with_all = [_("All services")] + operator_services
 
