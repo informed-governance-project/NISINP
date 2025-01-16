@@ -1050,7 +1050,7 @@ def get_risk_data(cleaned_data):
             seen = set()
             return [
                 item
-                for item in sorted(data, key=lambda x: getattr(x, sort_key))
+                for item in sorted(data, key=lambda x: getattr(x, sort_key), reverse=True)
                 if not (
                     getattr(item, id_key) in seen or seen.add(getattr(item, id_key))
                 )
