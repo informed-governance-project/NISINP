@@ -570,6 +570,11 @@ def import_risk_analysis(request):
                 company_reporting_obj, created = CompanyReporting.objects.get_or_create(
                     company=company, year=year, sector=sector
                 )
+                if not created:
+                    company_reporting_obj.delete()
+                    company_reporting_obj = CompanyReporting.objects.create(
+                        company=company, year=year, sector=sector
+                    )
 
                 try:
                     parsing_risk_data_json(

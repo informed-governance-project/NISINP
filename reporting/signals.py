@@ -14,8 +14,6 @@ def cache_related_recommendationdata(sender, instance, **kwargs):
 def delete_orphaned_recommendationdata(sender, instance, **kwargs):
     # Retrieve cached recommendationdata instances
     related_bs = getattr(instance, "_cached_recommendation_data", [])
-    print(instance)
-    print(related_bs)
 
     # Check if reco are linked to another riskdata
     for b in related_bs:
