@@ -578,7 +578,7 @@ def import_risk_analysis(request):
 
                 try:
                     parsing_risk_data_json(
-                        json_file, company_reporting_obj, not created
+                        json_file, company_reporting_obj
                     )
                 except Exception as e:
                     messages.error(request, f"Parsing error: {str(e)}")
@@ -1584,7 +1584,7 @@ def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
     return str(new_uuid)
 
 
-def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
+def parsing_risk_data_json(json_file, company_reporting_obj):
     LANG_VALUES = {1: "fr", 2: "en", 3: "de", 4: "nl"}
     TREATMENT_VALUES = {
         1: "REDUC",
@@ -1614,13 +1614,13 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
         risk_value = impact * threat_value * vulnerability_value if factor else -1
         return max(risk_value, -1)
 
-    def create_service_stat(service_data, is_update=False):
+    def create_service_stat(service_data):
         new_service_asset = create_translations(AssetData, service_data, "label")
         service_stat, created = ServiceStat.objects.get_or_create(
             service=new_service_asset,
             company_reporting=company_reporting_obj,
         )
-        if not created and is_update:
+        if not created:
             ServiceStat.objects.filter(
                 service=new_service_asset, company_reporting=company_reporting_obj
             ).update(
@@ -1635,25 +1635,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
             )
 
         return service_stat
-
-    def update_service_stat(service_data):
-        new_service_asset = create_translations(AssetData, service_data, "label")
-        service_stat_exists = ServiceStat.objects.filter(
-            service=new_service_asset, company_reporting=company_reporting_obj
-        ).exists()
-        if service_stat_exists:
-            ServiceStat.objects.filter(
-                service=new_service_asset, company_reporting=company_reporting_obj
-            ).update(
-                total_risks=0,
-                total_untreated_risks=0,
-                total_treated_risks=0,
-                total_reduced_risks=0,
-                total_denied_risks=0,
-                total_accepted_risks=0,
-                total_shared_risks=0,
-                avg_residual_risks=0,
-            )
 
     def update_average(current_avg, treated_risks, new_risks_values):
         if len(new_risks_values) > 0:
@@ -1801,8 +1782,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj, is_update=False):
             )
             root_service_data = instance.copy()
             instance_data["instance"]["parent_uuid"] = instance["uuid"]
-            if is_update:
-                update_service_stat(root_service_data)
             extract_risks(instance_data)
 
 
