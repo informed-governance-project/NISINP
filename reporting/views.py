@@ -27,6 +27,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 
@@ -157,7 +158,7 @@ def reporting(request):
                         so_excluded = sector_configuration.so_excluded.all()
                     except SectorReportConfiguration.DoesNotExist:
                         if is_multiple_selected_companies:
-                            error_message = f"No data found in sector: {str(sector)} and year: {year}"
+                            error_message = gettext("No configuration for sector")
                             error_messages.append(error_message)
                             continue
                         else:
@@ -1110,7 +1111,7 @@ def get_risk_data(cleaned_data):
             seen = set()
             return [
                 item
-                for item in sorted(data, key=lambda x: getattr(x, sort_key))
+                for item in sorted(data, key=lambda x: getattr(x, sort_key), reverse=True)
                 if not (
                     getattr(item, id_key) in seen or seen.add(getattr(item, id_key))
                 )
@@ -1243,7 +1244,7 @@ def get_risk_data(cleaned_data):
     recommendations_evolution = defaultdict(lambda: {})
     services_list = AssetData.objects.filter(
         servicestat__company_reporting=company_reporting
-    ).order_by("id")
+    ).order_by("id").distinct()
     operator_services = list(services_list.values_list("translations__name", flat=True))
     operator_services_with_all = [_("All services")] + operator_services
 
