@@ -27,6 +27,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 
@@ -157,7 +158,7 @@ def reporting(request):
                         so_excluded = sector_configuration.so_excluded.all()
                     except SectorReportConfiguration.DoesNotExist:
                         if is_multiple_selected_companies:
-                            error_message = f"No data found in sector: {str(sector)} and year: {year}"
+                            error_message = gettext("No configuration for sector")
                             error_messages.append(error_message)
                             continue
                         else:
