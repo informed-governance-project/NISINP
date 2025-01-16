@@ -939,54 +939,6 @@ def get_risk_data(cleaned_data):
             service_stats[service][year] = {}
 
     def build_evolution_highest_risks_data(company_reporting):
-        # def compare_values_with_past_year():
-        #     values_changed = False
-        #     current_ranking = risks_top_ranking[uuid]
-
-        #     # Compare impacts
-        #     current_year_impacts = current_ranking["impacts"][current_year]
-        #     for key, impact in current_year_impacts.items():
-        #         impact_changed = impacts_dict[key]["value"] != impact["value"]
-        #         impact["changed"] = impact_changed
-        #         values_changed = values_changed or impact_changed
-
-        #     # Compare threat
-        #     current_year_threat = current_ranking["threat_values"][current_year]
-        #     threat_changed = risk.threat_value != current_year_threat["value"]
-        #     current_year_threat["changed"] = threat_changed
-        #     values_changed = values_changed or threat_changed
-
-        #     # Compare vulnerability
-        #     current_year_vulnerability = current_ranking["vulnerability_values"][
-        #         current_year
-        #     ]
-        #     vulnerability_changed = (
-        #         risk.vulnerability_value != current_year_vulnerability["value"]
-        #     )
-        #     current_year_vulnerability["changed"] = vulnerability_changed
-        #     values_changed = values_changed or vulnerability_changed
-
-        #     # Compare risks
-        #     current_year_risks = current_ranking["risks_values"][current_year]
-        #     filtered_values = [
-        #         item["value"]
-        #         for item in current_year_risks.values()
-        #         if item is not None
-        #     ]
-        #     current_max_value = max(filtered_values, default=None)
-
-        #     if values_changed:
-        #         for key, risk_item in current_year_risks.items():
-        #             if not risk_item:
-        #                 continue
-        #             is_max_risk = (
-        #                 risk_values_dict[key]
-        #                 and risk_values_dict[key]["value"] == max_risk
-        #                 and risk_item["value"] == current_max_value
-        #             )
-        #             risk_values_dict[key]["changed"] = is_max_risk
-        #             risk_item["changed"] = is_max_risk
-
         risks_data = (
             RiskData.objects.filter(
                 service__company_reporting=company_reporting,
@@ -1078,8 +1030,62 @@ def get_risk_data(cleaned_data):
                         "a": ({"value": risk.risk_a} if risk.risk_a > -1 else None),
                     }
 
-                    # if past_year == current_year - 1:
-                    #     compare_values_with_past_year()
+                    if past_year == current_year - 1:
+                        values_changed = False
+                        current_ranking = risks_top_ranking[uuid]
+
+                        # Compare impacts
+                        current_year_impacts = current_ranking["impacts"][current_year]
+                        for key, impact in current_year_impacts.items():
+                            impact_changed = (
+                                impacts_dict[key]["value"] != impact["value"]
+                            )
+                            impact["changed"] = impact_changed
+                            values_changed = values_changed or impact_changed
+
+                        # Compare threat
+                        current_year_threat = current_ranking["threat_values"][
+                            current_year
+                        ]
+                        threat_changed = (
+                            risk.threat_value != current_year_threat["value"]
+                        )
+                        current_year_threat["changed"] = threat_changed
+                        values_changed = values_changed or threat_changed
+
+                        # Compare vulnerability
+                        current_year_vulnerability = current_ranking[
+                            "vulnerability_values"
+                        ][current_year]
+                        vulnerability_changed = (
+                            risk.vulnerability_value
+                            != current_year_vulnerability["value"]
+                        )
+                        current_year_vulnerability["changed"] = vulnerability_changed
+                        values_changed = values_changed or vulnerability_changed
+
+                        # Compare risks
+                        current_year_risks = current_ranking["risks_values"][
+                            current_year
+                        ]
+                        filtered_values = [
+                            item["value"]
+                            for item in current_year_risks.values()
+                            if item is not None
+                        ]
+                        current_max_value = max(filtered_values, default=None)
+
+                        if values_changed:
+                            for key, risk_item in current_year_risks.items():
+                                if not risk_item:
+                                    continue
+                                is_max_risk = (
+                                    risk_values_dict[key]
+                                    and risk_values_dict[key]["value"] == max_risk
+                                    and risk_item["value"] == current_max_value
+                                )
+                                risk_values_dict[key]["changed"] = is_max_risk
+                                risk_item["changed"] = is_max_risk
 
                 except RiskData.DoesNotExist:
                     max_risk = 0
