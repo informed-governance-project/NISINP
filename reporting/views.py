@@ -1561,12 +1561,12 @@ def round_value(value):
 
 def convert_graph_to_base64(fig):
     buffer = BytesIO()
-    fig.write_image(buffer, format="png")
+    fig.write_image(buffer, format="svg")
     buffer.seek(0)
-    image_png = buffer.getvalue()
+    image_svg = buffer.getvalue()
     buffer.close()
 
-    graph = base64.b64encode(image_png)
+    graph = base64.b64encode(image_svg)
     graph = graph.decode("utf-8")
 
     return graph
