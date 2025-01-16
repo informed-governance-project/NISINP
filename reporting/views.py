@@ -1183,7 +1183,7 @@ def get_risk_data(cleaned_data):
     recommendations_evolution = defaultdict(lambda: {})
     services_list = AssetData.objects.filter(
         servicestat__company_reporting=company_reporting
-    ).order_by("id")
+    ).order_by("id").distinct()
     operator_services = list(services_list.values_list("translations__name", flat=True))
     operator_services_with_all = [_("All services")] + operator_services
 
