@@ -464,13 +464,13 @@ def copy_report_recommendations(request, company_id, sector_id, year):
     if not report_recommendations:
         messages.error(
             request,
-            _(f"No recommendations from { last_year }"),
+            _(f"No recommendations from {last_year}"),
         )
     else:
         add_new_report_recommendations(company, sector, year, report_recommendations)
         messages.success(
             request,
-            _(f"Recommendations have been copied from { last_year }"),
+            _(f"Recommendations have been copied from {last_year}"),
         )
 
     redirect_url = reverse("report_recommendations", args=[company_id, sector_id, year])
