@@ -19,5 +19,6 @@ sent_emails/
 governanceplatform/config_prod.py
 governanceplatform/config.py
 governanceplatform/static/
+theme/
 
 static/npm_components
