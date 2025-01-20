@@ -985,7 +985,7 @@ def get_risk_data(cleaned_data):
             )
         )
 
-        data_evolution_highest_risks[current_year] = [
+        data_evolution_highest_risks[f"{company} {current_year}"] = [
             round_value(max_risk)
             for max_risk in risks_data[:top_ranking].values_list("max_risk", flat=True)
         ]
@@ -996,7 +996,7 @@ def get_risk_data(cleaned_data):
             past_year += 1
             if past_year == current_year:
                 continue
-            data_evolution_highest_risks[past_year] = []
+            data_evolution_highest_risks[f"{company} {past_year}"] = []
             for risk in risks_data[:top_ranking]:
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
@@ -1010,24 +1010,38 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid]["vulnerability"] = risk.vulnerability.name
                     risks_top_ranking[uuid]["impacts"] = {
                         current_year: {
-                            "c": {"value": risk.impact_c},
-                            "i": {"value": risk.impact_i},
-                            "a": {"value": risk.impact_a},
+                            "c": (
+                                {"value": risk.impact_c if risk.impact_c > -1 else None}
+                            ),
+                            "i": (
+                                {"value": risk.impact_i if risk.impact_i > -1 else None}
+                            ),
+                            "a": (
+                                {"value": risk.impact_a if risk.impact_a > -1 else None}
+                            ),
                         }
                     }
                     risks_top_ranking[uuid]["threat_values"] = {
-                        current_year: {"value": risk.threat_value}
+                        current_year: {
+                            "value": (
+                                risk.threat_value if risk.threat_value > -1 else None
+                            )
+                        }
                     }
                     risks_top_ranking[uuid]["vulnerability_values"] = {
                         current_year: {
-                            "value": risk.vulnerability_value,
+                            "value": (
+                                risk.vulnerability_value
+                                if risk.vulnerability_value > -1
+                                else None
+                            )
                         }
                     }
                     risks_top_ranking[uuid]["risks_values"] = {
                         current_year: {
-                            "c": ({"value": risk.risk_c} if risk.risk_c > -1 else None),
-                            "i": ({"value": risk.risk_i} if risk.risk_i > -1 else None),
-                            "a": ({"value": risk.risk_a} if risk.risk_a > -1 else None),
+                            "c": ({"value": risk.risk_c if risk.risk_c > -1 else None}),
+                            "i": ({"value": risk.risk_i if risk.risk_i > -1 else None}),
+                            "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
                         }
                     }
 
@@ -1042,26 +1056,30 @@ def get_risk_data(cleaned_data):
                     max_risk = risk.max_risk
 
                     impacts_dict = {
-                        "c": {"value": risk.impact_c},
-                        "i": {"value": risk.impact_i},
-                        "a": {"value": risk.impact_a},
+                        "c": ({"value": risk.impact_c if risk.impact_c > -1 else None}),
+                        "i": ({"value": risk.impact_i if risk.impact_i > -1 else None}),
+                        "a": ({"value": risk.impact_a if risk.impact_a > -1 else None}),
                     }
 
                     threat_value = {
-                        "value": risk.threat_value,
+                        "value": risk.threat_value if risk.threat_value > -1 else None
                     }
 
                     vulnerability_value = {
-                        "value": risk.vulnerability_value,
+                        "value": (
+                            risk.vulnerability_value
+                            if risk.vulnerability_value > -1
+                            else None
+                        )
                     }
 
                     risk_values_dict = {
-                        "c": ({"value": risk.risk_c} if risk.risk_c > -1 else None),
-                        "i": ({"value": risk.risk_i} if risk.risk_i > -1 else None),
-                        "a": ({"value": risk.risk_a} if risk.risk_a > -1 else None),
+                        "c": ({"value": risk.risk_c if risk.risk_c > -1 else None}),
+                        "i": ({"value": risk.risk_i if risk.risk_i > -1 else None}),
+                        "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
                     }
 
-                    if not past_year == current_year - 1:
+                    if past_year == current_year - 1:
                         values_changed = False
                         current_ranking = risks_top_ranking[uuid]
 
@@ -1095,26 +1113,25 @@ def get_risk_data(cleaned_data):
                         current_year_vulnerability["changed"] = vulnerability_changed
                         values_changed = values_changed or vulnerability_changed
 
-                        # Compare risks
-                        current_year_risks = current_ranking["risks_values"][
-                            current_year
-                        ]
-                        filtered_values = [
-                            item["value"]
-                            for item in current_year_risks.values()
-                            if item is not None
-                        ]
-                        current_max_value = max(filtered_values, default=None)
+                        # Compare risks if any previous value is different
+                        if values_changed:
+                            current_year_risks = current_ranking["risks_values"][
+                                current_year
+                            ]
+                            filtered_values = [
+                                item["value"]
+                                for item in current_year_risks.values()
+                                if item["value"] is not None
+                            ]
+                            current_max_value = max(filtered_values, default=None)
 
-                        for key, risk_item in current_year_risks.items():
-                            if risk_item and values_changed:
-                                is_max_risk = (
-                                    risk_values_dict[key]
-                                    and risk_values_dict[key]["value"] == max_risk
-                                    and risk_item["value"] == current_max_value
+                            for key, risk_item in current_year_risks.items():
+                                risk_values_dict[key]["changed"] = (
+                                    risk_values_dict[key]["value"] == max_risk
                                 )
-                                risk_values_dict[key]["changed"] = is_max_risk
-                                risk_item["changed"] = is_max_risk
+                                risk_item["changed"] = (
+                                    risk_item["value"] == current_max_value
+                                )
 
                 except RiskData.DoesNotExist:
                     max_risk = 0
@@ -1138,7 +1155,9 @@ def get_risk_data(cleaned_data):
                 ] = vulnerability_value
                 risks_top_ranking[uuid]["risks_values"][past_year] = risk_values_dict
 
-                data_evolution_highest_risks[past_year].append(round_value(max_risk))
+                data_evolution_highest_risks[f"{company} {past_year}"].append(
+                    round_value(max_risk)
+                )
 
     def build_top_ranking_risk_items(service, is_last=False):
         def get_distinct_sorted(data, sort_key, id_key):
@@ -1318,6 +1337,7 @@ def get_risk_data(cleaned_data):
 
     risk_data = {
         "years": years_list,
+        "threshold_for_high_risk": threshold_for_high_risk,
         "data_by_risk_average": dict(sort_legends(data_by_risk_average)),
         "data_by_high_risk_rate": dict(data_by_high_risk_rate),
         "data_by_high_risk_average": dict(sort_legends(data_by_high_risk_average)),
