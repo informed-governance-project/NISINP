@@ -50,6 +50,7 @@ from .forms import (
 from .models import (
     AssetData,
     CompanyReporting,
+    LogReporting,
     Observation,
     ObservationRecommendation,
     RecommendationData,
@@ -226,6 +227,8 @@ def reporting(request):
                     )
                     zip_file.writestr(filename, pdf_report.read())
 
+                    create_entry_log(user, company_reporting, "GENERATE REPORT")
+
                 if error_messages:
                     error_log = "\n".join(error_messages)
                     zip_file.writestr("error_log.txt", error_log)
@@ -382,6 +385,7 @@ def report_recommendations(request, company_id, sector_id, year):
 @login_required
 @otp_required
 def add_report_recommendations(request, company_id, sector_id, year):
+    user = request.user
     validate_result = validate_url_arguments(request, company_id, sector_id, year)
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
@@ -426,7 +430,7 @@ def add_report_recommendations(request, company_id, sector_id, year):
             ]
 
             add_new_report_recommendations(
-                company, sector, year, selected_recommendations
+                company, sector, year, selected_recommendations, user
             )
             messages.success(
                 request,
@@ -455,6 +459,7 @@ def add_report_recommendations(request, company_id, sector_id, year):
 @login_required
 @otp_required
 def copy_report_recommendations(request, company_id, sector_id, year):
+    user = request.user
     validate_result = validate_url_arguments(request, company_id, sector_id, year)
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
@@ -467,19 +472,23 @@ def copy_report_recommendations(request, company_id, sector_id, year):
             _(f"No recommendations from {last_year}"),
         )
     else:
-        add_new_report_recommendations(company, sector, year, report_recommendations)
+        add_new_report_recommendations(
+            company, sector, year, report_recommendations, user
+        )
         messages.success(
             request,
             _(f"Recommendations have been copied from {last_year}"),
         )
 
     redirect_url = reverse("report_recommendations", args=[company_id, sector_id, year])
+
     return redirect(redirect_url)
 
 
 @login_required
 @otp_required
 def delete_report_recommendation(request, company_id, sector_id, year, report_rec_id):
+    user = request.user
     validate_result = validate_url_arguments(request, company_id, sector_id, year)
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
@@ -507,6 +516,7 @@ def delete_report_recommendation(request, company_id, sector_id, year, report_re
     observation.observation_recommendations.remove(recommendation)
     messages.success(request, _("The report recommendation has been deleted."))
     redirect_url = reverse("report_recommendations", args=[company.id, sector.id, year])
+    create_entry_log(user, company_reporting, "DELETE RECOMMENDATIONS")
 
     return redirect(redirect_url)
 
@@ -587,6 +597,27 @@ def import_risk_analysis(request):
     form = ImportRiskAnalysisForm(initial=initial)
     context = {"form": form}
     return render(request, "reporting/risk_analysis_import.html", context=context)
+
+
+@login_required
+@otp_required
+def access_log(request, company_id, sector_id, year):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+    try:
+        company_reporting = CompanyReporting.objects.get(
+            company=company, year=year, sector=sector
+        )
+        log = LogReporting.objects.filter(reporting=company_reporting).order_by(
+            "-timestamp"
+        )
+    except CompanyReporting.DoesNotExist:
+        log = LogReporting.objects.none()
+
+    context = {"log": log}
+    return render(request, "modals/reporting_access_log.html", context=context)
 
 
 def get_so_data(cleaned_data):
@@ -1977,7 +2008,7 @@ def validate_url_arguments(request, company_id, sector_id, year):
     return company, sector, year
 
 
-def add_new_report_recommendations(company, sector, year, report_recommendations):
+def add_new_report_recommendations(company, sector, year, report_recommendations, user):
     company_reporting_obj, created = CompanyReporting.objects.get_or_create(
         company=company, year=year, sector=sector
     )
@@ -1985,3 +2016,14 @@ def add_new_report_recommendations(company, sector, year, report_recommendations
         company_reporting=company_reporting_obj
     )
     observation_obj.observation_recommendations.add(*report_recommendations)
+
+    create_entry_log(user, company_reporting_obj, "ADD RECOMMENDATIONS")
+
+
+def create_entry_log(user, reporting, action):
+    log = LogReporting.objects.create(
+        user=user,
+        reporting=reporting,
+        action=action,
+    )
+    log.save()

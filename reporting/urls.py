@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    access_log,
     add_report_configuration,
     add_report_recommendations,
     copy_report_recommendations,
@@ -43,6 +44,11 @@ urlpatterns = [
         "recommendations/copy/<int:company_id>/<int:sector_id>/<int:year>/",
         copy_report_recommendations,
         name="copy_report_recommendations",
+    ),
+    path(
+        "access_log/<int:company_id>/<int:sector_id>/<int:year>/",
+        access_log,
+        name="reporting_access_log",
     ),
     # Import risk analysis
     path("import_risk_analysis", import_risk_analysis, name="import_risk_analysis"),
