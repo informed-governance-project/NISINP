@@ -345,3 +345,27 @@ class Observation(models.Model):
     class Meta:
         verbose_name_plural = _("Observations")
         verbose_name = _("Observation")
+
+
+# reporting logs
+class LogReporting(models.Model):
+    user = models.ForeignKey(
+        "governanceplatform.User",
+        on_delete=models.SET_NULL,
+        verbose_name=_("User"),
+        null=True,
+    )
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    # save full name in case of the user is deleted to keep the name
+    user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    reporting = models.ForeignKey(
+        CompanyReporting,
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    action = models.CharField(max_length=50, verbose_name=_("Action performed"))
+
+    def save(self, *args, **kwargs):
+        self.user_full_name = self.user.get_full_name()
+        super().save(*args, **kwargs)
