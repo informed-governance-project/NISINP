@@ -990,13 +990,9 @@ def get_risk_data(cleaned_data):
             for max_risk in risks_data[:top_ranking].values_list("max_risk", flat=True)
         ]
         i = 1
-        past_year = current_year - nb_years
+        past_year = current_year - nb_years + i
         while i <= nb_years:
             i += 1
-            past_year += 1
-            if past_year == current_year:
-                continue
-            data_evolution_highest_risks[f"{company} {past_year}"] = []
             for risk in risks_data[:top_ranking]:
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
@@ -1044,6 +1040,9 @@ def get_risk_data(cleaned_data):
                             "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
                         }
                     }
+
+                if past_year == current_year:
+                    continue
 
                 try:
                     risk = RiskData.objects.get(
@@ -1158,6 +1157,8 @@ def get_risk_data(cleaned_data):
                 data_evolution_highest_risks[f"{company} {past_year}"].append(
                     round_value(max_risk)
                 )
+
+            past_year += 1
 
     def build_top_ranking_risk_items(service, is_last=False):
         def get_distinct_sorted(data, sort_key, id_key):
@@ -1291,7 +1292,7 @@ def get_risk_data(cleaned_data):
     data_by_risk_average = defaultdict()
     data_by_high_risk_rate = defaultdict()
     data_by_high_risk_average = defaultdict()
-    data_evolution_highest_risks = defaultdict(lambda: {})
+    data_evolution_highest_risks = defaultdict(lambda: [])
     risks_top_ranking = OrderedDict()
     risks_top_ranking_ids = []
     service_stats = OrderedDict()
