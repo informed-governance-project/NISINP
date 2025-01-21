@@ -700,6 +700,7 @@ def get_so_data(cleaned_data):
     current_year = cleaned_data["year"]
     nb_years = cleaned_data["nb_years"]
     so_excluded = cleaned_data["so_excluded"]
+    top_ranking = cleaned_data["top_ranking"]
     maturity_levels_queryset = MaturityLevel.objects.order_by("level")
     maturity_levels = [str(level) for level in maturity_levels_queryset]
     years_list = []
@@ -766,7 +767,10 @@ def get_so_data(cleaned_data):
         )
 
         sector_scores_queryset = sector_queryset.values("security_objective").annotate(
-            score_value=Floor(Avg("score"))
+            score_value=Floor(Avg("score")),
+            min_position=Min(
+                "security_objective__securityobjectivesinstandard__position"
+            ),
         )
 
         # Dictionaries
@@ -842,14 +846,19 @@ def get_so_data(cleaned_data):
         )
 
         # Sector asc and desc lists by score
-
         sector_so_by_year_asc[year] = [
             SecurityObjective.objects.get(pk=score["security_objective"])
-            for score in sector_scores_queryset.order_by("score_value")
+            for score in sector_scores_queryset.order_by("score_value", "min_position")[
+                :top_ranking
+            ]
         ]
 
-        sector_so_by_year_desc[year] = list(sector_so_by_year_asc[year])
-        sector_so_by_year_desc[year].reverse()
+        sector_so_by_year_desc[year] = [
+            SecurityObjective.objects.get(pk=score["security_objective"])
+            for score in sector_scores_queryset.order_by(
+                "-score_value", "min_position"
+            )[:top_ranking]
+        ]
 
     radar_chart_data_by_domain = build_radar_data(company_so_by_domain, "sector_avg")
     radar_chart_data_by_year = build_radar_data(company_so_by_year)
@@ -1001,6 +1010,7 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid][
                         "treatment"
                     ] = risk.get_risk_treatment_display()
+                    risks_top_ranking[uuid]["service"] = risk.service.service.name
                     risks_top_ranking[uuid]["asset"] = risk.asset.name
                     risks_top_ranking[uuid]["threat"] = risk.threat.name
                     risks_top_ranking[uuid]["vulnerability"] = risk.vulnerability.name
@@ -1161,15 +1171,22 @@ def get_risk_data(cleaned_data):
             past_year += 1
 
     def build_top_ranking_risk_items(service, is_last=False):
+        def get_nested_attr(obj, attr):
+            attributes = attr.split(".")
+            for attribute in attributes:
+                obj = getattr(obj, attribute)
+            return obj
+
         def get_distinct_sorted(data, sort_key, id_key):
             seen = set()
             return [
                 item
                 for item in sorted(
-                    data, key=lambda x: getattr(x, sort_key), reverse=True
+                    data, key=lambda x: get_nested_attr(x, sort_key), reverse=True
                 )
                 if not (
-                    getattr(item, id_key) in seen or seen.add(getattr(item, id_key))
+                    get_nested_attr(item, id_key) in seen
+                    or seen.add(get_nested_attr(item, id_key))
                 )
             ]
 
@@ -1209,16 +1226,16 @@ def get_risk_data(cleaned_data):
         sort_id_pairs = {
             "threat_by_max_risk": ("max_risk", "threat_id"),
             "vulnerability_by_max_risk": ("max_risk", "vulnerability_id"),
-            "asset_by_max_risk": ("max_risk", "asset_id"),
+            "asset_by_max_risk": ("max_risk", "asset.name"),
             "threat_by_residual_risk": ("residual_risk", "threat_id"),
             "vulnerability_by_residual_risk": (
                 "residual_risk",
                 "vulnerability_id",
             ),
-            "asset_by_residual_risk": ("residual_risk", "asset_id"),
+            "asset_by_residual_risk": ("residual_risk", "asset.name"),
             "by_threat": ("threat_value", "threat_id"),
             "by_vulnerability": ("vulnerability_value", "vulnerability_id"),
-            "by_asset": ("total_impact", "asset_id"),
+            "by_asset": ("total_impact", "asset.name"),
         }
 
         sorted_data = get_sorted_data(data, sort_id_pairs)
@@ -1948,6 +1965,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "company": cleaned_data["company"],
             "year": cleaned_data["year"],
             "sector": cleaned_data["sector"],
+            "top_ranking": cleaned_data["top_ranking"],
             "report_recommendations": cleaned_data["report_recommendations"],
             "charts": charts,
             "so_data": so_data,
