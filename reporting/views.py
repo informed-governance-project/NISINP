@@ -1171,12 +1171,6 @@ def get_risk_data(cleaned_data):
             past_year += 1
 
     def build_top_ranking_risk_items(service, is_last=False):
-        def get_nested_attr(obj, attr):
-            attributes = attr.split(".")
-            for attribute in attributes:
-                obj = getattr(obj, attribute)
-            return obj
-
         def get_distinct_sorted(data, sort_key, id_key):
             seen = set()
             return [
@@ -1701,6 +1695,13 @@ def round_value(value):
         if rounded_value.is_integer()
         else float(f"{rounded_value:.2f}")
     )
+
+
+def get_nested_attr(obj, attr):
+    attributes = attr.split(".")
+    for attribute in attributes:
+        obj = getattr(obj, attribute)
+    return obj
 
 
 def convert_graph_to_base64(fig):
