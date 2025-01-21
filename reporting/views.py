@@ -994,15 +994,19 @@ def get_risk_data(cleaned_data):
             )
         )
 
+        top_ranking_distinct_risks = get_top_ranking_distinct_risks(
+            risks_data, top_ranking
+        )
+
         data_evolution_highest_risks[f"{company} {current_year}"] = [
-            round_value(max_risk)
-            for max_risk in risks_data[:top_ranking].values_list("max_risk", flat=True)
+            round_value(risk.max_risk) for risk in top_ranking_distinct_risks
         ]
+
         i = 1
         past_year = current_year - nb_years + i
         while i <= nb_years:
             i += 1
-            for risk in risks_data[:top_ranking]:
+            for risk in top_ranking_distinct_risks:
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
                     risks_top_ranking_ids.append(f"R{risk.id}")
@@ -1702,6 +1706,26 @@ def get_nested_attr(obj, attr):
     for attribute in attributes:
         obj = getattr(obj, attribute)
     return obj
+
+
+def get_top_ranking_distinct_risks(data, top_ranking):
+    seen_uuids = set()
+    distinct = []
+    for obj in data:
+        array_uuid = [
+            obj.service.service.uuid,
+            obj.asset.name,
+            obj.threat.uuid,
+            obj.vulnerability.uuid,
+        ]
+        combined_uuid = generate_combined_uuid(array_uuid)
+        if combined_uuid not in seen_uuids:
+            seen_uuids.add(combined_uuid)
+            distinct.append(obj)
+
+        if len(distinct) >= top_ranking:
+            break
+    return distinct
 
 
 def convert_graph_to_base64(fig):
