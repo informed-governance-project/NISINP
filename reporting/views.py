@@ -115,6 +115,7 @@ def reporting(request):
             sectors_filter=sectors_filters,
         )
         if formset.is_valid():
+            user_sectors = user.get_sectors().all()
             selected_companies = [
                 {
                     "company": form.cleaned_data.get("id"),
@@ -131,6 +132,17 @@ def reporting(request):
                 for select_company in selected_companies:
                     company = select_company.get("company")
                     sector = select_company.get("sector")
+                    if sector not in user_sectors:
+                        if is_multiple_selected_companies:
+                            error_message = _("%(sector)s forbidden") % {
+                                "sector": sector
+                            }
+                            error_messages.append(error_message)
+                            continue
+                        else:
+                            messages.error(request, _("Forbidden"))
+                            return redirect("reporting")
+
                     try:
                         company_reporting = CompanyReporting.objects.get(
                             company=company, year=year, sector=sector
@@ -317,6 +329,11 @@ def add_report_configuration(request):
         form = ConfigurationReportForm(request.POST, initial=initial)
         if form.is_valid():
             cleaned_data = form.cleaned_data.copy()
+
+            if cleaned_data["sector"] not in user_sectors:
+                messages.error(request, _("Forbidden"))
+                return redirect("report_configuration")
+
             so_excluded = cleaned_data.pop("so_excluded", None)
             new_configuration = SectorReportConfiguration(**cleaned_data)
             new_configuration.save()
@@ -333,6 +350,7 @@ def add_report_configuration(request):
 @otp_required
 def edit_report_configuration(request, report_configuration_id: int):
     user = request.user
+    user_sectors = user.get_sectors().all()
 
     try:
         report_configuration = SectorReportConfiguration.objects.get(
@@ -341,12 +359,6 @@ def edit_report_configuration(request, report_configuration_id: int):
     except SectorReportConfiguration.DoesNotExist:
         messages.error(request, _("Configuration not found"))
         return redirect("report_configuration")
-
-    user_sectors = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
 
     if report_configuration.sector not in user_sectors:
         messages.error(request, _("Forbidden"))
@@ -2034,6 +2046,9 @@ def validate_json_file(file):
 
 
 def validate_url_arguments(request, company_id, sector_id, year):
+    user = request.user
+    user_sectors = user.get_sectors().all()
+
     try:
         company = Company.objects.get(id=company_id)
     except Company.DoesNotExist:
@@ -2067,6 +2082,10 @@ def validate_url_arguments(request, company_id, sector_id, year):
             request,
             _("Invalid year. Please provide a valid year."),
         )
+        return redirect("reporting")
+
+    if sector not in user_sectors:
+        messages.error(request, _("Forbidden"))
         return redirect("reporting")
 
     return company, sector, year
