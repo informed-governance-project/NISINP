@@ -28,3 +28,24 @@ $(document).ready(function () {
     });
   });
 })
+
+
+window.check_task_status = function(){
+  load_spinner()
+
+  const url = '/task_status';
+  const pollInterval = setInterval(() => {
+      $.get(url, function (response) {
+          if (response.status === "completed") {
+              clearInterval(pollInterval);
+              setTimeout(() => {
+                  $('#loading-spinner').fadeOut().addClass('d-none');
+              }, 100);
+          }
+      });
+  }, 1000);
+}
+
+window.load_spinner = function(){
+  $('#loading-spinner').removeClass('d-none').fadeIn();
+}
