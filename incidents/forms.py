@@ -520,24 +520,28 @@ class RegulatorForm(forms.Form):
         return self.fields["regulators"].initial
 
 
-# select the detection date
 class DetectionDateForm(forms.Form):
-    incident_timezone = forms.ChoiceField(
-        choices=[(tz, tz) for tz in pytz.common_timezones],
-        widget=forms.Select(attrs={"class": "form-control"}),
-        required=False,
-        label=gettext_lazy("Select the incident time zone"),
-        initial=TIME_ZONE,
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    detection_date = forms.DateTimeField(
-        required=True,
-        widget=DateTimePickerInput(
-            options={
-                "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-            },
-        ),
-    )
+        # Initialize the 'incident_timezone' field
+        self.fields['incident_timezone'] = forms.ChoiceField(
+            choices=[(tz, tz) for tz in pytz.common_timezones],
+            widget=forms.Select(attrs={"class": "form-control"}),
+            required=False,
+            label=gettext_lazy("Select the incident time zone"),
+            initial=kwargs.get('initial', {}).get('incident_timezone', None) or TIME_ZONE,
+        )
+
+        # Initialize the 'detection_date' field
+        self.fields['detection_date'] = forms.DateTimeField(
+            required=True,
+            widget=DateTimePickerInput(
+                options={
+                    "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
+                },
+            ),
+        )
 
 
 class SectorForm(forms.Form):
