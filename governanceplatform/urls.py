@@ -100,7 +100,9 @@ urlpatterns = [
     # contact
     path("contact/", views.contact, name="contact"),
     # basic healthcheck
-    path("healthz", include('health_check.urls')),
+    path("healthz", include("health_check.urls")),
+    # Check task status
+    path("task_status", views.check_task_status, name="task_status"),
 ]
 
 
