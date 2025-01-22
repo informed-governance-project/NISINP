@@ -255,8 +255,6 @@ def reporting(request):
                 response = HttpResponse(pdf_report, content_type="application/pdf")
                 response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
-            request.session["task_status"] = "completed"
-
             return response
 
     formset = CompanySelectFormSet(

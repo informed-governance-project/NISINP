@@ -30,22 +30,26 @@ $(document).ready(function () {
 })
 
 
-window.check_task_status = function(){
-  load_spinner()
-
-  const url = '/task_status';
-  const pollInterval = setInterval(() => {
-      $.get(url, function (response) {
-          if (response.status === "completed") {
-              clearInterval(pollInterval);
-              setTimeout(() => {
-                  $('#loading-spinner').fadeOut().addClass('d-none');
-              }, 100);
+window.getCookie = function(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
           }
-      });
-  }, 1000);
+      }
+  }
+  return cookieValue;
 }
 
 window.load_spinner = function(){
   $('#loading-spinner').removeClass('d-none').fadeIn();
+}
+
+window.stop_spinner = function() {
+  $('#loading-spinner').fadeOut().addClass('d-none');
 }

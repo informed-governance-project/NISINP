@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db.models.functions import Now
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
@@ -154,13 +153,3 @@ def contact(request):
 
 def custom_404_view(request, exception):
     return render(request, "404.html", status=404)
-
-
-@login_required
-def check_task_status(request):
-    status = request.session.get("task_status", "not_found")
-    if status == "completed":
-        del request.session["task_status"]
-        return JsonResponse({"status": "completed"})
-
-    return JsonResponse({"status": status})
