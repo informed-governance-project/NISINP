@@ -56,6 +56,10 @@ class AssetData(TranslatableModel):
         verbose_name_plural = _("Asset")
         verbose_name = _("Assets")
 
+    def __str__(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
+
 
 # store Vulnerability
 class VulnerabilityData(TranslatableModel):
@@ -78,6 +82,10 @@ class VulnerabilityData(TranslatableModel):
         verbose_name_plural = _("Vulnerabilities")
         verbose_name = _("Vulnerability")
 
+    def __str__(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
+
 
 # store Threat
 class ThreatData(TranslatableModel):
@@ -99,6 +107,10 @@ class ThreatData(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Threats")
         verbose_name = _("Threat")
+
+    def __str__(self):
+        name_translation = self.safe_translation_getter("name", any_language=True)
+        return name_translation or ""
 
 
 # Store the stat for each service in a risk analysis

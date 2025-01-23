@@ -28,6 +28,7 @@ from django.utils import timezone
 from django.utils.translation import activate, deactivate_all, gettext
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
+from parler.models import TranslationDoesNotExist
 from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
@@ -1037,10 +1038,10 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid][
                         "treatment"
                     ] = risk.get_risk_treatment_display()
-                    risks_top_ranking[uuid]["service"] = risk.service.service.name
-                    risks_top_ranking[uuid]["asset"] = risk.asset.name
-                    risks_top_ranking[uuid]["threat"] = risk.threat.name
-                    risks_top_ranking[uuid]["vulnerability"] = risk.vulnerability.name
+                    risks_top_ranking[uuid]["service"] = str(risk.service.service)
+                    risks_top_ranking[uuid]["asset"] = str(risk.asset)
+                    risks_top_ranking[uuid]["threat"] = str(risk.threat)
+                    risks_top_ranking[uuid]["vulnerability"] = str(risk.vulnerability)
                     risks_top_ranking[uuid]["impacts"] = {
                         current_year: {
                             "c": (
@@ -1341,7 +1342,7 @@ def get_risk_data(cleaned_data):
         .order_by("id")
         .distinct()
     )
-    operator_services = list(services_list.values_list("translations__name", flat=True))
+    operator_services = [str(service) for service in services_list]
     operator_services_with_all = [_("All services")] + operator_services
 
     for offset in range(nb_years):
@@ -1727,7 +1728,10 @@ def round_value(value):
 def get_nested_attr(obj, attr):
     attributes = attr.split(".")
     for attribute in attributes:
-        obj = getattr(obj, attribute)
+        try:
+            obj = getattr(obj, attribute)
+        except TranslationDoesNotExist:
+            obj = str(obj)
     return obj
 
 
@@ -1737,7 +1741,7 @@ def get_top_ranking_distinct_risks(data, top_ranking):
     for obj in data:
         array_uuid = [
             obj.service.service.uuid,
-            obj.asset.name,
+            str(obj.asset),
             obj.threat.uuid,
             obj.vulnerability.uuid,
         ]
