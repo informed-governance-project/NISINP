@@ -20,7 +20,7 @@ WORKDIR /app
 # because package.json scripts.postinstall tries to be smart
 COPY --from=npmbuilder /app/node_modules /app/static/npm_components
 # and also package.json script.compile-scss
-COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
+# COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
 
 COPY api /app/api
 COPY governanceplatform /app/governanceplatform
@@ -32,7 +32,7 @@ COPY templates /app/templates
 
 COPY pyproject.toml /app/pyproject.toml
 COPY README.md /app/README.md
-COPY manage.py /app/manage.py
+COPY manage.py /app/manage.pyq
 
 COPY contrib/cronjob.sh /app/cronjob.sh
 
