@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package.json /app
 COPY package-lock.json /app
-# COPY theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
+COPY theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
 
 RUN npm ci
 RUN npm install
@@ -20,7 +20,7 @@ WORKDIR /app
 # because package.json scripts.postinstall tries to be smart
 COPY --from=npmbuilder /app/node_modules /app/static/npm_components
 # and also package.json script.compile-scss
-# COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
+COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
 
 COPY api /app/api
 COPY governanceplatform /app/governanceplatform
@@ -28,7 +28,7 @@ COPY incidents /app/incidents
 COPY locale /app/locale
 COPY static /app/static
 COPY templates /app/templates
-# COPY theme /app/theme
+COPY theme /app/theme
 
 COPY pyproject.toml /app/pyproject.toml
 COPY README.md /app/README.md
