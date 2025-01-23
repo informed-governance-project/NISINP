@@ -244,7 +244,15 @@ def reporting(request):
                         "company_reporting": company_reporting,
                     }
 
-                    pdf_report = get_pdf_report(request, report_data)
+                    try:
+                        pdf_report = get_pdf_report(request, report_data)
+                    except Exception:
+                        messages.error(
+                            request, _("An error occurred while generating the report.")
+                        )
+                        rendered_messages = render_error_messages(request)
+                        return JsonResponse({"messages": rendered_messages}, status=400)
+
                     sector_name = sector.get_safe_translation()
                     filename = urlquote(
                         f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
