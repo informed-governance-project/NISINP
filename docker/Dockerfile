@@ -32,7 +32,7 @@ COPY templates /app/templates
 
 COPY pyproject.toml /app/pyproject.toml
 COPY README.md /app/README.md
-COPY manage.py /app/manage.pyq
+COPY manage.py /app/manage.py
 
 COPY contrib/cronjob.sh /app/cronjob.sh
 
