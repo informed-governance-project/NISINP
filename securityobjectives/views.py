@@ -597,8 +597,8 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
     if not standard_answer:
         messages.error(request, _("Declaration not found"))
-        return redirect("securityobjectives")
-
+        rendered_messages = render_error_messages(request)
+        return JsonResponse({"messages": rendered_messages}, status=400)
     try:
         standard_answer = standard_answer.first()
         if not has_change_permission(request, standard_answer, "download"):
@@ -1053,3 +1053,11 @@ def get_completion_objective(security_objective, standard_answer):
         "is_partially": any_partially,
         "is_not_started": total_count == 0,
     }
+
+
+def render_error_messages(request):
+    return render_to_string(
+        "django_bootstrap5/messages.html",
+        {"messages": messages.get_messages(request)},
+        request=request,
+    )

@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -141,7 +141,10 @@ def reporting(request):
                             continue
                         else:
                             messages.error(request, _("Forbidden"))
-                            return redirect("reporting")
+                            rendered_messages = render_error_messages(request)
+                            return JsonResponse(
+                                {"messages": rendered_messages}, status=400
+                            )
 
                     try:
                         company_reporting = CompanyReporting.objects.get(
@@ -157,7 +160,11 @@ def reporting(request):
                                 request,
                                 _("No reporting data"),
                             )
-                            return redirect("reporting")
+                            rendered_messages = render_error_messages(request)
+                            return JsonResponse(
+                                {"messages": rendered_messages}, status=400
+                            )
+
                     try:
                         sector_configuration = SectorReportConfiguration.objects.get(
                             sector=sector
@@ -178,7 +185,10 @@ def reporting(request):
                                 request,
                                 _("No configuration for sector"),
                             )
-                            return redirect("reporting")
+                            rendered_messages = render_error_messages(request)
+                            return JsonResponse(
+                                {"messages": rendered_messages}, status=400
+                            )
 
                     security_objectives_declaration = StandardAnswer.objects.filter(
                         submitter_company=company,
@@ -214,7 +224,8 @@ def reporting(request):
                             )
 
                     if errors > 0:
-                        return redirect("reporting")
+                        rendered_messages = render_error_messages(request)
+                        return JsonResponse({"messages": rendered_messages}, status=400)
 
                     report_recommendations = company.get_report_recommandations(
                         year, sector
@@ -2110,3 +2121,11 @@ def create_entry_log(user, reporting, action):
         action=action,
     )
     log.save()
+
+
+def render_error_messages(request):
+    return render_to_string(
+        "django_bootstrap5/messages.html",
+        {"messages": messages.get_messages(request)},
+        request=request,
+    )
