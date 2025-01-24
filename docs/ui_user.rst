@@ -295,3 +295,17 @@ As you can see, security objectives can have 3 states:
 
 You have to tick the "measure in place" and put a justification to go to the green, you can switch between the different SO by clicking on the number or using the blue arrow at the bottom of the page. 
 
+
+Reporting 
+---------------------
+
+This feature is only available to regulators authorized by the platform administrator.
+
+In addition to the recommendations that can be added in the administrator area. Some features are available in the user area. 
+
+In the dashboard you can see, for the association (year, company, sector) if the risk analysis has been uploaded and if the security objectives have been submitted. 
+For each line you have the action to add recommendations and see the access log. 
+
+The risk analysis can be imported through the Menu (reporting -> import risk analysis), it shows a new view when the JSON file of the full risk analysis must be selected, with the company, the year corresponding to the risk analysis file and the sector(s).
+
+A configuration can be set by sectors. The configuration is used for the generation of the report(s). It precise the number of years to compare, the high-risk threshold, the ranking which is the number of elements to compare for certain representations, and the number of security objectives excluded. 

@@ -17,7 +17,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
 django.setup()
 
 project = "NIS Incident Notification Platform"
-copyright = "2023-2024 Luxembourg House of Cybersecurity"
+copyright = "2023-2025 Luxembourg House of Cybersecurity"
 author = "NC3 Team <info@nc3.lu>"
 
 # The full version, including alpha/beta/rc tags
