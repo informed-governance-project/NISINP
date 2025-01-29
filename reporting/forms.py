@@ -7,7 +7,7 @@ from parler.forms import TranslatableModelForm
 from governanceplatform.models import Company, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import ObservationRecommendation, SectorReportConfiguration
+from .models import ObservationRecommendation, SectorReportConfiguration, CompanyReporting
 
 
 class ImportRiskAnalysisForm(forms.Form):
@@ -186,3 +186,9 @@ class RecommendationsSelectForm(TranslatableModelForm):
 RecommendationsSelectFormSet = modelformset_factory(
     ObservationRecommendation, form=RecommendationsSelectForm, extra=0
 )
+
+
+class ReviewCommentForm(forms.ModelForm):
+    class Meta:
+        model = CompanyReporting
+        fields = ["id", "comment"]

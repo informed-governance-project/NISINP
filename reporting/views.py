@@ -47,6 +47,7 @@ from .forms import (
     ConfigurationReportForm,
     ImportRiskAnalysisForm,
     RecommendationsSelectFormSet,
+    ReviewCommentForm
 )
 from .models import (
     AssetData,
@@ -649,6 +650,38 @@ def access_log(request, company_id, sector_id, year):
 
     context = {"log": log}
     return render(request, "modals/reporting_access_log.html", context=context)
+
+
+@login_required
+@otp_required
+def review_comment_report(request, company_id, sector_id, year):
+    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+    if isinstance(validate_result, HttpResponseRedirect):
+        return validate_result
+    company, sector, year = validate_result
+    try:
+        company_reporting = CompanyReporting.objects.get(
+            company=company, year=year, sector=sector
+        )
+    except CompanyReporting.DoesNotExist:
+        return render(request, "reporting/dashboard.html", {})
+
+    if request.method == "POST":
+        form = ReviewCommentForm(request.POST, instance=company_reporting)
+        if form.is_valid():
+            form.save()
+            return redirect("reporting")
+    else:
+        form = ReviewCommentForm(instance=company_reporting)
+
+    context = {
+        "form": form,
+        "company": company,
+        "sector": sector,
+        "year": year,
+    }
+
+    return render(request, "modals/review_comment_report.html", context=context)
 
 
 def get_so_data(cleaned_data):

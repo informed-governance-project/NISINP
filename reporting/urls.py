@@ -11,6 +11,7 @@ from .views import (
     report_configuration,
     report_recommendations,
     reporting,
+    review_comment_report,
 )
 
 urlpatterns = [
@@ -29,6 +30,11 @@ urlpatterns = [
         "recommendations/<int:company_id>/<int:sector_id>/<int:year>/",
         report_recommendations,
         name="report_recommendations",
+    ),
+    path(
+        "review_comment_report/<int:company_id>/<int:sector_id>/<int:year>/",
+        review_comment_report,
+        name="review_comment_report",
     ),
     path(
         "recommendations/add/<int:company_id>/<int:sector_id>/<int:year>/",
