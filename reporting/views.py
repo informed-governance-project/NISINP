@@ -1792,85 +1792,89 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
         5: "UNTRE",
     }
 
-    def create_translations(class_model, values, field_name):
-        new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
+    def extract_risks(instance):
+        def create_translations(class_model, values, field_name):
+            new_object, created = class_model.objects.get_or_create(uuid=values["uuid"])
 
-        if created:
-            translations = values.get(field_name, None)
-            if not translations:
-                return new_object
+            if created:
+                translations = values.get(field_name, None)
+                if not translations:
+                    return new_object
 
-            if is_new_version and languageCode:
-                activate(languageCode)
-                new_object.set_current_language(languageCode)
-                new_object.name = translations
-            else:
-                for lang_index, lang_code in LANG_VALUES.items():
-                    name_value = translations.get(field_name + str(lang_index), None)
-                    if name_value:
-                        activate(lang_code)
-                        new_object.set_current_language(lang_code)
-                        new_object.name = name_value
+                if is_new_version and languageCode:
+                    activate(languageCode)
+                    new_object.set_current_language(languageCode)
+                    new_object.name = translations
+                else:
+                    for lang_index, lang_code in LANG_VALUES.items():
+                        name_value = translations.get(
+                            field_name + str(lang_index), None
+                        )
+                        if name_value:
+                            activate(lang_code)
+                            new_object.set_current_language(lang_code)
+                            new_object.name = name_value
 
-            new_object.save()
-            deactivate_all()
+                new_object.save()
+                deactivate_all()
 
-        return new_object
+            return new_object
 
-    def calculate_risks(risk):
-        def get_risk_value(risk_value, factor):
-            risk_value = risk_value if factor else -1
-            return max(risk_value, -1)
+        def create_service_stat(service_data):
+            new_service_asset = create_translations(AssetData, service_data, "label")
+            service_stat, created = ServiceStat.objects.get_or_create(
+                service=new_service_asset,
+                company_reporting=company_reporting_obj,
+            )
+            if not created:
+                ServiceStat.objects.filter(
+                    service=new_service_asset, company_reporting=company_reporting_obj
+                ).update(
+                    total_risks=0,
+                    total_untreated_risks=0,
+                    total_treated_risks=0,
+                    total_reduced_risks=0,
+                    total_denied_risks=0,
+                    total_accepted_risks=0,
+                    total_shared_risks=0,
+                    avg_residual_risks=0,
+                )
 
-        threat = risk["threat"]
+            return service_stat
 
-        return {
-            "riskConfidentiality": get_risk_value(
-                risk["riskIntegrity"], threat["confidentiality"]
-            ),
-            "riskIntegrity": get_risk_value(risk["riskIntegrity"], threat["integrity"]),
-            "riskAvailability": get_risk_value(
-                risk["riskAvailability"], threat["availability"]
-            ),
-        }
+        def update_average(current_avg, treated_risks, new_risks_values):
+            if len(new_risks_values) > 0:
+                total_risks = treated_risks + len(new_risks_values)
+                weighted_sum = (current_avg * treated_risks) + sum(new_risks_values)
+                return weighted_sum / total_risks
+            return current_avg
 
-    def create_service_stat(service_data):
-        new_service_asset = create_translations(AssetData, service_data, "label")
-        service_stat, created = ServiceStat.objects.get_or_create(
-            service=new_service_asset,
-            company_reporting=company_reporting_obj,
-        )
-        if not created:
-            ServiceStat.objects.filter(
-                service=new_service_asset, company_reporting=company_reporting_obj
-            ).update(
-                total_risks=0,
-                total_untreated_risks=0,
-                total_treated_risks=0,
-                total_reduced_risks=0,
-                total_denied_risks=0,
-                total_accepted_risks=0,
-                total_shared_risks=0,
-                avg_residual_risks=0,
+        def generate_information_risk_uuid(risk):
+            return (
+                risk["informationRisk"]["uuid"]
+                if risk["informationRisk"]
+                else risk["threat"]["uuid"] + risk["vulnerability"]["uuid"]
             )
 
-        return service_stat
+        def calculate_risks(risk):
+            def get_risk_value(risk_value, factor):
+                risk_value = risk_value if factor else -1
+                return max(risk_value, -1)
 
-    def update_average(current_avg, treated_risks, new_risks_values):
-        if len(new_risks_values) > 0:
-            total_risks = treated_risks + len(new_risks_values)
-            weighted_sum = (current_avg * treated_risks) + sum(new_risks_values)
-            return weighted_sum / total_risks
-        return current_avg
+            threat = risk["threat"]
 
-    def generate_information_risk_uuid(risk):
-        return (
-            risk["informationRisk"]["uuid"]
-            if risk["informationRisk"]
-            else risk["threat"]["uuid"] + risk["vulnerability"]["uuid"]
-        )
+            return {
+                "riskConfidentiality": get_risk_value(
+                    risk["riskIntegrity"], threat["confidentiality"]
+                ),
+                "riskIntegrity": get_risk_value(
+                    risk["riskIntegrity"], threat["integrity"]
+                ),
+                "riskAvailability": get_risk_value(
+                    risk["riskAvailability"], threat["availability"]
+                ),
+            }
 
-    def extract_risks(instance):
         risks = instance["instanceRisks"]
         children = instance["children"]
 
@@ -1985,24 +1989,37 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
 
         return is_root and bool(children)
 
-    def get_normalized_threat(instance_risk, threats):
-        threat_data = threats.get(str(instance_risk["threat"]), {})
-        threat_data["confidentiality"] = threat_data.get("c")
-        threat_data["integrity"] = threat_data.get("i")
-        threat_data["availability"] = threat_data.get("a")
-        threat_data["label"] = get_translations_dict(threat_data, "label")
-        threat_data["description"] = get_translations_dict(threat_data, "description")
-        return threat_data
-
-    def get_normalized_vulnerability(instance_risk, vuls):
-        vulnerability_data = vuls.get(str(instance_risk["vulnerability"]), {})
-        vulnerability_data["label"] = get_translations_dict(vulnerability_data, "label")
-        vulnerability_data["description"] = (
-            get_translations_dict(vulnerability_data, "description"),
-        )
-        return vulnerability_data
-
     def get_normalized_instance(instance):
+        def get_translations_dict(values, field_name):
+            translations_dict = {}
+            for lang_index in LANG_VALUES.keys():
+                key = field_name + str(lang_index)
+                name_value = values.get(key, None)
+                if name_value:
+                    translations_dict[key] = name_value
+            return translations_dict
+
+        def get_normalized_threat(instance_risk, threats):
+            threat_data = threats.get(str(instance_risk["threat"]), {})
+            threat_data["confidentiality"] = threat_data.get("c")
+            threat_data["integrity"] = threat_data.get("i")
+            threat_data["availability"] = threat_data.get("a")
+            threat_data["label"] = get_translations_dict(threat_data, "label")
+            threat_data["description"] = get_translations_dict(
+                threat_data, "description"
+            )
+            return threat_data
+
+        def get_normalized_vulnerability(instance_risk, vuls):
+            vulnerability_data = vuls.get(str(instance_risk["vulnerability"]), {})
+            vulnerability_data["label"] = get_translations_dict(
+                vulnerability_data, "label"
+            )
+            vulnerability_data["description"] = (
+                get_translations_dict(vulnerability_data, "description"),
+            )
+            return vulnerability_data
+
         if is_new_version:
             normalized_instance = instance.copy()
             asset_uuid = instance["asset"]["uuid"]
@@ -2018,34 +2035,33 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             asset_uuid = meta_instance["asset"]
             object_uuid = meta_instance["object"]
             parent_uuid = instance.get("parent_uuid", "")
-            risks = instance.get("risks", [])
-            instance_risks = []
-            if risks:
-                instance_risks = risks.values()
-                amvs = instance.get("amvs", {})
-                threats = instance.get("threats", {})
-                vuls = instance.get("vuls", {})
-                recos_data = instance.get("recos", {})
-                recos = recos_data if isinstance(recos_data, dict) else {}
-                for instance_risk in instance_risks:
-                    txv = (
-                        instance_risk["threatRate"] * instance_risk["vulnerabilityRate"]
-                    )
-                    recommendation_data = recos.get(str(instance_risk["id"]), {})
+            risks_data = instance.get("risks", {})
+            risks = risks_data if isinstance(risks_data, dict) else {}
+            # instance_risks = []
+            # if risks:
+            instance_risks = risks.values()
+            amvs = instance.get("amvs", {})
+            threats = instance.get("threats", {})
+            vuls = instance.get("vuls", {})
+            recos_data = instance.get("recos", {})
+            recos = recos_data if isinstance(recos_data, dict) else {}
+            for instance_risk in instance_risks:
+                txv = instance_risk["threatRate"] * instance_risk["vulnerabilityRate"]
+                recommendation_data = recos.get(str(instance_risk["id"]), {})
 
-                    instance_risk.update(
-                        {
-                            "informationRisk": amvs.get(str(instance_risk["amv"]), {}),
-                            "threat": get_normalized_threat(instance_risk, threats),
-                            "vulnerability": get_normalized_vulnerability(
-                                instance_risk, vuls
-                            ),
-                            "recommendations": recommendation_data.values(),
-                            "riskConfidentiality": instance["instance"]["c"] * txv,
-                            "riskIntegrity": instance["instance"]["i"] * txv,
-                            "riskAvailability": instance["instance"]["d"] * txv,
-                        }
-                    )
+                instance_risk.update(
+                    {
+                        "informationRisk": amvs.get(str(instance_risk["amv"]), {}),
+                        "threat": get_normalized_threat(instance_risk, threats),
+                        "vulnerability": get_normalized_vulnerability(
+                            instance_risk, vuls
+                        ),
+                        "recommendations": recommendation_data.values(),
+                        "riskConfidentiality": instance["instance"]["c"] * txv,
+                        "riskIntegrity": instance["instance"]["i"] * txv,
+                        "riskAvailability": instance["instance"]["d"] * txv,
+                    }
+                )
 
             children_data = instance.get("children", {})
             children = children_data if isinstance(children_data, dict) else {}
@@ -2066,15 +2082,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             )
 
         return normalized_instance
-
-    def get_translations_dict(values, field_name):
-        translations_dict = {}
-        for lang_index in LANG_VALUES.keys():
-            key = field_name + str(lang_index)
-            name_value = values.get(key, None)
-            if name_value:
-                translations_dict[key] = name_value
-        return translations_dict
 
     try:
         json_file.seek(0)
