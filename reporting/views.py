@@ -2172,6 +2172,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "nb_years": cleaned_data["nb_years"],
             "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
             "static_dir": os.path.abspath(static_dir),
+            "company_reporting": cleaned_data["company_reporting"]
         },
         request=request,
     )
