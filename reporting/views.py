@@ -1855,23 +1855,10 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
 
         def create_service_stat(service_data):
             new_service_asset = create_translations(AssetData, service_data, "label")
-            service_stat, created = ServiceStat.objects.get_or_create(
+            service_stat, _created = ServiceStat.objects.get_or_create(
                 service=new_service_asset,
                 company_reporting=company_reporting_obj,
             )
-            if not created:
-                ServiceStat.objects.filter(
-                    service=new_service_asset, company_reporting=company_reporting_obj
-                ).update(
-                    total_risks=0,
-                    total_untreated_risks=0,
-                    total_treated_risks=0,
-                    total_reduced_risks=0,
-                    total_denied_risks=0,
-                    total_accepted_risks=0,
-                    total_shared_risks=0,
-                    avg_residual_risks=0,
-                )
 
             return service_stat
 
@@ -2070,14 +2057,15 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             parent_uuid = instance.get("parent_uuid", "")
             risks_data = instance.get("risks", {})
             risks = risks_data if isinstance(risks_data, dict) else {}
-            # instance_risks = []
-            # if risks:
+            children_data = instance.get("children", {})
+            children = children_data if isinstance(children_data, dict) else {}
             instance_risks = risks.values()
             amvs = instance.get("amvs", {})
             threats = instance.get("threats", {})
             vuls = instance.get("vuls", {})
             recos_data = instance.get("recos", {})
             recos = recos_data if isinstance(recos_data, dict) else {}
+
             for instance_risk in instance_risks:
                 txv = instance_risk["threatRate"] * instance_risk["vulnerabilityRate"]
                 recommendation_data = recos.get(str(instance_risk["id"]), {})
@@ -2095,9 +2083,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
                         "riskAvailability": instance["instance"]["d"] * txv,
                     }
                 )
-
-            children_data = instance.get("children", {})
-            children = children_data if isinstance(children_data, dict) else {}
 
             normalized_instance.update(
                 {
