@@ -30,17 +30,10 @@ def get_version():
         except PackageNotFoundError:
             version_res = ""
 
-    version_parts = version_res.split("-")
-    if len(version_parts) == 1:
-        app_version = version_parts[0]
-        version_url = "https://github.com/informed-governance-project/NISINP/releases/tag/{}".format(
-            version_parts[0]
-        )
     else:
-        app_version = f"{version_parts[0]} - {version_parts[2][1:]}"
-        version_url = (
-            "https://github.com/informed-governance-project/NISINP/commits/{}".format(
-                version_parts[2][1:]
-            )
+        app_version = version_res
+        version_url = "https://github.com/informed-governance-project/NISINP/releases/tag/{}".format(
+            version_res
         )
+
     return {"app_version": app_version, "version_url": version_url}
