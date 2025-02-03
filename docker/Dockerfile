@@ -25,6 +25,8 @@ COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss
 COPY api /app/api
 COPY governanceplatform /app/governanceplatform
 COPY incidents /app/incidents
+COPY securityobjectives /app/securityobjectives
+COPY reporting /app/reporting
 COPY locale /app/locale
 COPY static /app/static
 COPY templates /app/templates
