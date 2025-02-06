@@ -4,9 +4,11 @@ services:
     image: ${NISINP_IMAGE:-ghcr.io/informed-governance-project/nisinp}:${NISINP_VERSION?:err}
     pull_policy: always
     network_mode: host
+    environment:
+      THEME_REPO_URL: https://github.com/my-user/my-theme.git
+      THEME_VERSION: vX.Y.Z
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
-      - ./volumes/default-theme:/app/governanceplatform/theme
       - ./volumes/static:/app/governanceplatform/static
       - ./volumes/logs:/app/governanceplatform/logs
     restart: unless-stopped
