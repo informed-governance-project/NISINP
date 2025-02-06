@@ -37,12 +37,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: false
-      
-      - name: Clone theme repository
-        run: |
-          git clone https://github.com/informed-governance-project/default-theme.git theme
 
       - name: Build for test
         uses: docker/build-push-action@v6
