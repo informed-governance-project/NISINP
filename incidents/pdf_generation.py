@@ -4,11 +4,10 @@ from typing import Dict, List
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django_countries import countries
 from weasyprint import CSS, HTML
 
-from theme.globals import REGIONAL_AREA
-from django_countries import countries
-
+from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow
 
 
@@ -56,7 +55,11 @@ def get_pdf_report(
         incident_workflows_impact[workflow_name].extend(
             incident_workflow.impacts.all().order_by("translations__label").distinct()
         )
-        incident_workflows_impact[workflow_name] = list({impact.id: impact for impact in incident_workflows_impact[workflow_name]}.values())
+        incident_workflows_impact[workflow_name] = list(
+            {
+                impact.id: impact for impact in incident_workflows_impact[workflow_name]
+            }.values()
+        )
 
     # Render the HTML file
 
