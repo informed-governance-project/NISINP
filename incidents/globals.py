@@ -1,5 +1,11 @@
 from django.utils.translation import gettext_lazy as _
 
+try:
+    from theme.globals import REGIONAL_AREA as regional_area
+except ModuleNotFoundError:
+    regional_area = []
+
+
 QUESTION_TYPES = [
     ("FREETEXT", "Freetext"),
     ("MULTI", "Multiple Choice"),
@@ -54,3 +60,6 @@ SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT = [
     ("DETECT_DATE", "Detection Date"),
     ("PREV_WORK", "Previous Workflow"),
 ]
+
+
+REGIONAL_AREA = regional_area
