@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q
 from django.utils import timezone
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
@@ -607,15 +607,13 @@ class WorkflowAdmin(
                 and not Answer.objects.filter(incident_workflow__workflow=obj).exists()
             )
             if not permission and request._can_change_or_delete_obj:
-                messages.warning(
-                    request,
-                    mark_safe(
-                        _(
-                            f"<strong>Deletion forbidden</strong><br>"
-                            f"- This {obj._meta.verbose_name.lower()} is either in use.<br>"
-                        )
-                    ),
+                message = _(
+                    "<strong>Deletion forbidden</strong><br>"
+                    "- This {object_name} is either in use.<br>"
                 )
+                object_name = obj._meta.verbose_name.lower()
+
+                messages.warning(request, format_html(message, object_name=object_name))
         return permission
 
     def save_model(self, request, obj, form, change):

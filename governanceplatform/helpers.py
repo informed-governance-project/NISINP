@@ -4,7 +4,7 @@ from typing import Any, Optional
 from django.contrib import messages
 from django.db import connection
 from django.http import HttpRequest
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from incidents.models import (
@@ -282,16 +282,21 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
     if creator == regulator and not in_use:
         return True
 
-    verbose_name = obj._meta.verbose_name.lower()
+    message = _(
+        "<strong>Modification and deletion actions are not allowed.</strong><br>"
+        "- This {object_name} is either in use.<br>"
+        "- You are not its creator ({creator_name})"
+    )
+
+    object_name = obj._meta.verbose_name.lower()
     creator_name = creator
+
     messages.warning(
         request,
-        mark_safe(
-            _(
-                f"<strong>Modification and deletion actions are not allowed.</strong><br>"
-                f"- This {verbose_name} is either in use.<br>"
-                f"- You are not its creator ({creator_name})"
-            )
+        format_html(
+            message,
+            object_name=object_name,
+            creator_name=creator_name,
         ),
     )
     request._can_change_or_delete_obj = False
