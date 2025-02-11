@@ -23,7 +23,7 @@ from two_factor.views import LoginView
 
 from governanceplatform import views
 from governanceplatform.admin import admin_site
-from governanceplatform.settings import API_ENABLED, DEBUG, REGULATOR_CONTACT, SITE_NAME
+from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 handler404 = "governanceplatform.views.custom_404_view"
 
@@ -40,7 +40,7 @@ urlpatterns = [
         LoginView.as_view(
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
-            redirect_field_name=None,
+            redirect_field_name="next",
         ),
         name="login",
     ),
@@ -103,15 +103,6 @@ urlpatterns = [
     path("healthz", include("health_check.urls")),
 ]
 
-
-# API
-if API_ENABLED:
-    urlpatterns.extend(
-        [
-            path("api-auth/", include("rest_framework.urls")),
-            path("api/v1/", include("api.urls")),
-        ]
-    )
 
 if DEBUG:
     urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))

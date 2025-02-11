@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from .helpers import can_change_or_delete_obj, filter_languages_not_translated
@@ -68,10 +67,6 @@ class ShowReminderForTranslationsMixin:
     def change_view(self, request, object_id, form_url="", extra_context=None):
         messages.warning(
             request,
-            mark_safe(
-                _(
-                    "Save your changes before you leave the tab of the respective language."
-                )
-            ),
+            _("Save your changes before you leave the tab of the respective language."),
         )
         return super().change_view(request, object_id, form_url, extra_context)

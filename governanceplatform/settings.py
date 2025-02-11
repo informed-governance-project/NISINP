@@ -111,7 +111,6 @@ INSTALLED_APPS = [
     "incidents",
     "securityobjectives",
     "reporting",
-    "api",
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "corsheaders",
@@ -145,6 +144,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "20/day"},
 }
 
 SPECTACULAR_SETTINGS = {
@@ -181,6 +185,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "governanceplatform.middleware.RestrictViewsMiddleware",
     "governanceplatform.middleware.TermsAcceptanceMiddleware",
+    "governanceplatform.middleware.ForceReloginMiddleware",
     "governanceplatform.middleware.CheckFunctionalityAccessMiddleware",
 ]
 
@@ -429,3 +434,34 @@ BOOTSTRAP_DATEPICKER_PLUS = {
         "useCurrent": False,
     },
 }
+
+# HSTS
+try:
+    SECURE_HSTS_SECONDS = config.SECURE_HSTS_SECONDS
+except AttributeError:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+try:
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config.SECURE_HSTS_INCLUDE_SUBDOMAINS
+except AttributeError:
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+try:
+    SECURE_HSTS_PRELOAD = config.SECURE_HSTS_PRELOAD
+except AttributeError:
+    SECURE_HSTS_PRELOAD = True
+
+# SSL enforcement
+# redirect all HTTP to HTTPS
+try:
+    SECURE_SSL_REDIRECT = config.SECURE_SSL_REDIRECT
+except AttributeError:
+    SECURE_SSL_REDIRECT = True
+# cookies are sent via HTTPS
+try:
+    SESSION_COOKIE_SECURE = config.SESSION_COOKIE_SECURE
+except AttributeError:
+    SESSION_COOKIE_SECURE = True
+# Secure CSRF via HTTPS
+try:
+    CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
+except AttributeError:
+    CSRF_COOKIE_SECURE = True

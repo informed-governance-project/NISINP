@@ -19,7 +19,7 @@ WORKDIR /app
 # because package.json scripts.postinstall tries to be smart
 COPY --from=npmbuilder /app/node_modules /app/static/npm_components
 
-COPY api /app/api
+# COPY api /app/api
 COPY governanceplatform /app/governanceplatform
 COPY incidents /app/incidents
 COPY securityobjectives /app/securityobjectives

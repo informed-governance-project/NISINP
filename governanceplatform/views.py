@@ -7,7 +7,6 @@ from django.contrib.auth.models import Group
 from django.db.models.functions import Now
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
-from django_otp.decorators import otp_required
 
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
@@ -18,21 +17,12 @@ from .forms import (
     SelectCompany,
     TermsAcceptanceForm,
 )
-from .helpers import user_in_group
 
 
 @login_required
 @check_user_is_correct
 def index(request):
     user = request.user
-
-    if not user.is_verified():
-        return redirect("two_factor:profile")
-
-    otp_required(lambda req: index(req))
-
-    if user_in_group(user, "PlatformAdmin"):
-        return redirect("admin:index")
 
     if not request.session.get("company_in_use") and user.companies.exists():
         if user.companies.distinct().count() > 1:
