@@ -109,7 +109,6 @@ INSTALLED_APPS = [
     "django_extensions",
     "governanceplatform",
     "incidents",
-    "api",
     "drf_spectacular",
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "corsheaders",
