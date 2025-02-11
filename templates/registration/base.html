@@ -22,16 +22,7 @@
 {% block bootstrap5_content %}
     <div class="background">
         <div class="container py-5 h-100" data-bs-theme="light">
-            {% block messages %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ message|capfirst }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endblock messages %}
+            {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
             <div class="row-10 "></div>
                 <div class="card-group">
                     <div class="card shadow px-3 py-3 mb-5 rounded-1">
