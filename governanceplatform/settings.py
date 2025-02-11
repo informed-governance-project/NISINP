@@ -434,3 +434,17 @@ BOOTSTRAP_DATEPICKER_PLUS = {
         "useCurrent": False,
     },
 }
+
+# HSTS
+try:
+    SECURE_HSTS_SECONDS = config.SECURE_HSTS_SECONDS
+except AttributeError:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+try:
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config.SECURE_HSTS_INCLUDE_SUBDOMAINS
+except AttributeError:
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+try:
+    SECURE_HSTS_PRELOAD = config.SECURE_HSTS_PRELOAD
+except AttributeError:
+    SECURE_HSTS_PRELOAD = True
