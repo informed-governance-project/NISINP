@@ -449,3 +449,20 @@ try:
     SECURE_HSTS_PRELOAD = config.SECURE_HSTS_PRELOAD
 except AttributeError:
     SECURE_HSTS_PRELOAD = True
+
+# SSL enforcement
+# redirect all HTTP to HTTPS
+try:
+    SECURE_SSL_REDIRECT = config.SECURE_SSL_REDIRECT
+except AttributeError:
+    SECURE_SSL_REDIRECT = True
+# cookies are sent via HTTPS
+try:
+    SESSION_COOKIE_SECURE = config.SESSION_COOKIE_SECURE
+except AttributeError:
+    SESSION_COOKIE_SECURE = True
+# Secure CSRF via HTTPS
+try:
+    CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
+except AttributeError:
+    CSRF_COOKIE_SECURE = True
