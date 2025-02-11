@@ -170,7 +170,7 @@ class ForceReloginMiddleware:
                 if no_backup_tokens:
                     return self.get_response(request)
 
-                messages.info(
+                messages.warning(
                     request,
                     _(
                         "For security reasons, you will need to log in again to access it."
