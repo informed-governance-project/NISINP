@@ -1,7 +1,10 @@
+from django.contrib import messages
+from django.contrib.auth import logout
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.helpers import (
     is_observer_user,
@@ -24,6 +27,15 @@ class RestrictViewsMiddleware:
     def __call__(self, request):
         user = request.user
         if user.is_authenticated:
+            if (
+                not user.is_verified()
+                and not request.path == reverse("two_factor:profile")
+                and not request.path == reverse("two_factor:setup")
+                and not request.path == reverse("two_factor:qr")
+                and not request.path == reverse("logout")
+            ):
+                return redirect("two_factor:profile")
+
             if user_in_group(user, "PlatformAdmin"):
                 if request.path.startswith("/incidents/"):
                     return redirect("admin:index")
@@ -71,7 +83,8 @@ class TermsAcceptanceMiddleware:
 
     def __call__(self, request):
         # Only check for authenticated users
-        if request.user.is_authenticated:
+        user = request.user
+        if user.is_authenticated and user.is_verified():
             # let the user logout and read terms
             if request.path == reverse("logout") or request.path == reverse("terms"):
                 return self.get_response(request)
@@ -123,5 +136,49 @@ class CheckFunctionalityAccessMiddleware:
                 )
                 if functionality_path not in regulator_functionalities:
                     raise Http404()
+
+        return self.get_response(request)
+
+
+# Force login for sensitive views
+class ForceReloginMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+        force_relogin_paths = [
+            "/account/edit/",
+            "/account/password_change/",
+            "/account/two_factor/backup/tokens/",
+            "/account/two_factor/disable/",
+        ]
+
+        if request.path in force_relogin_paths:
+            relogin_flag = request.session.get("force_relogin_done")
+            if relogin_flag:
+                request.session.pop("force_relogin_done", None)
+                return self.get_response(request)
+
+            if user.is_authenticated and not relogin_flag:
+                if request.method == "POST":
+                    return self.get_response(request)
+
+                no_backup_tokens = request.user.staticdevice_set.filter(
+                    token_set__isnull=True
+                ).exists()
+                if no_backup_tokens:
+                    return self.get_response(request)
+
+                messages.info(
+                    request,
+                    _(
+                        "For security reasons, you will need to log in again to access it."
+                    ),
+                )
+                logout(request)
+                request.session["force_relogin_done"] = True
+
+                return redirect(f"{reverse('login')}?next={request.path}")
 
         return self.get_response(request)

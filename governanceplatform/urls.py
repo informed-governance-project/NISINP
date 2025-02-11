@@ -40,7 +40,7 @@ urlpatterns = [
         LoginView.as_view(
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
-            redirect_field_name=None,
+            redirect_field_name="next",
         ),
         name="login",
     ),
@@ -92,7 +92,7 @@ urlpatterns = [
     # contact
     path("contact/", views.contact, name="contact"),
     # basic healthcheck
-    path("healthz", include('health_check.urls')),
+    path("healthz", include("health_check.urls")),
 ]
 
 
