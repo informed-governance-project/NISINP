@@ -22,7 +22,7 @@ COPY --from=npmbuilder /app/node_modules /app/static/npm_components
 # and also package.json script.compile-scss
 COPY --from=npmbuilder /app/theme/static/scss/custom.scss /app/theme/static/scss/custom.scss
 
-COPY api /app/api
+# COPY api /app/api
 COPY governanceplatform /app/governanceplatform
 COPY incidents /app/incidents
 COPY locale /app/locale
