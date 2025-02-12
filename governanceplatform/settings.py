@@ -455,14 +455,20 @@ except AttributeError:
 try:
     SECURE_SSL_REDIRECT = config.SECURE_SSL_REDIRECT
 except AttributeError:
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False
 # cookies are sent via HTTPS
 try:
     SESSION_COOKIE_SECURE = config.SESSION_COOKIE_SECURE
 except AttributeError:
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
 # Secure CSRF via HTTPS
 try:
     CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
 except AttributeError:
-    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = False
+
+# SSL proxy config
+try:
+    SECURE_PROXY_SSL_HEADER = config.SECURE_PROXY_SSL_HEADER
+except AttributeError:
+    SECURE_PROXY_SSL_HEADER = None

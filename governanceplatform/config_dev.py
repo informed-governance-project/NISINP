@@ -180,6 +180,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # SSL enforcement
-SECURE_SSL_REDIRECT = True  # redirect HTTP to HTTPS
-SESSION_COOKIE_SECURE = True  # Cookies are sent via HTTPS
-CSRF_COOKIE_SECURE = True  # Secure CSRF via HTTPS
+SECURE_SSL_REDIRECT = False  # redirect HTTP to HTTPS
+SESSION_COOKIE_SECURE = False  # Cookies are sent via HTTPS
+CSRF_COOKIE_SECURE = False  # Secure CSRF via HTTPS
+SECURE_PROXY_SSL_HEADER = None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
