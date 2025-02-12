@@ -6,7 +6,7 @@ services:
     network_mode: host
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
-      - ./volumes/default-theme:/app/governanceplatform/theme
+      - ./volumes/default-theme:/app/theme
       - ./volumes/static:/app/governanceplatform/static
       - ./volumes/logs:/app/governanceplatform/logs
     restart: unless-stopped
