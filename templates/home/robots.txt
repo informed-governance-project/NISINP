@@ -1,0 +1,6 @@
+# All crawlers are disallowed.
+#
+# Reach out to {{ regulator.contact_email }} if you have questions.
+
+User-agent: *
+Disallow: /
