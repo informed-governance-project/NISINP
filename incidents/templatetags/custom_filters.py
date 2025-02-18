@@ -35,30 +35,30 @@ def translate(text):
 @register.simple_tag
 def status_class(value):
     if value == "PASS":
-        return "table-success"
+        return "report-pass"
     elif value == "FAIL":
-        return "table-danger"
+        return "report-fail"
     elif value == "DELIV":
-        return "table-info"
+        return "report-under-review"
     elif value == "OUT":
-        return "table-dark"
+        return "report-overdue "
     else:
-        return "table-secondary"
+        return "report-unsubmitted"
 
 
 @register.simple_tag
 def status_class_without_incident_workflow(report, incident):
     value = is_deadline_exceeded(report, incident)
     if value == _("Passed"):
-        return "table-success"
+        return "report-pass"
     elif value == _("Failed"):
-        return "table-danger"
+        return "report-fail"
     elif value == _("Submitted"):
-        return "table-info"
+        return "report-under-review"
     elif value == _("Submission overdue"):
-        return "table-dark"
+        return "report-overdue"
     else:
-        return "table-secondary"
+        return "report-unsubmitted"
 
 
 @register.simple_tag
