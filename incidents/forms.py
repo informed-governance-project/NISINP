@@ -30,7 +30,7 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     option_template_name = "django/forms/widgets/service_checkbox_option.html"
     add_id_index = False
     checked_attribute = {"checked": True}
-    option_inherits_attrs = False
+    option_inherits_attrs = True
     initial_data = None
 
     def __init__(self, *args, **kwargs):
