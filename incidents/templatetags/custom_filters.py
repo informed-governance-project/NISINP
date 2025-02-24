@@ -38,7 +38,23 @@ def translate(text):
 
 
 @register.simple_tag
-def status_class(value):
+def get_report_tooltip(value):
+    if value == "report-pass":
+        return _("The report has passed the review")
+    elif value == "report-fail":
+        return _("The report has failed the review")
+    elif value == "report-under-review":
+        return _("The report is currently under review")
+    elif value == "report-overdue":
+        return _("The submission of the report is overdue")
+    else:
+        return _("The report has not been submitted yet")
+
+
+@register.filter
+def get_report_class(value, incident=None):
+    if incident and not isinstance(value, str):
+        value = is_deadline_exceeded(value, incident)
     if value == "PASS":
         return "report-pass"
     elif value == "FAIL":
@@ -46,21 +62,6 @@ def status_class(value):
     elif value == "DELIV":
         return "report-under-review"
     elif value == "OUT":
-        return "report-overdue "
-    else:
-        return "report-unsubmitted"
-
-
-@register.simple_tag
-def status_class_without_incident_workflow(report, incident):
-    value = is_deadline_exceeded(report, incident)
-    if value == _("Passed"):
-        return "report-pass"
-    elif value == _("Failed"):
-        return "report-fail"
-    elif value == _("Submitted"):
-        return "report-under-review"
-    elif value == _("Submission overdue"):
         return "report-overdue"
     else:
         return "report-unsubmitted"
@@ -160,14 +161,14 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Submission overdue")
+                    return "OUT"
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
                 math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                return _("Submission overdue")
+                return "OUT"
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
             and incident.get_previous_workflow(report) is not False
@@ -185,37 +186,16 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Submission overdue")
+                    return "OUT"
 
-    return _("Unsubmitted")
+        latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+            report
+        )
 
+        if latest_incident_workflow is not None:
+            return latest_incident_workflow.review_status
 
-# get the incident workflow by workflow and incident to see the historic for regulator
-# @register.filter
-# def get_incident_workflow_by_workflow(incident, workflow):
-#     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-#         workflow
-#     )
-
-#     if latest_incident_workflow is None:
-#         queryset = IncidentWorkflow.objects.filter(
-#             incident=incident, workflow=workflow
-#         ).order_by("-timestamp")
-#     else:
-#         queryset = (
-#             IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
-#             .exclude(id=latest_incident_workflow.id)
-#             .order_by("-timestamp")
-#         )
-
-#     if not queryset:
-#         return None
-
-#     data = list(queryset.values("id", "timestamp"))
-#     for item in data:
-#         item["timestamp"] = item["timestamp"].isoformat()
-
-# return json.dumps(data, cls=DjangoJSONEncoder)
+    return "UNDE"
 
 
 # get the incident workflow by workflow and incident to see the historic for operator
