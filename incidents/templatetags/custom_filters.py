@@ -67,20 +67,6 @@ def get_report_class(value, incident=None):
         return "report-unsubmitted"
 
 
-@register.simple_tag
-def get_review_status_name(value):
-    if value == "PASS":
-        return _("Passed")
-    elif value == "FAIL":
-        return _("Failed")
-    elif value == "DELIV":
-        return _("Submitted")
-    elif value == "OUT":
-        return _("Submission overdue")
-    else:
-        return _("Unsubmitted")
-
-
 @register.filter
 def filter_workflows(incidentWorkflows, report_id):
     for incidentworkflow in incidentWorkflows:
@@ -215,14 +201,6 @@ def get_incident_workflow_by_workflow(incident, workflow):
         item["timestamp"] = item["timestamp"].isoformat()
 
     return json.dumps(data, cls=DjangoJSONEncoder)
-
-
-# replace a field in the URL, used for filter + pagination
-@register.simple_tag
-def url_replace(request, field, value):
-    d = request.GET.copy()
-    d[field] = value
-    return d.urlencode()
 
 
 # get settings value
