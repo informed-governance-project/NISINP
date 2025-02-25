@@ -435,7 +435,7 @@ BOOTSTRAP_DATEPICKER_PLUS = {
         "useCurrent": False,
     },
     "app_static_url": "bootstrap_datepicker_plus/",
-    "momentjs_url": "npm_components/moment/dist/moment.js",
+    "momentjs_url": "npm_components/moment/min/moment.min.js",
     "datetimepicker_js_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js",
     "bootstrap_icon_css_url": "npm_components/bootstrap-icons/font/bootstrap-icons.css",
     "datetimepicker_css_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css",
