@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import get_language_info
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
 
