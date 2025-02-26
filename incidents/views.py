@@ -661,7 +661,7 @@ def show_dection_date_form_condition(wizard):
 class FormWizardView(SessionWizardView):
     """Wizard to manage the preliminary form."""
 
-    template_name = "declaration.html"
+    template_name = "incidents/declaration.html"
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
@@ -876,7 +876,7 @@ class FormWizardView(SessionWizardView):
 class WorkflowWizardView(SessionWizardView):
     """Wizard to manage the different workflows."""
 
-    template_name = "declaration.html"
+    template_name = "incidents/declaration.html"
     incident = None
     workflow = None
     incident_workflow = None
