@@ -12,15 +12,22 @@ network mode to ease database and MTA/mail access
 
 There are four volumes to setup:
 
-- `/app/governanceplatform/config.py`
+- `/app/governanceplatform/config.py`  
   The application configuration, based on `governanceplatform/config_dev.py`
 
-- `/app/governanceplatform/static`
+- `/app/theme`  
+  The theme directory, currently by default based on
+  `github.com/informed-governance-project/default-theme`, that may change in the
+  future or if you wish to use a custom theme for your needs.
+  This directory needs to be writable as translation files (.po) are written
+  there at application start up.
+
+- `/app/governanceplatform/static`  
   A writable directory were Django can collect static assets, this directory
   should be served by your reverse proxy/web server (see
   `docker/apache2-example.conf` for an reverse proxy configuration example)
 
-- `/app/governanceplatform/logs`
+- `/app/governanceplatform/logs`  
   A writable location for logs (if you configure logging through files)
 
 ## Startup
@@ -29,8 +36,6 @@ There are four volumes to setup:
 
 - `NISINP_VERSION`: which tag to deploy
 - `NISINP_IMAGE`: container image path (without version) (defaults to `ghcr.io/informed-governance-project/nisinp`)
-- `THEME_REPO_URL`: url theme repository (defaults to `https://github.com/informed-governance-project/default-theme.git`)
-- `THEME_VERSION`: theme release tag (defaults to lastest release tag)
 - `APP_PORT`: which port to bind to (defaults to `8888`)
 - `APP_BIND_ADDRESSS`: which address to bind to (defaults to `127.0.0.1`)
 
