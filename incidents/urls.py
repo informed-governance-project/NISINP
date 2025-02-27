@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.urls import path
+from django.views.i18n import JavaScriptCatalog
 
 from .views import (
     access_log,
@@ -33,6 +34,8 @@ from .views import (
 urlpatterns = [
     # Root
     path("", get_incidents, name="incidents"),
+    # URL patterns to serve the translations in JavaScript
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     # incidents reported by the regulator
     path("regulator_incidents", get_incidents, name="regulator_incidents"),
     # incident declaration

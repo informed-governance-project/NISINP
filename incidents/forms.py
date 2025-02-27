@@ -5,8 +5,7 @@ from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
-from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 from parler.widgets import SortedCheckboxSelectMultiple
@@ -30,7 +29,7 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     option_template_name = "django/forms/widgets/service_checkbox_option.html"
     add_id_index = False
     checked_attribute = {"checked": True}
-    option_inherits_attrs = False
+    option_inherits_attrs = True
     initial_data = None
 
     def __init__(self, *args, **kwargs):
@@ -240,7 +239,7 @@ class QuestionForm(forms.Form):
                 ),
                 required=question_option.is_mandatory,
                 initial=initial_data,
-                help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
+                help_text=_("Date format yyyy-mm-dd hh:mm"),
             )
             self.fields[field_name].label = question.label
         elif question_type == "FREETEXT":
@@ -496,7 +495,7 @@ class RegulatorForm(forms.Form):
         required=True,
         choices=[],
         widget=SortedCheckboxSelectMultiple(),
-        label="Send notification to:",
+        label=_("Send notification to"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -529,7 +528,7 @@ class DetectionDateForm(forms.Form):
             choices=[(tz, tz) for tz in pytz.common_timezones],
             widget=forms.Select(attrs={"class": "form-control"}),
             required=False,
-            label=gettext_lazy("Select the incident time zone"),
+            label=_("Select the incident time zone"),
             initial=kwargs.get("initial", {}).get("incident_timezone", None)
             or TIME_ZONE,
         )
@@ -542,6 +541,7 @@ class DetectionDateForm(forms.Form):
                     "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
                 },
             ),
+            label=_("Select date and time"),
         )
 
 
@@ -549,6 +549,7 @@ class SectorForm(forms.Form):
     sectors = forms.MultipleChoiceField(
         required=True,
         widget=forms.CheckboxSelectMultiple(),
+        label=_("Sectors"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -728,7 +729,7 @@ class IncidenteDateForm(forms.ModelForm):
         choices=[(tz, tz) for tz in pytz.common_timezones],
         widget=forms.Select(attrs={"class": "form-control"}),
         required=False,
-        label=gettext_lazy("Select the incident time zone"),
+        label=_("Select the incident time zone"),
         initial=TIME_ZONE,
     )
 
@@ -742,7 +743,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
-        help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
+        help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_starting_date = forms.DateTimeField(
@@ -750,7 +751,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
-        help_text=gettext_lazy("Date format yyyy-mm-dd hh:mm"),
+        help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     def __init__(self, *args, **kwargs):

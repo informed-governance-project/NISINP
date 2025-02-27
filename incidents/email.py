@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
-from governanceplatform.models import RegulatorUser, Observer
+from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
 
@@ -41,7 +41,7 @@ def send_html_email(subject, content, recipient_list):
 def send_email(email, incident):
     subject = replace_email_variables(email.subject, incident)
     html_content = render_to_string(
-        "email.html",
+        "incidents/email.html",
         {
             "content": replace_email_variables(email.content, incident),
             "url_site": PUBLIC_URL,
