@@ -276,6 +276,9 @@ class StandardAnswer(models.Model):
         blank=True, default=None, null=True, verbose_name=_("Deadline")
     )
 
+    def get_root_sectors(self):
+        return list({sector.parent for sector in self.sectors.all()})
+
 
 # the answer of the operator by SM
 class SecurityMeasureAnswer(models.Model):
