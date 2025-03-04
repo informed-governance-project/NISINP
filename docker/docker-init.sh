@@ -1,6 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -euo pipefail
+
+docker_init_d=/docker-init.d
+if [ -d $docker_init_d -a $docker_init_d/*.sh != "${docker_init_d}/*.sh" ]; then
+    for f in $docker_init_d/*.sh; do
+        source "$f"
+    done
+fi
 
 python manage.py collectstatic --noinput > /dev/null
 python manage.py migrate
