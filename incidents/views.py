@@ -36,7 +36,6 @@ from governanceplatform.settings import (
     SITE_NAME,
     TIME_ZONE,
 )
-from theme.globals import REGIONAL_AREA
 
 from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
@@ -49,6 +48,7 @@ from .forms import (
     RegulatorForm,
     get_forms_list,
 )
+from .globals import REGIONAL_AREA
 from .models import (
     Answer,
     Impact,

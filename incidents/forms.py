@@ -17,8 +17,8 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
-from theme.globals import REGIONAL_AREA
 
+from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
 
 
@@ -525,16 +525,17 @@ class DetectionDateForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         # Initialize the 'incident_timezone' field
-        self.fields['incident_timezone'] = forms.ChoiceField(
+        self.fields["incident_timezone"] = forms.ChoiceField(
             choices=[(tz, tz) for tz in pytz.common_timezones],
             widget=forms.Select(attrs={"class": "form-control"}),
             required=False,
             label=gettext_lazy("Select the incident time zone"),
-            initial=kwargs.get('initial', {}).get('incident_timezone', None) or TIME_ZONE,
+            initial=kwargs.get("initial", {}).get("incident_timezone", None)
+            or TIME_ZONE,
         )
 
         # Initialize the 'detection_date' field
-        self.fields['detection_date'] = forms.DateTimeField(
+        self.fields["detection_date"] = forms.DateTimeField(
             required=True,
             widget=DateTimePickerInput(
                 options={
