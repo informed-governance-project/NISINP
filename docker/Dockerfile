@@ -16,31 +16,36 @@ ENV APP_VERSION=$APP_VERSION
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  gettext \
+  && rm -rf /var/lib/apt/lists/*
+
+# running as www-data, we need homedir and PATH for --user installed pip modules
+RUN mkdir -p /app /var/www && chown www-data: /app /var/www
+ENV PATH="${PATH}:/var/www/.local/bin"
+USER www-data
+
 # because package.json scripts.postinstall tries to be smart
-COPY --from=npmbuilder /app/node_modules /app/static/npm_components
+COPY --chown=www-data --from=npmbuilder /app/node_modules /app/static/npm_components
 
-# COPY api /app/api
-COPY governanceplatform /app/governanceplatform
-COPY incidents /app/incidents
-COPY securityobjectives /app/securityobjectives
-COPY reporting /app/reporting
-COPY locale /app/locale
-COPY static /app/static
-COPY templates /app/templates
+COPY --chown=www-data governanceplatform /app/governanceplatform
+COPY --chown=www-data incidents /app/incidents
+COPY --chown=www-data locale /app/locale
+COPY --chown=www-data static /app/static
+COPY --chown=www-data templates /app/templates
 
-COPY pyproject.toml /app/pyproject.toml
-COPY README.md /app/README.md
-COPY manage.py /app/manage.py
+COPY --chown=www-data pyproject.toml /app/pyproject.toml
+COPY --chown=www-data README.md /app/README.md
+COPY --chown=www-data manage.py /app/manage.py
 
-COPY contrib/cronjob.sh /app/cronjob.sh
+COPY --chown=www-data contrib/cronjob.sh /app/cronjob.sh
 
-RUN python3 -m pip install .
-RUN python3 -m pip install gunicorn~=$GUNICORN_VERSION
-
-RUN apt-get update && apt-get install -y gettext && apt-get clean
+RUN python3 -m pip install --user .
+RUN python3 -m pip install --user gunicorn~=$GUNICORN_VERSION
 
 COPY docker/docker-init.sh /app/docker-init.sh
-CMD /app/docker-init.sh
+
+ENTRYPOINT [ "/app/docker-init.sh" ]
 
 ENV APP_PORT="8888"
 ENV APP_BIND_ADDRESS="127.0.0.1"

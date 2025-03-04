@@ -9,6 +9,7 @@ services:
       THEME_VERSION: vX.Y.Z
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
+      # the three below need to be writable by www-data (uid 33)
       - ./volumes/default-theme:/app/theme
       - ./volumes/static:/app/governanceplatform/static
       - ./volumes/logs:/app/governanceplatform/logs

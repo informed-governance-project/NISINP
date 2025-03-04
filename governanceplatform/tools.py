@@ -1,6 +1,5 @@
-import subprocess
 import os
-
+import subprocess
 from importlib.metadata import PackageNotFoundError, version
 
 from governanceplatform.settings import BASE_DIR
@@ -12,9 +11,9 @@ def get_version():
     on the project home page.
     Try to get the version from the Git tags.
     """
-    version_res = ''
-    if 'APP_VERSION' in os.environ:
-        version_res = os.getenv('APP_VERSION')
+    version_res = ""
+    if "APP_VERSION" in os.environ:
+        version_res = os.getenv("APP_VERSION")
     else:
         version_res = (
             subprocess.run(
