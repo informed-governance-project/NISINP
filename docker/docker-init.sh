@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput > /dev/null
 python manage.py migrate
 python manage.py compilemessages
 
