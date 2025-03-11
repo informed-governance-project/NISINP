@@ -9,16 +9,16 @@ from traceback import format_exc
 import django
 import schedule
 
-from incidents.scripts import (
+# django init
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
+django.setup()
+
+from incidents.scripts import (  # noqa: E402
     email_reminder,
     incident_cleaning,
     log_cleaning,
     workflow_update_status,
 )
-
-# django init
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
-django.setup()
 
 logger = logging.getLogger(__name__)
 
