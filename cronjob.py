@@ -42,6 +42,11 @@ class SafeScheduler(schedule.Scheduler):
 scheduler = SafeScheduler()
 
 # jobs definition
+email_reminder.run()
+incident_cleaning.run()
+log_cleaning.run()
+workflow_update_status.run()
+
 scheduler.every().hour.do(email_reminder.run)
 scheduler.every().day.at("20:30").do(incident_cleaning.run)
 scheduler.every().day.at("21:00").do(log_cleaning.run)
