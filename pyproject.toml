@@ -47,6 +47,8 @@ kaleido = "0.2.1"
 openpyxl = "^3.1.5"
 django-cookiebanner = "^0.2.8"
 django-health-check = "^3.18.3"
+whitenoise = "^6.9.0"
+schedule = "^1.2.2"
 
 
 [tool.poetry.group.dev.dependencies]
