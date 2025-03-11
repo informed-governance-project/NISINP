@@ -32,15 +32,19 @@ scheduler = SafeScheduler()
 
 # jobs definition
 import incidents.scripts.email_reminder
+incidents.scripts.email_reminder.run()
 scheduler.every().hour.do(incidents.scripts.email_reminder.run)
 
 import incidents.scripts.incident_cleaning
+incidents.scripts.incident_cleaning.run()
 scheduler.every().day.at("20:30").do(incidents.scripts.incident_cleaning.run)
 
 import incidents.scripts.log_cleaning
+incidents.scripts.log_cleaning.run()
 scheduler.every().day.at("21:00").do(incidents.scripts.log_cleaning.run)
 
 import incidents.scripts.workflow_update_status
+incidents.scripts.workflow_update_status.run()
 scheduler.every().hour.do(incidents.scripts.workflow_update_status.run)
 
 # endless scheduler loop
