@@ -28,12 +28,6 @@ There are now only two mandatory volumes to setup:
   application will require specific version of the theme - please ask your
   theme developper which theme version you should use.
 
-- ~~`/app/governanceplatform/static`~~  
-  This is now served by the Python runtime using the `whitenoise` module
-
-- ~~`/app/governanceplatform/logs`~~  
-  Configuration should set logging to stdout, if you're still using the file
-  based logging you may still need to setup this logs volume
 
 ## Logging configuration
 
@@ -102,17 +96,7 @@ before the actual Django runtime init and application startup.
 - `APP_PORT`: which port to bind to (defaults to `8888`)
 - `APP_BIND_ADDRESSS`: which address to bind to (defaults to `0.0.0.0`)
 
-## Scheduled tasks
-
-A contrib script **was** included in the built docker image in `/app/cronjob.sh`.
-
-It is now replaced by a Python `schedule` job runing inside the container, the
-`cronjob.py` file is maintained by upstream development team.
-
 ## Reverse proxy configuration
 
-Static assets **were** served directly by a web server/reverse proxy and not by the
-Python runtime (gunicorn).
-
-It is now handled by the Python `whitenoise` module that registers a handler to
+Static assets are handled by the Python `whitenoise` module that registers a handler to
 serve static assets directly from the Python runtime.
