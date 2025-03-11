@@ -29,11 +29,11 @@ DEBUG = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "serima-governance",
-        "USER": "<user>",
-        "PASSWORD": "<password>",
-        "HOST": "localhost",
-        "PORT": 5432,
+        "NAME": os.getenv("POSTGRES_DB", "serima-governance"),
+        "USER": os.getenv("POSTGRES_USER", "<user>"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "<password>"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
     },
 }
 

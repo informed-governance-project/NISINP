@@ -10,9 +10,11 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
 )
 
+import logging
 
 # Script to run every hour
-def run():
+def run(logger=logging.getLogger(__name__)):
+    logger.info("running email_reminder.py")
     # for all unclosed incident
     actual_time = timezone.now()
     for incident in Incident.objects.filter(incident_status="GOING"):
