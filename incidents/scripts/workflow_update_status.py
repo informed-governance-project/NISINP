@@ -66,7 +66,8 @@ def run(logger=logger):
             if dt and math.floor(dt.total_seconds() / 60 / 60) >= delay_in_hours:
                 incident_workflow.review_status = "OUT"
                 incident_workflow.save()
-                send_email(
-                    incident.sector_regulation.report_status_changed_email,
-                    incident,
-                )
+                if incident.sector_regulation.report_status_changed_email:
+                    send_email(
+                        incident.sector_regulation.report_status_changed_email,
+                        incident,
+                    )
