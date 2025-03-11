@@ -777,7 +777,7 @@ class IncidentWorkflow(models.Model):
         )
 
         if previous is not None:
-            return previous
+            return previous.workflow
         return False
 
     def get_next_workflow(self):
