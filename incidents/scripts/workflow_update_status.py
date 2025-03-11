@@ -2,66 +2,67 @@ import math
 
 from django.utils import timezone
 
-from incidents.models import Incident, SectorRegulationWorkflow
 from incidents.email import send_email
+from incidents.models import Incident, IncidentWorkflow, SectorRegulationWorkflow
 
 
 # Script to run every hour
 def run():
     # for all unclosed incident
     actual_time = timezone.now()
-    for incident in Incident.objects.filter(incident_status="GOING"):
-        # Workflow with deadline from prev workflow
-        for incident_workflow in incident.get_latest_incident_workflows():
-            # check status
-            if incident_workflow.review_status != "PASS":
-                sector_regulation_workflow = (
-                    SectorRegulationWorkflow.objects.all()
-                    .filter(
-                        sector_regulation=incident.sector_regulation,
-                        workflow=incident_workflow.workflow,
+    ongoing_incidents = Incident.objects.filter(incident_status="GOING")
+    for incident in ongoing_incidents:
+        incident_workflows = incident.get_latest_incident_workflows().exclude(
+            review_status__in=["PASS", "OUT"]
+        )
+        for incident_workflow in incident_workflows:
+            sector_regulation_workflow = SectorRegulationWorkflow.objects.filter(
+                sector_regulation=incident.sector_regulation,
+                workflow=incident_workflow.workflow,
+            ).first()
+
+            if not sector_regulation_workflow:
+                continue
+
+            trigger_event = sector_regulation_workflow.trigger_event_before_deadline
+            delay_in_hours = sector_regulation_workflow.delay_in_hours_before_deadline
+
+            # check notif date
+            if trigger_event == "NOTIF_DATE":
+                dt = actual_time - incident_workflow.timestamp
+
+            # detection date
+            elif (
+                trigger_event == "DETECT_DATE"
+                and incident.incident_detection_date is not None
+            ):
+                dt = actual_time - incident.incident_detection_date
+
+            # previous incident_workflow
+            elif trigger_event == "PREV_WORK":
+                prev_workflow = incident_workflow.get_previous_workflow()
+                if not prev_workflow:
+                    continue
+
+                previous_incident_workflow = (
+                    IncidentWorkflow.objects.filter(
+                        incident=incident,
+                        workflow=prev_workflow,
                     )
+                    .order_by("-timestamp")
                     .first()
                 )
-                # check notif date
-                if (
-                    sector_regulation_workflow.trigger_event_before_deadline
-                    == "NOTIF_DATE"
-                ):
-                    dt = actual_time - incident_workflow.timestamp
-                    if (
-                        math.floor(dt.total_seconds() / 60 / 60)
-                        == sector_regulation_workflow.delay_in_hours_before_deadline
-                    ):
-                        if incident_workflow.review_status != "OUT":
-                            incident_workflow.review_status = "OUT"
-                            send_email(incident.sector_regulation.report_status_changed_email, incident)
-                # detection date
-                elif (
-                    sector_regulation_workflow.trigger_event_before_deadline
-                    == "DETECT_DATE"
-                ):
-                    if incident.incident_detection_date is not None:
-                        dt = actual_time - incident.incident_detection_date
-                        if (
-                            math.floor(dt.total_seconds() / 60 / 60)
-                            == sector_regulation_workflow.delay_in_hours_before_deadline
-                        ):
-                            if incident_workflow.review_status != "OUT":
-                                incident_workflow.review_status = "OUT"
-                                send_email(incident.sector_regulation.report_status_changed_email, incident)
-                # previous incident_workflow
-                elif (
-                    sector_regulation_workflow.trigger_event_before_deadline
-                    == "PREV_WORK"
-                ):
-                    prev_work = incident_workflow.get_previous_workflow()
-                    if prev_work is not False:
-                        dt = actual_time - prev_work.timestamp
-                        if (
-                            math.floor(dt.total_seconds() / 60 / 60)
-                            == sector_regulation_workflow.delay_in_hours_before_deadline
-                        ):
-                            if incident_workflow.review_status != "OUT":
-                                incident_workflow.review_status = "OUT"
-                                send_email(incident.sector_regulation.report_status_changed_email, incident)
+                if not previous_incident_workflow:
+                    continue
+
+                dt = actual_time - previous_incident_workflow.timestamp
+            else:
+                continue
+
+            if dt and math.floor(dt.total_seconds() / 60 / 60) >= delay_in_hours:
+                incident_workflow.review_status = "OUT"
+                incident_workflow.save()
+                send_email(
+                    incident.sector_regulation.report_status_changed_email,
+                    incident,
+                )
