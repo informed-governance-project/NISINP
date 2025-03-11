@@ -67,7 +67,7 @@ jobs:
       - name: Check healthz endpoint
         # exponential backoff so --retry 6 is about 60 seconds
         run: >
-          curl --fail -H "Accept: application/json" -v --retry-connrefused --retry 6 http://127.0.0.1:8888/healthz;
+          curl --fail -H "Accept: application/json" -v --retry-connrefused --retry 6 http://0.0.0.0:8888/healthz;
 
       - name: Stop test application
         run: >
