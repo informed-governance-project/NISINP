@@ -1,3 +1,4 @@
+import logging
 import math
 
 from django.utils import timezone
@@ -5,10 +6,11 @@ from django.utils import timezone
 from incidents.email import send_email
 from incidents.models import Incident, IncidentWorkflow, SectorRegulationWorkflow
 
-import logging
+logger = logging.getLogger(__name__)
+
 
 # Script to run every hour
-def run(logger=logging.getLogger(__name__)):
+def run(logger=logger):
     logger.info("running workflow_update_status.py")
     # for all unclosed incident
     actual_time = timezone.now()

@@ -1,3 +1,4 @@
+import logging
 import math
 
 from django.utils import timezone
@@ -10,10 +11,11 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
 )
 
-import logging
+logger = logging.getLogger(__name__)
+
 
 # Script to run every hour
-def run(logger=logging.getLogger(__name__)):
+def run(logger=logger):
     logger.info("running email_reminder.py")
     # for all unclosed incident
     actual_time = timezone.now()
@@ -48,7 +50,10 @@ def run(logger=logging.getLogger(__name__)):
                     )
                     for email in emails:
                         dt = actual_time - incident_workflow.timestamp
-                        if math.floor(dt.total_seconds() / 60 / 60) == email.delay_in_hours:
+                        if (
+                            math.floor(dt.total_seconds() / 60 / 60)
+                            == email.delay_in_hours
+                        ):
                             send_email(email.email, incident)
             # From notification date
             sector_regulation_workflow = (
