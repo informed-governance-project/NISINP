@@ -188,7 +188,11 @@ class QuestionForm(forms.Form):
                 (choice.id, choice)
                 for choice in question.predefinedanswer_set.all().order_by("position")
             ]
-            form_attrs = {"title": question.tooltip, "data-bs-toggle": "tooltip"}
+            form_attrs = {
+                "class": "form-check-input",
+                "title": question.tooltip,
+                "data-bs-toggle": "tooltip",
+            }
             self.fields[field_name] = forms.MultipleChoiceField(
                 required=question_option.is_mandatory,
                 choices=choices,
