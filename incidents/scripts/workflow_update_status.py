@@ -1,3 +1,4 @@
+import logging
 import math
 
 from django.utils import timezone
@@ -5,9 +6,12 @@ from django.utils import timezone
 from incidents.email import send_email
 from incidents.models import Incident, IncidentWorkflow, SectorRegulationWorkflow
 
+logger = logging.getLogger(__name__)
+
 
 # Script to run every hour
-def run():
+def run(logger=logger):
+    logger.info("running workflow_update_status.py")
     # for all unclosed incident
     actual_time = timezone.now()
     ongoing_incidents = Incident.objects.filter(incident_status="GOING")
@@ -62,7 +66,8 @@ def run():
             if dt and math.floor(dt.total_seconds() / 60 / 60) >= delay_in_hours:
                 incident_workflow.review_status = "OUT"
                 incident_workflow.save()
-                send_email(
-                    incident.sector_regulation.report_status_changed_email,
-                    incident,
-                )
+                if incident.sector_regulation.report_status_changed_email:
+                    send_email(
+                        incident.sector_regulation.report_status_changed_email,
+                        incident,
+                    )
