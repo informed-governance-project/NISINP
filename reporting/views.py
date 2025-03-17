@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import logging
 import os
 import textwrap
 import uuid
@@ -47,7 +48,7 @@ from .forms import (
     ConfigurationReportForm,
     ImportRiskAnalysisForm,
     RecommendationsSelectFormSet,
-    ReviewCommentForm
+    ReviewCommentForm,
 )
 from .models import (
     AssetData,
@@ -74,6 +75,11 @@ SO_COLOR_PALETTE = [
     (2.5, "#98CE7F"),
     (3, "#63BE7B"),
 ]
+
+# Increasing weasyprint log level
+for logger_name in ["weasyprint", "fontTools"]:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.ERROR)
 
 
 @login_required
@@ -2172,7 +2178,7 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
             "nb_years": cleaned_data["nb_years"],
             "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
             "static_dir": os.path.abspath(static_dir),
-            "company_reporting": cleaned_data["company_reporting"]
+            "company_reporting": cleaned_data["company_reporting"],
         },
         request=request,
     )

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from collections import defaultdict
 from math import modf
@@ -59,6 +60,11 @@ from .models import (
     Standard,
     StandardAnswer,
 )
+
+# Increasing weasyprint log level
+for logger_name in ["weasyprint", "fontTools"]:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.ERROR)
 
 
 @login_required
