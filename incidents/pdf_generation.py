@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Dict, List
 
@@ -9,6 +10,11 @@ from weasyprint import CSS, HTML
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow
+
+# Increasing weasyprint log level
+for logger_name in ["weasyprint", "fontTools"]:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.ERROR)
 
 
 def get_pdf_report(
