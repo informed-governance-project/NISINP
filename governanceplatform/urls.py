@@ -26,6 +26,8 @@ from governanceplatform.admin import admin_site
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 handler404 = "governanceplatform.views.custom_404_view"
+handler500 = "governanceplatform.views.custom_500_view"
+
 
 urlpatterns = [
     # Root

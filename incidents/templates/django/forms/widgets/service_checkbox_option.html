@@ -1,1 +1,16 @@
-{% if widget.wrap_label %}<label style="display: flex; align-items: center;" class='{{group}}' {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>{% endif %}{% include "django/forms/widgets/input.html" %}{% if widget.wrap_label %} {{ widget.label | linebreaksbr | safe }}</label>{% endif %}
+{% load custom_filters %}
+
+<div class="form-check">
+{% if widget.wrap_label %}
+    <input class="form-check-input" name="{{ widget.name }}" type="checkbox" id="{{ widget.attrs.id }}" value="{{ widget.value|stringformat:'s' }}" {% include "django/forms/widgets/attrs.html" %}>
+    <label class="form-check-label" for="{{ widget.attrs.id }}">
+        <ul class="list-unstyled">
+        {% for label in widget.label|linebreaksbr|split:"<br>" %}
+            {% if label %}
+                <li class="{% if forloop.first %}fw-bold{% else %}small text-muted ps-3{% endif %}">{{ label }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </label>
+{% endif %}
+</div>

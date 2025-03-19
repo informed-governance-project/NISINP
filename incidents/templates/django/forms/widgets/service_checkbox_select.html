@@ -1,20 +1,22 @@
-<script>
-  function toggle(className) {
-    let elements = document.getElementsByClassName(className);
-    for (let element of elements){
-        let hidden = element.getAttribute("hidden");
-
-        if (hidden) {
-        element.removeAttribute("hidden");
-        } else {
-        element.setAttribute("hidden", "hidden");
-        }
-    }
-  }
-</script>
-
-{% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %}{% if widget.attrs.class %} class="{{ widget.attrs.class }}"{% endif %}>{% for group, options, index in widget.optgroups %}{% if group %}
-  <div><label class="bi bi-arrow-down-square btn btn-secondary" onclick="toggle('{{group}}')" >    {{ group }}</label>{% endif %}{% for option in options %}<div>
-    {% include option.template_name with widget=option %}</div>{% endfor %}{% if group %}
-  </div>{% endif %}{% endfor %}
-</div>{% endwith %}
+{% with id=widget.attrs.id %}
+<div {% if id %} id="{{ id }}" {% endif %} class="accordion accordion-flush" id="impactsAccordion">
+  {% for group, options, index in widget.optgroups %}
+    {% if group %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="{{ index }}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ index }}" aria-expanded="true" aria-controls="collapse_{{ index }}">
+          {{ group }}
+        </button>
+      </h2>
+    </div>
+    <div id="collapse_{{ index }}" class="accordion-collapse collapse show" aria-labelledby="{{ index }}" data-bs-parent="#impactsAccordion">
+      <div class="accordion-body">
+        {% for option in options %}
+            {% include option.template_name with widget=option %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endwith %}

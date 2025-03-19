@@ -661,7 +661,7 @@ def show_dection_date_form_condition(wizard):
 class FormWizardView(SessionWizardView):
     """Wizard to manage the preliminary form."""
 
-    template_name = "declaration.html"
+    template_name = "incidents/declaration.html"
 
     def __init__(self, **kwargs):
         self.form_list = kwargs.pop("form_list")
@@ -787,6 +787,14 @@ class FormWizardView(SessionWizardView):
                 incident_detection_date=incident_detection_date,
             )
             if incident:
+                # Detect if a regulator is submitting the incident
+                is_regulator_incidents = self.request.session.get(
+                    "is_regulator_incidents", False
+                )
+
+                self.is_regulator_incident = (
+                    True if regulator and is_regulator_incidents else False
+                )
                 # check if the detection date is over
                 if sector_regulation.is_detection_date_needed:
                     sr_workflow = (
@@ -835,6 +843,15 @@ class FormWizardView(SessionWizardView):
                     if company
                     else 0
                 )
+                if self.is_regulator_incident:
+                    incidents_per_company = (
+                        regulator.incident_set.filter(
+                            incident_notification_date__year=date.today().year
+                        ).count()
+                        if regulator
+                        else 0
+                    )
+
                 number_of_incident = f"{incidents_per_company:04}"
                 incident.incident_id = (
                     f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
@@ -849,14 +866,6 @@ class FormWizardView(SessionWizardView):
                 if sector_regulation.opening_email is not None:
                     send_email(sector_regulation.opening_email, incident)
 
-        is_regulator_incidents = self.request.session.get(
-            "is_regulator_incidents", False
-        )
-
-        self.is_regulator_incident = (
-            True if regulator and is_regulator_incidents else False
-        )
-
         return (
             redirect("regulator_incidents")
             if self.is_regulator_incident
@@ -867,7 +876,7 @@ class FormWizardView(SessionWizardView):
 class WorkflowWizardView(SessionWizardView):
     """Wizard to manage the different workflows."""
 
-    template_name = "declaration.html"
+    template_name = "incidents/declaration.html"
     incident = None
     workflow = None
     incident_workflow = None

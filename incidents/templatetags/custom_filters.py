@@ -22,6 +22,11 @@ def get_item(dictionary, key):
     return dictionary.get(key)
 
 
+@register.filter(name="split")
+def split(value, key):
+    return value.split(key)
+
+
 @register.filter
 def index(indexable, i):
     return indexable[int(i)]
@@ -33,46 +38,33 @@ def translate(text):
 
 
 @register.simple_tag
-def status_class(value):
+def get_report_tooltip(value):
+    if value == "report-pass":
+        return _("The report has passed the review")
+    elif value == "report-fail":
+        return _("The report has failed the review")
+    elif value == "report-under-review":
+        return _("The report is currently under review")
+    elif value == "report-overdue":
+        return _("The submission of the report is overdue")
+    else:
+        return _("The report has not been submitted yet")
+
+
+@register.filter
+def get_report_class(value, incident=None):
+    if incident and not isinstance(value, str):
+        value = is_deadline_exceeded(value, incident)
     if value == "PASS":
-        return "table-success"
+        return "report-pass"
     elif value == "FAIL":
-        return "table-danger"
+        return "report-fail"
     elif value == "DELIV":
-        return "table-info"
+        return "report-under-review"
     elif value == "OUT":
-        return "table-dark"
+        return "report-overdue"
     else:
-        return "table-secondary"
-
-
-@register.simple_tag
-def status_class_without_incident_workflow(report, incident):
-    value = is_deadline_exceeded(report, incident)
-    if value == _("Passed"):
-        return "table-success"
-    elif value == _("Failed"):
-        return "table-danger"
-    elif value == _("Submitted"):
-        return "table-info"
-    elif value == _("Submission overdue"):
-        return "table-dark"
-    else:
-        return "table-secondary"
-
-
-@register.simple_tag
-def get_review_status_name(value):
-    if value == "PASS":
-        return _("Passed")
-    elif value == "FAIL":
-        return _("Failed")
-    elif value == "DELIV":
-        return _("Submitted")
-    elif value == "OUT":
-        return _("Submission overdue")
-    else:
-        return _("Unsubmitted")
+        return "report-unsubmitted"
 
 
 @register.filter
@@ -155,14 +147,14 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Submission overdue")
+                    return "OUT"
         elif sr_workflow.trigger_event_before_deadline == "NOTIF_DATE":
             dt = actual_time - incident.incident_notification_date
             if (
                 math.floor(dt.total_seconds() / 60 / 60)
                 >= sr_workflow.delay_in_hours_before_deadline
             ):
-                return _("Submission overdue")
+                return "OUT"
         elif (
             sr_workflow.trigger_event_before_deadline == "PREV_WORK"
             and incident.get_previous_workflow(report) is not False
@@ -180,37 +172,16 @@ def is_deadline_exceeded(report, incident):
                     math.floor(dt.total_seconds() / 60 / 60)
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
-                    return _("Submission overdue")
+                    return "OUT"
 
-    return _("Unsubmitted")
+        latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+            report
+        )
 
+        if latest_incident_workflow is not None:
+            return latest_incident_workflow.review_status
 
-# get the incident workflow by workflow and incident to see the historic for regulator
-# @register.filter
-# def get_incident_workflow_by_workflow(incident, workflow):
-#     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-#         workflow
-#     )
-
-#     if latest_incident_workflow is None:
-#         queryset = IncidentWorkflow.objects.filter(
-#             incident=incident, workflow=workflow
-#         ).order_by("-timestamp")
-#     else:
-#         queryset = (
-#             IncidentWorkflow.objects.filter(incident=incident, workflow=workflow)
-#             .exclude(id=latest_incident_workflow.id)
-#             .order_by("-timestamp")
-#         )
-
-#     if not queryset:
-#         return None
-
-#     data = list(queryset.values("id", "timestamp"))
-#     for item in data:
-#         item["timestamp"] = item["timestamp"].isoformat()
-
-# return json.dumps(data, cls=DjangoJSONEncoder)
+    return "UNDE"
 
 
 # get the incident workflow by workflow and incident to see the historic for operator
@@ -230,14 +201,6 @@ def get_incident_workflow_by_workflow(incident, workflow):
         item["timestamp"] = item["timestamp"].isoformat()
 
     return json.dumps(data, cls=DjangoJSONEncoder)
-
-
-# replace a field in the URL, used for filter + pagination
-@register.simple_tag
-def url_replace(request, field, value):
-    d = request.GET.copy()
-    d[field] = value
-    return d.urlencode()
 
 
 # get settings value

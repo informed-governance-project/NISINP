@@ -176,6 +176,7 @@ context_processors = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -434,6 +435,11 @@ BOOTSTRAP_DATEPICKER_PLUS = {
         "useStrict": True,
         "useCurrent": False,
     },
+    "app_static_url": "bootstrap_datepicker_plus/",
+    "momentjs_url": "npm_components/moment/min/moment.min.js",
+    "datetimepicker_js_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js",
+    "bootstrap_icon_css_url": "npm_components/bootstrap-icons/font/bootstrap-icons.css",
+    "datetimepicker_css_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css",
 }
 
 # HSTS
