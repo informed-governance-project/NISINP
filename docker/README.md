@@ -16,10 +16,10 @@ network mode anymore and `postgres` is now part of `docker-compose.yml`.
 
 There are now only two mandatory volumes to setup:
 
-- `/app/governanceplatform/config.py`
+- `/app/governanceplatform/config.py`  
   The application configuration, based on `governanceplatform/config_dev.py`
 
-- `/app/theme`
+- `/app/theme`  
   The theme directory, currently by default based on
   `github.com/informed-governance-project/default-theme`, that may change in the
   future or if you wish to use a custom theme for your needs.
