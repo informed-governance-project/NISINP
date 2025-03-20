@@ -10,30 +10,29 @@ logger = logging.getLogger(__name__)
 
 
 # Script to run every hour
+# Send an email when the delay is overdue
+# The status change is managed in frontend
 def run(logger=logger):
     logger.info("running workflow_update_status.py")
     # for all unclosed incident
     actual_time = timezone.now()
     ongoing_incidents = Incident.objects.filter(incident_status="GOING")
     for incident in ongoing_incidents:
-        incident_workflows = incident.get_latest_incident_workflows().exclude(
-            review_status__in=["PASS", "OUT"]
+        filled_workflow_ids = IncidentWorkflow.objects.filter(incident=incident).values_list("workflow", flat=True)
+        unfilled_report_ids = incident.sector_regulation.workflows.exclude(
+            id__in=filled_workflow_ids
+        ).values_list("id", flat=True)
+        srw = SectorRegulationWorkflow.objects.filter(
+            workflow__in=unfilled_report_ids,
+            sector_regulation=incident.sector_regulation,
         )
-        for incident_workflow in incident_workflows:
-            sector_regulation_workflow = SectorRegulationWorkflow.objects.filter(
-                sector_regulation=incident.sector_regulation,
-                workflow=incident_workflow.workflow,
-            ).first()
-
-            if not sector_regulation_workflow:
-                continue
-
-            trigger_event = sector_regulation_workflow.trigger_event_before_deadline
-            delay_in_hours = sector_regulation_workflow.delay_in_hours_before_deadline
+        for report in srw:
+            trigger_event = report.trigger_event_before_deadline
+            delay_in_hours = report.delay_in_hours_before_deadline
 
             # check notif date
             if trigger_event == "NOTIF_DATE":
-                dt = actual_time - incident_workflow.timestamp
+                dt = actual_time - incident.incident_notification_date
 
             # detection date
             elif (
@@ -44,14 +43,14 @@ def run(logger=logger):
 
             # previous incident_workflow
             elif trigger_event == "PREV_WORK":
-                prev_workflow = incident_workflow.get_previous_workflow()
+                prev_workflow = report.get_previous_report()
                 if not prev_workflow:
                     continue
 
                 previous_incident_workflow = (
                     IncidentWorkflow.objects.filter(
                         incident=incident,
-                        workflow=prev_workflow,
+                        workflow=prev_workflow.workflow,
                     )
                     .order_by("-timestamp")
                     .first()
@@ -63,9 +62,7 @@ def run(logger=logger):
             else:
                 continue
 
-            if dt and math.floor(dt.total_seconds() / 60 / 60) >= delay_in_hours:
-                incident_workflow.review_status = "OUT"
-                incident_workflow.save()
+            if dt and math.floor(dt.total_seconds() / 60 / 60) == delay_in_hours:
                 if incident.sector_regulation.report_status_changed_email:
                     send_email(
                         incident.sector_regulation.report_status_changed_email,

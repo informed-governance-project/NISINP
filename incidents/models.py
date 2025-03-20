@@ -384,6 +384,21 @@ class SectorRegulationWorkflow(models.Model):
             else ""
         )
 
+    def get_previous_report(self):
+        previous = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+                position__lt=self.position,
+            )
+            .order_by("-position")
+            .first()
+        )
+
+        if previous is not None:
+            return previous
+        return False
+
 
 # for emailing during each workflow
 class SectorRegulationWorkflowEmail(TranslatableModel):
