@@ -27,40 +27,9 @@ def run(logger=logger):
             sector_regulation=incident.sector_regulation,
         )
         for report in srw:
-            trigger_event = report.trigger_event_before_deadline
             delay_in_hours = report.delay_in_hours_before_deadline
 
-            # check notif date
-            if trigger_event == "NOTIF_DATE":
-                dt = actual_time - incident.incident_notification_date
-
-            # detection date
-            elif (
-                trigger_event == "DETECT_DATE"
-                and incident.incident_detection_date is not None
-            ):
-                dt = actual_time - incident.incident_detection_date
-
-            # previous incident_workflow
-            elif trigger_event == "PREV_WORK":
-                prev_workflow = report.get_previous_report()
-                if not prev_workflow:
-                    continue
-
-                previous_incident_workflow = (
-                    IncidentWorkflow.objects.filter(
-                        incident=incident,
-                        workflow=prev_workflow.workflow,
-                    )
-                    .order_by("-timestamp")
-                    .first()
-                )
-                if not previous_incident_workflow:
-                    continue
-
-                dt = actual_time - previous_incident_workflow.timestamp
-            else:
-                continue
+            dt = report.how_late_is_the_report(incident, actual_time)
 
             if dt and math.floor(dt.total_seconds() / 60 / 60) == delay_in_hours:
                 if incident.sector_regulation.report_status_changed_email:
