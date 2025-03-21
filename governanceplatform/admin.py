@@ -3,7 +3,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import Count, Q
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
@@ -13,6 +13,8 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+from django.urls import path
+from django.shortcuts import redirect
 
 from .forms import CustomTranslatableAdminForm
 from .helpers import (
@@ -1036,6 +1038,28 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         ),
     ]
     actions = [reset_2FA]
+    change_list_template = "admin/reset_accepted_terms.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('reset-accepted-terms/', self.admin_site.admin_view(self.reset_accepted_terms), name='reset_accepted_terms'),
+        ]
+        return custom_urls + urls
+
+    def reset_accepted_terms(self, request):
+        # Vérification du rôle PlatformAdmin
+        if not request.user.groups.filter(name='PlatformAdmin').exists():
+            raise PermissionDenied("Seuls les PlatformAdmin peuvent effectuer cette action.")
+
+        User.objects.update(accepted_terms=False)
+        return redirect("..")
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        if request.user.groups.filter(name='PlatformAdmin').exists():
+            extra_context['reset_url'] = 'reset-accepted-terms/'
+        return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="2FA", boolean=True)
     def get_2FA_activation(self, obj):
