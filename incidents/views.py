@@ -631,6 +631,8 @@ class FormWizardView(SessionWizardView):
 
         elif int(self.steps.current) < int(goto_step):
             return self.render_revalidation_failure(self.steps.current, form)
+        else:
+            self.storage.set_step_data(self.steps.current, {})
 
         return super().render_goto_step(goto_step, **kwargs)
 
