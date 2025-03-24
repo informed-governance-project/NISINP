@@ -625,6 +625,7 @@ class FormWizardView(SessionWizardView):
                 and current_data != storaged_data
             ):
                 self.storage.set_step_data(goto_step, {})
+                self.storage.set_step_data("3", {})
 
             self.storage.set_step_data(self.steps.current, self.process_step(form))
 
