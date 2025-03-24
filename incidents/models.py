@@ -384,6 +384,53 @@ class SectorRegulationWorkflow(models.Model):
             else ""
         )
 
+    def get_previous_report(self):
+        previous = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+                position__lt=self.position,
+            )
+            .order_by("-position")
+            .first()
+        )
+
+        if previous is not None:
+            return previous
+        return False
+
+    # calculates the time between an incident update and actual_time
+    def how_late_is_the_report(self, incident, actual_time=timezone.now()):
+        trigger_event = self.trigger_event_before_deadline
+        dt = None
+        # check notif date
+        if trigger_event == "NOTIF_DATE":
+            dt = actual_time - incident.incident_notification_date
+
+        # detection date
+        elif (
+            trigger_event == "DETECT_DATE"
+            and incident.incident_detection_date is not None
+        ):
+            dt = actual_time - incident.incident_detection_date
+
+        # previous incident_workflow
+        elif trigger_event == "PREV_WORK":
+            prev_workflow = self.get_previous_report()
+            if prev_workflow:
+                previous_incident_workflow = (
+                    IncidentWorkflow.objects.filter(
+                        incident=incident,
+                        workflow=prev_workflow.workflow,
+                    )
+                    .order_by("-timestamp")
+                    .first()
+                )
+                if previous_incident_workflow:
+                    dt = actual_time - previous_incident_workflow.timestamp
+
+        return dt
+
 
 # for emailing during each workflow
 class SectorRegulationWorkflowEmail(TranslatableModel):
@@ -808,6 +855,24 @@ class IncidentWorkflow(models.Model):
         if next is not None:
             return next.workflow
         return False
+
+    # define is a submission is late or not
+    def is_late(self, actual_time=timezone.now()):
+        report = SectorRegulationWorkflow.objects.filter(
+            workflow=self.workflow,
+            sector_regulation=self.incident.sector_regulation,
+        ).first()
+        delay_in_hours = report.delay_in_hours_before_deadline
+
+        dt = report.how_late_is_the_report(self.incident)
+
+        if dt and dt.total_seconds() / 60 / 60 >= delay_in_hours:
+            return True
+
+    def save(self, *args, **kwargs):
+        if self.is_late():
+            self.review_status = WORKFLOW_REVIEW_STATUS[5][0]
+        super().save(*args, **kwargs)
 
 
 # record who has read the reports

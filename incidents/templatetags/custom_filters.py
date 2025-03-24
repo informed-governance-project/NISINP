@@ -45,6 +45,8 @@ def get_report_tooltip(value):
         return _("The report has failed the review")
     elif value == "report-under-review":
         return _("The report is currently under review")
+    elif value == "report-late-under-review":
+        return _("The report is currently under review")
     elif value == "report-overdue":
         return _("The submission of the report is overdue")
     else:
@@ -63,6 +65,8 @@ def get_report_class(value, incident=None):
         return "report-under-review"
     elif value == "OUT":
         return "report-overdue"
+    elif value == "LATE":
+        return "report-late-under-review"
     else:
         return "report-unsubmitted"
 
@@ -130,6 +134,12 @@ def is_workflow_disabled(allWorkflows, incidentWorkflows, report):
 
 @register.simple_tag
 def is_deadline_exceeded(report, incident):
+    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
+            report
+        )
+
+    if latest_incident_workflow is not None:
+        return latest_incident_workflow.review_status
     if incident is not None and report is not None:
         sr_workflow = (
             SectorRegulationWorkflow.objects.all()
@@ -173,13 +183,6 @@ def is_deadline_exceeded(report, incident):
                     >= sr_workflow.delay_in_hours_before_deadline
                 ):
                     return "OUT"
-
-        latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-            report
-        )
-
-        if latest_incident_workflow is not None:
-            return latest_incident_workflow.review_status
 
     return "UNDE"
 
