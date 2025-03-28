@@ -148,7 +148,7 @@ class StandardAdmin(
 
     # limit regulation to the one authorized by paltformadmin
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "regulation" and not request.POST:
+        if db_field.name == "regulation":
             regulator = request.user.regulators.first()
             kwargs["queryset"] = Regulation.objects.filter(
                 regulators=regulator
