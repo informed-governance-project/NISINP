@@ -98,7 +98,7 @@ class SecurityObjective(TranslatableModel, models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["unique_code"],
+                fields=["unique_code", "creator"],
                 name="Unique_unique_code",
                 deferrable=Deferrable.DEFERRED,
             ),
@@ -197,6 +197,14 @@ class SecurityObjectivesInStandard(models.Model):
     )
     position = models.IntegerField(default=0)
     priority = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["security_objective", "standard"],
+                name="unique_security_objective_per_standard",
+            ),
+        ]
 
 
 # link between security measure, SO and maturity

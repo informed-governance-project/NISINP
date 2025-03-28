@@ -88,6 +88,12 @@ class DomainAdmin(
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
+    # exclude domains which are not belonging to the user regulator
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        return queryset.filter(creator=user.regulators.first())
+
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -102,11 +108,18 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
     regulation = fields.Field(
         column_name="regulation",
         attribute="regulation",
+        widget=TranslatedNameWidget(Regulation, field="label"),
     )
+
+    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+        creator = kwargs.get("creator")
+        if instance and creator:
+            instance.regulator = creator
 
     class Meta:
         model = Standard
         fields = ("label", "description", "regulation")
+        exclude = ("regulator",)
 
 
 class SecurityObjectiveInline(admin.TabularInline):
@@ -142,6 +155,17 @@ class StandardAdmin(
             ).distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def import_action(self, request, *args, **kwargs):
+        # Save the request to use later in the resource
+        self.request = request
+        return super().import_action(request, *args, **kwargs)
+
+    def get_import_data_kwargs(self, *args, **kwargs):
+        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
+        cr = self.request.user.regulators.first()
+        data_kwargs.update({"creator": cr})
+        return data_kwargs
 
     # save by default the regulator
     def save_model(self, request, obj, form, change):
@@ -223,11 +247,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     domain = fields.Field(
         column_name="domain",
         attribute="domain",
-        widget=TranslatedNameWidget(Domain, field="label"),
     )
     standard = fields.Field(
         column_name="standard",
-        widget=TranslatedNameWidget(Standard, field="label"),
+        attribute="stamdard",
     )
     position = fields.Field(
         column_name="position",
@@ -239,6 +262,23 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
+
+    # link the correct object to the row
+    def before_import_row(self, row, **kwargs):
+        creator = kwargs.get("creator")
+        if row["domain"]:
+            domain = Domain.objects.filter(
+                creator=creator,
+                translations__label=row["domain"]
+            ).first()
+            row["domain"] = domain
+        if row["standard"]:
+            standard = Standard.objects.filter(
+                translations__label=row["standard"],
+                regulator=creator,
+            ).first()
+            row["standard"] = standard
+        return super().before_import_row(row, **kwargs)
 
     # if there is a standard get it and save the SO
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
@@ -313,12 +353,10 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     security_objective = fields.Field(
         column_name="security_objective",
         attribute="security_objective",
-        widget=TranslatedNameWidget(SecurityObjective, field="objective"),
     )
     maturity_level = fields.Field(
         column_name="maturity_level",
         attribute="maturity_level",
-        widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
     position = fields.Field(
         column_name="position",
@@ -338,6 +376,23 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         if instance and creator:
             instance.creator = creator
             instance.creator_name = creator.name
+
+    # link the correct object to the row
+    def before_import_row(self, row, **kwargs):
+        creator = kwargs.get("creator")
+        if row["security_objective"] and creator:
+            so = SecurityObjective.objects.filter(
+                unique_code=row["security_objective"],
+                creator=creator
+            ).first()
+            row["security_objective"] = so
+        if row["maturity_level"] and creator:
+            ml = MaturityLevel.objects.filter(
+                translations__label=row["maturity_level"],
+                creator=creator
+            ).first()
+            row["maturity_level"] = ml
+        return super().before_import_row(row, **kwargs)
 
     class Meta:
         model = SecurityMeasure
