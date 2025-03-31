@@ -5,6 +5,9 @@ from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q
+from django.http import Http404
+from django.shortcuts import redirect
+from django.urls import path
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -1036,6 +1039,31 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         ),
     ]
     actions = [reset_2FA]
+    change_list_template = "admin/reset_accepted_terms.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "reset-accepted-terms/",
+                self.admin_site.admin_view(self.reset_accepted_terms),
+                name="reset_accepted_terms",
+            ),
+        ]
+        return custom_urls + urls
+
+    def reset_accepted_terms(self, request):
+        if not user_in_group(request.user, "PlatformAdmin"):
+            raise Http404()
+
+        User.objects.update(accepted_terms=False)
+        return redirect("..")
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        if user_in_group(request.user, "PlatformAdmin"):
+            extra_context["reset_url"] = "reset-accepted-terms/"
+        return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="2FA", boolean=True)
     def get_2FA_activation(self, obj):

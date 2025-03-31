@@ -51,6 +51,7 @@ WORKFLOW_REVIEW_STATUS = [
     ("PASS", _("Passed")),
     ("FAIL", _("Failed")),
     ("OUT", _("Submission overdue")),
+    ("LATE", _("Late submission")),
 ]
 
 # after this step the delay is running

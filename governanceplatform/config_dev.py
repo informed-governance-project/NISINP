@@ -186,3 +186,6 @@ CSRF_COOKIE_SECURE = False  # Secure CSRF via HTTPS
 SECURE_PROXY_SSL_HEADER = (
     None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
 )
+
+# password reset link timeout
+PASSWORD_RESET_TIMEOUT = 1800

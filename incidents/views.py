@@ -29,7 +29,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Regulation, Regulator, Sector
+from governanceplatform.models import Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -40,14 +40,7 @@ from governanceplatform.settings import (
 from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
-from .forms import (
-    ContactForm,
-    IncidentStatusForm,
-    IncidentWorkflowForm,
-    RegulationForm,
-    RegulatorForm,
-    get_forms_list,
-)
+from .forms import ContactForm, IncidentStatusForm, IncidentWorkflowForm, get_forms_list
 from .globals import REGIONAL_AREA
 from .models import (
     Answer,
@@ -163,8 +156,10 @@ def get_form_list(request, form_list=None):
         form_list,
         initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
         condition_dict={
-            "3": show_sector_form_condition,
-            "4": show_dection_date_form_condition,
+            "3": lambda wizard: show_form_condition(wizard).get("has_sector", False),
+            "4": lambda wizard: show_form_condition(wizard).get(
+                "detection_date_needed", False
+            ),
         },
     )(request)
 
@@ -572,90 +567,30 @@ def is_incidents_report_limit_reached(request):
     return False
 
 
-# remove a prefix on a multivaluedict object
-def get_temporary_cleaned_data(MultivalueDict, prefix):
-    for d in list(MultivalueDict):
-        if d.startswith(prefix):
-            MultivalueDict.setlist(d[2:], MultivalueDict.getlist(d))
-            del MultivalueDict[d]
-    return MultivalueDict
+# if there are no sectors or detection date needed don't show  condition dict for wizard
+def show_form_condition(wizard):
+    regulations_data = wizard.storage.get_step_data("1")
+    regulators_data = wizard.storage.get_step_data("2")
 
+    if not regulations_data or not regulators_data:
+        return {"has_sector": False, "detection_date_needed": False}
 
-# if there are no sectors don't show sectors, condition dict for wizard
-def show_sector_form_condition(wizard):
-    data1 = wizard.storage.get_step_data("1")
-    if data1 is not None:
-        data1 = get_temporary_cleaned_data(data1, "1-")
-    data2 = wizard.storage.get_step_data("2")
-    if data2 is not None:
-        data2 = get_temporary_cleaned_data(data2, "2-")
-    temp_regulator_form = RegulatorForm(
-        data=data1,
+    regulations_ids = regulations_data.getlist("1-regulations", [])
+    regulator_ids = regulators_data.getlist("2-regulators", [])
+
+    if not regulations_ids or not regulator_ids:
+        return {"has_sector": False, "detection_date_needed": False}
+
+    sector_regulation_qs = SectorRegulation.objects.filter(
+        Q(regulation_id__in=regulations_ids) & Q(regulator_id__in=regulator_ids)
     )
-    regulators = None
-    if data1 is not None and data1.get("regulators") is not None:
-        regulators = Regulator.objects.all().filter(pk__in=data1.getlist("regulators"))
-    temp_regulation_form = RegulationForm(
-        data=data2, initial={"regulators": regulators}
-    )
-    data_regulation = data_regulator = None
 
-    if temp_regulation_form.is_valid() and temp_regulator_form.is_valid():
-        data_regulation = temp_regulation_form.cleaned_data
-        data_regulator = temp_regulator_form.cleaned_data
+    has_sector = sector_regulation_qs.filter(sectors__isnull=False).exists()
+    detection_date_needed = sector_regulation_qs.filter(
+        is_detection_date_needed=True
+    ).exists()
 
-    has_sector = False
-    if data_regulator is not None and data_regulation is not None:
-        ids = data_regulation.get("regulations", "")
-        regulations = Regulation.objects.filter(id__in=ids)
-        ids = data_regulator.get("regulators", "")
-        regulators = Regulator.objects.filter(id__in=ids)
-        sector_regulations = SectorRegulation.objects.all().filter(
-            regulation__in=regulations, regulator__in=regulators
-        )
-
-        for sector_regulation in sector_regulations:
-            for __sector in sector_regulation.sectors.all():
-                has_sector = True
-    return has_sector
-
-
-def show_dection_date_form_condition(wizard):
-    data1 = wizard.storage.get_step_data("1")
-    if data1 is not None:
-        data1 = get_temporary_cleaned_data(data1, "1-")
-    data2 = wizard.storage.get_step_data("2")
-    if data2 is not None:
-        data2 = get_temporary_cleaned_data(data2, "2-")
-    temp_regulator_form = RegulatorForm(
-        data=data1,
-    )
-    regulators = None
-    if data1 is not None and data1.get("regulators") is not None:
-        regulators = Regulator.objects.all().filter(pk__in=data1.getlist("regulators"))
-    temp_regulation_form = RegulationForm(
-        data=data2, initial={"regulators": regulators}
-    )
-    data_regulation = data_regulator = None
-
-    if temp_regulation_form.is_valid() and temp_regulator_form.is_valid():
-        data_regulation = temp_regulation_form.cleaned_data
-        data_regulator = temp_regulator_form.cleaned_data
-
-    detection_date_needed = False
-    if data_regulator is not None and data_regulation is not None:
-        ids = data_regulation.get("regulations", "")
-        regulations = Regulation.objects.filter(id__in=ids)
-        ids = data_regulator.get("regulators", "")
-        regulators = Regulator.objects.filter(id__in=ids)
-        sector_regulations = SectorRegulation.objects.all().filter(
-            regulation__in=regulations, regulator__in=regulators
-        )
-
-        for sector_regulation in sector_regulations:
-            if sector_regulation.is_detection_date_needed:
-                detection_date_needed = True
-    return detection_date_needed
+    return {"has_sector": has_sector, "detection_date_needed": detection_date_needed}
 
 
 class FormWizardView(SessionWizardView):
@@ -663,32 +598,13 @@ class FormWizardView(SessionWizardView):
 
     template_name = "incidents/declaration.html"
 
-    def __init__(self, **kwargs):
-        self.form_list = kwargs.pop("form_list")
-        self.initial_dict = kwargs.pop("initial_dict")
-        super().__init__(**kwargs)
-
-    def get_form(self, step=None, data=None, files=None):
-        # active_company = get_active_company_from_session(self.request)
-        if step is None:
-            step = self.steps.current
-
-        if step == "2":
-            step1data = self.get_cleaned_data_for_step("1")
-            if step1data is None:
-                messages.warning(
-                    self.request, _("Please select at least one regulator")
-                )
-
-        return super().get_form(step, data, files)
-
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
 
         context["steps"] = [
             _("Contact"),
-            _("Regulators"),
             _("Legal bases"),
+            _("Regulators"),
             _("Sectors"),
             _("Detection date"),
         ]
@@ -697,33 +613,55 @@ class FormWizardView(SessionWizardView):
         return context
 
     def render_goto_step(self, goto_step, **kwargs):
-        form1 = self.get_form(
-            self.steps.current, data=self.request.POST, files=self.request.FILES
-        )
+        form = self.get_form(self.steps.current, data=self.request.POST)
 
-        self.storage.set_step_data(self.steps.current, self.process_step(form1))
-        self.storage.set_step_files(self.steps.current, self.process_step_files(form1))
+        if form.is_valid():
+            current_data = form.cleaned_data
+            storaged_data = self.get_cleaned_data_for_step(self.steps.current) or None
+
+            if (
+                storaged_data
+                and self.steps.current in ["1", "2"]
+                and current_data != storaged_data
+            ):
+                self.storage.set_step_data(goto_step, {})
+                self.storage.set_step_data("3", {})
+
+            self.storage.set_step_data(self.steps.current, self.process_step(form))
+
+        elif int(self.steps.current) < int(goto_step):
+            return self.render_revalidation_failure(self.steps.current, form)
+        else:
+            self.storage.set_step_data(self.steps.current, {})
 
         return super().render_goto_step(goto_step, **kwargs)
 
     def get_form_initial(self, step):
-        if step == "2":
-            step1data = self.get_cleaned_data_for_step("1")
-            if step1data:
-                ids = step1data.get("regulators", "")
-                regulators = Regulator.objects.filter(id__in=ids)
-                return self.initial_dict.get(step, {"regulators": regulators})
-        if step == "3":
-            step2data = self.get_cleaned_data_for_step("2")
-            step1data = self.get_cleaned_data_for_step("1")
-            if step2data:
-                ids = step2data.get("regulations", "")
-                regulations = Regulation.objects.filter(id__in=ids)
-                ids = step1data.get("regulators", "")
-                regulators = Regulator.objects.filter(id__in=ids)
-                return self.initial_dict.get(
-                    step, {"regulations": regulations, "regulators": regulators}
-                )
+        def get_step_list(step_num, key):
+            step_data = self.storage.get_step_data(step_num) or None
+            if not step_data:
+                return []
+
+            return step_data.getlist(key, [])
+
+        if step == "2":  # Regulators
+            regulations = get_step_list("1", "1-regulations")
+            return self.initial_dict.get(step, {"regulations": regulations})
+
+        if step == "3":  # Sectors
+            regulations = get_step_list("1", "1-regulations")
+            regulators = get_step_list("2", "2-regulators")
+            sectors = get_step_list("3", "3-sectors")
+
+            return self.initial_dict.get(
+                step,
+                {
+                    "regulations": regulations,
+                    "regulators": regulators,
+                    "sectors": sectors,
+                },
+            )
+
         return self.initial_dict.get(step, {})
 
     def done(self, form_list, **kwargs):

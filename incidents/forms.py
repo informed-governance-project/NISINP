@@ -5,6 +5,7 @@ from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
@@ -465,36 +466,22 @@ class RegulationForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        regulators = kwargs["initial"].get("regulators", None)
         super().__init__(*args, **kwargs)
-
-        if regulators is not None:
-            self.fields["regulations"].choices = construct_regulation_array(
-                regulators.all()
-            )
-
-
-# prepare an array of regulations
-def construct_regulation_array(regulators):
-    regulations_id = (
-        SectorRegulation.objects.filter(
-            regulator__in=regulators, sectorregulationworkflow__isnull=False
-        )
-        .distinct("regulation__id")
-        .values_list("regulation__id", flat=True)
-    )
-
-    regulations = (
-        Regulation.objects.filter(id__in=regulations_id)
-        .values_list("id", "translations__label")
-        .distinct("id")
-    )
-
-    return regulations
+        try:
+            self.fields["regulations"].choices = [
+                (regulation.id, str(regulation))
+                for regulation in Regulation.objects.filter(
+                    regulators__isnull=False
+                ).distinct("id")
+                if regulation.sectorregulation_set.filter(
+                    sectorregulationworkflow__isnull=False
+                ).exists()
+            ]
+        except Exception:
+            self.fields["regulations"].choices = []
 
 
 class RegulatorForm(forms.Form):
-    # generic impact definitions
     regulators = forms.MultipleChoiceField(
         required=True,
         choices=[],
@@ -503,24 +490,32 @@ class RegulatorForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        regulations = kwargs["initial"].get("regulations", [])
         super().__init__(*args, **kwargs)
-        try:
-            self.fields["regulators"].choices = [
-                (
-                    regulator.id,
-                    f"{regulator.safe_translation_getter('name', any_language=True)} \
-                    {regulator.safe_translation_getter('full_name', any_language=True)}",
-                )
-                for regulator in Regulator.objects.all()
-                if regulator.sectorregulation_set.filter(
-                    sectorregulationworkflow__isnull=False
-                ).exists()
-            ]
-        except Exception:
-            self.fields["regulators"].choices = []
 
-    def get_selected_data(self):
-        return self.fields["regulators"].initial
+        self.fields["regulators"].choices = [
+            (
+                regulator.id,
+                format_html(
+                    "<strong>{}</strong>{}",
+                    str(regulator),
+                    (
+                        f" - {regulator.safe_translation_getter('full_name', any_language=True)}"
+                        if regulator.safe_translation_getter(
+                            "full_name", any_language=True
+                        )
+                        else ""
+                    ),
+                ),
+            )
+            for regulator in Regulator.objects.filter(
+                regulation__id__in=regulations
+            ).distinct("id")
+            if regulator.sectorregulation_set.filter(
+                regulation__id__in=regulations,
+                sectorregulationworkflow__isnull=False,
+            ).exists()
+        ]
 
 
 class DetectionDateForm(forms.Form):
@@ -557,12 +552,13 @@ class SectorForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        regulations = kwargs["initial"]["regulations"]
-        regulators = kwargs["initial"]["regulators"]
+        initial = kwargs.get("initial", {})
+        regulations = initial.get("regulations", [])
+        regulators = initial.get("regulators", [])
         super().__init__(*args, **kwargs)
 
         self.fields["sectors"].choices = construct_sectors_array(
-            regulations.all(), regulators.all()
+            regulations, regulators
         )
 
         if len(self.fields["sectors"].choices) == 0:
@@ -571,7 +567,7 @@ class SectorForm(forms.Form):
 
 def construct_sectors_array(regulations, regulators):
     sector_regulations = SectorRegulation.objects.filter(
-        regulation__in=regulations, regulator__in=regulators
+        regulation__id__in=regulations, regulator__id__in=regulators
     )
     all_sectors = (
         Sector.objects.filter(sectorregulation__in=sector_regulations)
@@ -604,8 +600,8 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
     if incident is None:
         category_tree = [
             ContactForm,
-            RegulatorForm,
             RegulationForm,
+            RegulatorForm,
             SectorForm,
             DetectionDateForm,
         ]
