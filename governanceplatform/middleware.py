@@ -1,6 +1,7 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django.utils.timezone import now
@@ -14,6 +15,52 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import Functionality
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
+
+
+class SessionExpiryMiddleware:
+    """Middleware to check if the session has expired."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+
+        if not user.is_authenticated:
+            if request.method == "POST" and "csrftoken" not in request.COOKIES:
+                messages.warning(
+                    request,
+                    _("CSRF token expired. Please try again."),
+                )
+                return redirect("login")
+
+            return self.get_response(request)
+
+        session_expiry_time = request.session.get("_session_expiry")
+        current_timestamp = now().timestamp()
+
+        if session_expiry_time and current_timestamp > session_expiry_time:
+            messages.warning(
+                request,
+                _("Session expired. Please log in again to continue."),
+            )
+
+            logout(request)
+            request.session.flush()
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse(
+                    {"error": "session_expired", "login_url": reverse("login")},
+                    status=401,
+                )
+
+            return redirect("login")
+
+        request.session.setdefault(
+            "_session_expiry", current_timestamp + settings.SESSION_COOKIE_AGE
+        )
+
+        return self.get_response(request)
 
 
 class RestrictViewsMiddleware:
