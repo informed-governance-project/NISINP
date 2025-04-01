@@ -62,6 +62,7 @@ class DomainAdmin(
     CustomTranslatableAdmin,
 ):
     resource_class = DomainResource
+    should_escape_html = False
     exclude = ["creator_name", "creator"]
     list_display = [
         "position",
@@ -136,6 +137,7 @@ class StandardAdmin(
     CustomTranslatableAdmin,
 ):
     resource_class = StandardResource
+    should_escape_html = False
     list_display = ["label", "description", "regulator"]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
@@ -207,6 +209,7 @@ class MaturityLevelAdmin(
     CustomTranslatableAdmin,
 ):
     resource_class = MaturityLevelResource
+    should_escape_html = False
     exclude = ["creator_name", "creator"]
     list_display = ["level", "label", "creator"]
     ordering = ["level"]
@@ -268,8 +271,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         creator = kwargs.get("creator")
         if row["domain"]:
             domain = Domain.objects.filter(
-                creator=creator,
-                translations__label=row["domain"]
+                creator=creator, translations__label=row["domain"]
             ).first()
             row["domain"] = domain
         if row["standard"]:
@@ -312,6 +314,7 @@ class SecurityObjectiveAdmin(
     CustomTranslatableAdmin,
 ):
     resource_class = SecurityObjectiveResource
+    should_escape_html = False
     list_display = [
         "unique_code",
         "objective",
@@ -382,14 +385,12 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         creator = kwargs.get("creator")
         if row["security_objective"] and creator:
             so = SecurityObjective.objects.filter(
-                unique_code=row["security_objective"],
-                creator=creator
+                unique_code=row["security_objective"], creator=creator
             ).first()
             row["security_objective"] = so
         if row["maturity_level"] and creator:
             ml = MaturityLevel.objects.filter(
-                translations__label=row["maturity_level"],
-                creator=creator
+                translations__label=row["maturity_level"], creator=creator
             ).first()
             row["maturity_level"] = ml
         return super().before_import_row(row, **kwargs)
@@ -413,6 +414,7 @@ class SecurityMeasureAdmin(
     CustomTranslatableAdmin,
 ):
     resource_class = SecurityMeasureResource
+    should_escape_html = False
     list_display = ["security_objective", "position", "description", "creator"]
     exclude = ["creator_name", "creator", "is_archived"]
     ordering = ["security_objective__unique_code", "position"]
@@ -469,6 +471,7 @@ class SOEmailAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAd
     search_fields = ["translations__subject", "translations__content"]
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
+    should_escape_html = False
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
