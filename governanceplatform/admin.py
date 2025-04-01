@@ -71,7 +71,7 @@ class CustomAdminSite(admin.AdminSite):
 
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
-            if app["name"] == "Administration":  # Your app name (not app_label)
+            if app["app_label"] == "admin":
                 app["models"].append(
                     {
                         "name": capfirst(
@@ -86,7 +86,7 @@ class CustomAdminSite(admin.AdminSite):
                         },
                     }
                 )
-            if app["name"] == "governanceplatform":
+            if app["app_label"] == "governanceplatform":
                 app["models"] = [
                     model
                     for model in app["models"]
