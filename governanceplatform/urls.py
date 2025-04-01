@@ -17,7 +17,7 @@ Including another URLconf
 
 from django.urls import include, path
 from django.views.generic.base import TemplateView
-from django.views.i18n import set_language
+from django.views.i18n import JavaScriptCatalog, set_language
 from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
 
@@ -103,6 +103,8 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
     # basic healthcheck
     path("healthz", include("health_check.urls")),
+    # URL patterns to serve the translations in JavaScript
+    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
 ]
 
 
