@@ -1,6 +1,7 @@
 from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from import_export.formats.base_formats import CSV, XLSX, JSON, XLS
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.helpers import set_creator
@@ -30,6 +31,27 @@ def check_access(request):
         if "securityobjectives" in functionalities.all().values_list("type", flat=True):
             return {"change": True, "add": True}
     return {"change": False, "add": False}
+
+
+# Define the export format, and correct the export issue in terms of encoding
+class RawCSV(CSV):
+    def export_data(self, dataset, **kwargs):
+        return dataset.export(format="csv")
+
+
+class RawXLSX(XLSX):
+    def export_data(self, dataset, **kwargs):
+        return dataset.export(format="xlsx")
+
+
+class RawJSON(JSON):
+    def export_data(self, dataset, **kwargs):
+        return dataset.export(format="json")
+
+
+class RawXLS(XLS):
+    def export_data(self, dataset, **kwargs):
+        return dataset.export(format="xls")
 
 
 class DomainResource(TranslationUpdateMixin, resources.ModelResource):
@@ -70,6 +92,7 @@ class DomainAdmin(
         "creator",
     ]
     ordering = ["position"]
+    formats = [RawCSV, RawXLSX, RawJSON, RawXLS]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -141,6 +164,7 @@ class StandardAdmin(
     list_display = ["label", "description", "regulator"]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
+    formats = [RawCSV, RawXLSX, RawJSON, RawXLS]
 
     # exclude standards which are not belonging to the user regulator
     def get_queryset(self, request):
@@ -213,6 +237,7 @@ class MaturityLevelAdmin(
     exclude = ["creator_name", "creator"]
     list_display = ["level", "label", "creator"]
     ordering = ["level"]
+    formats = [RawCSV, RawXLSX, RawJSON, RawXLS]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -323,6 +348,7 @@ class SecurityObjectiveAdmin(
         "creator",
     ]
     exclude = ["is_archived", "creator_name", "creator"]
+    formats = [RawCSV, RawXLSX, RawJSON, RawXLS]
 
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -418,6 +444,7 @@ class SecurityMeasureAdmin(
     list_display = ["security_objective", "position", "description", "creator"]
     exclude = ["creator_name", "creator", "is_archived"]
     ordering = ["security_objective__unique_code", "position"]
+    formats = [RawCSV, RawXLSX, RawJSON, RawXLS]
 
     def get_model_perms(self, request):
         return check_access(request)
