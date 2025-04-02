@@ -1,3 +1,4 @@
+import uuid
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
@@ -356,6 +357,7 @@ class User(AbstractUser, PermissionsMixin):
     )
     accepted_terms = models.BooleanField(default=False)
     accepted_terms_date = models.DateTimeField(blank=True, null=True)
+    activation_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

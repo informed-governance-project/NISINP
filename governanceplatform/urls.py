@@ -51,6 +51,7 @@ urlpatterns = [
         views.registration_view,
         name="registration",
     ),
+    path("activate/<str:token>/", views.activate_account, name="activate"),
     path(
         "account/edit/",
         views.edit_account,

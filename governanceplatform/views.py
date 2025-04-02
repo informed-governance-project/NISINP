@@ -1,12 +1,17 @@
 import sys
-
+import uuid
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db.models.functions import Now
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.translation import gettext_lazy as _
+from django.core.signing import BadSignature, Signer
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.conf import settings
+from governanceplatform.config import EMAIL_SENDER
 
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
@@ -17,6 +22,8 @@ from .forms import (
     SelectCompany,
     TermsAcceptanceForm,
 )
+
+from .models import User
 
 
 @login_required
@@ -68,6 +75,21 @@ def privacy(request):
     return render(request, "home/privacy_policy.html")
 
 
+# send an email with the token to activate the account
+def send_activation_email(user):
+    signer = Signer()
+    token = signer.sign(user.activation_token)
+
+    activation_link = f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
+
+    subject = _("Activate your account")
+    message = _("Hello {username}, click here to activate your account : {activation_link}").format(
+            username=user.first_name, activation_link=activation_link
+        )
+
+    send_mail(subject, message, EMAIL_SENDER, [user.email])
+
+
 def registration_view(request, *args, **kwargs):
     context = {}
     user = request.user
@@ -79,6 +101,8 @@ def registration_view(request, *args, **kwargs):
             user = form.save()
             user.accepted_terms = True
             user.accepted_terms_date = Now()
+            user.is_active = False
+            user.activation_token = uuid.uuid4()
             user.save()
             # default give the role IncidentUser
             new_group, created = Group.objects.get_or_create(name="IncidentUser")
@@ -86,11 +110,9 @@ def registration_view(request, *args, **kwargs):
                 user.groups.add(new_group)
             else:
                 user.groups.add(created)
-            email = form.cleaned_data.get("email").lower()
-            raw_password = form.cleaned_data.get("password1")
-            account = authenticate(email=email, password=raw_password)
-            login(request, account)
-            return redirect("index")
+            send_activation_email(user)
+            messages.info(request, _("An activation email has been sent"))
+            return redirect("login")
         else:
             context["form"] = form
 
@@ -98,6 +120,26 @@ def registration_view(request, *args, **kwargs):
         form = RegistrationForm()
         context["form"] = form
     return render(request, "registration/signup.html", context)
+
+
+# when we click on the link in the activation email
+def activate_account(request, token):
+    signer = Signer()
+    try:
+        user_activation_token = signer.unsign(token)  # we check the token
+        user = get_object_or_404(User, activation_token=user_activation_token)
+
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+            messages.success(request, _("Your account is active, you can connect"))
+        else:
+            messages.info(request, _("Your account is already active"))
+
+    except BadSignature:
+        messages.error(request, _("Error"))  # invalid or expired link
+
+    return redirect("login")
 
 
 def select_company(request):
