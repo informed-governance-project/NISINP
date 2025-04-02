@@ -550,6 +550,8 @@ def review_comment_declaration(request, standard_answer_id: int):
     if is_user_operator(user):
         create_entry_log(user, standard_answer, "READ")
         initial["is_readonly"] = is_user_operator(user)
+    else:
+        initial["is_readonly"] = not is_user_regulator(user)
 
     if request.method == "POST":
         form = ReviewForm(request.POST, initial=initial)
