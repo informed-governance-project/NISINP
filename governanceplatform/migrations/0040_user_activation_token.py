@@ -7,7 +7,6 @@ from django.db import IntegrityError
 
 def generate_activation_tokens(apps, schema_editor):
     User = apps.get_model("governanceplatform", "User")
-    print("début fonction")
     for user in User.objects.filter(activation_token__isnull=True):
         unique_uuid = None
         while not unique_uuid:
