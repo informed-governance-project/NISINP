@@ -210,7 +210,7 @@ class CopySOForm(forms.Form):
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = StandardAnswer
-        fields = ["review_comment", "deadline"]
+        fields = ["review_comment", "deadline", "status"]
         widgets = {
             "review_comment": forms.Textarea(
                 attrs={
@@ -224,6 +224,8 @@ class ReviewForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["review_comment"].required = True
         self.fields["deadline"].required = False
+        self.fields["status"].required = False
+        self.fields["status"].disabled = True
 
         if initial:
             is_read_only = initial.get("is_readonly", True)

@@ -546,7 +546,7 @@ def review_comment_declaration(request, standard_answer_id: int):
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
 
-    initial = model_to_dict(standard_answer, fields=["review_comment", "deadline"])
+    initial = model_to_dict(standard_answer, fields=["review_comment", "deadline", "status"])
     if is_user_operator(user):
         create_entry_log(user, standard_answer, "READ")
         initial["is_readonly"] = is_user_operator(user)
