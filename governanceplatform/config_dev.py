@@ -187,3 +187,5 @@ SECURE_PROXY_SSL_HEADER = None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO",
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
+# account activation link timeout
+ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
