@@ -70,6 +70,7 @@ class DomainAdmin(
         "creator",
     ]
     ordering = ["position"]
+    list_filter = ["creator"]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -88,12 +89,6 @@ class DomainAdmin(
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
-
-    # exclude domains which are not belonging to the user regulator
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        user = request.user
-        return queryset.filter(creator=user.regulators.first())
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -141,6 +136,7 @@ class StandardAdmin(
     list_display = ["label", "description", "regulator"]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
+    list_filter = ["regulator"]
 
     # exclude standards which are not belonging to the user regulator
     def get_queryset(self, request):
@@ -213,6 +209,7 @@ class MaturityLevelAdmin(
     exclude = ["creator_name", "creator"]
     list_display = ["level", "label", "creator"]
     ordering = ["level"]
+    list_filter = ["creator"]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -323,6 +320,7 @@ class SecurityObjectiveAdmin(
         "creator",
     ]
     exclude = ["is_archived", "creator_name", "creator"]
+    list_filter = ["creator"]
 
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -418,6 +416,7 @@ class SecurityMeasureAdmin(
     list_display = ["security_objective", "position", "description", "creator"]
     exclude = ["creator_name", "creator", "is_archived"]
     ordering = ["security_objective__unique_code", "position"]
+    list_filter = ["creator"]
 
     def get_model_perms(self, request):
         return check_access(request)
@@ -472,6 +471,7 @@ class SOEmailAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAd
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
     should_escape_html = False
+    list_filter = ["creator"]
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
