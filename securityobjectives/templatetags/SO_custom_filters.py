@@ -22,8 +22,12 @@ def settings_value(name):
 def status_class(value):
     if value == "PASS":
         return "table-success"
+    elif value == "PASSM":
+        return "table-success sent-success"
     elif value == "FAIL":
         return "table-danger"
+    elif value == "FAILM":
+        return "table-danger sent-fail"
     elif value == "DELIV":
         return "table-info"
     elif value == "OUT":

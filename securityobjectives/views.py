@@ -39,7 +39,7 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.models import Company, Sector
-from incidents.globals import REVIEW_STATUS
+from .globals import STANDARD_ANSWER_REVIEW_STATUS
 
 from .email import send_email
 from .filters import StandardAnswerFilter
@@ -560,12 +560,26 @@ def review_comment_declaration(request, standard_answer_id: int):
             standard_answer.deadline = form.cleaned_data["deadline"]
             standard_answer.last_update = timezone.now()
             standard_answer.save()
+            email_to_send = False
 
             create_entry_log(user, standard_answer, "COMMENT")
             messages.info(
                 request,
                 _("The review comment has been saved."),
             )
+
+            if standard_answer.status == STANDARD_ANSWER_REVIEW_STATUS[2][0]:
+                standard_answer.status = STANDARD_ANSWER_REVIEW_STATUS[3][0]
+                email_to_send = True
+            elif standard_answer.status == STANDARD_ANSWER_REVIEW_STATUS[4][0]:
+                standard_answer.status = STANDARD_ANSWER_REVIEW_STATUS[5][0]
+                email_to_send = True
+            if email_to_send:
+                standard_answer.save()
+                send_email(
+                    standard_answer.standard.security_objective_status_changed_email,
+                    standard_answer,
+                )
 
             return redirect("securityobjectives")
 
@@ -764,7 +778,7 @@ def import_so_declaration(request):
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
-                    status=REVIEW_STATUS[2][0],  # Default PASS
+                    status=STANDARD_ANSWER_REVIEW_STATUS[2][0],  # Default PASS
                     submitter_user=user,
                     submitter_company=company,
                     creator_name=user.get_full_name(),

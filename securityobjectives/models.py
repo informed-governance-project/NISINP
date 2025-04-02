@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
-from incidents.globals import REVIEW_STATUS
+from .globals import STANDARD_ANSWER_REVIEW_STATUS
 
 
 # Maturity level : define a matury (e.g. sophisticated)
@@ -256,9 +256,9 @@ class StandardAnswer(models.Model):
     submit_date = models.DateTimeField(blank=True, default=None, null=True)
     status = models.CharField(
         max_length=5,
-        choices=REVIEW_STATUS,
+        choices=STANDARD_ANSWER_REVIEW_STATUS,
         blank=False,
-        default=REVIEW_STATUS[0][0],
+        default=STANDARD_ANSWER_REVIEW_STATUS[0][0],
         verbose_name=_("Status"),
     )
     submitter_user = models.ForeignKey(
