@@ -3,7 +3,7 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.helpers import set_creator
+from governanceplatform.helpers import set_creator, is_user_regulator
 from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation
 from governanceplatform.widgets import TranslatedNameWidget
@@ -123,6 +123,17 @@ class SecurityObjectiveInline(admin.TabularInline):
     ordering = ["position"]
     extra = 0
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        user = request.user
+        if db_field.name == "security_objective":
+            # Regulator
+            if is_user_regulator(user):
+                kwargs["queryset"] = SecurityObjective.objects.filter(
+                    creator__in=user.regulators.all()
+                ).order_by("unique_code").distinct()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(
@@ -151,8 +162,6 @@ class StandardAdmin(
             kwargs["queryset"] = Regulation.objects.filter(
                 regulators=regulator
             ).distinct()
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
@@ -348,6 +357,17 @@ class SecurityObjectiveAdmin(
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        user = request.user
+        if db_field.name == "domain":
+            # Regulator
+            if is_user_regulator(user):
+                kwargs["queryset"] = Domain.objects.filter(
+                    creator__in=user.regulators.all()
+                ).distinct()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -435,6 +455,24 @@ class SecurityMeasureAdmin(
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        user = request.user
+        if db_field.name == "security_objective":
+            # Regulator
+            if is_user_regulator(user):
+                kwargs["queryset"] = SecurityObjective.objects.filter(
+                    creator__in=user.regulators.all()
+                ).order_by("unique_code").distinct()
+
+        if db_field.name == "maturity_level":
+            # Regulator
+            if is_user_regulator(user):
+                kwargs["queryset"] = MaturityLevel.objects.filter(
+                    creator__in=user.regulators.all()
+                )
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
