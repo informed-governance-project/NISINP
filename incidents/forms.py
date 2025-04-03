@@ -526,7 +526,7 @@ class DetectionDateForm(forms.Form):
         self.fields["incident_timezone"] = forms.ChoiceField(
             choices=[(tz, tz) for tz in pytz.common_timezones],
             widget=forms.Select(attrs={"class": "form-control"}),
-            required=False,
+            required=True,
             label=_("Select the incident time zone"),
             initial=kwargs.get("initial", {}).get("incident_timezone", None)
             or TIME_ZONE,
@@ -736,6 +736,7 @@ class IncidenteDateForm(forms.ModelForm):
     incident_notification_date = forms.DateTimeField(
         widget=DateTimePickerInput(),
         required=False,
+        label=_("Incident notification date"),
     )
 
     incident_detection_date = forms.DateTimeField(
@@ -743,6 +744,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
+        label=_("Incident detection date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
@@ -751,6 +753,7 @@ class IncidenteDateForm(forms.ModelForm):
             options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
+        label=_("Incident start date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
