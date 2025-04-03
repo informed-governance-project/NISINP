@@ -356,6 +356,8 @@ class LogStandardAnswer(models.Model):
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     # save full name in case of the user is deleted to keep the name
     user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    role = models.CharField(max_length=250, verbose_name=_("Role"))
+    entity_name = models.CharField(max_length=250, verbose_name=_("Entity name"))
     standard_answer = models.ForeignKey(
         StandardAnswer,
         on_delete=models.CASCADE,

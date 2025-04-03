@@ -38,7 +38,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Company, Sector
+from governanceplatform.models import Company, Sector, CompanyUser, RegulatorUser
 from .globals import STANDARD_ANSWER_REVIEW_STATUS
 
 from .email import send_email
@@ -157,7 +157,7 @@ def create_so_declaration(request):
                 )
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(sectors)
-                create_entry_log(user, new_standard_answer, "CREATE")
+                create_entry_log(user, new_standard_answer, "CREATE", request)
                 return redirect("so_declaration")
             except Standard.DoesNotExist:
                 messages.error(request, _("Standard does not exist"))
@@ -405,7 +405,7 @@ def declaration(request):
         so: dict(levels) for so, levels in security_objectives.items()
     }
 
-    create_entry_log(user, standard_answer, "READ")
+    create_entry_log(user, standard_answer, "READ", request)
 
     context = {"security_objectives": security_objectives}
 
@@ -446,8 +446,8 @@ def copy_declaration(request, standard_answer_id: int):
             )
             new_standard_answer.save()
             new_standard_answer.sectors.set(sectors)
-            create_entry_log(user, new_standard_answer, "CREATE")
-            create_entry_log(user, original_standard_answer, "COPY")
+            create_entry_log(user, new_standard_answer, "CREATE", request)
+            create_entry_log(user, original_standard_answer, "COPY", request)
 
             security_measure_answers = SecurityMeasureAnswer.objects.filter(
                 standard_answer=original_standard_answer
@@ -512,7 +512,7 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer.submit_date = timezone.now()
     standard_answer.save()
     send_email(standard_answer.standard.submission_email, standard_answer)
-    create_entry_log(user, standard_answer, "SUBMIT")
+    create_entry_log(user, standard_answer, "SUBMIT", request)
     messages.info(request, _("The security objectives declaration has been submitted."))
 
     return redirect("securityobjectives")
@@ -548,7 +548,7 @@ def review_comment_declaration(request, standard_answer_id: int):
 
     initial = model_to_dict(standard_answer, fields=["review_comment", "deadline", "status"])
     if is_user_operator(user):
-        create_entry_log(user, standard_answer, "READ")
+        create_entry_log(user, standard_answer, "READ", request)
         initial["is_readonly"] = is_user_operator(user)
     else:
         initial["is_readonly"] = not is_user_regulator(user)
@@ -562,7 +562,7 @@ def review_comment_declaration(request, standard_answer_id: int):
             standard_answer.save()
             email_to_send = False
 
-            create_entry_log(user, standard_answer, "COMMENT")
+            create_entry_log(user, standard_answer, "COMMENT", request)
             messages.info(
                 request,
                 _("The review comment has been saved."),
@@ -688,7 +688,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
         response[
             "Content-Disposition"
         ] = f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
-        create_entry_log(user, standard_answer, "DOWNLOAD")
+        create_entry_log(user, standard_answer, "DOWNLOAD", request)
         return response
     except Exception:
         messages.warning(request, _("An error occurred while generating the report."))
@@ -874,7 +874,7 @@ def import_so_declaration(request):
                         },
                     )
 
-            create_entry_log(user, new_standard_answer, "IMPORT")
+            create_entry_log(user, new_standard_answer, "IMPORT", request)
             messages.success(
                 request, ("The security objectives declaration has been imported.")
             )
@@ -1013,9 +1013,28 @@ def calculate_so_score(security_measure, standard_answer):
     return final_score
 
 
-def create_entry_log(user, standard_answer, action):
+def create_entry_log(user, standard_answer, action, request=None):
+    role = _("User")
+    entity_name = ""
+
+    if is_user_operator(user) and request:
+        active_company = get_active_company_from_session(request)
+        cu = CompanyUser.objects.filter(user=user, company=active_company).first()
+        if cu and cu.is_company_administrator:
+            role = _("Administrator")
+        entity_name = active_company.name
+
+    elif is_user_regulator(user):
+        regulator = user.regulators.first()
+        ru = RegulatorUser.objects.filter(user=user, regulator=regulator).first()
+        if ru and ru.is_regulator_administrator:
+            role = _("Administrator")
+        entity_name = regulator.name
+
     log = LogStandardAnswer.objects.create(
         user=user,
+        entity_name=entity_name,
+        role=role,
         standard_answer=standard_answer,
         action=action,
     )
