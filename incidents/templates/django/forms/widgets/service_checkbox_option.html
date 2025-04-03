@@ -7,7 +7,7 @@
         <ul class="list-unstyled">
         {% for label in widget.label|linebreaksbr|split:"<br>" %}
             {% if label %}
-                <li class="{% if forloop.first %}fw-bold{% else %}small text-muted ps-3{% endif %}">{{ label }}</li>
+                <li class="{% if forloop.first %}fw-bold{% else %}small text-muted ps-3{% endif %}">{{ label|safe }}</li>
             {% endif %}
         {% endfor %}
         </ul>
