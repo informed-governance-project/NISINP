@@ -778,7 +778,7 @@ def import_so_declaration(request):
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
-                    status=STANDARD_ANSWER_REVIEW_STATUS[2][0],  # Default PASS
+                    status=STANDARD_ANSWER_REVIEW_STATUS[1][0],  # Default UNDER REVIEW
                     submitter_user=user,
                     submitter_company=company,
                     creator_name=user.get_full_name(),
