@@ -489,3 +489,9 @@ try:
     ACCOUNT_ACTIVATION_LINK_TIMEOUT = config.ACCOUNT_ACTIVATION_LINK_TIMEOUT
 except AttributeError:
     ACCOUNT_ACTIVATION_LINK_TIMEOUT = 1800
+
+# Email adress for contact form
+try:
+    EMAIL_FOR_CONTACT = config.EMAIL_FOR_CONTACT
+except AttributeError:
+    EMAIL_FOR_CONTACT = ""

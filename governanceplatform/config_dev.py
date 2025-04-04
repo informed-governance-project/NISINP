@@ -189,3 +189,5 @@ SECURE_PROXY_SSL_HEADER = None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO",
 PASSWORD_RESET_TIMEOUT = 1800
 # account activation link timeout
 ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
+# Email adress for contact form
+EMAIL_FOR_CONTACT = "email@nisinp.nisinp"

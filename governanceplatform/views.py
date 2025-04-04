@@ -188,7 +188,15 @@ def contact(request):
 
         if form.is_valid() and request.user.is_authenticated:
             # send email
-            print("formulaire valide")
+            message = form.cleaned_data["message"]
+            requestor_email = form.cleaned_data["email"]
+            sent = send_mail(
+                _("Contact page from %(name)s") % {'name': settings.SITE_NAME},
+                message,
+                requestor_email,
+                [settings.EMAIL_FOR_CONTACT],
+            )
+            print(f"Second mail sent: {sent}")
 
             messages.success(request, _("Your message has been sent"))
         else:
