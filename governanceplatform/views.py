@@ -192,13 +192,12 @@ def contact(request):
             # send email
             message = form.cleaned_data["message"]
             requestor_email = form.cleaned_data["email"]
-            sent = send_mail(
+            send_mail(
                 _("Contact page from %(name)s") % {'name': settings.SITE_NAME},
                 message,
                 requestor_email,
                 [settings.EMAIL_FOR_CONTACT],
             )
-            print(f"Second mail sent: {sent}")
 
             messages.success(request, _("Your message has been sent"))
             return redirect("contact")
