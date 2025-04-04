@@ -94,6 +94,7 @@ urlpatterns = [
     path("set-language/", set_language, name="set_language"),
     # contact
     path("contact/", views.contact, name="contact"),
+    path('captcha/', include('captcha.urls')),  # Captcha URL
     # basic healthcheck
     path("healthz", include("health_check.urls")),
     # URL patterns to serve the translations in JavaScript

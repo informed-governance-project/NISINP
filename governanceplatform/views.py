@@ -21,6 +21,7 @@ from .forms import (
     RegistrationForm,
     SelectCompany,
     TermsAcceptanceForm,
+    ContactForm,
 )
 
 from .models import User
@@ -182,7 +183,22 @@ def accept_terms(request):
 
 
 def contact(request):
-    return render(request, "home/contact.html")
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+
+        if form.is_valid() and request.user.is_authenticated:
+            # send email
+            print("formulaire valide")
+
+            messages.success(request, _("Your message has been sent"))
+        else:
+            captcha_errors = form.errors.get('captcha')
+            if captcha_errors:
+                messages.error(request, _("Invalid captcha"))
+    else:
+        form = ContactForm()
+
+    return render(request, "home/contact.html", {"form": form})
 
 
 def custom_404_view(request, exception):

@@ -7,6 +7,7 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
 from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
+from captcha.fields import CaptchaField
 
 User = get_user_model()
 
@@ -173,3 +174,10 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
 class TermsAcceptanceForm(forms.Form):
     accept = forms.BooleanField(label=_("I acknowledge and agree to the"))
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    message = forms.CharField(widget=forms.Textarea)
+    captcha = CaptchaField()

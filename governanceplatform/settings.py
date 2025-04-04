@@ -125,6 +125,7 @@ INSTALLED_APPS = [
     "cookiebanner",
     "health_check",
     "health_check.db",
+    "captcha",
 ]
 
 AUTHENTICATION_BACKENDS = [
