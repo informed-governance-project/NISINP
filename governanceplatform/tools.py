@@ -12,6 +12,11 @@ def get_version():
     Try to get the version from the Git tags.
     """
     version_res = ""
+
+    try:
+        app_version_from_pyproject = version("governanceplatform")
+    except PackageNotFoundError:
+        app_version_from_pyproject = "inconnue"
     if "APP_VERSION" in os.environ:
         version_res = os.getenv("APP_VERSION")
     else:
@@ -22,7 +27,7 @@ def get_version():
             .stdout.decode()
             .strip()
         )
-
+    print(version_res)
     if not version_res:
         try:
             version_res = "v" + version("governanceplatform")
@@ -35,4 +40,4 @@ def get_version():
             version_res
         )
 
-    return {"app_version": app_version, "version_url": version_url}
+    return {"app_version": app_version, "version_url": version_url, "app_version_from_pyproject": app_version_from_pyproject}
