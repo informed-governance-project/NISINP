@@ -183,6 +183,8 @@ def accept_terms(request):
 
 
 def contact(request):
+    context = {}
+    context["regulator"] = settings.REGULATOR_CONTACT
     if request.method == "POST":
         form = ContactForm(request.POST)
 
@@ -199,14 +201,17 @@ def contact(request):
             print(f"Second mail sent: {sent}")
 
             messages.success(request, _("Your message has been sent"))
+            return redirect("contact")
         else:
             captcha_errors = form.errors.get('captcha')
             if captcha_errors:
                 messages.error(request, _("Invalid captcha"))
+            context["form"] = form
     else:
         form = ContactForm()
+        context["form"] = form
 
-    return render(request, "home/contact.html", {"form": form})
+    return render(request, "home/contact.html", context)
 
 
 def custom_404_view(request, exception):

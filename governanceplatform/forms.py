@@ -177,7 +177,14 @@ class TermsAcceptanceForm(forms.Form):
 
 
 class ContactForm(forms.Form):
-    name = forms.CharField(max_length=100)
+    firstname = forms.CharField(max_length=100)
+    lastname = forms.CharField(max_length=100)
+    phone = forms.CharField(max_length=20)
     email = forms.EmailField()
     message = forms.CharField(widget=forms.Textarea)
     captcha = CaptchaField()
+    terms_accepted = forms.BooleanField(
+        label=_("I agree that my personal data may be used for communication purposes."),
+        required=True,
+        error_messages={'required': 'You must accept the use of your personal data.'}
+    )
