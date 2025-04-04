@@ -191,10 +191,20 @@ def contact(request):
         if form.is_valid() and request.user.is_authenticated:
             # send email
             message = form.cleaned_data["message"]
+            firstname = form.cleaned_data["firstname"]
+            lastname = form.cleaned_data["lastname"]
+            phone = form.cleaned_data["phone"]
+            email = form.cleaned_data["email"]
+            full_message = (
+                f"Nom : {firstname} {lastname}\n"
+                f"Email : {email}\n"
+                f"Téléphone : {phone or 'Non renseigné'}\n\n"
+                f"Message :\n{message}"
+            )
             requestor_email = form.cleaned_data["email"]
             send_mail(
                 _("Contact page from %(name)s") % {'name': settings.SITE_NAME},
-                message,
+                full_message,
                 requestor_email,
                 [settings.EMAIL_FOR_CONTACT],
             )
