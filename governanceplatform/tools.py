@@ -27,7 +27,6 @@ def get_version():
             .stdout.decode()
             .strip()
         )
-    print(version_res)
     if not version_res:
         try:
             version_res = "v" + version("governanceplatform")
@@ -40,4 +39,8 @@ def get_version():
             version_res
         )
 
-    return {"app_version": app_version, "version_url": version_url, "app_version_from_pyproject": app_version_from_pyproject}
+    return {
+        "app_version": app_version,
+        "version_url": version_url,
+        "app_version_from_pyproject": app_version_from_pyproject,
+    }
