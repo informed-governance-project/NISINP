@@ -1,3 +1,4 @@
+from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -7,7 +8,6 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
 from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
-from captcha.fields import CaptchaField
 
 User = get_user_model()
 
@@ -177,14 +177,16 @@ class TermsAcceptanceForm(forms.Form):
 
 
 class ContactForm(forms.Form):
-    firstname = forms.CharField(max_length=100)
-    lastname = forms.CharField(max_length=100)
-    phone = forms.CharField(max_length=20)
-    email = forms.EmailField()
-    message = forms.CharField(widget=forms.Textarea)
+    firstname = forms.CharField(max_length=100, required=True)
+    lastname = forms.CharField(max_length=100, required=True)
+    phone = forms.CharField(max_length=20, required=False)
+    email = forms.EmailField(required=True)
+    message = forms.CharField(widget=forms.Textarea, required=True)
     captcha = CaptchaField()
     terms_accepted = forms.BooleanField(
-        label=_("I agree that my personal data may be used for communication purposes."),
+        label=_(
+            "I agree that my personal data may be used for communication purposes."
+        ),
         required=True,
-        error_messages={'required': 'You must accept the use of your personal data.'}
+        error_messages={"required": "You must accept the use of your personal data."},
     )
