@@ -119,7 +119,7 @@ INSTALLED_APPS = [
     "two_factor",
     "import_export",
     "parler",
-    "bootstrap_datepicker_plus",
+    "tempus_dominus",
     "phonenumber_field",
     "django_filters",
     "cookiebanner",
@@ -425,7 +425,7 @@ try:
 except AttributeError:
     CSRF_COOKIE_AGE = 15 * 60
 
-BOOTSTRAP_DATEPICKER_PLUS = {
+TEMPUS_DOMINUS = {
     # Options for all input widgets
     # More options: https://getdatepicker.com/4/Options/
     "options": {
@@ -436,10 +436,13 @@ BOOTSTRAP_DATEPICKER_PLUS = {
     },
     "app_static_url": "bootstrap_datepicker_plus/",
     "momentjs_url": "npm_components/moment/min/moment.min.js",
-    "datetimepicker_js_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js",
+    "datetimepicker_js_url": "npm_components/eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js",
     "bootstrap_icon_css_url": "npm_components/bootstrap-icons/font/bootstrap-icons.css",
-    "datetimepicker_css_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css",
+    "datetimepicker_css_url": "npm_components/eonasdan/tempus-dominus/dist/css/tempus-dominus.css",
 }
+
+TEMPUS_DOMINUS_LOCALIZE = True
+TEMPUS_DOMINUS_INCLUDE_ASSETS = True
 
 # HSTS
 try:
