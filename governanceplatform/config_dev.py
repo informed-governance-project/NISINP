@@ -27,7 +27,7 @@ SITE_NAME = "NISINP"
 SECRET_KEY = "itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu"
 HASH_KEY = b"Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8="
 
-DEBUG = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
+DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
 DATABASES = {
     "default": {
@@ -131,15 +131,15 @@ COOKIEBANNER = {
             "id": "essential",
             "name": _("Essential"),
             "description": _(
-                "This website uses cookies and similar technologies essential for its operation, \
-                without processing personal data. By clicking ‘Accept’, \
+                "This website uses cookies and similar technologies essential for its operation. \
+                It does not process personal data. By clicking ‘Accept’, \
                 you consent to the use of cookies. For more details, please see:"
             ),
             "cookies": [
                 {
                     "pattern": "cookiebanner",
                     "description": _(
-                        "Cookie used to store user’s consent to the use of cookies."
+                        "Cookie used to store the user’s consent to the use of cookies."
                     ),
                     "content": _("The user’s cookie preferences."),
                     "max_age": _("6 months"),  # Set in cookie_banner.js
@@ -186,7 +186,9 @@ SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = False  # redirect HTTP to HTTPS
 SESSION_COOKIE_SECURE = False  # Cookies are sent via HTTPS
 CSRF_COOKIE_SECURE = False  # Secure CSRF via HTTPS
-SECURE_PROXY_SSL_HEADER = None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_PROXY_SSL_HEADER = (
+    None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
+)
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800

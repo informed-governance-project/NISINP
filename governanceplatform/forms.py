@@ -97,9 +97,7 @@ class RegistrationForm(UserCreationForm):
     accept_terms = forms.BooleanField(
         label=_("I acknowledge and agree to the"),
         error_messages={
-            "required": _(
-                "Acceptance of the Terms of Use is required for registration."
-            )
+            "required": _("Accepting the Terms of Use is required for registration.")
         },
     )
     email = forms.TextInput()
@@ -164,7 +162,7 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
         if duplicate_translations.exists():
             error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exist."
+                f"This {self.instance._meta.verbose_name.lower()} already exists."
             )
             self.add_error(
                 None,

@@ -1,29 +1,29 @@
 import sys
 import uuid
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.db.models.functions import Now
-from django.shortcuts import redirect, render, get_object_or_404
-from django.utils.translation import gettext_lazy as _
-from django.core.signing import BadSignature, TimestampSigner, SignatureExpired
 from django.core.mail import send_mail
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.db.models.functions import Now
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.conf import settings
-from governanceplatform.config import EMAIL_SENDER
+from django.utils.translation import gettext_lazy as _
 
+from governanceplatform.config import EMAIL_SENDER
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
 
 from .forms import (
+    ContactForm,
     CustomUserChangeForm,
     RegistrationForm,
     SelectCompany,
     TermsAcceptanceForm,
-    ContactForm,
 )
-
 from .models import User
 
 
@@ -81,12 +81,14 @@ def send_activation_email(user):
     signer = TimestampSigner()
     token = signer.sign(user.activation_token)
 
-    activation_link = f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
+    activation_link = (
+        f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
+    )
 
     subject = _("Activate your account")
-    message = _("Hello {username}, click here to activate your account : {activation_link}").format(
-            username=user.first_name, activation_link=activation_link
-        )
+    message = _(
+        "Hello {username}, Please click here to activate your account : {activation_link}"
+    ).format(username=user.first_name, activation_link=activation_link)
 
     send_mail(subject, message, EMAIL_SENDER, [user.email])
 
@@ -112,7 +114,7 @@ def registration_view(request, *args, **kwargs):
             else:
                 user.groups.add(created)
             send_activation_email(user)
-            messages.info(request, _("An activation email has been sent"))
+            messages.info(request, _("An activation email has been sent."))
             return redirect("login")
         else:
             context["form"] = form
@@ -127,18 +129,22 @@ def registration_view(request, *args, **kwargs):
 def activate_account(request, token):
     signer = TimestampSigner()
     try:
-        user_activation_token = signer.unsign(token, max_age=settings.ACCOUNT_ACTIVATION_LINK_TIMEOUT)  # we check the token
+        user_activation_token = signer.unsign(
+            token, max_age=settings.ACCOUNT_ACTIVATION_LINK_TIMEOUT
+        )  # we check the token
         user = get_object_or_404(User, activation_token=user_activation_token)
 
         if not user.is_active:
             user.is_active = True
             user.activation_token = uuid.uuid4()  # deactivate previous link
             user.save()
-            messages.success(request, _("Your account is active, you can connect"))
+            messages.success(
+                request, _("Your account has been activated. You may log in now.")
+            )
         else:
-            messages.info(request, _("Your account is already active"))
+            messages.info(request, _("Your account is already active."))
     except SignatureExpired:
-        messages.error(request, _("The link is expired"))
+        messages.error(request, _("The link is expired."))
     except BadSignature:
         messages.error(request, _("Error"))  # invalid or expired link
 
@@ -203,7 +209,7 @@ def contact(request):
             )
             requestor_email = form.cleaned_data["email"]
             send_mail(
-                _("Contact page from %(name)s") % {'name': settings.SITE_NAME},
+                _("Contact page from %(name)s") % {"name": settings.SITE_NAME},
                 full_message,
                 requestor_email,
                 [settings.EMAIL_FOR_CONTACT],
@@ -212,7 +218,7 @@ def contact(request):
             messages.success(request, _("Your message has been sent"))
             return redirect("contact")
         else:
-            captcha_errors = form.errors.get('captcha')
+            captcha_errors = form.errors.get("captcha")
             if captcha_errors:
                 messages.error(request, _("Invalid captcha"))
             context["form"] = form
