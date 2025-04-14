@@ -40,17 +40,17 @@ def translate(text):
 @register.simple_tag
 def get_report_tooltip(value):
     if value == "report-pass":
-        return _("The report has passed the review")
+        return _("The report has passed the review.")
     elif value == "report-fail":
-        return _("The report has failed the review")
+        return _("The report has failed the review.")
     elif value == "report-under-review":
-        return _("The report is currently under review")
+        return _("The report is currently under review.")
     elif value == "report-late-under-review":
-        return _("The report is currently under review")
+        return _("The report is currently under review.")
     elif value == "report-overdue":
-        return _("The submission of the report is overdue")
+        return _("The submission of the report is overdue.")
     else:
-        return _("The report has not been submitted yet")
+        return _("The report has not been submitted yet.")
 
 
 @register.filter
@@ -134,9 +134,7 @@ def is_workflow_disabled(allWorkflows, incidentWorkflows, report):
 
 @register.simple_tag
 def is_deadline_exceeded(report, incident):
-    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(
-            report
-        )
+    latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(report)
 
     if latest_incident_workflow is not None:
         return latest_incident_workflow.review_status

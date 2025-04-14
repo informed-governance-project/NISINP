@@ -29,7 +29,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Sector, RegulatorUser, CompanyUser
+from governanceplatform.models import CompanyUser, RegulatorUser, Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -171,7 +171,7 @@ def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
     if not workflow_id and not incident_id:
-        messages.error(request, _("Missing data, incident report not created"))
+        messages.error(request, _("Missing data, incident report not created."))
         return redirect("incidents")
 
     incident = Incident.objects.filter(pk=incident_id).first()
@@ -1076,7 +1076,9 @@ class WorkflowWizardView(SessionWizardView):
             self.incident.save()
             # manage question
             incident_workflow = save_answers(data, self.incident, self.workflow)
-            create_entry_log(user, self.incident, incident_workflow, "CREATE", self.request)
+            create_entry_log(
+                user, self.incident, incident_workflow, "CREATE", self.request
+            )
 
             if email:
                 send_email(email, self.incident)
@@ -1102,7 +1104,11 @@ class WorkflowWizardView(SessionWizardView):
                 incident_workflow.review_status = review_status
             incident_workflow.save()
             create_entry_log(
-                user, incident_workflow.incident, incident_workflow, "COMMENT", self.request
+                user,
+                incident_workflow.incident,
+                incident_workflow,
+                "COMMENT",
+                self.request,
             )
 
         return (

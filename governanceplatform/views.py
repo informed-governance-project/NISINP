@@ -87,7 +87,7 @@ def send_activation_email(user):
 
     subject = _("Activate your account")
     message = _(
-        "Hello {username}, Please click here to activate your account : {activation_link}"
+        "Hello {username}! Please click here to activate your account : {activation_link}"
     ).format(username=user.first_name, activation_link=activation_link)
 
     send_mail(subject, message, EMAIL_SENDER, [user.email])
@@ -215,7 +215,7 @@ def contact(request):
                 [settings.EMAIL_FOR_CONTACT],
             )
 
-            messages.success(request, _("Your message has been sent"))
+            messages.success(request, _("Your message has been sent."))
             return redirect("contact")
         else:
             captcha_errors = form.errors.get("captcha")
