@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-03 11:39+0200\n"
+"POT-Creation-Date: 2025-04-14 10:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,101 +95,105 @@ msgstr ""
 msgid "Governance"
 msgstr ""
 
-#: governanceplatform/config.py:99 governanceplatform/config_dev.py:101
+#: governanceplatform/config.py:102 governanceplatform/config_dev.py:104
 msgid "Dutch"
 msgstr ""
 
-#: governanceplatform/config.py:123 governanceplatform/config_dev.py:125
+#: governanceplatform/config.py:126 governanceplatform/config_dev.py:128
 msgid "Cookie Notice"
 msgstr ""
 
-#: governanceplatform/config.py:127 governanceplatform/config_dev.py:129
+#: governanceplatform/config.py:130 governanceplatform/config_dev.py:132
 msgid "Essential"
 msgstr ""
 
-#: governanceplatform/config.py:129 governanceplatform/config_dev.py:131
+#: governanceplatform/config.py:132 governanceplatform/config_dev.py:134
 msgid ""
 "This website uses cookies and similar technologies essential for its "
-"operation,                 without processing personal data. By clicking "
+"operation.                 It does not process personal data. By clicking "
 "‘Accept’,                 you consent to the use of cookies. For more "
 "details, please see:"
 msgstr ""
 
-#: governanceplatform/config.py:137 governanceplatform/config_dev.py:139
-msgid "Cookie used to store user’s consent to the use of cookies."
+#: governanceplatform/config.py:140 governanceplatform/config_dev.py:142
+msgid "Cookie used to store the user’s consent to the use of cookies."
 msgstr ""
 
-#: governanceplatform/config.py:139 governanceplatform/config_dev.py:141
+#: governanceplatform/config.py:142 governanceplatform/config_dev.py:144
 msgid "The user’s cookie preferences."
 msgstr ""
 
-#: governanceplatform/config.py:140 governanceplatform/config_dev.py:142
+#: governanceplatform/config.py:143 governanceplatform/config_dev.py:145
 msgid "6 months"
 msgstr ""
 
-#: governanceplatform/config.py:145 governanceplatform/config_dev.py:147
+#: governanceplatform/config.py:148 governanceplatform/config_dev.py:150
 msgid "Cookie essential for maintaining user session options."
 msgstr ""
 
-#: governanceplatform/config.py:147 governanceplatform/config_dev.py:149
+#: governanceplatform/config.py:150 governanceplatform/config_dev.py:152
 msgid "Session ID"
 msgstr ""
 
-#: governanceplatform/config.py:148 governanceplatform/config.py:156
-#: governanceplatform/config_dev.py:150 governanceplatform/config_dev.py:158
+#: governanceplatform/config.py:151 governanceplatform/config.py:159
+#: governanceplatform/config_dev.py:153 governanceplatform/config_dev.py:161
 msgid "15 minutes"
 msgstr ""
 
-#: governanceplatform/config.py:153 governanceplatform/config_dev.py:155
+#: governanceplatform/config.py:156 governanceplatform/config_dev.py:158
 msgid "Cookie used to prevent Cross-Site Request Forgery (CSRF) attacks."
 msgstr ""
 
-#: governanceplatform/config.py:155 governanceplatform/config_dev.py:157
+#: governanceplatform/config.py:158 governanceplatform/config_dev.py:160
 msgid "Token"
 msgstr ""
 
-#: governanceplatform/config.py:160 governanceplatform/config_dev.py:162
+#: governanceplatform/config.py:163 governanceplatform/config_dev.py:165
 msgid "Cookie used to store user language preferences."
 msgstr ""
 
-#: governanceplatform/config.py:161 governanceplatform/config_dev.py:163
+#: governanceplatform/config.py:164 governanceplatform/config_dev.py:166
 msgid "Language settings"
 msgstr ""
 
-#: governanceplatform/config.py:162 governanceplatform/config.py:168
-#: governanceplatform/config_dev.py:164 governanceplatform/config_dev.py:170
+#: governanceplatform/config.py:165 governanceplatform/config.py:171
+#: governanceplatform/config_dev.py:167 governanceplatform/config_dev.py:173
 msgid "Session"
 msgstr ""
 
-#: governanceplatform/config.py:166 governanceplatform/config_dev.py:168
+#: governanceplatform/config.py:169 governanceplatform/config_dev.py:171
 msgid "Cookie used to store user theme preferences."
 msgstr ""
 
-#: governanceplatform/config.py:167 governanceplatform/config_dev.py:169
+#: governanceplatform/config.py:170 governanceplatform/config_dev.py:172
 msgid "Dark/light theme settings"
 msgstr ""
 
-#: governanceplatform/forms.py:31
+#: governanceplatform/forms.py:32 incidents/models.py:889
 msgid "Role"
 msgstr ""
 
-#: governanceplatform/forms.py:97 governanceplatform/forms.py:175
+#: governanceplatform/forms.py:98 governanceplatform/forms.py:174
 msgid "I acknowledge and agree to the"
 msgstr ""
 
 #: governanceplatform/forms.py:100
-msgid "Acceptance of the Terms of Use is required for registration."
+msgid "Accepting the Terms of Use is required for registration."
 msgstr ""
 
-#: governanceplatform/forms.py:143
+#: governanceplatform/forms.py:142
 #, python-format
 msgid ""
 "Default language translation (%(fallback_language_name)s) is missing. Please "
 "add it before saving."
 msgstr ""
 
-#: governanceplatform/forms.py:166
-msgid "This {self.instance._meta.verbose_name.lower()} already exist."
+#: governanceplatform/forms.py:165
+msgid "This {self.instance._meta.verbose_name.lower()} already exists."
+msgstr ""
+
+#: governanceplatform/forms.py:186
+msgid "I agree that my personal data may be used for communication purposes."
 msgstr ""
 
 #: governanceplatform/globals.py:12
@@ -357,7 +361,8 @@ msgstr ""
 msgid "An account with this email address already exists."
 msgstr ""
 
-#: governanceplatform/models.py:352
+#: governanceplatform/models.py:352 incidents/views.py:1206
+#: incidents/views.py:1213
 msgid "Administrator"
 msgstr ""
 
@@ -367,6 +372,7 @@ msgstr ""
 
 #: governanceplatform/models.py:439 governanceplatform/models.py:468
 #: governanceplatform/models.py:498 incidents/models.py:883
+#: incidents/views.py:1199
 msgid "User"
 msgstr ""
 
@@ -414,7 +420,7 @@ msgid "Incident rules"
 msgstr ""
 
 #: governanceplatform/models.py:610 incidents/models.py:787
-#: incidents/models.py:886 incidents/models.py:955
+#: incidents/models.py:886 incidents/models.py:957
 msgid "Timestamp"
 msgstr ""
 
@@ -451,38 +457,52 @@ msgstr ""
 msgid "Your password must not match any previously used passwords."
 msgstr ""
 
-#: governanceplatform/views.py:58
+#: governanceplatform/views.py:59
 msgid "The account has been successfully saved."
 msgstr ""
 
-#: governanceplatform/views.py:85
+#: governanceplatform/views.py:88
 msgid "Activate your account"
 msgstr ""
 
-#: governanceplatform/views.py:86
+#: governanceplatform/views.py:90
 #, python-brace-format
 msgid ""
-"Hello {username}, click here to activate your account : {activation_link}"
+"Hello {username}! Please click here to activate your account : "
+"{activation_link}"
 msgstr ""
 
-#: governanceplatform/views.py:114
-msgid "An activation email has been sent"
-msgstr ""
-
-#: governanceplatform/views.py:136
-msgid "Your account is active, you can connect"
-msgstr ""
-
-#: governanceplatform/views.py:138
-msgid "Your account is already active"
-msgstr ""
-
-#: governanceplatform/views.py:140
-msgid "The link is expired"
+#: governanceplatform/views.py:117
+msgid "An activation email has been sent."
 msgstr ""
 
 #: governanceplatform/views.py:142
+msgid "Your account has been activated. You may log in now."
+msgstr ""
+
+#: governanceplatform/views.py:145
+msgid "Your account is already active."
+msgstr ""
+
+#: governanceplatform/views.py:147
+msgid "The link is expired."
+msgstr ""
+
+#: governanceplatform/views.py:149
 msgid "Error"
+msgstr ""
+
+#: governanceplatform/views.py:212
+#, python-format
+msgid "Contact page from %(name)s"
+msgstr ""
+
+#: governanceplatform/views.py:218
+msgid "Your message has been sent."
+msgstr ""
+
+#: governanceplatform/views.py:223
+msgid "Invalid captcha"
 msgstr ""
 
 #: incidents/admin.py:62
@@ -493,7 +513,7 @@ msgstr ""
 msgid "Question"
 msgstr ""
 
-#: incidents/admin.py:237 incidents/models.py:949
+#: incidents/admin.py:237 incidents/models.py:951
 msgid "Questionnaire"
 msgstr ""
 
@@ -661,7 +681,7 @@ msgstr ""
 msgid "Questions"
 msgstr ""
 
-#: incidents/models.py:155 incidents/models.py:946 incidents/models.py:961
+#: incidents/models.py:155 incidents/models.py:948 incidents/models.py:963
 msgid "Answer"
 msgstr ""
 
@@ -725,7 +745,7 @@ msgstr ""
 msgid "Workflow"
 msgstr ""
 
-#: incidents/models.py:352 incidents/models.py:913 incidents/models.py:929
+#: incidents/models.py:352 incidents/models.py:915 incidents/models.py:931
 msgid "Position"
 msgstr ""
 
@@ -857,53 +877,57 @@ msgstr ""
 msgid "Full username"
 msgstr ""
 
-#: incidents/models.py:891 incidents/models.py:898 incidents/models.py:943
+#: incidents/models.py:890
+msgid "Entity name"
+msgstr ""
+
+#: incidents/models.py:893 incidents/models.py:900 incidents/models.py:945
 msgid "Incident report processed"
 msgstr ""
 
-#: incidents/models.py:904
+#: incidents/models.py:906
 msgid "Action performed"
 msgstr ""
 
-#: incidents/models.py:919
+#: incidents/models.py:921
 msgid "Question category options"
 msgstr ""
 
-#: incidents/models.py:920
+#: incidents/models.py:922
 msgid "Question category option"
 msgstr ""
 
-#: incidents/models.py:928
+#: incidents/models.py:930
 msgid "Mandatory"
 msgstr ""
 
-#: incidents/models.py:962
+#: incidents/models.py:964
 msgid "Answers"
 msgstr ""
 
 #: incidents/templatetags/custom_filters.py:43
-msgid "The report has passed the review"
+msgid "The report has passed the review."
 msgstr ""
 
 #: incidents/templatetags/custom_filters.py:45
-msgid "The report has failed the review"
+msgid "The report has failed the review."
 msgstr ""
 
 #: incidents/templatetags/custom_filters.py:47
 #: incidents/templatetags/custom_filters.py:49
-msgid "The report is currently under review"
+msgid "The report is currently under review."
 msgstr ""
 
 #: incidents/templatetags/custom_filters.py:51
-msgid "The submission of the report is overdue"
+msgid "The submission of the report is overdue."
 msgstr ""
 
 #: incidents/templatetags/custom_filters.py:53
-msgid "The report has not been submitted yet"
+msgid "The report has not been submitted yet."
 msgstr ""
 
 #: incidents/views.py:174
-msgid "Missing data, incident report not created"
+msgid "Missing data, incident report not created."
 msgstr ""
 
 #: incidents/views.py:181 incidents/views.py:270
