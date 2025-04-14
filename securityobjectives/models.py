@@ -287,6 +287,9 @@ class StandardAnswer(models.Model):
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})
 
+    def get_no_childrens_sectors(self):
+        return list(self.sectors.filter(parent__isnull=True))
+
 
 # the answer of the operator by SM
 class SecurityMeasureAnswer(models.Model):
