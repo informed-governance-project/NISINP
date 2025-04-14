@@ -38,8 +38,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Company, Sector, CompanyUser, RegulatorUser
-from .globals import STANDARD_ANSWER_REVIEW_STATUS
+from governanceplatform.models import Company, CompanyUser, RegulatorUser, Sector
 
 from .email import send_email
 from .filters import StandardAnswerFilter
@@ -51,6 +50,7 @@ from .forms import (
     SecurityObjectiveStatusForm,
     SelectSOStandardForm,
 )
+from .globals import STANDARD_ANSWER_REVIEW_STATUS
 from .models import (
     LogStandardAnswer,
     SecurityMeasure,
@@ -546,7 +546,9 @@ def review_comment_declaration(request, standard_answer_id: int):
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
 
-    initial = model_to_dict(standard_answer, fields=["review_comment", "deadline", "status"])
+    initial = model_to_dict(
+        standard_answer, fields=["review_comment", "deadline", "status"]
+    )
     if is_user_operator(user):
         create_entry_log(user, standard_answer, "READ", request)
         initial["is_readonly"] = is_user_operator(user)
@@ -918,7 +920,7 @@ def get_standard_answers_with_progress(standard_answer_queryset):
                 output_field=FloatField(),
             ),
         ),
-    ).order_by("-last_update")
+    )
 
     return standard_answers
 
