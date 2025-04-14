@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     "cookiebanner",
     "health_check",
     "health_check.db",
+    "captcha",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -479,8 +480,20 @@ try:
 except AttributeError:
     SECURE_PROXY_SSL_HEADER = None
 
-# Password reset link validation
+# Password reset link timeout
 try:
     PASSWORD_RESET_TIMEOUT = config.PASSWORD_RESET_TIMEOUT
 except AttributeError:
     PASSWORD_RESET_TIMEOUT = 1800
+
+# Account activation link timeout
+try:
+    ACCOUNT_ACTIVATION_LINK_TIMEOUT = config.ACCOUNT_ACTIVATION_LINK_TIMEOUT
+except AttributeError:
+    ACCOUNT_ACTIVATION_LINK_TIMEOUT = 1800
+
+# Email adress for contact form
+try:
+    EMAIL_FOR_CONTACT = config.EMAIL_FOR_CONTACT
+except AttributeError:
+    EMAIL_FOR_CONTACT = ""

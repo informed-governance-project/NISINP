@@ -8,6 +8,9 @@ REGULATOR_CONTACT = {
     "name": "Organization Name",
     "street": "Organization Street",
     "zip_code": "Organization Zip Code",
+    "city": "city",
+    "mail_zip_code": "Organization Zip Code",
+    "mail_city": "city",
     "country": "Organization Country",
     "phone": "Organization Phone Number",
     "website": "https://www.example.org",
@@ -128,15 +131,15 @@ COOKIEBANNER = {
             "id": "essential",
             "name": _("Essential"),
             "description": _(
-                "This website uses cookies and similar technologies essential for its operation, \
-                without processing personal data. By clicking ‘Accept’, \
+                "This website uses cookies and similar technologies essential for its operation. \
+                It does not process personal data. By clicking ‘Accept’, \
                 you consent to the use of cookies. For more details, please see:"
             ),
             "cookies": [
                 {
                     "pattern": "cookiebanner",
                     "description": _(
-                        "Cookie used to store user’s consent to the use of cookies."
+                        "Cookie used to store the user’s consent to the use of cookies."
                     ),
                     "content": _("The user’s cookie preferences."),
                     "max_age": _("6 months"),  # Set in cookie_banner.js
@@ -189,3 +192,7 @@ SECURE_PROXY_SSL_HEADER = (
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
+# account activation link timeout
+ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
+# Email adress for contact form
+EMAIL_FOR_CONTACT = "email@nisinp.nisinp"

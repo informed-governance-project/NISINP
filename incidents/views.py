@@ -29,7 +29,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import Sector
+from governanceplatform.models import CompanyUser, RegulatorUser, Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -171,7 +171,7 @@ def create_workflow(request):
     incident_id = request.GET.get("incident_id", None)
     workflow_id = request.GET.get("workflow_id", None)
     if not workflow_id and not incident_id:
-        messages.error(request, _("Missing data, incident report not created"))
+        messages.error(request, _("Missing data, incident report not created."))
         return redirect("incidents")
 
     incident = Incident.objects.filter(pk=incident_id).first()
@@ -474,7 +474,7 @@ def download_incident_pdf(request, incident_id: int):
 
     try:
         pdf_report = get_pdf_report(incident, None, request)
-        create_entry_log(user, incident, None, "DOWNLOAD")
+        create_entry_log(user, incident, None, "DOWNLOAD", request)
     except Exception:
         messages.warning(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
@@ -506,7 +506,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         return redirect("incidents")
     try:
         pdf_report = get_pdf_report(incident, incident_workflow, request)
-        create_entry_log(user, incident, incident_workflow, "DOWNLOAD")
+        create_entry_log(user, incident, incident_workflow, "DOWNLOAD", request)
     except Exception:
         messages.warning(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
@@ -798,7 +798,7 @@ class FormWizardView(SessionWizardView):
 
                 incident.save()
 
-                create_entry_log(user, incident, None, "CREATE")
+                create_entry_log(user, incident, None, "CREATE", self.request)
 
                 # send The email notification opening
                 if sector_regulation.opening_email is not None:
@@ -935,7 +935,7 @@ class WorkflowWizardView(SessionWizardView):
 
             if incident_workflow and can_access_incident(user, incident, company_id):
                 create_entry_log(
-                    user, incident_workflow.incident, incident_workflow, "READ"
+                    user, incident_workflow.incident, incident_workflow, "READ", request
                 )
 
         return super().get(self, request, *args, **kwargs)
@@ -1076,7 +1076,9 @@ class WorkflowWizardView(SessionWizardView):
             self.incident.save()
             # manage question
             incident_workflow = save_answers(data, self.incident, self.workflow)
-            create_entry_log(user, self.incident, incident_workflow, "CREATE")
+            create_entry_log(
+                user, self.incident, incident_workflow, "CREATE", self.request
+            )
 
             if email:
                 send_email(email, self.incident)
@@ -1102,7 +1104,11 @@ class WorkflowWizardView(SessionWizardView):
                 incident_workflow.review_status = review_status
             incident_workflow.save()
             create_entry_log(
-                user, incident_workflow.incident, incident_workflow, "COMMENT"
+                user,
+                incident_workflow.incident,
+                incident_workflow,
+                "COMMENT",
+                self.request,
             )
 
         return (
@@ -1195,11 +1201,30 @@ def convert_to_utc(date, local_tz):
     return None
 
 
-def create_entry_log(user, incident, incident_report, action):
+def create_entry_log(user, incident, incident_report, action, request=None):
+    role = _("User")
+    entity_name = ""
+
+    if is_user_operator(user) and request:
+        active_company = get_active_company_from_session(request)
+        cu = CompanyUser.objects.filter(user=user, company=active_company).first()
+        if cu and cu.is_company_administrator:
+            role = _("Administrator")
+        entity_name = active_company.name
+
+    elif is_user_regulator(user):
+        regulator = user.regulators.first()
+        ru = RegulatorUser.objects.filter(user=user, regulator=regulator).first()
+        if ru and ru.is_regulator_administrator:
+            role = _("Administrator")
+        entity_name = regulator.name
+
     log = LogReportRead.objects.create(
         user=user,
         incident=incident,
         incident_report=incident_report,
         action=action,
+        role=role,
+        entity_name=entity_name,
     )
     log.save()

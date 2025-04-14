@@ -36,7 +36,6 @@ from incidents.models import (
     Answer,
     Email,
     Impact,
-    Incident,
     PredefinedAnswer,
     Question,
     QuestionCategory,
@@ -454,15 +453,6 @@ class ImpactAdmin(
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
-
-
-@admin.register(Incident, site=admin_site)
-class IncidentAdmin(admin.ModelAdmin):
-    list_display = [
-        "incident_id",
-        "company",
-        "incident_status",
-    ]
 
 
 class EmailResource(TranslationUpdateMixin, resources.ModelResource):

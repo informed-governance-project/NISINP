@@ -1,3 +1,4 @@
+from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -96,9 +97,7 @@ class RegistrationForm(UserCreationForm):
     accept_terms = forms.BooleanField(
         label=_("I acknowledge and agree to the"),
         error_messages={
-            "required": _(
-                "Acceptance of the Terms of Use is required for registration."
-            )
+            "required": _("Accepting the Terms of Use is required for registration.")
         },
     )
     email = forms.TextInput()
@@ -163,7 +162,7 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
         if duplicate_translations.exists():
             error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exist."
+                f"This {self.instance._meta.verbose_name.lower()} already exists."
             )
             self.add_error(
                 None,
@@ -173,3 +172,19 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
 
 class TermsAcceptanceForm(forms.Form):
     accept = forms.BooleanField(label=_("I acknowledge and agree to the"))
+
+
+class ContactForm(forms.Form):
+    firstname = forms.CharField(max_length=100, required=True)
+    lastname = forms.CharField(max_length=100, required=True)
+    phone = forms.CharField(max_length=20, required=False)
+    email = forms.EmailField(required=True)
+    message = forms.CharField(widget=forms.Textarea, required=True)
+    captcha = CaptchaField()
+    terms_accepted = forms.BooleanField(
+        label=_(
+            "I agree that my personal data may be used for communication purposes."
+        ),
+        required=True,
+        error_messages={"required": "You must accept the use of your personal data."},
+    )
