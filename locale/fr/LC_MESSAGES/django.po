@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:36+0200\n"
-"PO-Revision-Date: 2025-04-14 10:37+0200\n"
+"POT-Creation-Date: 2025-04-15 13:48+0200\n"
+"PO-Revision-Date: 2025-04-15 13:43+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -206,6 +206,8 @@ msgstr "Ce {self.instance._meta.verbose_name.lower()} existe déjà."
 #: governanceplatform/forms.py:186
 msgid "I agree that my personal data may be used for communication purposes."
 msgstr ""
+"J'accepte que mes données personnelles soient utilisées à des fins de "
+"communication."
 
 #: governanceplatform/globals.py:12
 msgid "Addition"
@@ -252,7 +254,7 @@ msgstr "Le Superuser doit avoir is_staff=True."
 
 #: governanceplatform/middleware.py:33
 msgid "CSRF token expired. Please try again."
-msgstr ""
+msgstr "Le jeton CSRF a expiré. Veuillez réessayer."
 
 #: governanceplatform/middleware.py:45
 msgid "Session expired. Please log in again to continue."
@@ -379,8 +381,8 @@ msgstr "Observateurs"
 msgid "An account with this email address already exists."
 msgstr "Un utilisateur est déjà enregistré avec cette adresse électronique."
 
-#: governanceplatform/models.py:352 incidents/views.py:1206
-#: incidents/views.py:1213
+#: governanceplatform/models.py:352 incidents/views.py:1212
+#: incidents/views.py:1219
 msgid "Administrator"
 msgstr "Administrateur"
 
@@ -391,7 +393,7 @@ msgstr ""
 
 #: governanceplatform/models.py:439 governanceplatform/models.py:468
 #: governanceplatform/models.py:498 incidents/models.py:883
-#: incidents/views.py:1199
+#: incidents/views.py:1205
 msgid "User"
 msgstr "Utilisateur"
 
@@ -518,15 +520,15 @@ msgstr "Erreur"
 #: governanceplatform/views.py:212
 #, python-format
 msgid "Contact page from %(name)s"
-msgstr ""
+msgstr "Page de contact de %(name)s"
 
 #: governanceplatform/views.py:218
 msgid "Your message has been sent."
-msgstr ""
+msgstr "Votre message a été envoyé."
 
 #: governanceplatform/views.py:223
 msgid "Invalid captcha"
-msgstr ""
+msgstr "Captcha invalide"
 
 #: incidents/admin.py:62
 msgid "Users"
@@ -909,7 +911,7 @@ msgstr "Nom d'utilisateur complet"
 
 #: incidents/models.py:890
 msgid "Entity name"
-msgstr ""
+msgstr "Nom de l’entité"
 
 #: incidents/models.py:893 incidents/models.py:900 incidents/models.py:945
 msgid "Incident report processed"
