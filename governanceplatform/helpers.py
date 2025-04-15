@@ -367,9 +367,9 @@ def get_sectors_grouped(sectors):
         if sector.parent:
             parent_name = sector.parent.get_safe_translation()
             categs[parent_name].append([sector.id, sector_name])
-        else:
-            if not categs.get(sector_name):
-                categs[sector_name].append([sector.id, sector_name])
+
+        if not sector.children.exists() and not sector.parent:
+            categs[sector_name].append([sector.id, sector_name])
 
     sectors_grouped = (
         (sector, sorted(options, key=lambda item: item[1]))
