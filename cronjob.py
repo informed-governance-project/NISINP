@@ -20,6 +20,10 @@ from incidents.scripts import (  # noqa: E402
     workflow_update_status,
 )
 
+from governanceplatform.scripts import (  # noqa: E402
+    unactive_account_cleaning,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,11 +50,13 @@ email_reminder.run()
 incident_cleaning.run()
 log_cleaning.run()
 workflow_update_status.run()
+unactive_account_cleaning.run()
 
 scheduler.every().hour.do(email_reminder.run)
 scheduler.every().day.at("20:30").do(incident_cleaning.run)
 scheduler.every().day.at("21:00").do(log_cleaning.run)
 scheduler.every().hour.do(workflow_update_status.run)
+scheduler.every().hour.do(unactive_account_cleaning.run)
 
 # endless scheduler loop
 while True:
