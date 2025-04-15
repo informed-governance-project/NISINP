@@ -195,4 +195,4 @@ PASSWORD_RESET_TIMEOUT = 1800
 # account activation link timeout
 ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 # Email adress for contact form
-EMAIL_FOR_CONTACT = "email@nisinp.nisinp"
+EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
