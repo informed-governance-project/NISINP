@@ -50,6 +50,8 @@ django-health-check = "^3.18.3"
 whitenoise = "^6.9.0"
 schedule = "^1.2.2"
 django-simple-captcha = "^0.6.2"
+celery = "^5.5.1"
+redis = "^5.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

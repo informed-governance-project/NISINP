@@ -30,7 +30,6 @@ from django.utils.translation import activate, deactivate_all, gettext
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 from parler.models import TranslationDoesNotExist
-from weasyprint import CSS, HTML
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
 from governanceplatform.models import Company, Sector
@@ -63,6 +62,8 @@ from .models import (
     ThreatData,
     VulnerabilityData,
 )
+
+from .tasks import generate_pdf_task, test_task
 
 # GLOBALS
 SECTOR_LEGEND = _("Sector average")
@@ -2183,17 +2184,16 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
         request=request,
     )
 
-    htmldoc = HTML(string=output_from_parsed_template)
     stylesheets = [
-        CSS(os.path.join(static_dir, "css/custom.css")),
-        CSS(os.path.join(static_dir, "css/report.css")),
+        os.path.join(static_dir, "css/custom.css"),
+        os.path.join(static_dir, "css/report.css"),
     ]
 
-    pdf_buffer = io.BytesIO()
-    htmldoc.write_pdf(pdf_buffer, stylesheets=stylesheets)
-    pdf_buffer.seek(0)
-
-    return pdf_buffer
+    # test task to test
+    test_task.delay()
+    # Send the pdf to celery
+    # generate_pdf_task.delay(output_from_parsed_template, stylesheets, "test")
+    return generate_pdf_task(output_from_parsed_template, stylesheets, "test")
 
 
 def validate_json_file(file):
