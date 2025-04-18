@@ -1,7 +1,7 @@
 from governanceplatform.settings import PATH_FOR_REPORTING_PDF
 from celery import shared_task
 from weasyprint import HTML, CSS
-from io import BytesIO
+# from io import BytesIO
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,10 +15,10 @@ def generate_pdf_task(data, css_paths, filename):
 
     htmldoc = HTML(string=data)
 
-    pdf_buffer = BytesIO()
+    # pdf_buffer = BytesIO()
     htmldoc.write_pdf(target=pdf_file, stylesheets=stylesheets)
-    htmldoc.write_pdf(pdf_buffer, stylesheets=stylesheets)
-    pdf_buffer.seek(0)
+    # htmldoc.write_pdf(pdf_buffer, stylesheets=stylesheets)
+    # pdf_buffer.seek(0)
     return "pdf_buffer"
 
 
