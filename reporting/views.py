@@ -2192,8 +2192,8 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
     # test task to test
     test_task.delay()
     # Send the pdf to celery
-    generate_pdf_task.delay(output_from_parsed_template, stylesheets, "test")
-    return generate_pdf_task(output_from_parsed_template, stylesheets, "test")
+    generate_pdf_task.delay(output_from_parsed_template, stylesheets, "test", request.user.id)
+    return generate_pdf_task(output_from_parsed_template, stylesheets, "test", request.user.id)
 
 
 def validate_json_file(file):

@@ -391,3 +391,25 @@ class LogReporting(models.Model):
     def save(self, *args, **kwargs):
         self.user_full_name = self.user.get_full_name()
         super().save(*args, **kwargs)
+
+
+# store link for the generated file.
+# filename for the user when the files are stored on the end user device
+# file_uuid when store on the server to prevent conflict
+class GeneratedReport(models.Model):
+    user = models.ForeignKey(
+        "governanceplatform.User",
+        on_delete=models.SET_NULL,
+        verbose_name=_("User"),
+        null=True,
+    )
+    file_uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        verbose_name=_("uuid"),
+    )
+    filename = models.CharField(max_length=255, verbose_name=_("Filename"))
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+
+    def __str__(self):
+        return f"{self.filename} ({self.user.email})"
