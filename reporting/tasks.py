@@ -5,13 +5,42 @@ import uuid
 import zipfile
 from io import BytesIO
 
+import plotly.colors as pc
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
 
-from .helpers import create_entry_log
+from .helpers import create_entry_log, get_charts, get_risk_data, get_so_data
 from .models import CompanyReporting, GeneratedReport
+
+
+@shared_task
+def generate_pdf_data(cleaned_data):
+    static_dir = settings.STATIC_ROOT
+    so_data = get_so_data(cleaned_data)
+    risk_data = get_risk_data(cleaned_data)
+    charts = get_charts(so_data, risk_data)
+
+    rendered_data = render_to_string(
+        "reporting/template.html",
+        {
+            "company": cleaned_data["company"],
+            "year": cleaned_data["year"],
+            "sector": cleaned_data["sector"],
+            "top_ranking": cleaned_data["top_ranking"],
+            "report_recommendations": cleaned_data["report_recommendations"],
+            "charts": charts,
+            "so_data": so_data,
+            "risk_data": risk_data,
+            "nb_years": cleaned_data["nb_years"],
+            "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
+            "static_dir": os.path.abspath(static_dir),
+            "company_reporting": cleaned_data["company_reporting"],
+        },
+    )
+    return rendered_data
 
 
 @shared_task
