@@ -213,9 +213,10 @@ def contact(request):
             email = EmailMessage(
                 subject=_("Contact page from %(name)s") % {"name": settings.SITE_NAME},
                 body=full_message,
-                from_email=requestor_email,
+                from_email=settings.EMAIL_CONTACT_FROM,
                 to=[settings.EMAIL_FOR_CONTACT],
                 reply_to=[requestor_email],
+                headers={'Return-Path': settings.EMAIL_CONTACT_FROM},
             )
             email.send()
 

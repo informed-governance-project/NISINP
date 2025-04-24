@@ -196,3 +196,5 @@ PASSWORD_RESET_TIMEOUT = 1800
 ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 # Email adress for contact form
 EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
+# Email adress for FROM field and RETURN-PATH
+EMAIL_CONTACT_FROM = "test@mail.localhost"

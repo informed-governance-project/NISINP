@@ -495,3 +495,9 @@ try:
     EMAIL_FOR_CONTACT = config.EMAIL_FOR_CONTACT
 except AttributeError:
     EMAIL_FOR_CONTACT = ""
+
+# Email adress for FROM field and RETURN-PATH
+try:
+    EMAIL_CONTACT_FROM = config.EMAIL_CONTACT_FROM
+except AttributeError:
+    EMAIL_CONTACT_FROM = ""
