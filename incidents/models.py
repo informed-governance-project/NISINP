@@ -400,7 +400,10 @@ class SectorRegulationWorkflow(models.Model):
         return False
 
     # calculates the time between an incident update and actual_time
-    def how_late_is_the_report(self, incident, actual_time=timezone.now()):
+    def how_late_is_the_report(self, incident, actual_time=None):
+        if actual_time is None:
+            actual_time = timezone.now()
+
         trigger_event = self.trigger_event_before_deadline
         dt = None
         # check notif date
@@ -598,6 +601,9 @@ class Incident(models.Model):
 
     def get_incident_root_sector(self):
         return list({sector.parent for sector in self.affected_sectors.all()})
+
+    def get_no_childrens_sectors(self):
+        return list(self.affected_sectors.filter(parent__isnull=True))
 
     def get_next_step(self):
         current_workflow = (
@@ -857,7 +863,7 @@ class IncidentWorkflow(models.Model):
         return False
 
     # define is a submission is late or not
-    def is_late(self, actual_time=timezone.now()):
+    def is_late(self):
         report = SectorRegulationWorkflow.objects.filter(
             workflow=self.workflow,
             sector_regulation=self.incident.sector_regulation,

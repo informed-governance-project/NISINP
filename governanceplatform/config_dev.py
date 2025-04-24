@@ -2,7 +2,7 @@ import os
 
 from django.utils.translation import gettext_lazy as _
 
-PUBLIC_URL = "http://serima.monarc.lu"
+PUBLIC_URL = os.getenv("PUBLIC_URL", "127.0.0.1")
 ALLOWED_HOSTS = ["127.0.0.1", locals().get("PUBLIC_URL", "")]
 REGULATOR_CONTACT = {
     "name": "Organization Name",
@@ -22,7 +22,7 @@ REGULATOR_CONTACT = {
 }
 
 # The generic site/tool name. Used to load specific config, templates, styles, logo.
-SITE_NAME = "NISINP"
+SITE_NAME = "SERIMA"
 
 SECRET_KEY = "itl44kw2RCMArqCn2XSx1Mo7d28TvKLeCon9KaSeUSI8CzeUXu"
 HASH_KEY = b"Xaj5lFGAPiy2Ovzi4YmlWh-s4HHikFV4AswilOPPYN8="
@@ -198,11 +198,14 @@ ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 EMAIL_FOR_CONTACT = "email@nisinp.nisinp"
 
 # CELERY config
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
 
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
 
 # Path for deliveries
 PATH_FOR_REPORTING_PDF = "/tmp/"
+EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
+# Email adress for FROM field and RETURN-PATH
+EMAIL_CONTACT_FROM = "test@mail.localhost"

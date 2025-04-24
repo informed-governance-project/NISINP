@@ -503,18 +503,23 @@ try:
     CELERY_BROKER_URL = config.CELERY_BROKER_URL
     CELERY_RESULT_BACKEND = config.CELERY_RESULT_BACKEND
 except AttributeError:
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
 
 try:
     CELERY_ACCEPT_CONTENT = config.CELERY_ACCEPT_CONTENT
     CELERY_TASK_SERIALIZER = config.CELERY_TASK_SERIALIZER
 except AttributeError:
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_ACCEPT_CONTENT = ["json"]
+    CELERY_TASK_SERIALIZER = "json"
 
 # Paths for deliveries
 try:
     PATH_FOR_REPORTING_PDF = config.PATH_FOR_REPORTING_PDF
 except AttributeError:
     PATH_FOR_REPORTING_PDF = "/tmp/"
+# Email adress for FROM field and RETURN-PATH
+try:
+    EMAIL_CONTACT_FROM = config.EMAIL_CONTACT_FROM
+except AttributeError:
+    EMAIL_CONTACT_FROM = ""

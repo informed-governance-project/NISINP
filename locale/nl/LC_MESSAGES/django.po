@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:36+0200\n"
+"POT-Creation-Date: 2025-04-15 13:48+0200\n"
 "PO-Revision-Date: 2025-04-14 10:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -374,8 +374,8 @@ msgstr "Waarnemers"
 msgid "An account with this email address already exists."
 msgstr "Er is al een gebruiker geregistreerd met dit e-mailadres."
 
-#: governanceplatform/models.py:352 incidents/views.py:1206
-#: incidents/views.py:1213
+#: governanceplatform/models.py:352 incidents/views.py:1212
+#: incidents/views.py:1219
 msgid "Administrator"
 msgstr "Administrator"
 
@@ -385,7 +385,7 @@ msgstr "Bepaalt of de gebruiker via de beheerinterface kan inloggen."
 
 #: governanceplatform/models.py:439 governanceplatform/models.py:468
 #: governanceplatform/models.py:498 incidents/models.py:883
-#: incidents/views.py:1199
+#: incidents/views.py:1205
 msgid "User"
 msgstr "Gebruiker"
 
@@ -993,8 +993,8 @@ msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, "
-"a.u.b."
+"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, a.u."
+"b."
 
 #: incidents/views.py:605
 msgid "Contact"

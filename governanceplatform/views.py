@@ -26,6 +26,8 @@ from .forms import (
 )
 from .models import User
 
+from django.core.mail import EmailMessage
+
 
 @login_required
 @check_user_is_correct
@@ -207,13 +209,16 @@ def contact(request):
                 f"Téléphone : {phone or 'Non renseigné'}\n\n"
                 f"Message :\n{message}"
             )
-            requestor_email = form.cleaned_data["email"]
-            send_mail(
-                _("Contact page from %(name)s") % {"name": settings.SITE_NAME},
-                full_message,
-                requestor_email,
-                [settings.EMAIL_FOR_CONTACT],
+            requestor_email = form.cleaned_data["email"].strip()
+            email = EmailMessage(
+                subject=_("Contact page from %(name)s") % {"name": settings.SITE_NAME},
+                body=full_message,
+                from_email=settings.EMAIL_CONTACT_FROM,
+                to=[settings.EMAIL_FOR_CONTACT],
+                reply_to=[requestor_email],
+                headers={'Return-Path': settings.EMAIL_CONTACT_FROM},
             )
+            email.send()
 
             messages.success(request, _("Your message has been sent."))
             return redirect("contact")
