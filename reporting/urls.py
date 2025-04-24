@@ -6,6 +6,8 @@ from .views import (
     add_report_recommendations,
     copy_report_recommendations,
     delete_report_recommendation,
+    download_center,
+    download_report,
     edit_report_configuration,
     import_risk_analysis,
     report_configuration,
@@ -58,4 +60,7 @@ urlpatterns = [
     ),
     # Import risk analysis
     path("import_risk_analysis", import_risk_analysis, name="import_risk_analysis"),
+    # Download center
+    path("download-center/", download_center, name="download_center"),
+    path("download/<uuid:file_uuid>/", download_report, name="download_report"),
 ]
