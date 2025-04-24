@@ -1,7 +1,7 @@
 from django import template
 from django.conf import settings
 
-from reporting.views import SO_COLOR_PALETTE
+from reporting.globals import SO_COLOR_PALETTE
 
 register = template.Library()
 
