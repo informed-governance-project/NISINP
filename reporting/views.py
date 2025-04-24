@@ -263,6 +263,12 @@ def reporting(request):
                 )
                 pdf_tasks.append(pdf_task)
 
+            if error_messages and not pdf_tasks:
+                for error_message in error_messages:
+                    messages.error(request, error_message)
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
             if is_multiple_selected_companies:
                 chain(group(pdf_tasks), zip_pdfs_task.s(user.id, error_messages))()
 
