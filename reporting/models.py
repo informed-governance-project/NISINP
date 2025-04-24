@@ -1,7 +1,9 @@
+import os
 import uuid
 from datetime import datetime
 
 import pytz
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import get_default_timezone, is_naive, make_aware
@@ -413,3 +415,8 @@ class GeneratedReport(models.Model):
 
     def __str__(self):
         return f"{self.filename} ({self.user.email})"
+
+    def get_file_path(self):
+        return os.path.join(
+            settings.PATH_FOR_REPORTING_PDF, str(self.user.id), str(self.file_uuid)
+        )
