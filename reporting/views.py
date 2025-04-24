@@ -1,11 +1,10 @@
 import base64
-import io
+import datetime
 import json
 import logging
 import os
 import textwrap
 import uuid
-import zipfile
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
 from statistics import mean
@@ -14,6 +13,7 @@ from urllib.parse import quote as urlquote
 
 import plotly.colors as pc
 import plotly.graph_objects as go
+from celery import chain, group
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,7 +21,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -49,6 +49,7 @@ from .forms import (
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
+from .helpers import create_entry_log
 from .models import (
     AssetData,
     CompanyReporting,
@@ -62,8 +63,7 @@ from .models import (
     ThreatData,
     VulnerabilityData,
 )
-
-from .tasks import generate_pdf_task, test_task
+from .tasks import generate_pdf_task, save_pdf_task, zip_pdfs_task
 
 # GLOBALS
 SECTOR_LEGEND = _("Sector average")
@@ -134,156 +134,139 @@ def reporting(request):
                 if form.cleaned_data.get("selected")
             ]
             is_multiple_selected_companies = len(selected_companies) > 1
-            zip_buffer = io.BytesIO()
             error_messages = []
             errors = 0
-            with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                for select_company in selected_companies:
-                    company = select_company.get("company")
-                    sector = select_company.get("sector")
-                    if sector not in user_sectors:
-                        if is_multiple_selected_companies:
-                            error_message = _("%(sector)s forbidden") % {
-                                "sector": sector
-                            }
-                            error_messages.append(error_message)
-                            continue
-                        else:
-                            messages.error(request, _("Forbidden"))
-                            rendered_messages = render_error_messages(request)
-                            return JsonResponse(
-                                {"messages": rendered_messages}, status=400
-                            )
-
-                    try:
-                        company_reporting = CompanyReporting.objects.get(
-                            company=company, year=year, sector=sector
-                        )
-                    except CompanyReporting.DoesNotExist:
-                        if is_multiple_selected_companies:
-                            error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
-                            error_messages.append(error_message)
-                            continue
-                        else:
-                            messages.error(
-                                request,
-                                _("No reporting data"),
-                            )
-                            rendered_messages = render_error_messages(request)
-                            return JsonResponse(
-                                {"messages": rendered_messages}, status=400
-                            )
-
-                    try:
-                        sector_configuration = SectorReportConfiguration.objects.get(
-                            sector=sector
-                        )
-                        nb_years = sector_configuration.number_of_year
-                        threshold_for_high_risk = (
-                            sector_configuration.threshold_for_high_risk
-                        )
-                        top_ranking = sector_configuration.top_ranking
-                        so_excluded = sector_configuration.so_excluded.all()
-                    except SectorReportConfiguration.DoesNotExist:
-                        if is_multiple_selected_companies:
-                            error_message = gettext("No configuration for sector")
-                            error_messages.append(error_message)
-                            continue
-                        else:
-                            messages.error(
-                                request,
-                                _("No configuration for sector"),
-                            )
-                            rendered_messages = render_error_messages(request)
-                            return JsonResponse(
-                                {"messages": rendered_messages}, status=400
-                            )
-
-                    security_objectives_declaration = StandardAnswer.objects.filter(
-                        submitter_company=company,
-                        sectors=sector,
-                        year_of_submission=year,
-                        status="PASS",
-                    ).order_by("submit_date")
-
-                    risk_analysis_stats = company.risk_analysis_exists(year, sector)
-
-                    if not security_objectives_declaration:
-                        if is_multiple_selected_companies:
-                            error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
-                            error_messages.append(error_message)
-                            continue
-                        else:
-                            errors += 1
-                            messages.error(
-                                request,
-                                _("No data found for security objectives report"),
-                            )
-
-                    if not risk_analysis_stats:
-                        if is_multiple_selected_companies:
-                            error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
-                            error_messages.append(error_message)
-                            continue
-                        else:
-                            errors += 1
-                            messages.error(
-                                request,
-                                _("No data found for risk report"),
-                            )
-
-                    if errors > 0:
+            pdf_tasks = []
+            run_id = (
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                + "_"
+                + str(uuid.uuid4())[:8]
+            )
+            for select_company in selected_companies:
+                company = select_company.get("company")
+                sector = select_company.get("sector")
+                if sector not in user_sectors:
+                    if is_multiple_selected_companies:
+                        error_message = _("%(sector)s forbidden") % {"sector": sector}
+                        error_messages.append(error_message)
+                        continue
+                    else:
+                        messages.error(request, _("Forbidden"))
                         rendered_messages = render_error_messages(request)
                         return JsonResponse({"messages": rendered_messages}, status=400)
 
-                    report_recommendations = company.get_report_recommandations(
-                        year, sector
+                try:
+                    company_reporting = CompanyReporting.objects.get(
+                        company=company, year=year, sector=sector
                     )
-
-                    report_data = {
-                        "company": company,
-                        "sector": sector,
-                        "year": year,
-                        "threshold_for_high_risk": threshold_for_high_risk,
-                        "top_ranking": top_ranking,
-                        "nb_years": nb_years,
-                        "so_excluded": so_excluded,
-                        "report_recommendations": report_recommendations,
-                        "company_reporting": company_reporting,
-                    }
-
-                    try:
-                        pdf_report = get_pdf_report(request, report_data)
-                    except Exception:
+                except CompanyReporting.DoesNotExist:
+                    if is_multiple_selected_companies:
+                        error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
+                        error_messages.append(error_message)
+                        continue
+                    else:
                         messages.error(
-                            request, _("An error occurred while generating the report.")
+                            request,
+                            _("No reporting data"),
                         )
                         rendered_messages = render_error_messages(request)
                         return JsonResponse({"messages": rendered_messages}, status=400)
 
-                    sector_name = sector.get_safe_translation()
-                    filename = urlquote(
-                        f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                try:
+                    sector_configuration = SectorReportConfiguration.objects.get(
+                        sector=sector
                     )
-                    zip_file.writestr(filename, pdf_report.read())
+                    nb_years = sector_configuration.number_of_year
+                    threshold_for_high_risk = (
+                        sector_configuration.threshold_for_high_risk
+                    )
+                    top_ranking = sector_configuration.top_ranking
+                    so_excluded = sector_configuration.so_excluded.all()
+                except SectorReportConfiguration.DoesNotExist:
+                    if is_multiple_selected_companies:
+                        error_message = gettext("No configuration for sector")
+                        error_messages.append(error_message)
+                        continue
+                    else:
+                        messages.error(
+                            request,
+                            _("No configuration for sector"),
+                        )
+                        rendered_messages = render_error_messages(request)
+                        return JsonResponse({"messages": rendered_messages}, status=400)
 
-                    create_entry_log(user, company_reporting, "GENERATE REPORT")
+                security_objectives_declaration = StandardAnswer.objects.filter(
+                    submitter_company=company,
+                    sectors=sector,
+                    year_of_submission=year,
+                    status="PASS",
+                ).order_by("submit_date")
 
-                if error_messages:
-                    error_log = "\n".join(error_messages)
-                    zip_file.writestr("error_log.txt", error_log)
+                risk_analysis_stats = company.risk_analysis_exists(year, sector)
 
-            zip_buffer.seek(0)
+                if not security_objectives_declaration:
+                    if is_multiple_selected_companies:
+                        error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
+                        error_messages.append(error_message)
+                        continue
+                    else:
+                        errors += 1
+                        messages.error(
+                            request,
+                            _("No data found for security objectives report"),
+                        )
+
+                if not risk_analysis_stats:
+                    if is_multiple_selected_companies:
+                        error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
+                        error_messages.append(error_message)
+                        continue
+                    else:
+                        errors += 1
+                        messages.error(
+                            request,
+                            _("No data found for risk report"),
+                        )
+
+                if errors > 0:
+                    rendered_messages = render_error_messages(request)
+                    return JsonResponse({"messages": rendered_messages}, status=400)
+
+                report_recommendations = company.get_report_recommandations(
+                    year, sector
+                )
+
+                report_data = {
+                    "company": company,
+                    "sector": sector,
+                    "year": year,
+                    "threshold_for_high_risk": threshold_for_high_risk,
+                    "top_ranking": top_ranking,
+                    "nb_years": nb_years,
+                    "so_excluded": so_excluded,
+                    "report_recommendations": report_recommendations,
+                    "company_reporting": company_reporting,
+                }
+
+                # try:
+                sector_name = sector.get_safe_translation()
+                filename = urlquote(
+                    f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                )
+                pdf_task = get_pdf_report(
+                    request,
+                    report_data,
+                    run_id,
+                    company_reporting,
+                    filename,
+                    is_multiple_selected_companies,
+                )
+                pdf_tasks.append(pdf_task)
 
             if is_multiple_selected_companies:
-                response = HttpResponse(zip_buffer, content_type="application/zip")
-                response["Content-Disposition"] = 'attachment; filename="reports.zip"'
-            else:
-                pdf_report.seek(0)
-                response = HttpResponse(pdf_report, content_type="application/pdf")
-                response["Content-Disposition"] = f'attachment; filename="{filename}"'
+                chain(group(pdf_tasks), zip_pdfs_task.s(user.id, error_messages))()
 
-            return response
+            return JsonResponse({"status": "processing"}, status=202)
 
     formset = CompanySelectFormSet(
         queryset=company_filter.qs, year=year, sectors_filter=sectors_filters
@@ -2130,7 +2113,15 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             extract_risks(normalized_instance)
 
 
-def get_pdf_report(request: HttpRequest, cleaned_data: dict):
+def get_pdf_report(
+    request: HttpRequest,
+    cleaned_data: dict,
+    run_id,
+    company_reporting,
+    filename,
+    is_multiple_files: bool,
+):
+    user = request.user
     static_dir = settings.STATIC_ROOT
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
@@ -2189,11 +2180,17 @@ def get_pdf_report(request: HttpRequest, cleaned_data: dict):
         os.path.join(static_dir, "css/report.css"),
     ]
 
-    # test task to test
-    test_task.delay()
     # Send the pdf to celery
-    generate_pdf_task.delay(output_from_parsed_template, stylesheets, "test", request.user.id)
-    return generate_pdf_task(output_from_parsed_template, stylesheets, "test", request.user.id)
+    pdf_task = chain(
+        generate_pdf_task.s(output_from_parsed_template, stylesheets),
+        save_pdf_task.s(
+            run_id, user.id, company_reporting.id, filename, is_multiple_files
+        ),
+    )
+    if not is_multiple_files:
+        return pdf_task.delay()
+
+    return pdf_task
 
 
 def validate_json_file(file):
@@ -2270,15 +2267,6 @@ def add_new_report_recommendations(company, sector, year, report_recommendations
     observation_obj.observation_recommendations.add(*report_recommendations)
 
     create_entry_log(user, company_reporting_obj, "ADD RECOMMENDATIONS")
-
-
-def create_entry_log(user, reporting, action):
-    log = LogReporting.objects.create(
-        user=user,
-        reporting=reporting,
-        action=action,
-    )
-    log.save()
 
 
 def render_error_messages(request):
