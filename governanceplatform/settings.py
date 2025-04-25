@@ -126,11 +126,13 @@ INSTALLED_APPS = [
     "health_check",
     "health_check.db",
     "captcha",
+    "mozilla_django_oidc",
 ]
 
 AUTHENTICATION_BACKENDS = [
     "governanceplatform.custom_auth_backend.CaseInsensitiveEmailBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "governanceplatform.auth.CustomOIDCBackend",
 ]
 
 REST_FRAMEWORK = {
@@ -271,8 +273,70 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "governanceplatform.User"
 
-LOGOUT_REDIRECT_URL = "/"
-LOGIN_URL = "/account/login"
+# LOGIN_URL = "/account/login"
+
+# OIDC config
+try:
+    LOGIN_REDIRECT_URL = config.LOGIN_REDIRECT_URL
+except AttributeError:
+    LOGIN_REDIRECT_URL = "http://localhost:8000/"
+try:
+    LOGOUT_REDIRECT_URL = config.LOGOUT_REDIRECT_URL
+except AttributeError:
+    LOGOUT_REDIRECT_URL = "http://localhost:8000/"
+try:
+    LOGIN_URL = config.LOGIN_URL
+except AttributeError:
+    LOGIN_URL = "/account/login"
+try:
+    OIDC_USE_PKCE = config.OIDC_USE_PKCE
+except AttributeError:
+    OIDC_USE_PKCE = True
+try:
+    OIDC_OP_DISCOVERY_ENDPOINT = config.OIDC_OP_DISCOVERY_ENDPOINT
+except AttributeError:
+    OIDC_OP_DISCOVERY_ENDPOINT = "http://localhost:8080/.well-known/openid-configuration"
+try:
+    OIDC_RP_SIGN_ALGO = config.OIDC_RP_SIGN_ALGO
+except AttributeError:
+    OIDC_RP_SIGN_ALGO = "RS256"
+try:
+    OIDC_RP_SCOPES = config.OIDC_RP_SCOPES
+except AttributeError:
+    OIDC_RP_SCOPES = "openid email phone profile"
+try:
+    OIDC_VERIFY_SSL = config.OIDC_VERIFY_SSL
+except AttributeError:
+    OIDC_VERIFY_SSL = False
+try:
+    OIDC_RP_CLIENT_SECRET = config.OIDC_RP_CLIENT_SECRET
+except AttributeError:
+    OIDC_RP_CLIENT_SECRET = None
+try:
+    OIDC_RP_CLIENT_ID = config.OIDC_RP_CLIENT_ID
+except AttributeError:
+    OIDC_RP_CLIENT_ID = '123456789'
+try:
+    OIDC_OP_AUTHORIZATION_ENDPOINT = config.OIDC_OP_AUTHORIZATION_ENDPOINT
+except AttributeError:
+    OIDC_OP_AUTHORIZATION_ENDPOINT = "http://localhost:8080/oauth/v2/authorize"
+try:
+    OIDC_OP_TOKEN_ENDPOINT = config.OIDC_OP_TOKEN_ENDPOINT
+except AttributeError:
+    OIDC_OP_TOKEN_ENDPOINT = "http://localhost:8080/oauth/v2/token"
+try:
+    OIDC_OP_USER_ENDPOINT = config.OIDC_OP_USER_ENDPOINT
+except AttributeError:
+    OIDC_OP_USER_ENDPOINT = "http://localhost:8080/oidc/v1/userinfo"
+try:
+    OIDC_OP_JWKS_ENDPOINT = config.OIDC_OP_JWKS_ENDPOINT
+except AttributeError:
+    OIDC_OP_JWKS_ENDPOINT = "http://localhost:8080/oauth/v2/keys"
+try:
+    OIDC_RP_REDIRECT_URI = config.OIDC_RP_REDIRECT_URI
+except AttributeError:
+    OIDC_RP_REDIRECT_URI = "http://localhost:8000/oidc/callback/"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

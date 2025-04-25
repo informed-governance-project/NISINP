@@ -14,6 +14,8 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError(_("User must have an email address"))
         email = self.normalize_email(email)
+        if 'email' in extra_fields:
+            del extra_fields['email']
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
@@ -28,7 +30,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_staff=True."))
 
         # Create the superuser
-        user = self.create_user(email, password, **extra_fields)
+        extra_fields.pop("email", None)
+        user = self.create_user(email=email, password=password, **extra_fields)
         # Platform Admin permissions
         set_platform_admin_permissions(user)
 

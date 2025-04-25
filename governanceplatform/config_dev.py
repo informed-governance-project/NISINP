@@ -198,3 +198,22 @@ ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
 # Email adress for FROM field and RETURN-PATH
 EMAIL_CONTACT_FROM = "test@mail.localhost"
+
+# OIDC config
+# LOGIN_URL = "/account/login"
+LOGIN_REDIRECT_URL = "http://localhost:8000/"
+LOGOUT_REDIRECT_URL = "http://localhost:8000/"
+LOGIN_URL = "http://localhost:8000/oidc/authenticate/"
+OIDC_USE_PKCE = True
+OIDC_OP_DISCOVERY_ENDPOINT = "http://localhost:8080/.well-known/openid-configuration"
+OIDC_RP_SIGN_ALGO = 'RS256'
+OIDC_RP_SCOPES = "openid email phone profile"
+OIDC_VERIFY_SSL = False
+OIDC_RP_CLIENT_SECRET = None
+OIDC_RP_CLIENT_ID = '00000000000'
+OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://localhost:8080/oauth/v2/authorize'
+OIDC_OP_TOKEN_ENDPOINT = "http://localhost:8080/oauth/v2/token"
+OIDC_OP_USER_ENDPOINT = "http://localhost:8080/oidc/v1/userinfo"
+OIDC_OP_JWKS_ENDPOINT = "http://localhost:8080/oauth/v2/keys"
+# L'URL de redirection doit correspondre à celle de ton application Django
+OIDC_RP_REDIRECT_URI = 'http://localhost:8000/oidc/callback/'

@@ -30,6 +30,7 @@ handler500 = "governanceplatform.views.custom_500_view"
 
 
 urlpatterns = [
+    path('oidc/', include("mozilla_django_oidc.urls")),
     # Root
     path("", views.index, name="index"),
     # Admin
