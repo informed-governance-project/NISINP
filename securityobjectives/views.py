@@ -1024,7 +1024,9 @@ def create_entry_log(user, standard_answer, action, request=None):
         cu = CompanyUser.objects.filter(user=user, company=active_company).first()
         if cu and cu.is_company_administrator:
             role = _("Administrator")
-        entity_name = active_company.name
+        entity_name = (
+            active_company.name if active_company else user.companies.first().name
+        )
 
     elif is_user_regulator(user):
         regulator = user.regulators.first()
