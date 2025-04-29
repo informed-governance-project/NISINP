@@ -572,13 +572,41 @@ def import_risk_analysis(request):
 
     company_list = [(company.id, str(company)) for company in companies_queryset]
 
-    initial = {
+    try:
+        initial = {}
+        if "company_id" in request.GET:
+            company_id = int(request.GET.get("company_id"))
+            if not companies_queryset.filter(id=company_id).exists():
+                messages.error(request, _("Forbidden"))
+                return HttpResponseRedirect(request.headers.get("referer"))
+            initial["company"] = company_id
+
+        if "sector_id" in request.GET:
+            sector_id = int(request.GET.get("sector_id"))
+            if not sectors_queryset.filter(id=sector_id).exists():
+                messages.error(request, _("Forbidden"))
+                return HttpResponseRedirect(request.headers.get("referer"))
+            initial["sectors"] = sector_id
+
+        if "year" in request.GET:
+            initial["year"] = int(request.GET.get("year"))
+
+    except (ValueError, TypeError):
+        messages.error(request, _("Invalid request"))
+        return HttpResponseRedirect(request.headers.get("referer"))
+
+    choices = {
         "company": company_list,
         "sectors": sector_list,
     }
 
     if request.method == "POST":
-        form = ImportRiskAnalysisForm(request.POST, request.FILES, initial=initial)
+        form = ImportRiskAnalysisForm(
+            request.POST,
+            request.FILES,
+            initial=initial or {},
+            choices=choices,
+        )
         if form.is_valid():
             json_file = form.cleaned_data["import_file"]
             company_id = form.cleaned_data["company"]
@@ -588,14 +616,14 @@ def import_risk_analysis(request):
                 validate_json_file(json_file)
             except ValidationError as e:
                 messages.error(request, f"Error: {str(e)}")
-                return redirect("import_risk_analysis")
+                return HttpResponseRedirect(request.headers.get("referer"))
 
             for sector_id in sector_ids:
                 validate_result = validate_url_arguments(
                     request, company_id, sector_id, year
                 )
                 if isinstance(validate_result, HttpResponseRedirect):
-                    return redirect("import_risk_analysis")
+                    return HttpResponseRedirect(request.headers.get("referer"))
 
                 company, sector, year = validate_result
                 company_sectors = company.get_queryset_sectors()
@@ -618,13 +646,17 @@ def import_risk_analysis(request):
                     parsing_risk_data_json(json_file, company_reporting_obj)
                 except Exception as e:
                     messages.error(request, f"Parsing error: {str(e)}")
-                    return redirect("import_risk_analysis")
+                    return HttpResponseRedirect(request.headers.get("referer"))
 
                 messages.success(request, _("Risk analysis successfully imported"))
+                return HttpResponseRedirect(request.headers.get("referer"))
 
-    form = ImportRiskAnalysisForm(initial=initial)
+    form = ImportRiskAnalysisForm(
+        initial=initial or {},
+        choices=choices,
+    )
     context = {"form": form}
-    return render(request, "reporting/risk_analysis_import.html", context=context)
+    return render(request, "modals/risk_analysis_import.html", context=context)
 
 
 @login_required

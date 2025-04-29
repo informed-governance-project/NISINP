@@ -23,7 +23,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Cast
 from django.forms.models import model_to_dict
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -482,7 +482,7 @@ def copy_declaration(request, standard_answer_id: int):
                             },
                         )
 
-            messages.info(
+            messages.success(
                 request,
                 _("The security objectives declaration has been duplicated."),
             )
@@ -513,7 +513,9 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer.save()
     send_email(standard_answer.standard.submission_email, standard_answer)
     create_entry_log(user, standard_answer, "SUBMIT", request)
-    messages.info(request, _("The security objectives declaration has been submitted."))
+    messages.success(
+        request, _("The security objectives declaration has been submitted.")
+    )
 
     return redirect("securityobjectives")
 
@@ -526,7 +528,7 @@ def delete_declaration(request, standard_answer_id: int):
         if not has_change_permission(request, standard_answer, "delete"):
             return redirect("securityobjectives")
         standard_answer.delete()
-        messages.info(
+        messages.success(
             request, _("The security objectives declaration has been deleted.")
         )
     except StandardAnswer.DoesNotExist:
@@ -565,7 +567,7 @@ def review_comment_declaration(request, standard_answer_id: int):
             email_to_send = False
 
             create_entry_log(user, standard_answer, "COMMENT", request)
-            messages.info(
+            messages.success(
                 request,
                 _("The review comment has been saved."),
             )
@@ -707,6 +709,10 @@ def import_so_declaration(request):
         for standard in Standard.objects.filter(regulator=regulator)
     ]
 
+    if not standard_list:
+        messages.error(request, _("No data available"))
+        return HttpResponseRedirect(request.headers.get("referer"))
+
     sectors_queryset = (
         user.get_sectors().all()
         if user_in_group(user, "RegulatorUser")
@@ -725,16 +731,41 @@ def import_so_declaration(request):
 
     company_list = [(company.id, str(company)) for company in companies_queryset]
 
-    initial = {
+    try:
+        initial = {}
+        if "company_id" in request.GET:
+            company_id = int(request.GET.get("company_id"))
+            if not companies_queryset.filter(id=company_id).exists():
+                messages.error(request, _("Forbidden"))
+                return HttpResponseRedirect(request.headers.get("referer"))
+            initial["company"] = company_id
+
+        if "sector_id" in request.GET:
+            sector_id = int(request.GET.get("sector_id"))
+            if not sectors_queryset.filter(id=sector_id).exists():
+                messages.error(request, _("Forbidden"))
+                return HttpResponseRedirect(request.headers.get("referer"))
+            initial["sectors"] = sector_id
+
+        if "year" in request.GET:
+            initial["year"] = int(request.GET.get("year"))
+
+    except (ValueError, TypeError):
+        messages.error(request, _("Invalid request"))
+        return HttpResponseRedirect(request.headers.get("referer"))
+
+    choices = {
         "standard": standard_list,
         "company": company_list,
         "sectors": sector_list,
     }
+
     if request.method == "POST":
         form = ImportSOForm(
             request.POST,
             request.FILES,
-            initial=initial,
+            initial=initial or {},
+            choices=choices,
         )
         if form.is_valid():
             try:
@@ -742,7 +773,7 @@ def import_so_declaration(request):
                 ws = wb.active
             except Exception as e:
                 messages.error(request, _("Error opening the file: {}").format(str(e)))
-                return redirect("securityobjectives")
+                return HttpResponseRedirect(request.headers.get("referer"))
 
             measure_answers_imported = []
             default_text = "Free text field"
@@ -763,7 +794,7 @@ def import_so_declaration(request):
                         request,
                         _("No users for this company"),
                     )
-                    return redirect("securityobjectives")
+                    return HttpResponseRedirect(request.headers.get("referer"))
 
                 company_sectors = company.get_queryset_sectors()
                 for sector in Sector.objects.filter(id__in=sectors):
@@ -776,7 +807,7 @@ def import_so_declaration(request):
                         valid_sectors.append(sector)
 
                 if not valid_sectors:
-                    return redirect("securityobjectives")
+                    return HttpResponseRedirect(request.headers.get("referer"))
 
                 new_standard_answer = StandardAnswer(
                     standard=standard,
@@ -796,7 +827,7 @@ def import_so_declaration(request):
                     request,
                     _("An error occurred while importing the declaration file."),
                 )
-                return redirect("securityobjectives")
+                return HttpResponseRedirect(request.headers.get("referer"))
 
             security_objectives = {
                 obj.security_objective.unique_code: obj.security_objective
@@ -880,12 +911,9 @@ def import_so_declaration(request):
             messages.success(
                 request, ("The security objectives declaration has been imported.")
             )
+            return HttpResponseRedirect(request.headers.get("referer"))
 
-            return redirect("securityobjectives")
-
-    if not standard_list:
-        messages.error(request, _("No data available"))
-    form = ImportSOForm(initial=initial)
+    form = ImportSOForm(initial=initial or {}, choices=choices)
     context = {"form": form}
     return render(request, "modals/import_so_declaration.html", context=context)
 

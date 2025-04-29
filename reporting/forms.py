@@ -7,7 +7,11 @@ from parler.forms import TranslatableModelForm
 from governanceplatform.models import Company, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import ObservationRecommendation, SectorReportConfiguration, CompanyReporting
+from .models import (
+    CompanyReporting,
+    ObservationRecommendation,
+    SectorReportConfiguration,
+)
 
 
 class ImportRiskAnalysisForm(forms.Form):
@@ -43,15 +47,15 @@ class ImportRiskAnalysisForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        initial = kwargs.pop("initial", None)
+        choices = kwargs.pop("choices", {})
         super().__init__(*args, **kwargs)
-        if initial["company"] and initial["sectors"]:
-            self.fields["company"].choices = initial["company"]
-            self.fields["sectors"].choices = initial["sectors"]
+
+        if choices.get("company") and choices.get("sectors"):
+            self.fields["company"].choices = choices["company"]
+            self.fields["sectors"].choices = choices["sectors"]
         else:
-            self.fields["company"].disabled = True
-            self.fields["year"].disabled = True
-            self.fields["sectors"].disabled = True
+            for field_name in ["company", "year", "sectors"]:
+                self.fields[field_name].disabled = True
 
 
 class ConfigurationReportForm(forms.ModelForm):

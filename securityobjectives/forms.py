@@ -164,17 +164,20 @@ class ImportSOForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        initial = kwargs.pop("initial", None)
+        choices = kwargs.pop("choices", {})
         super().__init__(*args, **kwargs)
-        if initial["standard"] and initial["company"] and initial["sectors"]:
-            self.fields["standard"].choices = initial["standard"]
-            self.fields["company"].choices = initial["company"]
-            self.fields["sectors"].choices = initial["sectors"]
+
+        if (
+            choices.get("standard")
+            and choices.get("company")
+            and choices.get("sectors")
+        ):
+            self.fields["standard"].choices = choices["standard"]
+            self.fields["company"].choices = choices["company"]
+            self.fields["sectors"].choices = choices["sectors"]
         else:
-            self.fields["standard"].disabled = True
-            self.fields["company"].disabled = True
-            self.fields["year"].disabled = True
-            self.fields["sectors"].disabled = True
+            for field_name in ["standard", "company", "year", "sectors"]:
+                self.fields[field_name].disabled = True
 
 
 class CopySOForm(forms.Form):
