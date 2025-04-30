@@ -988,7 +988,7 @@ def has_change_permission(request, standard_answer, action):
                 return (
                     is_standard_answer_in_user_company
                     and standard_answer.status == "UNDE"
-                )
+                ) or (is_user_regulator_sector)
             case "review_comment":
                 return (
                     is_user_regulator_sector and standard_answer.status != "UNDE"

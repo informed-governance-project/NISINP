@@ -105,7 +105,6 @@ class RestrictViewsMiddleware:
                     request.path == reverse("declaration")
                     or request.path.startswith("/incidents/delete/")
                     or request.path == reverse("create_workflow")
-                    or request.path.startswith("/securityobjectives/delete/")
                     or request.path.startswith("/securityobjectives/submit/")
                     or request.path.startswith("/securityobjectives/copy/")
                     or request.path == reverse("create_so_declaration")
