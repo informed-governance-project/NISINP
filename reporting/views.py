@@ -671,11 +671,33 @@ def import_risk_analysis(request):
                             observation__company_reporting=company_reporting_obj
                         )
                     )
+                    logs = list(
+                        LogReporting.objects.filter(reporting=company_reporting_obj)
+                    )
+
+                    comment = (
+                        str(company_reporting_obj.comment)
+                        if company_reporting_obj.comment
+                        else ""
+                    )
 
                     company_reporting_obj.delete()
                     company_reporting_obj = CompanyReporting.objects.create(
-                        company=company, year=year, sector=sector
+                        company=company, year=year, sector=sector, comment=comment
                     )
+
+                    if logs:
+                        new_logs = [
+                            LogReporting(
+                                reporting=company_reporting_obj,
+                                user=log.user,
+                                user_full_name=log.user_full_name,
+                                action=log.action,
+                                timestamp=log.timestamp,
+                            )
+                            for log in logs
+                        ]
+                        LogReporting.objects.bulk_create(new_logs)
 
                     if report_recommendations:
                         add_new_report_recommendations(
@@ -724,6 +746,7 @@ def access_log(request, company_id, sector_id, year):
 @login_required
 @otp_required
 def review_comment_report(request, company_id, sector_id, year):
+    user = request.user
     validate_result = validate_url_arguments(request, company_id, sector_id, year)
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
@@ -739,6 +762,7 @@ def review_comment_report(request, company_id, sector_id, year):
         form = ReviewCommentForm(request.POST, instance=company_reporting)
         if form.is_valid():
             form.save()
+            create_entry_log(user, company_reporting, "ADD COMMENT")
             return redirect("reporting")
     else:
         form = ReviewCommentForm(instance=company_reporting)
