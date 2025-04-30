@@ -666,10 +666,22 @@ def import_risk_analysis(request):
                     company=company, year=year, sector=sector
                 )
                 if not created:
+                    report_recommendations = list(
+                        ObservationRecommendationThrough.objects.filter(
+                            observation__company_reporting=company_reporting_obj
+                        )
+                    )
+
                     company_reporting_obj.delete()
                     company_reporting_obj = CompanyReporting.objects.create(
                         company=company, year=year, sector=sector
                     )
+
+                    if report_recommendations:
+                        add_new_report_recommendations(
+                            company, sector, year, report_recommendations, user, "COPY"
+                        )
+
                 try:
                     parsing_risk_data_json(json_file, company_reporting_obj)
                 except Exception as e:
@@ -677,6 +689,7 @@ def import_risk_analysis(request):
                     return HttpResponseRedirect(request.headers.get("referer"))
 
                 messages.success(request, _("Risk analysis successfully imported"))
+                create_entry_log(user, company_reporting_obj, "RISK ANALYSIS IMPORT")
                 return HttpResponseRedirect(request.headers.get("referer"))
 
     form = ImportRiskAnalysisForm(
