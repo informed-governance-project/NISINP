@@ -11,6 +11,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
 from incidents.models import Incident
+from reporting.models import ObservationRecommendationThrough
 
 from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 from .managers import CustomUserManager
@@ -216,9 +217,18 @@ class Company(models.Model):
         if not companyreporting:
             return self.companyreporting_set.none()
 
-        return (
-            companyreporting.observation_set.first().observation_recommendations.all()
+        observation = companyreporting.observation_set.first()
+
+        if not observation:
+            return ObservationRecommendationThrough.objects.none()
+
+        observation_recommendations_qs = (
+            ObservationRecommendationThrough.objects.filter(
+                observation=observation
+            ).order_by("order")
         )
+
+        return observation_recommendations_qs
 
     class Meta:
         verbose_name = _("Operator")

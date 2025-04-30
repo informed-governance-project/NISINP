@@ -363,12 +363,27 @@ class Observation(models.Model):
     )
     observation_recommendations = models.ManyToManyField(
         ObservationRecommendation,
+        through="ObservationRecommendationThrough",
         verbose_name=_("Observation recommendations"),
     )
 
     class Meta:
         verbose_name_plural = _("Observations")
         verbose_name = _("Observation")
+
+
+class ObservationRecommendationThrough(models.Model):
+    observation = models.ForeignKey("Observation", on_delete=models.CASCADE)
+    observation_recommendation = models.ForeignKey(
+        "ObservationRecommendation", on_delete=models.CASCADE
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = _("Observations order")
+        verbose_name = _("Observation order")
+        unique_together = ("observation", "observation_recommendation")
+        ordering = ["order"]
 
 
 # reporting logs

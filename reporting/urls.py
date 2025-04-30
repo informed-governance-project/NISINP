@@ -14,6 +14,7 @@ from .views import (
     report_recommendations,
     reporting,
     review_comment_report,
+    update_report_recommendation,
 )
 
 urlpatterns = [
@@ -52,6 +53,11 @@ urlpatterns = [
         "recommendations/copy/<int:company_id>/<int:sector_id>/<int:year>/",
         copy_report_recommendations,
         name="copy_report_recommendations",
+    ),
+    path(
+        "recommendations/update/<int:report_rec_id>",
+        update_report_recommendation,
+        name="update_report_recommendation",
     ),
     path(
         "access_log/<int:company_id>/<int:sector_id>/<int:year>/",

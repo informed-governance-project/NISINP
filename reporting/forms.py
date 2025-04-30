@@ -10,6 +10,7 @@ from incidents.forms import DropdownCheckboxSelectMultiple
 from .models import (
     CompanyReporting,
     ObservationRecommendation,
+    ObservationRecommendationThrough,
     SectorReportConfiguration,
 )
 
@@ -196,3 +197,18 @@ class ReviewCommentForm(forms.ModelForm):
     class Meta:
         model = CompanyReporting
         fields = ["id", "comment"]
+
+
+class ObservationRecommendationOrderForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        onchange_function = f"onChangeRecommendation(this, {self.instance.pk})"
+
+        self.fields["order"].widget.attrs = {
+            "onchange": onchange_function,
+        }
+
+    class Meta:
+        model = ObservationRecommendationThrough
+        fields = ["order"]

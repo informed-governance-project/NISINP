@@ -37,6 +37,7 @@ from .forms import (
     CompanySelectFormSet,
     ConfigurationReportForm,
     ImportRiskAnalysisForm,
+    ObservationRecommendationOrderForm,
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
@@ -48,6 +49,7 @@ from .models import (
     LogReporting,
     Observation,
     ObservationRecommendation,
+    ObservationRecommendationThrough,
     RecommendationData,
     RiskData,
     SectorReportConfiguration,
@@ -229,14 +231,12 @@ def reporting(request):
                     "report_recommendations": [
                         {
                             **model_to_dict(rec, exclude=["sectors"]),
-                            "description": rec.description,
+                            "description": rec.observation_recommendation.description,
                         }
                         for rec in report_recommendations
                     ],
                     "company_reporting": model_to_dict(company_reporting),
                 }
-
-                print(sector, model_to_dict(sector))
 
                 # try:
                 sector_name = sector.get_safe_translation()
@@ -400,9 +400,12 @@ def report_recommendations(request, company_id, sector_id, year):
         return validate_result
     company, sector, year = validate_result
     report_recommendations = company.get_report_recommandations(year, sector)
+    forms = []
+    for recommendation in report_recommendations:
+        forms.append(ObservationRecommendationOrderForm(instance=recommendation))
 
     context = {
-        "recommendations": report_recommendations,
+        "recommendations": forms,
         "company": company,
         "sector": sector,
         "year": year,
@@ -439,7 +442,9 @@ def add_report_recommendations(request, company_id, sector_id, year):
     request.session["report_recommendations_filter_params"] = current_params
 
     report_recommendations = company.get_report_recommandations(year, sector)
-    recommendations_ids = [rec.id for rec in report_recommendations]
+    recommendations_ids = [
+        rec.observation_recommendation.id for rec in report_recommendations
+    ]
 
     recommendations_queryset = ObservationRecommendation.objects.exclude(
         id__in=recommendations_ids
@@ -495,6 +500,7 @@ def copy_report_recommendations(request, company_id, sector_id, year):
     company, sector, year = validate_result
     last_year = year - 1
     report_recommendations = company.get_report_recommandations(last_year, sector)
+
     if not report_recommendations:
         messages.error(
             request,
@@ -502,7 +508,7 @@ def copy_report_recommendations(request, company_id, sector_id, year):
         )
     else:
         add_new_report_recommendations(
-            company, sector, year, report_recommendations, user
+            company, sector, year, report_recommendations, user, "COPY"
         )
         messages.success(
             request,
@@ -548,6 +554,28 @@ def delete_report_recommendation(request, company_id, sector_id, year, report_re
     create_entry_log(user, company_reporting, "DELETE RECOMMENDATIONS")
 
     return redirect(redirect_url)
+
+
+@login_required
+@otp_required
+def update_report_recommendation(request, report_rec_id):
+    try:
+        report_recommendation = ObservationRecommendationThrough.objects.get(
+            id=report_rec_id
+        )
+    except ObservationRecommendationThrough.DoesNotExist:
+        return JsonResponse({"error": "Observation not found."}, status=404)
+
+    if request.method == "POST":
+        form = ObservationRecommendationOrderForm(
+            request.POST, instance=report_recommendation
+        )
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"success": True})
+
+    messages.error(request, _("Forbidden"))
+    return redirect("reporting")
 
 
 @login_required
@@ -1134,16 +1162,32 @@ def validate_url_arguments(request, company_id, sector_id, year):
     return company, sector, year
 
 
-def add_new_report_recommendations(company, sector, year, report_recommendations, user):
+def add_new_report_recommendations(
+    company, sector, year, report_recommendations, user, action="ADD"
+):
     company_reporting_obj, created = CompanyReporting.objects.get_or_create(
         company=company, year=year, sector=sector
     )
     observation_obj, created = Observation.objects.get_or_create(
         company_reporting=company_reporting_obj
     )
-    observation_obj.observation_recommendations.add(*report_recommendations)
+    if action == "ADD":
+        observation_obj.observation_recommendations.add(*report_recommendations)
 
-    create_entry_log(user, company_reporting_obj, "ADD RECOMMENDATIONS")
+        create_entry_log(user, company_reporting_obj, "ADD RECOMMENDATIONS")
+    elif action == "COPY":
+        new_report_recommendations = [
+            ObservationRecommendationThrough(
+                observation=observation_obj,
+                observation_recommendation=rec.observation_recommendation,
+                order=rec.order,
+            )
+            for rec in report_recommendations
+        ]
+
+        ObservationRecommendationThrough.objects.bulk_create(new_report_recommendations)
+
+    create_entry_log(user, company_reporting_obj, f"{action} RECOMMENDATIONS")
 
 
 def render_error_messages(request):
