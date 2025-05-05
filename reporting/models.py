@@ -341,6 +341,7 @@ class ObservationRecommendation(TranslatableModel):
     sectors = models.ManyToManyField(
         "governanceplatform.Sector",
         verbose_name=_("Sectors"),
+        blank=True,
     )
     creation_date = models.DateTimeField(
         verbose_name=_("Creation date"), default=timezone.now
