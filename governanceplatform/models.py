@@ -140,7 +140,13 @@ class Company(models.Model):
         null=True,
         choices=list(CountryField().choices),
     )
-    address = models.CharField(max_length=255, verbose_name=_("Address"))
+    address = models.CharField(
+        max_length=255,
+        verbose_name=_("Address"),
+        blank=True,
+        default=None,
+        null=True,
+    )
     email = models.CharField(
         max_length=100,
         blank=True,
@@ -162,6 +168,7 @@ class Company(models.Model):
     entity_categories = models.ManyToManyField(
         "governanceplatform.EntityCategory",
         verbose_name=_("Entity categories"),
+        blank=True,
     )
 
     def __str__(self):
