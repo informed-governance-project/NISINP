@@ -13,15 +13,15 @@ import schedule
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
 django.setup()
 
+from governanceplatform.scripts import (  # noqa: E402
+    unactive_account_cleaning,
+    update_all_group_permissions,
+)
 from incidents.scripts import (  # noqa: E402
     email_reminder,
     incident_cleaning,
     log_cleaning,
     workflow_update_status,
-)
-
-from governanceplatform.scripts import (  # noqa: E402
-    unactive_account_cleaning,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ incident_cleaning.run()
 log_cleaning.run()
 workflow_update_status.run()
 unactive_account_cleaning.run()
+update_all_group_permissions.run()
 
 scheduler.every().hour.do(email_reminder.run)
 scheduler.every().day.at("20:30").do(incident_cleaning.run)
