@@ -350,6 +350,22 @@ class CompanyUserInline(admin.TabularInline):
                     .order_by("email")
                 )
 
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = (
+                    User.objects.exclude(
+                        groups__in=[
+                            platformAdminGroupId,
+                            observerAdminGroupId,
+                            observerUserGroupId,
+                            regulatorAdminGroupId,
+                            regulatorUserGroupId,
+                        ]
+                    )
+                    .filter(companies__in=request.user.companies.all())
+                    .distinct()
+                    .order_by("email")
+                )
+
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         if db_field.name == "company":
@@ -505,11 +521,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude CompanyUserMultipleInline for RegulatorAdmin / OperatorAdmin
+        # Exclude CompanyUserMultipleInline for RegulatorAdmin
         # because if we go for user creation it asks company and that's not good
-        if user_in_group(user, "RegulatorAdmin") or user_in_group(
-            user, "OperatorAdmin"
-        ):
+        if user_in_group(user, "RegulatorAdmin"):
             inline_instances = []
 
         return inline_instances
@@ -1116,11 +1130,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and user_in_group(obj, "RegulatorUser"):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
-                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+                inline_instances = []
 
         # OperatorAdmin inlines
         if user_in_group(user, "OperatorAdmin"):
-            inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+            inline_instances = []
 
         return inline_instances
 
