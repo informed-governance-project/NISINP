@@ -1233,7 +1233,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorUser") and obj == user:
+        if (
+            obj
+            and user_in_group(user, "RegulatorUser")
+            and (obj == user or user_in_group(obj, "OperatorAdmin"))
+        ):
             return True
         return super().has_change_permission(request, obj)
 
