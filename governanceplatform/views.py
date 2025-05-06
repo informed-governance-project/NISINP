@@ -28,6 +28,8 @@ from .models import User
 
 from django.core.mail import EmailMessage
 
+from .zitadel import create_zitadel_user
+
 
 @login_required
 @check_user_is_correct
@@ -115,6 +117,10 @@ def registration_view(request, *args, **kwargs):
                 user.groups.add(new_group)
             else:
                 user.groups.add(created)
+
+            # create user in ZITADEL
+            create_zitadel_user(user, request)
+
             send_activation_email(user)
             messages.info(request, _("An activation email has been sent."))
             return redirect("login")

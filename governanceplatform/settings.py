@@ -269,6 +269,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# PASSWORD HAHSER
+PASSWORD_HASHERS = [
+    "governanceplatform.hashers.MyPBKDF2PasswordHasher",
+]
+try:
+    PBKDF2_ITERATION = config.PBKDF2_ITERATION
+except AttributeError:
+    PBKDF2_ITERATION = 27500
+
 # User Model
 
 AUTH_USER_MODEL = "governanceplatform.User"
@@ -337,6 +347,44 @@ try:
 except AttributeError:
     OIDC_RP_REDIRECT_URI = "http://localhost:8000/oidc/callback/"
 
+# ZITADEL API variable for JWT / Oauth
+try:
+    JWT_INTROSPECTION_URL = config.JWT_INTROSPECTION_URL
+except AttributeError:
+    JWT_INTROSPECTION_URL = "http://localhost:8080/oauth/v2/introspect"
+try:
+    JWT_DOMAIN = config.JWT_DOMAIN
+except AttributeError:
+    JWT_DOMAIN = "http://localhost:8080"
+try:
+    USER_SERVICE_PRIVATE_KEY_FILE_PATH = config.USER_SERVICE_PRIVATE_KEY_FILE_PATH
+except AttributeError:
+    USER_SERVICE_PRIVATE_KEY_FILE_PATH = "path_to_my_key.json"
+try:
+    API_PRIVATE_KEY_FILE_PATH = config.API_PRIVATE_KEY_FILE_PATH
+except AttributeError:
+    API_PRIVATE_KEY_FILE_PATH = "path_to_my_key.json"
+try:
+    JWT_SIGN_ALGORITHM = config.JWT_SIGN_ALGORITHM
+except AttributeError:
+    JWT_SIGN_ALGORITHM = 'RS256'
+try:
+    ZITADEL_PROJECT_ID = config.ZITADEL_PROJECT_ID
+except AttributeError:
+    ZITADEL_PROJECT_ID = "123456789"
+try:
+    JWT_OAUTH_URL = config.JWT_OAUTH_URL
+except AttributeError:
+    JWT_OAUTH_URL = "http://localhost:8080/oauth/v2/token"
+try:
+    APIS_URL = config.APIS_URL
+except AttributeError:
+    JWT_OAUTH_URL = JWT_DOMAIN+"/v2/users/human"
+
+
+JWT_PROJECT_ID = "318250475537301507"
+JWT_OAUTH_URL = "http://localhost:8080/oauth/v2/token"
+APIS_URL = "http://localhost:8080/v2/users/human"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

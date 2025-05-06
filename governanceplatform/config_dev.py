@@ -215,5 +215,17 @@ OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://localhost:8080/oauth/v2/authorize'
 OIDC_OP_TOKEN_ENDPOINT = "http://localhost:8080/oauth/v2/token"
 OIDC_OP_USER_ENDPOINT = "http://localhost:8080/oidc/v1/userinfo"
 OIDC_OP_JWKS_ENDPOINT = "http://localhost:8080/oauth/v2/keys"
-# L'URL de redirection doit correspondre à celle de ton application Django
 OIDC_RP_REDIRECT_URI = 'http://localhost:8000/oidc/callback/'
+
+# JWT config for zitadel
+JWT_INTROSPECTION_URL = "http://localhost:8080/oauth/v2/introspect"
+# Without the last /
+JWT_DOMAIN = "http://localhost:8080"
+USER_SERVICE_PRIVATE_KEY_FILE_PATH = "Path to the key.json"
+API_PRIVATE_KEY_FILE_PATH = "Path to the key.json"
+JWT_SIGN_ALGORITHM = "RS256"
+ZITADEL_PROJECT_ID = "123456789"
+JWT_OAUTH_URL = "http://localhost:8080/oauth/v2/token"
+
+# PBKDF2 configuration to have the same iteration in the app and zitadel
+PBKDF2_ITERATION = 27500
