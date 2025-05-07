@@ -63,7 +63,7 @@ def get_pdf_report(
         )
         incident_workflows_impact[workflow_name] = list(
             {
-                impact.id: impact for impact in incident_workflows_impact[workflow_name]
+                impact.id: impact.label for impact in incident_workflows_impact[workflow_name]
             }.values()
         )
 

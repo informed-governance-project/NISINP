@@ -60,8 +60,8 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation or ""
+        headline_translation = self.safe_translation_getter("headline", any_language=True)
+        return headline_translation or ""
 
     class Meta:
         verbose_name_plural = _("Impact")
