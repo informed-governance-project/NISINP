@@ -501,3 +501,9 @@ try:
     EMAIL_CONTACT_FROM = config.EMAIL_CONTACT_FROM
 except AttributeError:
     EMAIL_CONTACT_FROM = ""
+
+# Captcha settings
+try:
+    CAPTCHA_FONT_SIZE = config.CAPTCHA_FONT_SIZE
+except AttributeError:
+    CAPTCHA_FONT_SIZE = 30

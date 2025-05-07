@@ -198,3 +198,5 @@ ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
 # Email adress for FROM field and RETURN-PATH
 EMAIL_CONTACT_FROM = "test@mail.localhost"
+# Captcha settings
+CAPTCHA_FONT_SIZE = 30
