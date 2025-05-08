@@ -903,7 +903,7 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow = self.request.workflow
 
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=self.incident.sector_regulation.regulation,
+                regulations=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
 
@@ -1131,7 +1131,6 @@ def save_answers(data=None, incident=None, workflow=None):
     incident_workflow = IncidentWorkflow.objects.create(
         incident=incident, workflow=workflow
     )
-    incident_workflow.review_status = "DELIV"
     incident_workflow.save()
     # TO DO manage impact
     if workflow.is_impact_needed:

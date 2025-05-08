@@ -630,8 +630,8 @@ class Incident(models.Model):
             return None
 
     def are_impacts_present(self):
-        impacts = Impact.objects.all().filter(
-            regulation=self.sector_regulation.regulation,
+        impacts = Impact.objects.filter(
+            regulations=self.sector_regulation.regulation,
             sectors__in=self.affected_sectors.all(),
         )
         return impacts.count() > 0
@@ -879,8 +879,10 @@ class IncidentWorkflow(models.Model):
             return True
 
     def save(self, *args, **kwargs):
-        if self.is_late():
+        if self.is_late() and self.review_status == WORKFLOW_REVIEW_STATUS[0][0]:
             self.review_status = WORKFLOW_REVIEW_STATUS[5][0]
+        elif not self.is_late() and self.review_status == WORKFLOW_REVIEW_STATUS[0][0]:
+            self.review_status = WORKFLOW_REVIEW_STATUS[1][0]
         super().save(*args, **kwargs)
 
 
