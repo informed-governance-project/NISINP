@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytz
-from bootstrap_datepicker_plus.widgets import DateTimePickerInput
+from tempus_dominus.widgets import DateTimePicker
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -235,7 +235,7 @@ class QuestionForm(forms.Form):
                 )
 
             self.fields[field_name] = forms.DateTimeField(
-                widget=DateTimePickerInput(
+                widget=DateTimePicker(
                     options={
                         "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     },
@@ -538,7 +538,7 @@ class DetectionDateForm(forms.Form):
         # Initialize the 'detection_date' field
         self.fields["detection_date"] = forms.DateTimeField(
             required=True,
-            widget=DateTimePickerInput(
+            widget=DateTimePicker(
                 options={
                     "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
                 },
@@ -737,13 +737,13 @@ class IncidenteDateForm(forms.ModelForm):
     )
 
     incident_notification_date = forms.DateTimeField(
-        widget=DateTimePickerInput(),
+        widget=DateTimePicker(),
         required=False,
         label=_("Incident notification date"),
     )
 
     incident_detection_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
+        widget=DateTimePicker(
             options={}, attrs={"class": "incident_detection_date"}
         ),
         required=False,
@@ -752,7 +752,7 @@ class IncidenteDateForm(forms.ModelForm):
     )
 
     incident_starting_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
+        widget=DateTimePicker(
             options={}, attrs={"class": "incident_starting_date"}
         ),
         required=False,
@@ -789,22 +789,30 @@ class IncidenteDateForm(forms.ModelForm):
                 maxDate_notification = format_datetime_astimezone(
                     i_notification_date, timezone
                 )
-                self.fields["incident_detection_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_notification
-
-                self.fields["incident_starting_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_notification
+                self.fields["incident_detection_date"].widget = DateTimePicker(
+                    options={
+                        "useCurrent": True,
+                        "maxDate": maxDate_notification,
+                    }
+                )
+                self.fields["incident_starting_date"].widget = DateTimePicker(
+                    options={
+                        "useCurrent": True,
+                        "maxDate": maxDate_notification,
+                    }
+                )
 
             if self.incident.sector_regulation.is_detection_date_needed:
                 maxDate_detection = format_datetime_astimezone(
                     i_detection_date, timezone
                 )
+                self.fields["incident_starting_date"].widget = DateTimePicker(
+                    options={
+                        "useCurrent": True,
+                        "maxDate": maxDate_detection,
+                    }
+                )
 
-                self.fields["incident_starting_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_detection
                 self.fields["incident_detection_date"].disabled = True
                 self.fields["incident_timezone"].disabled = True
 

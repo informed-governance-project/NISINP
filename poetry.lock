@@ -1056,6 +1056,21 @@ Pillow = ">=6.2.0"
 test = ["testfixtures"]
 
 [[package]]
+name = "django-tempus-dominus"
+version = "5.1.2.17"
+description = "A Django widget for the Tempus Dominus Bootstrap 4 DateTime picker."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "django-tempus-dominus-5.1.2.17.tar.gz", hash = "sha256:a254c4550287e8f4e958c5d8dd9e39eec0a15aaad7469ad182b46f7f888e97ec"},
+    {file = "django_tempus_dominus-5.1.2.17-py3-none-any.whl", hash = "sha256:f449e0e4dfde3b312aa153b552f83aa80c7b58f980ee75ba82b0e9cf6c35ff3c"},
+]
+
+[package.dependencies]
+django = "*"
+
+[[package]]
 name = "django-two-factor-auth"
 version = "1.17.0"
 description = "Complete Two-Factor Authentication for Django"
@@ -3486,4 +3501,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "50518d8591cb74a5b61068661f02e4f0a6103d1f44fded0f1ebbd2f01adf5844"
+content-hash = "06b9d3ee52170958ff47204621d8b4599e027dc9fd45fc5eb30a95e25228c0a7"
