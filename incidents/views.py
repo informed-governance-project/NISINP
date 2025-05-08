@@ -903,7 +903,7 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow = self.request.workflow
 
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=self.incident.sector_regulation.regulation,
+                regulations=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
 
