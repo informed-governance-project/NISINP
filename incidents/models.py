@@ -32,10 +32,13 @@ class Impact(TranslatableModel):
             null=True,
         ),
     )
-    regulation = models.ForeignKey(
+
+    regulations = models.ManyToManyField(
         "governanceplatform.Regulation",
-        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
         verbose_name=_("Legal basis"),
+        related_name="regulations",
     )
 
     sectors = models.ManyToManyField(

@@ -411,9 +411,9 @@ class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
-    regulation = fields.Field(
-        column_name="regulation",
-        attribute="regulation",
+    regulations = fields.Field(
+        column_name="regulations",
+        attribute="regulations",
         widget=TranslatedNameWidget(Regulation, field="label"),
     )
     label = fields.Field(
@@ -432,7 +432,7 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Impact
-        fields = ("id", "regulation", "headline", "sectors")
+        fields = ("id", "regulations", "headline", "sectors")
 
 
 class ImpactSectorListFilter(SimpleListFilter):
@@ -470,7 +470,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(Q(regulation=self.value()))
+            return queryset.filter(Q(regulations=self.value()))
 
 
 @admin.register(Impact, site=admin_site)
@@ -478,7 +478,7 @@ class ImpactAdmin(
     ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
 ):
     list_display = [
-        "regulation",
+        "get_regulations",
         "get_sector_name",
         "get_subsector_name",
         "headline",
@@ -487,7 +487,7 @@ class ImpactAdmin(
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
     exclude = ["creator_name", "creator"]
-    filter_horizontal = ("sectors",)
+    filter_horizontal = ("sectors", "regulations")
     fieldsets = [
         (
             _("General"),
@@ -501,7 +501,7 @@ class ImpactAdmin(
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    "regulation",
+                    "regulations",
                 ],
             },
         ),
@@ -512,6 +512,10 @@ class ImpactAdmin(
             },
         ),
     ]
+
+    @admin.display(description="Regulations")
+    def get_regulations(self, obj):
+        return ", ".join([c.label for c in obj.regulations.all()])
 
     @admin.display(description="Sector")
     def get_sector_name(self, obj):

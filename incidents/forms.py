@@ -621,7 +621,7 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
             category_tree.append(QuestionForm)
         if workflow.is_impact_needed:
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=incident.sector_regulation.regulation,
+                regulations=incident.sector_regulation.regulation,
                 sectors__in=incident.affected_sectors.all(),
             ).exists()
             if regulation_sector_has_impacts:
@@ -679,8 +679,8 @@ class ImpactForm(forms.Form):
         regulation = incident.sector_regulation.regulation
         for sector in incident.affected_sectors.all():
             subgroup = []
-            if sector.impact_set.filter(regulation=regulation).count() > 0:
-                for impact in sector.impact_set.filter(regulation=regulation):
+            if sector.impact_set.filter(regulations=regulation).count() > 0:
+                for impact in sector.impact_set.filter(regulations=regulation):
                     subgroup.append([impact.id, str(impact.label)])
                 impacts_array.append(
                     [

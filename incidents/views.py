@@ -849,7 +849,7 @@ class WorkflowWizardView(SessionWizardView):
                 else False
             )
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=self.incident.sector_regulation.regulation,
+                regulations=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
 
@@ -1020,7 +1020,7 @@ class WorkflowWizardView(SessionWizardView):
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
-                    regulation=self.incident.sector_regulation.regulation,
+                    regulations=self.incident.sector_regulation.regulation,
                     sectors__in=self.incident.affected_sectors.all(),
                 ).exists()
                 if regulation_sector_has_impacts:
