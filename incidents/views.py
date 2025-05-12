@@ -64,7 +64,9 @@ from .pdf_generation import get_pdf_report
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
-    incidents = Incident.objects.order_by("incident_notification_date")
+    incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
+        "incident_notification_date"
+    )
     html_view = "operator/incidents.html"
 
     # Save filter params in user's session
