@@ -236,11 +236,10 @@ class QuestionForm(forms.Form):
 
             self.fields[field_name] = forms.DateTimeField(
                 widget=TempusDominusV6Widget(
-                    max_date=datetime.today().strftime("%Y-%m-%d 23:59:59"),
+                    max_date=datetime.today(),
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
-                        "class": "empty_field" if not initial_data else "",
                         'append': 'fa fa-calendar',
                         'icon_toggle': True,
                     },
@@ -539,7 +538,7 @@ class DetectionDateForm(forms.Form):
         self.fields["detection_date"] = forms.DateTimeField(
             required=True,
             widget=TempusDominusV6Widget(
-                    max_date=datetime.today().strftime("%Y-%m-%d 23:59"),
+                    max_date=datetime.today(),
             ),
             label=_("Select date and time"),
         )
