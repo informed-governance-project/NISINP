@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import pytz
-from tempus_dominus.widgets import DateTimePicker
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -10,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 from parler.widgets import SortedCheckboxSelectMultiple
+from .widgets import TempusDominusV6Widget
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -235,14 +235,14 @@ class QuestionForm(forms.Form):
                 )
 
             self.fields[field_name] = forms.DateTimeField(
-                widget=DateTimePicker(
-                    options={
-                        "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-                    },
+                widget=TempusDominusV6Widget(
+                    max_date=datetime.today().strftime("%Y-%m-%d 23:59:59"),
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
                         "class": "empty_field" if not initial_data else "",
+                        'append': 'fa fa-calendar',
+                        'icon_toggle': True,
                     },
                 ),
                 required=question_option.is_mandatory,
@@ -538,10 +538,8 @@ class DetectionDateForm(forms.Form):
         # Initialize the 'detection_date' field
         self.fields["detection_date"] = forms.DateTimeField(
             required=True,
-            widget=DateTimePicker(
-                options={
-                    "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-                },
+            widget=TempusDominusV6Widget(
+                    max_date=datetime.today().strftime("%Y-%m-%d 23:59"),
             ),
             label=_("Select date and time"),
         )
@@ -737,24 +735,20 @@ class IncidenteDateForm(forms.ModelForm):
     )
 
     incident_notification_date = forms.DateTimeField(
-        widget=DateTimePicker(),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident notification date"),
     )
 
     incident_detection_date = forms.DateTimeField(
-        widget=DateTimePicker(
-            options={}, attrs={"class": "incident_detection_date"}
-        ),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident detection date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_starting_date = forms.DateTimeField(
-        widget=DateTimePicker(
-            options={}, attrs={"class": "incident_starting_date"}
-        ),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident start date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
@@ -789,28 +783,19 @@ class IncidenteDateForm(forms.ModelForm):
                 maxDate_notification = format_datetime_astimezone(
                     i_notification_date, timezone
                 )
-                self.fields["incident_detection_date"].widget = DateTimePicker(
-                    options={
-                        "useCurrent": True,
-                        "maxDate": maxDate_notification,
-                    }
+                self.fields["incident_detection_date"].widget = TempusDominusV6Widget(
+                        max_date=maxDate_notification,
                 )
-                self.fields["incident_starting_date"].widget = DateTimePicker(
-                    options={
-                        "useCurrent": True,
-                        "maxDate": maxDate_notification,
-                    }
+                self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
+                        max_date=maxDate_notification,
                 )
 
             if self.incident.sector_regulation.is_detection_date_needed:
                 maxDate_detection = format_datetime_astimezone(
                     i_detection_date, timezone
                 )
-                self.fields["incident_starting_date"].widget = DateTimePicker(
-                    options={
-                        "useCurrent": True,
-                        "maxDate": maxDate_detection,
-                    }
+                self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
+                        max_date=maxDate_detection,
                 )
 
                 self.fields["incident_detection_date"].disabled = True

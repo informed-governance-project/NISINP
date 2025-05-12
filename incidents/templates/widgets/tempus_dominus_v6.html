@@ -1,0 +1,8 @@
+{% load static %}
+
+<div class="input-group" id="{{ widget.td_id }}_group" data-td-target-input="nearest" data-td-target-toggle="nearest">
+    <input type="{{ widget.type }}" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} data-td-target="#{{ widget.td_id }}">
+    <span class="input-group-text" data-td-target="#{{ widget.td_id }}" data-td-toggle="datetimepicker">
+        <i class="bi bi-calendar"></i>
+    </span>
+</div>

@@ -119,7 +119,6 @@ INSTALLED_APPS = [
     "two_factor",
     "import_export",
     "parler",
-    "tempus_dominus",
     "phonenumber_field",
     "django_filters",
     "cookiebanner",
@@ -424,25 +423,6 @@ try:
     CSRF_COOKIE_AGE = config.CSRF_COOKIE_AGE
 except AttributeError:
     CSRF_COOKIE_AGE = 15 * 60
-
-TEMPUS_DOMINUS = {
-    # Options for all input widgets
-    # More options: https://getdatepicker.com/4/Options/
-    "options": {
-        "sideBySide": True,
-        "format": "YYYY-MM-DD HH:mm",
-        "useStrict": True,
-        "useCurrent": False,
-    },
-    "app_static_url": "bootstrap_datepicker_plus/",
-    "momentjs_url": "npm_components/moment/min/moment.min.js",
-    "datetimepicker_js_url": "npm_components/eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js",
-    "bootstrap_icon_css_url": "npm_components/bootstrap-icons/font/bootstrap-icons.css",
-    "datetimepicker_css_url": "npm_components/eonasdan/tempus-dominus/dist/css/tempus-dominus.css",
-}
-
-TEMPUS_DOMINUS_LOCALIZE = True
-TEMPUS_DOMINUS_INCLUDE_ASSETS = True
 
 # HSTS
 try:

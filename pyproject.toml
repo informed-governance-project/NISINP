@@ -50,7 +50,6 @@ django-health-check = "^3.18.3"
 whitenoise = "^6.9.0"
 schedule = "^1.2.2"
 django-simple-captcha = "^0.6.2"
-django-tempus-dominus = "^5.1.2.17"
 
 
 [tool.poetry.group.dev.dependencies]
