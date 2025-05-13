@@ -20,8 +20,17 @@ class AuthenticationForm(OTPAuthenticationForm):
 class CustomUserChangeForm(UserChangeForm):
     password = None
 
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True)
+    first_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'autocomplete': "given-name"})
+    )
+    last_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'autocomplete': "family-name"})
+    )
+    phone_number = forms.CharField(
+        widget=forms.TextInput(attrs={'autocomplete': "tel"})
+    )
     email = forms.CharField(
         disabled=True,
         required=True,
@@ -101,13 +110,13 @@ class RegistrationForm(UserCreationForm):
         },
     )
     email = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': 'email'})
+        widget=forms.TextInput(attrs={'autocomplete': "email"})
     )
     first_name = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': 'given-name'})
+        widget=forms.TextInput(attrs={'autocomplete': "given-name"})
     )
     last_name = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': 'family-name'})
+        widget=forms.TextInput(attrs={'autocomplete': "family-name"})
     )
     field_order = (
         "email",
