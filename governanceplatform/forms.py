@@ -21,17 +21,22 @@ class CustomUserChangeForm(UserChangeForm):
     password = None
 
     first_name = forms.CharField(
-        required=True,
-        widget=forms.TextInput(attrs={'autocomplete': "given-name"})
+        label=_("First name"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
     )
     last_name = forms.CharField(
-        required=True,
-        widget=forms.TextInput(attrs={'autocomplete': "family-name"})
+        label=_("Last name"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
     )
     phone_number = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': "tel"})
+        label=_("Phone number"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "tel"}),
     )
     email = forms.CharField(
+        label=_("Email address"),
         disabled=True,
         required=True,
         widget=forms.EmailInput(attrs={"readonly": "readonly"}),
@@ -109,14 +114,12 @@ class RegistrationForm(UserCreationForm):
             "required": _("Accepting the Terms of Use is required for registration.")
         },
     )
-    email = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': "email"})
-    )
+    email = forms.CharField(widget=forms.TextInput(attrs={"autocomplete": "email"}))
     first_name = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': "given-name"})
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"})
     )
     last_name = forms.CharField(
-        widget=forms.TextInput(attrs={'autocomplete': "family-name"})
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"})
     )
     field_order = (
         "email",
