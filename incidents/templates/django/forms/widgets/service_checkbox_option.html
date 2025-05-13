@@ -4,13 +4,13 @@
 {% if widget.wrap_label %}
     <input class="form-check-input" name="{{ widget.name }}" type="checkbox" id="{{ widget.attrs.id }}" value="{{ widget.value|stringformat:'s' }}" {% include "django/forms/widgets/attrs.html" %}>
     <label class="form-check-label" for="{{ widget.attrs.id }}">
-        <ul class="list-unstyled">
+        <div>
         {% for label in widget.label|linebreaksbr|split:"<br>" %}
             {% if label %}
-                <li class="{% if forloop.first %}fw-bold{% else %}small text-muted ps-3{% endif %}">{{ label|safe }}</li>
+                <p class="{% if forloop.first %}fw-bold mb-2{% else %}small text-muted ps-3 mb-1{% endif %}">{{ label|safe }}</p>
             {% endif %}
         {% endfor %}
-        </ul>
+        </div>
     </label>
 {% endif %}
 </div>
