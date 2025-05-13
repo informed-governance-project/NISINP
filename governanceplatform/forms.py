@@ -100,7 +100,15 @@ class RegistrationForm(UserCreationForm):
             "required": _("Accepting the Terms of Use is required for registration.")
         },
     )
-    email = forms.TextInput()
+    email = forms.CharField(
+        widget=forms.TextInput(attrs={'autocomplete': 'email'})
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={'autocomplete': 'given-name'})
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={'autocomplete': 'family-name'})
+    )
     field_order = (
         "email",
         "last_name",
