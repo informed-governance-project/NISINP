@@ -116,10 +116,10 @@ class RegistrationForm(UserCreationForm):
     )
     email = forms.CharField(widget=forms.TextInput(attrs={"autocomplete": "email"}))
     first_name = forms.CharField(
-        widget=forms.TextInput(attrs={"autocomplete": "given-name"})
+        widget=forms.TextInput(attrs={"autocomplete": "given-name", "title": _("First name")})
     )
     last_name = forms.CharField(
-        widget=forms.TextInput(attrs={"autocomplete": "family-name"})
+        widget=forms.TextInput(attrs={"autocomplete": "family-name", "title": _("Last name")})
     )
     field_order = (
         "email",
