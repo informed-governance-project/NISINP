@@ -2,8 +2,8 @@
 
 <div class="form-check">
 {% if widget.wrap_label %}
-    <input class="form-check-input" name="{{ widget.name }}" type="checkbox" id="{{ widget.attrs.id }}" value="{{ widget.value|stringformat:'s' }}" {% include "django/forms/widgets/attrs.html" %}>
-    <label class="form-check-label" for="{{ widget.attrs.id }}">
+    <input class="form-check-input" name="{{ widget.name }}" type="checkbox" id="{{ widget.index }}_{{ widget.attrs.id }}" value="{{ widget.value|stringformat:'s' }}" {% include "django/forms/widgets/attrs.html" %}>
+    <label class="form-check-label" for="{{ widget.index }}_{{ widget.attrs.id }}">
         <div>
         {% for label in widget.label|linebreaksbr|split:"<br>" %}
             {% if label %}
