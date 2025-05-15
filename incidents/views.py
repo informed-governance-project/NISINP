@@ -543,7 +543,7 @@ def delete_incident(request, incident_id: int):
         if incident is not None:
             if incident.workflows.count() == 0:
                 incident.delete()
-                messages.info(request, _("The incident has been deleted."))
+                messages.success(request, _("The incident has been deleted."))
             else:
                 messages.warning(request, _("The incident could not be deleted."))
     except Exception:
