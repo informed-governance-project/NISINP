@@ -56,9 +56,8 @@ class SessionExpiryMiddleware:
 
             return redirect("login")
 
-        request.session.setdefault(
-            "_session_expiry", current_timestamp + settings.SESSION_COOKIE_AGE
-        )
+        request.session["_session_expiry"] = current_timestamp + settings.SESSION_COOKIE_AGE
+        request.session.modified = True
 
         return self.get_response(request)
 
