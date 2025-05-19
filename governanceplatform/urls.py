@@ -66,6 +66,8 @@ urlpatterns = [
     # Terms of Service
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("terms/", views.terms, name="terms"),
+    # Accessibility
+    path("accessibility/", views.accessibility, name="accessibility"),
     # Privacy Policy
     path("privacy/", views.privacy, name="privacy"),
     # About
@@ -94,7 +96,7 @@ urlpatterns = [
     path("set-language/", set_language, name="set_language"),
     # contact
     path("contact/", views.contact, name="contact"),
-    path('captcha/', include('captcha.urls')),  # Captcha URL
+    path("captcha/", include("captcha.urls")),  # Captcha URL
     # basic healthcheck
     path("healthz", include("health_check.urls")),
     # URL patterns to serve the translations in JavaScript
