@@ -11,6 +11,16 @@ document.addEventListener("DOMContentLoaded", function () {
         .filter(tab => !tab.classList.contains('deletelink'));
     let clear_session_storage = true;
 
+    // remove sessionstorage when leaving page
+    window.addEventListener('beforeunload', function () {
+        if (localStorage.getItem('parler_tab_switch') === '1') {
+            localStorage.removeItem('parler_tab_switch');
+            return;
+        }
+
+        sessionStorage.clear();
+    });
+
     function saveUrlId() {
         checkUrlId()
         if (urlId) sessionStorage.setItem('urlId', urlId)
@@ -66,7 +76,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             saveCurrentTabData(currentTabElement.name);
             restoreTabData(getLanguageCodeFromTab(tab));
-
+            // detect when we changes tab to remove sessionStorage when leaving the page
+            localStorage.setItem('parler_tab_switch', '1');
             window.location.href = tab.href;
         });
     });
