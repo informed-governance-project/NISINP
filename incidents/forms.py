@@ -9,7 +9,6 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from django_otp.forms import OTPAuthenticationForm
 from parler.widgets import SortedCheckboxSelectMultiple
-from .widgets import TempusDominusV6Widget
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -20,6 +19,7 @@ from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
+from .widgets import TempusDominusV6Widget
 
 
 # TO DO: change the templates to custom one
@@ -240,8 +240,8 @@ class QuestionForm(forms.Form):
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
-                        'append': 'fa fa-calendar',
-                        'icon_toggle': True,
+                        "append": "fa fa-calendar",
+                        "icon_toggle": True,
                     },
                 ),
                 required=question_option.is_mandatory,
@@ -538,9 +538,10 @@ class DetectionDateForm(forms.Form):
         self.fields["detection_date"] = forms.DateTimeField(
             required=True,
             widget=TempusDominusV6Widget(
-                    max_date=datetime.today(),
+                max_date=datetime.today(),
             ),
             label=_("Select date and time"),
+            help_text=_("Date format yyyy-mm-dd hh:mm"),
         )
 
 
@@ -737,6 +738,7 @@ class IncidenteDateForm(forms.ModelForm):
         widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident notification date"),
+        help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_detection_date = forms.DateTimeField(
@@ -783,10 +785,10 @@ class IncidenteDateForm(forms.ModelForm):
                     i_notification_date, timezone
                 )
                 self.fields["incident_detection_date"].widget = TempusDominusV6Widget(
-                        max_date=maxDate_notification,
+                    max_date=maxDate_notification,
                 )
                 self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
-                        max_date=maxDate_notification,
+                    max_date=maxDate_notification,
                 )
 
             if self.incident.sector_regulation.is_detection_date_needed:
@@ -794,7 +796,7 @@ class IncidenteDateForm(forms.ModelForm):
                     i_detection_date, timezone
                 )
                 self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
-                        max_date=maxDate_detection,
+                    max_date=maxDate_detection,
                 )
 
                 self.fields["incident_detection_date"].disabled = True
