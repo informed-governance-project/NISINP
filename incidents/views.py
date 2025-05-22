@@ -1009,10 +1009,16 @@ class WorkflowWizardView(SessionWizardView):
         return form
 
     def get_context_data(self, form, **kwargs):
+        user = self.request.user
         context = super().get_context_data(form=form, **kwargs)
 
         if self.workflow is not None:
-            context["action"] = "Edit"
+            context["action"] = (
+                "Edit"
+                if self.read_only
+                or (is_user_regulator(user) and not self.is_regulator_incident)
+                else "Create"
+            )
             context["steps"] = []
             context["is_regulator_incident"] = self.is_regulator_incident
 
