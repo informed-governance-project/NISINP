@@ -64,3 +64,31 @@ SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT = [
 
 
 REGIONAL_AREA = regional_area
+
+
+REPORT_STATUS_MAP = {
+    "PASS": {
+        "class": "report-pass",
+        "tooltip": _("The report has passed the review."),
+    },
+    "FAIL": {
+        "class": "report-fail",
+        "tooltip": _("The report has failed the review."),
+    },
+    "DELIV": {
+        "class": "report-under-review",
+        "tooltip": _("The report is currently under review."),
+    },
+    "LATE": {
+        "class": "report-late-under-review",
+        "tooltip": _("The report is currently under review."),
+    },
+    "OUT": {
+        "class": "report-overdue",
+        "tooltip": _("The submission of the report is overdue."),
+    },
+    "UNDE": {
+        "class": "report-unsubmitted",
+        "tooltip": _("The report has not been submitted yet."),
+    },
+}
