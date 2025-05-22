@@ -1,6 +1,3 @@
-# import hashlib
-# import json
-
 from datetime import date
 from urllib.parse import urlparse
 
@@ -8,6 +5,7 @@ import pytz
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -41,7 +39,8 @@ from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
 from .forms import ContactForm, IncidentStatusForm, IncidentWorkflowForm, get_forms_list
-from .globals import REGIONAL_AREA
+from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
+from .helpers import is_deadline_exceeded
 from .models import (
     Answer,
     Impact,
@@ -65,7 +64,7 @@ def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
     incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
-        "incident_notification_date"
+        "-incident_notification_date"
     )
     html_view = "operator/incidents.html"
 
@@ -101,15 +100,12 @@ def get_incidents(request):
             incidents = incidents.filter(
                 sector_regulation__regulator__in=user.regulators.all()
             )
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = user.observers.first().get_incidents()
-        f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
@@ -120,15 +116,95 @@ def get_incidents(request):
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
 
-    # Show 10 incidents per page.
+    f = IncidentFilter(incidents_filter_params, queryset=incidents)
     incident_list = f.qs
-    is_filtered = {k: v for k, v in incidents_filter_params.items() if k != "page"}
+
+    per_page = incidents_filter_params.get("per_page", 10)
+    page_number = incidents_filter_params.get("page")
+    paginator = Paginator(incident_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    for incident in page_obj.object_list:
+        incident.all_reports = []
+        completed_workflows = incident.get_workflows_completed()
+        all_workflows = incident.get_all_workflows()
+        completed_workflow_ids = [wf.workflow.id for wf in completed_workflows]
+        all_workflow_ids = [wf.id for wf in all_workflows]
+
+        incident.formsStatus = IncidentStatusForm(
+            instance=incident,
+        )
+
+        for idx, report in enumerate(all_workflows):
+            latest = incident.get_latest_incident_workflow_by_workflow(report)
+            latest_id = latest.id if latest else None
+            report_id = report.id
+            latest_incident_workflow = None
+
+            latest_incident_workflow = next(
+                (
+                    iw
+                    for iw in completed_workflows
+                    if iw.workflow.id == report.id
+                    and (latest_id is None or iw.id == latest_id)
+                ),
+                None,
+            )
+
+            status = (
+                latest_incident_workflow.review_status
+                if latest_incident_workflow
+                else is_deadline_exceeded(
+                    report,
+                    incident,
+                )
+            )
+
+            mapping = REPORT_STATUS_MAP.get(status, REPORT_STATUS_MAP["UNDE"])
+
+            is_disabled = False
+
+            if html_view == "operator/incidents.html":
+                if not completed_workflows and idx != 0:
+                    is_disabled = True
+                elif (
+                    idx < len(all_workflow_ids) - 1
+                    and all_workflow_ids[idx + 1] in completed_workflow_ids
+                ):
+                    is_disabled = True
+                elif (
+                    idx < len(all_workflow_ids) - 1
+                    and idx > 1
+                    and all_workflow_ids[idx - 1] not in completed_workflow_ids
+                ):
+                    is_disabled = True
+                elif (
+                    len(all_workflow_ids) > 1
+                    and idx == len(all_workflow_ids) - 1
+                    and all_workflow_ids[idx - 1] not in completed_workflow_ids
+                ):
+                    is_disabled = True
+
+            incident.all_reports.append(
+                {
+                    "id": report_id,
+                    "name": str(report),
+                    "latest_incident_workflow": latest_incident_workflow,
+                    "css_class": mapping["class"],
+                    "tooltip": mapping["tooltip"],
+                    "is_disabled": is_disabled,
+                }
+            )
+
+    is_filtered = {
+        k: v
+        for k, v in incidents_filter_params.items()
+        if k not in ["page", "per_page"]
+    }
 
     return render(
         request,
@@ -136,11 +212,12 @@ def get_incidents(request):
         context={
             "site_name": SITE_NAME,
             "filter": f,
-            "incidents": incident_list,
+            "incidents": page_obj,
             "is_filtered": bool(is_filtered),
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
             ),
+            "items_per_page_choices": [10, 25, 50, 100],
         },
     )
 
