@@ -26,7 +26,6 @@ from .views import (
     edit_workflow,
     get_form_list,
     get_incidents,
-    get_regulator_incident_edit_form,
     review_workflow,
 )
 
@@ -40,11 +39,6 @@ urlpatterns = [
     path("create_workflow", create_workflow, name="create_workflow"),
     path("edit_workflow", edit_workflow, name="edit_workflow"),
     path("review_workflow", review_workflow, name="review_workflow"),
-    path(
-        "incident/<int:incident_id>",
-        get_regulator_incident_edit_form,
-        name="regulator_incident_edit",
-    ),
     path(
         "access_log/<int:incident_id>",
         access_log,

@@ -836,20 +836,6 @@ class IncidenteDateForm(forms.ModelForm):
         ]
 
 
-class IncidentWorkflowForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["review_status"].required = False
-        self.fields["review_status"].widget.attrs = {
-            "class": "border-0 form-select-sm py-0 select-break-spaces",
-            "onchange": f"onChangeWorkflowStatus(this, {self.instance.incident_id}, {self.instance.pk})",
-        }
-
-    class Meta:
-        model = IncidentWorkflow
-        fields = ["review_status"]
-
-
 class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()

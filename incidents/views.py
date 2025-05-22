@@ -7,12 +7,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -35,10 +34,10 @@ from governanceplatform.settings import (
     TIME_ZONE,
 )
 
-from .decorators import check_user_is_correct, regulator_role_required
+from .decorators import check_user_is_correct
 from .email import send_email
 from .filters import IncidentFilter
-from .forms import ContactForm, IncidentStatusForm, IncidentWorkflowForm, get_forms_list
+from .forms import ContactForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
 from .helpers import is_deadline_exceeded
 from .models import (
@@ -419,82 +418,6 @@ def edit_workflow(request):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
     messages.warning(request, _("No incident report could be found."))
-    return redirect("incidents")
-
-
-@login_required
-@otp_required
-@regulator_role_required
-@check_user_is_correct
-@require_http_methods(["POST"])
-def get_regulator_incident_edit_form(request, incident_id: int):
-    """Returns the list of incident as regulator."""
-    # RegulatorUser can access only incidents from accessible sectors.
-    try:
-        incident = Incident.objects.get(pk=incident_id)
-    except Incident.DoesNotExist:
-        messages.error(request, _("Incident not found"))
-        return redirect("incidents")
-
-    if not can_edit_incident_report(request.user, incident):
-        return redirect("incidents")
-
-    workflow_id = request.GET.get("workflow_id", None)
-
-    if workflow_id and IncidentWorkflow.objects.filter(pk=workflow_id).exists():
-        workflow = IncidentWorkflow.objects.get(pk=workflow_id)
-        workflow_form = IncidentWorkflowForm(
-            instance=workflow,
-            data=request.POST,
-        )
-        if workflow_form.is_valid():
-            response = {"id": workflow.pk}
-            for field_name, field_value in workflow_form.cleaned_data.items():
-                if field_value:
-                    response[field_name] = field_value
-                    setattr(workflow, field_name, field_value)
-                else:
-                    response[field_name] = workflow_form.initial[field_name]
-                    setattr(
-                        workflow,
-                        field_name,
-                        workflow_form.initial[field_name],
-                    )
-                if field_name == "review_status":
-                    if incident.sector_regulation.report_status_changed_email:
-                        send_email(
-                            incident.sector_regulation.report_status_changed_email,
-                            incident,
-                        )
-            workflow.save()
-
-            return JsonResponse(response)
-
-    incident_form = IncidentStatusForm(instance=incident, data=request.POST)
-
-    if incident_form is not None:
-        # need to validate to get the cleaned data
-        incident_form.is_valid()
-        response = {"id": incident.pk}
-        for field_name, field_value in incident_form.cleaned_data.items():
-            if field_name and field_value is not None:
-                response[field_name] = field_value
-                setattr(incident, field_name, field_value)
-                if field_name == "incident_status" and field_value == "CLOSE":
-                    if incident.sector_regulation.closing_email:
-                        send_email(incident.sector_regulation.closing_email, incident)
-
-            else:
-                response[field_name] = incident_form.initial[field_name]
-                setattr(
-                    incident,
-                    field_name,
-                    incident_form.initial[field_name],
-                )
-        incident.save()
-
-        return JsonResponse(response)
-
     return redirect("incidents")
 
 
