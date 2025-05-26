@@ -1,4 +1,3 @@
-import sys
 import uuid
 
 from django.conf import settings
@@ -6,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
@@ -25,8 +24,6 @@ from .forms import (
     TermsAcceptanceForm,
 )
 from .models import User
-
-from django.core.mail import EmailMessage
 
 
 @login_required
@@ -65,13 +62,12 @@ def edit_account(request):
     return render(request, "account/edit.html", {"form": form})
 
 
-def about(request):
-    python_version = "{}.{}.{}".format(*sys.version_info[:3])
-    return render(request, "home/about.html", {"python_version": python_version})
-
-
 def terms(request):
     return render(request, "home/terms.html")
+
+
+def accessibility(request):
+    return render(request, "home/accessibility.html")
 
 
 def privacy(request):
@@ -216,7 +212,7 @@ def contact(request):
                 from_email=settings.EMAIL_CONTACT_FROM,
                 to=[settings.EMAIL_FOR_CONTACT],
                 reply_to=[requestor_email],
-                headers={'Return-Path': settings.EMAIL_CONTACT_FROM},
+                headers={"Return-Path": settings.EMAIL_CONTACT_FROM},
             )
             email.send()
 

@@ -1,6 +1,3 @@
-# import hashlib
-# import json
-
 from datetime import date
 from urllib.parse import urlparse
 
@@ -8,13 +5,13 @@ import pytz
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -37,11 +34,12 @@ from governanceplatform.settings import (
     TIME_ZONE,
 )
 
-from .decorators import check_user_is_correct, regulator_role_required
+from .decorators import check_user_is_correct
 from .email import send_email
 from .filters import IncidentFilter
-from .forms import ContactForm, IncidentStatusForm, IncidentWorkflowForm, get_forms_list
-from .globals import REGIONAL_AREA
+from .forms import ContactForm, IncidentStatusForm, get_forms_list
+from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
+from .helpers import is_deadline_exceeded
 from .models import (
     Answer,
     Impact,
@@ -64,7 +62,9 @@ from .pdf_generation import get_pdf_report
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
-    incidents = Incident.objects.order_by("incident_notification_date")
+    incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
+        "-incident_notification_date"
+    )
     html_view = "operator/incidents.html"
 
     # Save filter params in user's session
@@ -99,15 +99,12 @@ def get_incidents(request):
             incidents = incidents.filter(
                 sector_regulation__regulator__in=user.regulators.all()
             )
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = user.observers.first().get_incidents()
-        f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin"):
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
@@ -118,15 +115,95 @@ def get_incidents(request):
         )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
 
-    # Show 10 incidents per page.
+    f = IncidentFilter(incidents_filter_params, queryset=incidents)
     incident_list = f.qs
-    is_filtered = {k: v for k, v in incidents_filter_params.items() if k != "page"}
+
+    per_page = incidents_filter_params.get("per_page", 10)
+    page_number = incidents_filter_params.get("page")
+    paginator = Paginator(incident_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    for incident in page_obj.object_list:
+        incident.all_reports = []
+        completed_workflows = incident.get_workflows_completed()
+        all_workflows = incident.get_all_workflows()
+        completed_workflow_ids = [wf.workflow.id for wf in completed_workflows]
+        all_workflow_ids = [wf.id for wf in all_workflows]
+
+        incident.formsStatus = IncidentStatusForm(
+            instance=incident,
+        )
+
+        for idx, report in enumerate(all_workflows):
+            latest = incident.get_latest_incident_workflow_by_workflow(report)
+            latest_id = latest.id if latest else None
+            report_id = report.id
+            latest_incident_workflow = None
+
+            latest_incident_workflow = next(
+                (
+                    iw
+                    for iw in completed_workflows
+                    if iw.workflow.id == report.id
+                    and (latest_id is None or iw.id == latest_id)
+                ),
+                None,
+            )
+
+            status = (
+                latest_incident_workflow.review_status
+                if latest_incident_workflow
+                else is_deadline_exceeded(
+                    report,
+                    incident,
+                )
+            )
+
+            mapping = REPORT_STATUS_MAP.get(status, REPORT_STATUS_MAP["UNDE"])
+
+            is_disabled = False
+
+            if html_view == "operator/incidents.html":
+                if not completed_workflows and idx != 0:
+                    is_disabled = True
+                elif (
+                    idx < len(all_workflow_ids) - 1
+                    and all_workflow_ids[idx + 1] in completed_workflow_ids
+                ):
+                    is_disabled = True
+                elif (
+                    idx < len(all_workflow_ids) - 1
+                    and idx > 1
+                    and all_workflow_ids[idx - 1] not in completed_workflow_ids
+                ):
+                    is_disabled = True
+                elif (
+                    len(all_workflow_ids) > 1
+                    and idx == len(all_workflow_ids) - 1
+                    and all_workflow_ids[idx - 1] not in completed_workflow_ids
+                ):
+                    is_disabled = True
+
+            incident.all_reports.append(
+                {
+                    "id": report_id,
+                    "name": str(report),
+                    "latest_incident_workflow": latest_incident_workflow,
+                    "css_class": mapping["class"],
+                    "tooltip": mapping["tooltip"],
+                    "is_disabled": is_disabled,
+                }
+            )
+
+    is_filtered = {
+        k: v
+        for k, v in incidents_filter_params.items()
+        if k not in ["page", "per_page"]
+    }
 
     return render(
         request,
@@ -134,11 +211,12 @@ def get_incidents(request):
         context={
             "site_name": SITE_NAME,
             "filter": f,
-            "incidents": incident_list,
+            "incidents": page_obj,
             "is_filtered": bool(is_filtered),
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
             ),
+            "items_per_page_choices": [10, 25, 50, 100],
         },
     )
 
@@ -345,82 +423,6 @@ def edit_workflow(request):
 
 @login_required
 @otp_required
-@regulator_role_required
-@check_user_is_correct
-@require_http_methods(["POST"])
-def get_regulator_incident_edit_form(request, incident_id: int):
-    """Returns the list of incident as regulator."""
-    # RegulatorUser can access only incidents from accessible sectors.
-    try:
-        incident = Incident.objects.get(pk=incident_id)
-    except Incident.DoesNotExist:
-        messages.error(request, _("Incident not found"))
-        return redirect("incidents")
-
-    if not can_edit_incident_report(request.user, incident):
-        return redirect("incidents")
-
-    workflow_id = request.GET.get("workflow_id", None)
-
-    if workflow_id and IncidentWorkflow.objects.filter(pk=workflow_id).exists():
-        workflow = IncidentWorkflow.objects.get(pk=workflow_id)
-        workflow_form = IncidentWorkflowForm(
-            instance=workflow,
-            data=request.POST,
-        )
-        if workflow_form.is_valid():
-            response = {"id": workflow.pk}
-            for field_name, field_value in workflow_form.cleaned_data.items():
-                if field_value:
-                    response[field_name] = field_value
-                    setattr(workflow, field_name, field_value)
-                else:
-                    response[field_name] = workflow_form.initial[field_name]
-                    setattr(
-                        workflow,
-                        field_name,
-                        workflow_form.initial[field_name],
-                    )
-                if field_name == "review_status":
-                    if incident.sector_regulation.report_status_changed_email:
-                        send_email(
-                            incident.sector_regulation.report_status_changed_email,
-                            incident,
-                        )
-            workflow.save()
-
-            return JsonResponse(response)
-
-    incident_form = IncidentStatusForm(instance=incident, data=request.POST)
-
-    if incident_form is not None:
-        # need to validate to get the cleaned data
-        incident_form.is_valid()
-        response = {"id": incident.pk}
-        for field_name, field_value in incident_form.cleaned_data.items():
-            if field_name and field_value is not None:
-                response[field_name] = field_value
-                setattr(incident, field_name, field_value)
-                if field_name == "incident_status" and field_value == "CLOSE":
-                    if incident.sector_regulation.closing_email:
-                        send_email(incident.sector_regulation.closing_email, incident)
-
-            else:
-                response[field_name] = incident_form.initial[field_name]
-                setattr(
-                    incident,
-                    field_name,
-                    incident_form.initial[field_name],
-                )
-        incident.save()
-
-        return JsonResponse(response)
-
-    return redirect("incidents")
-
-
-@login_required
-@otp_required
 @check_user_is_correct
 def access_log(request, incident_id: int):
     user = request.user
@@ -541,7 +543,7 @@ def delete_incident(request, incident_id: int):
         if incident is not None:
             if incident.workflows.count() == 0:
                 incident.delete()
-                messages.info(request, _("The incident has been deleted."))
+                messages.success(request, _("The incident has been deleted."))
             else:
                 messages.warning(request, _("The incident could not be deleted."))
     except Exception:
@@ -849,7 +851,7 @@ class WorkflowWizardView(SessionWizardView):
                 else False
             )
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=self.incident.sector_regulation.regulation,
+                regulations=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
 
@@ -903,7 +905,7 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow = self.request.workflow
 
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=self.incident.sector_regulation.regulation,
+                regulations=self.incident.sector_regulation.regulation,
                 sectors__in=self.incident.affected_sectors.all(),
             ).exists()
 
@@ -964,6 +966,13 @@ class WorkflowWizardView(SessionWizardView):
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
+                # hack for review when a multiple choice is empty
+                if (
+                    form.fields[field].initial == [None]
+                    and form.fields[field].__class__.__name__ == "MultipleChoiceField"
+                ):
+                    form.fields[field].initial = []
+
                 # replace for SO the initial_data by an empty iterable
                 if (
                     form.fields[field].__class__.__name__ == "MultipleChoiceField"
@@ -1000,10 +1009,16 @@ class WorkflowWizardView(SessionWizardView):
         return form
 
     def get_context_data(self, form, **kwargs):
+        user = self.request.user
         context = super().get_context_data(form=form, **kwargs)
 
         if self.workflow is not None:
-            context["action"] = "Edit"
+            context["action"] = (
+                "Edit"
+                if self.read_only
+                or (is_user_regulator(user) and not self.is_regulator_incident)
+                else "Create"
+            )
             context["steps"] = []
             context["is_regulator_incident"] = self.is_regulator_incident
 
@@ -1020,7 +1035,7 @@ class WorkflowWizardView(SessionWizardView):
             context["steps"].extend(categories)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
-                    regulation=self.incident.sector_regulation.regulation,
+                    regulations=self.incident.sector_regulation.regulation,
                     sectors__in=self.incident.affected_sectors.all(),
                 ).exists()
                 if regulation_sector_has_impacts:
@@ -1131,7 +1146,6 @@ def save_answers(data=None, incident=None, workflow=None):
     incident_workflow = IncidentWorkflow.objects.create(
         incident=incident, workflow=workflow
     )
-    incident_workflow.review_status = "DELIV"
     incident_workflow.save()
     # TO DO manage impact
     if workflow.is_impact_needed:

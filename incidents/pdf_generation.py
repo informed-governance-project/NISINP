@@ -63,7 +63,8 @@ def get_pdf_report(
         )
         incident_workflows_impact[workflow_name] = list(
             {
-                impact.id: impact for impact in incident_workflows_impact[workflow_name]
+                impact.id: impact.label
+                for impact in incident_workflows_impact[workflow_name]
             }.values()
         )
 
@@ -92,7 +93,7 @@ def get_pdf_report(
         CSS(os.path.join(static_theme_dir, "css/report.css")),
     ]
 
-    return htmldoc.write_pdf(stylesheets=stylesheets)
+    return htmldoc.write_pdf(stylesheets=stylesheets, pdf_variant="pdf/ua-1")
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):

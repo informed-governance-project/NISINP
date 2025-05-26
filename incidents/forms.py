@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import pytz
-from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django import forms
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
@@ -20,6 +19,7 @@ from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
+from .widgets import TempusDominusV6Widget
 
 
 # TO DO: change the templates to custom one
@@ -235,14 +235,13 @@ class QuestionForm(forms.Form):
                 )
 
             self.fields[field_name] = forms.DateTimeField(
-                widget=DateTimePickerInput(
-                    options={
-                        "maxDate": datetime.today().strftime("%Y-%m-%d 23:59:59"),
-                    },
+                widget=TempusDominusV6Widget(
+                    max_date=datetime.today(),
                     attrs={
                         "title": question.tooltip,
                         "data-bs-toggle": "tooltip",
-                        "class": "empty_field" if not initial_data else "",
+                        "append": "fa fa-calendar",
+                        "icon_toggle": True,
                     },
                 ),
                 required=question_option.is_mandatory,
@@ -538,12 +537,11 @@ class DetectionDateForm(forms.Form):
         # Initialize the 'detection_date' field
         self.fields["detection_date"] = forms.DateTimeField(
             required=True,
-            widget=DateTimePickerInput(
-                options={
-                    "maxDate": datetime.today().strftime("%Y-%m-%d 23:59"),
-                },
+            widget=TempusDominusV6Widget(
+                max_date=datetime.today(),
             ),
             label=_("Select date and time"),
+            help_text=_("Date format yyyy-mm-dd hh:mm"),
         )
 
 
@@ -621,7 +619,7 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
             category_tree.append(QuestionForm)
         if workflow.is_impact_needed:
             regulation_sector_has_impacts = Impact.objects.filter(
-                regulation=incident.sector_regulation.regulation,
+                regulations=incident.sector_regulation.regulation,
                 sectors__in=incident.affected_sectors.all(),
             ).exists()
             if regulation_sector_has_impacts:
@@ -679,9 +677,9 @@ class ImpactForm(forms.Form):
         regulation = incident.sector_regulation.regulation
         for sector in incident.affected_sectors.all():
             subgroup = []
-            if sector.impact_set.filter(regulation=regulation).count() > 0:
-                for impact in sector.impact_set.filter(regulation=regulation):
-                    subgroup.append([impact.id, str(impact)])
+            if sector.impact_set.filter(regulations=regulation).count() > 0:
+                for impact in sector.impact_set.filter(regulations=regulation):
+                    subgroup.append([impact.id, str(impact.label)])
                 impacts_array.append(
                     [
                         sector.get_safe_translation(),
@@ -737,24 +735,21 @@ class IncidenteDateForm(forms.ModelForm):
     )
 
     incident_notification_date = forms.DateTimeField(
-        widget=DateTimePickerInput(),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident notification date"),
+        help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_detection_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
-            options={}, attrs={"class": "incident_detection_date"}
-        ),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident detection date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
     incident_starting_date = forms.DateTimeField(
-        widget=DateTimePickerInput(
-            options={}, attrs={"class": "incident_starting_date"}
-        ),
+        widget=TempusDominusV6Widget(),
         required=False,
         label=_("Incident start date"),
         help_text=_("Date format yyyy-mm-dd hh:mm"),
@@ -789,22 +784,21 @@ class IncidenteDateForm(forms.ModelForm):
                 maxDate_notification = format_datetime_astimezone(
                     i_notification_date, timezone
                 )
-                self.fields["incident_detection_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_notification
-
-                self.fields["incident_starting_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_notification
+                self.fields["incident_detection_date"].widget = TempusDominusV6Widget(
+                    max_date=maxDate_notification,
+                )
+                self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
+                    max_date=maxDate_notification,
+                )
 
             if self.incident.sector_regulation.is_detection_date_needed:
                 maxDate_detection = format_datetime_astimezone(
                     i_detection_date, timezone
                 )
+                self.fields["incident_starting_date"].widget = TempusDominusV6Widget(
+                    max_date=maxDate_detection,
+                )
 
-                self.fields["incident_starting_date"].widget.config.options[
-                    "maxDate"
-                ] = maxDate_detection
                 self.fields["incident_detection_date"].disabled = True
                 self.fields["incident_timezone"].disabled = True
 
@@ -840,20 +834,6 @@ class IncidenteDateForm(forms.ModelForm):
             "incident_detection_date",
             "incident_starting_date",
         ]
-
-
-class IncidentWorkflowForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["review_status"].required = False
-        self.fields["review_status"].widget.attrs = {
-            "class": "border-0 form-select-sm py-0 select-break-spaces",
-            "onchange": f"onChangeWorkflowStatus(this, {self.instance.incident_id}, {self.instance.pk})",
-        }
-
-    class Meta:
-        model = IncidentWorkflow
-        fields = ["review_status"]
 
 
 class IncidentStatusForm(forms.ModelForm):

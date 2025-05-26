@@ -1,3 +1,4 @@
+import logging
 import math
 
 from django.contrib import admin, messages
@@ -5,6 +6,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import format_html
@@ -12,6 +14,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
+from parler.models import TranslatableModel
 
 from governanceplatform.admin import (
     CustomTranslatableAdmin,
@@ -45,6 +48,8 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
     Workflow,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # get the id of a group by name
@@ -267,6 +272,93 @@ class PredefinedAnswerInline(CustomTranslatableTabularInline):
     extra = 0
 
 
+@admin.action(description="Duplicate selected items")
+def duplicate_objects(modeladmin, request, queryset):
+    config_by_model = {
+        "Question": {
+            "related_objects": ["predefinedanswer_set"],
+            "label_field": "label",
+        },
+    }
+
+    for obj in queryset:
+        many_to_many_data = {}
+        reverse_fk_data = {}
+        model_name = obj.__class__.__name__
+
+        if model_name not in config_by_model:
+            messages.error(request, f"Duplication not supported for {model_name} model")
+            continue
+
+        config = config_by_model[model_name]
+        related_objects_to_copy = config.get("related_objects", [])
+        label_field = config.get("label_field")
+
+        try:
+            with transaction.atomic():
+                if isinstance(obj, TranslatableModel):
+                    obj_translations = list(obj.translations.all())
+
+                for field in obj._meta.many_to_many:
+                    many_to_many_data[field.name] = list(getattr(obj, field.name).all())
+
+                for related_object in obj._meta.related_objects:
+                    accessor_name = related_object.get_accessor_name()
+
+                    if (
+                        accessor_name in related_objects_to_copy
+                        and related_object.one_to_many
+                        and related_object.auto_created
+                    ):
+                        reverse_fk_data[accessor_name] = list(
+                            getattr(obj, accessor_name).all()
+                        )
+                original_label = getattr(obj, label_field)
+                obj.pk = None
+
+                if hasattr(obj, "creator"):
+                    set_creator(request, obj, False)
+
+                obj.save()
+
+                if obj_translations:
+                    for t in obj_translations:
+                        t.pk = None
+                        if hasattr(t, label_field):
+                            original_label = getattr(t, label_field)
+                            setattr(t, label_field, f"{original_label} (copy)")
+                        t.master = obj
+                        t.save()
+
+                for field_name, items in many_to_many_data.items():
+                    getattr(obj, field_name).set(items)
+
+                for related_objs in reverse_fk_data.values():
+                    for related_obj in related_objs:
+                        if isinstance(related_obj, TranslatableModel):
+                            related_translations = list(related_obj.translations.all())
+
+                        related_obj.pk = None
+                        field_name = related_obj._meta.get_field(
+                            related_object.field.name
+                        ).name
+                        setattr(related_obj, field_name, obj)
+                        related_obj.save()
+
+                        if related_translations:
+                            for t in related_translations:
+                                t.pk = None
+                                t.master = related_obj
+                                t.save()
+
+                messages.success(
+                    request, f"Successfully duplicated {original_label} {model_name}"
+                )
+        except Exception as e:
+            logger.exception(f"Error duplicating object {obj.pk}: {e}")
+            messages.error(request, f"Error duplicating '{obj}': {str(e)}")
+
+
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(
     ShowReminderForTranslationsMixin,
@@ -274,6 +366,7 @@ class QuestionAdmin(
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
+    actions = [duplicate_objects]
     list_display = ["label", "question_type", "get_predefined_answers", "creator"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
@@ -318,9 +411,9 @@ class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
 
 class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(column_name="id", attribute="id", readonly=True)
-    regulation = fields.Field(
-        column_name="regulation",
-        attribute="regulation",
+    regulations = fields.Field(
+        column_name="regulations",
+        attribute="regulations",
         widget=TranslatedNameWidget(Regulation, field="label"),
     )
     label = fields.Field(
@@ -339,7 +432,7 @@ class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Impact
-        fields = ("id", "regulation", "headline", "sectors")
+        fields = ("id", "regulations", "headline", "sectors")
 
 
 class ImpactSectorListFilter(SimpleListFilter):
@@ -377,7 +470,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(Q(regulation=self.value()))
+            return queryset.filter(Q(regulations=self.value()))
 
 
 @admin.register(Impact, site=admin_site)
@@ -385,7 +478,7 @@ class ImpactAdmin(
     ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
 ):
     list_display = [
-        "regulation",
+        "get_regulations",
         "get_sector_name",
         "get_subsector_name",
         "headline",
@@ -394,7 +487,7 @@ class ImpactAdmin(
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
     exclude = ["creator_name", "creator"]
-    filter_horizontal = ("sectors",)
+    filter_horizontal = ("sectors", "regulations")
     fieldsets = [
         (
             _("General"),
@@ -408,7 +501,7 @@ class ImpactAdmin(
             {
                 "classes": ["extrapretty"],
                 "fields": [
-                    "regulation",
+                    "regulations",
                 ],
             },
         ),
@@ -419,6 +512,10 @@ class ImpactAdmin(
             },
         ),
     ]
+
+    @admin.display(description="Regulations")
+    def get_regulations(self, obj):
+        return ", ".join([c.label for c in obj.regulations.all()])
 
     @admin.display(description="Sector")
     def get_sector_name(self, obj):

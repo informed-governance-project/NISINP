@@ -121,7 +121,6 @@ INSTALLED_APPS = [
     "two_factor",
     "import_export",
     "parler",
-    "bootstrap_datepicker_plus",
     "phonenumber_field",
     "django_filters",
     "cookiebanner",
@@ -427,22 +426,6 @@ try:
 except AttributeError:
     CSRF_COOKIE_AGE = 15 * 60
 
-BOOTSTRAP_DATEPICKER_PLUS = {
-    # Options for all input widgets
-    # More options: https://getdatepicker.com/4/Options/
-    "options": {
-        "sideBySide": True,
-        "format": "YYYY-MM-DD HH:mm",
-        "useStrict": True,
-        "useCurrent": False,
-    },
-    "app_static_url": "bootstrap_datepicker_plus/",
-    "momentjs_url": "npm_components/moment/min/moment.min.js",
-    "datetimepicker_js_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js",
-    "bootstrap_icon_css_url": "npm_components/bootstrap-icons/font/bootstrap-icons.css",
-    "datetimepicker_css_url": "npm_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css",
-}
-
 # HSTS
 try:
     SECURE_HSTS_SECONDS = config.SECURE_HSTS_SECONDS
@@ -523,3 +506,9 @@ try:
     EMAIL_CONTACT_FROM = config.EMAIL_CONTACT_FROM
 except AttributeError:
     EMAIL_CONTACT_FROM = ""
+
+# Captcha settings
+try:
+    CAPTCHA_FONT_SIZE = config.CAPTCHA_FONT_SIZE
+except AttributeError:
+    CAPTCHA_FONT_SIZE = 30

@@ -19,6 +19,7 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from .forms import CustomTranslatableAdminForm
 from .helpers import (
+    get_active_company_from_session,
     instance_user_in_group,
     is_user_operator,
     is_user_regulator,
@@ -350,6 +351,22 @@ class CompanyUserInline(admin.TabularInline):
                     .order_by("email")
                 )
 
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = (
+                    User.objects.exclude(
+                        groups__in=[
+                            platformAdminGroupId,
+                            observerAdminGroupId,
+                            observerUserGroupId,
+                            regulatorAdminGroupId,
+                            regulatorUserGroupId,
+                        ]
+                    )
+                    .filter(companies__in=request.user.companies.all())
+                    .distinct()
+                    .order_by("email")
+                )
+
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
         if db_field.name == "company":
@@ -379,6 +396,19 @@ class CompanyUserInline(admin.TabularInline):
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        form = formset.form
+        if "user" in form.base_fields and user_in_group(request.user, "OperatorAdmin"):
+            widget = form.base_fields["user"].widget
+            widget.can_add_related = False
+
+        # if 'sectors' in form.base_fields and user_in_group(request.user, "OperatorAdmin"):
+        #     form.base_fields['sectors'].widget = (
+        #         forms.HiddenInput()
+        #     )
+        return formset
+
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
         if obj == request.user:
@@ -406,15 +436,6 @@ class CompanyUserInline(admin.TabularInline):
         elif user_in_group(request.user, "RegulatorUser"):
             return True
         return super().has_delete_permission(request, obj)
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        user = request.user
-        # Operator Admin
-        if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(is_company_administrator=True)
-
-        return queryset
 
 
 class CompanyUserMultipleInline(CompanyUserInline):
@@ -505,11 +526,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
         user = request.user
-        # Exclude CompanyUserMultipleInline for RegulatorAdmin / OperatorAdmin
+        # Exclude CompanyUserMultipleInline for RegulatorAdmin
         # because if we go for user creation it asks company and that's not good
-        if user_in_group(user, "RegulatorAdmin") or user_in_group(
-            user, "OperatorAdmin"
-        ):
+        if user_in_group(user, "RegulatorAdmin"):
             inline_instances = []
 
         return inline_instances
@@ -543,11 +562,14 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(
-                id__in=user.companyuser_set.filter(is_company_administrator=True)
-                .distinct()
-                .values_list("company", flat=True)
-            ).distinct()
+            company_in_use = get_active_company_from_session(request)
+            is_company_administrator = company_in_use.companyuser_set.filter(
+                user=user, is_company_administrator=True
+            ).exists()
+            if is_company_administrator:
+                queryset = queryset.filter(id=company_in_use.id)
+            else:
+                queryset = queryset.none()
 
         return queryset
 
@@ -1116,11 +1138,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and user_in_group(obj, "RegulatorUser"):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
-                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+                inline_instances = []
 
         # OperatorAdmin inlines
         if user_in_group(user, "OperatorAdmin"):
-            inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+            inline_instances = []
 
         return inline_instances
 
@@ -1219,7 +1241,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorUser") and obj == user:
+        if (
+            obj
+            and user_in_group(user, "RegulatorUser")
+            and (obj == user or user_in_group(obj, "OperatorAdmin"))
+        ):
             return True
         return super().has_change_permission(request, obj)
 
@@ -1252,10 +1278,19 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 if new_group:
                     obj.groups.add(new_group)
 
-            # in RegulatorUser we can only add user for operators and default is OperatorUser
+            # in RegulatorUser or OperatorAdmin we can only add user for operators and default is OperatorUser
             # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
                 super().save_model(request, obj, form, change)
+                new_group, created = Group.objects.get_or_create(name="OperatorUser")
+                if new_group:
+                    obj.groups.add(new_group)
+
+            if user_in_group(user, "OperatorAdmin"):
+                super().save_model(request, obj, form, change)
+                company_in_use = get_active_company_from_session(request)
+                if company_in_use:
+                    obj.companies.add(company_in_use)
                 new_group, created = Group.objects.get_or_create(name="OperatorUser")
                 if new_group:
                     obj.groups.add(new_group)

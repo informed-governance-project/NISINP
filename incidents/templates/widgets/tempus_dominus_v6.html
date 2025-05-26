@@ -1,0 +1,19 @@
+{% load static %}
+
+<div class="input-group" id="{{ widget.td_id }}_group"
+     data-td-target-input="nearest"
+     data-td-target-toggle="nearest">
+
+    <input type="{{ widget.type }}"
+           name="{{ widget.name }}"
+           {% if widget.value %}value="{{ widget.value|escape }}"{% endif %}
+           id="{{ widget.td_id }}"
+           data-td-target="#{{ widget.td_id }}"
+           {% include "django/forms/widgets/attrs.html" %}>
+
+    <span class="input-group-text"
+          data-td-target="#{{ widget.td_id }}"
+          data-td-toggle="datetimepicker">
+        <i class="bi bi-calendar" aria-hidden="true"></i>
+    </span>
+</div>

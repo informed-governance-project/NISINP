@@ -13,6 +13,7 @@ def extra_content_for_all_templates(request):
         "site_name": SITE_NAME,
         "is_staff": user.is_staff,
         "is_only_admin": False,
+        "regulator_name": REGULATOR_CONTACT["name"]
     }
     extra_data["is_regulator"] = is_user_regulator(user)
     extra_data["is_observer"] = is_observer_user(user)

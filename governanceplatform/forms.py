@@ -20,9 +20,23 @@ class AuthenticationForm(OTPAuthenticationForm):
 class CustomUserChangeForm(UserChangeForm):
     password = None
 
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True)
+    first_name = forms.CharField(
+        label=_("First name"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        label=_("Last name"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "family-name"}),
+    )
+    phone_number = forms.CharField(
+        label=_("Phone number"),
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "tel"}),
+    )
     email = forms.CharField(
+        label=_("Email address"),
         disabled=True,
         required=True,
         widget=forms.EmailInput(attrs={"readonly": "readonly"}),
@@ -100,7 +114,13 @@ class RegistrationForm(UserCreationForm):
             "required": _("Accepting the Terms of Use is required for registration.")
         },
     )
-    email = forms.TextInput()
+    email = forms.CharField(widget=forms.TextInput(attrs={"autocomplete": "email"}))
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={"autocomplete": "given-name", "title": _("First name")})
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={"autocomplete": "family-name", "title": _("Last name")})
+    )
     field_order = (
         "email",
         "last_name",

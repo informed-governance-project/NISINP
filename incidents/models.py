@@ -32,10 +32,13 @@ class Impact(TranslatableModel):
             null=True,
         ),
     )
-    regulation = models.ForeignKey(
+
+    regulations = models.ManyToManyField(
         "governanceplatform.Regulation",
-        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
         verbose_name=_("Legal basis"),
+        related_name="regulations",
     )
 
     sectors = models.ManyToManyField(
@@ -60,8 +63,8 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        label_translation = self.safe_translation_getter("label", any_language=True)
-        return label_translation or ""
+        headline_translation = self.safe_translation_getter("headline", any_language=True)
+        return headline_translation or ""
 
     class Meta:
         verbose_name_plural = _("Impact")
@@ -627,8 +630,8 @@ class Incident(models.Model):
             return None
 
     def are_impacts_present(self):
-        impacts = Impact.objects.all().filter(
-            regulation=self.sector_regulation.regulation,
+        impacts = Impact.objects.filter(
+            regulations=self.sector_regulation.regulation,
             sectors__in=self.affected_sectors.all(),
         )
         return impacts.count() > 0
@@ -876,8 +879,10 @@ class IncidentWorkflow(models.Model):
             return True
 
     def save(self, *args, **kwargs):
-        if self.is_late():
+        if self.is_late() and self.review_status == WORKFLOW_REVIEW_STATUS[0][0]:
             self.review_status = WORKFLOW_REVIEW_STATUS[5][0]
+        elif not self.is_late() and self.review_status == WORKFLOW_REVIEW_STATUS[0][0]:
+            self.review_status = WORKFLOW_REVIEW_STATUS[1][0]
         super().save(*args, **kwargs)
 
 
