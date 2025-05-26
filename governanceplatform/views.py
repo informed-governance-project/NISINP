@@ -1,4 +1,3 @@
-import sys
 import uuid
 
 from django.conf import settings
@@ -61,11 +60,6 @@ def edit_account(request):
     else:
         form = CustomUserChangeForm(instance=user)
     return render(request, "account/edit.html", {"form": form})
-
-
-def about(request):
-    python_version = "{}.{}.{}".format(*sys.version_info[:3])
-    return render(request, "home/about.html", {"python_version": python_version})
 
 
 def terms(request):

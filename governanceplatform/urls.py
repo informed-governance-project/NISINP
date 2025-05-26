@@ -62,8 +62,6 @@ urlpatterns = [
     # Logout
     path("logout", views.logout_view, name="logout"),
     # Terms of Service
-    path("about/", views.about, name="about"),
-    # Terms of Service
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("terms/", views.terms, name="terms"),
     # Accessibility
