@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db.models import Count
 from django.forms.models import model_to_dict
 from django.http import (
@@ -96,7 +97,18 @@ def reporting(request):
 
     company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
 
-    is_filtered = {k: v for k, v in reporting_filter_params.items()}
+    company_filter_list = company_filter.qs
+
+    per_page = reporting_filter_params.get("per_page", 10)
+    page_number = reporting_filter_params.get("page")
+    paginator = Paginator(company_filter_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    is_filtered = {
+        k: v
+        for k, v in reporting_filter_params.items()
+        if k not in ["page", "per_page"]
+    }
 
     if request.method == "POST":
         formset = CompanySelectFormSet(
@@ -275,13 +287,14 @@ def reporting(request):
             return JsonResponse({"messages": rendered_messages}, status=202)
 
     formset = CompanySelectFormSet(
-        queryset=company_filter.qs, year=year, sectors_filter=sectors_filters
+        queryset=page_obj.object_list, year=year, sectors_filter=sectors_filters
     )
 
     context = {
         "formset": formset,
         "filter": company_filter,
         "is_filtered": bool(is_filtered),
+        "pagination_data": page_obj,
     }
 
     return render(request, "reporting/dashboard.html", context)
