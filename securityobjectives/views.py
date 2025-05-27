@@ -8,6 +8,7 @@ import openpyxl
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import (
     BooleanField,
     Case,
@@ -107,18 +108,27 @@ def get_security_objectives(request):
 
     so_filter_params = request.session.get("so_filter_params", request.GET)
     security_objective_filter = StandardAnswerFilter(
-        so_filter_params, queryset=standard_answers
+        so_filter_params, queryset=standard_answers.order_by("-last_update")
     )
 
     # Filter
     so_answer_list = security_objective_filter.qs
-    is_filtered = {k: v for k, v in so_filter_params.items() if k != "page"}
+
+    per_page = so_filter_params.get("per_page", 10)
+    page_number = so_filter_params.get("page")
+    paginator = Paginator(so_answer_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    is_filtered = {
+        k: v for k, v in so_filter_params.items() if k not in ["page", "per_page"]
+    }
 
     context = {
-        "standard_answers": so_answer_list,
+        "standard_answers": page_obj,
         "filter": security_objective_filter,
         "is_filtered": bool(is_filtered),
     }
+
     return render(request, template, context=context)
 
 
