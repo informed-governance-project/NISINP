@@ -216,7 +216,6 @@ def get_incidents(request):
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
             ),
-            "items_per_page_choices": [10, 25, 50, 100],
         },
     )
 
