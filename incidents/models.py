@@ -239,7 +239,7 @@ class Workflow(TranslatableModel):
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts disclosure required")
     )
-    questions = models.ManyToManyField(Question, verbose_name=_("Questions"))
+    questions = models.ManyToManyField(Question, verbose_name=_("Questions"), through="WorkflowQuestions")
 
     submission_email = models.ForeignKey(
         Email,
@@ -275,6 +275,18 @@ class Workflow(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Incident reports")
         verbose_name = _("Incident report")
+
+
+# link between question and workflow
+# we keep the archive date to have the history
+class WorkflowQuestions(models.Model):
+    workflow = models.ForeignKey(
+        Workflow, verbose_name=_("Workflow"), on_delete=models.CASCADE
+    )
+    question = models.ForeignKey(
+        Question, verbose_name=_("Question"), on_delete=models.CASCADE
+    )
+    archive_date = models.DateTimeField(blank=True, null=True, default=None)
 
 
 # link between a regulation and a regulator,
