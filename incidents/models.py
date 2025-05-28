@@ -287,6 +287,7 @@ class WorkflowQuestions(models.Model):
         Question, verbose_name=_("Question"), on_delete=models.CASCADE
     )
     archive_date = models.DateTimeField(blank=True, null=True, default=None)
+    added_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
 
 # link between a regulation and a regulator,
