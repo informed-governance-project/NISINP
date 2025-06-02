@@ -702,11 +702,6 @@ msgstr "Der Bericht wurde noch nicht eingereicht."
 msgid "Headline"
 msgstr ""
 
-#: incidents/models.py:47 incidents/models.py:78 incidents/models.py:117
-#: incidents/models.py:167 incidents/models.py:207 incidents/models.py:253
-msgid "Creator name"
-msgstr "Ersteller Name"
-
 #: incidents/models.py:70
 msgid "Impact"
 msgstr "Auswirkung"

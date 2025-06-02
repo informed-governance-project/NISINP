@@ -696,11 +696,6 @@ msgstr "Le rapport n'a pas encore été soumis."
 msgid "Headline"
 msgstr ""
 
-#: incidents/models.py:47 incidents/models.py:78 incidents/models.py:117
-#: incidents/models.py:167 incidents/models.py:207 incidents/models.py:253
-msgid "Creator name"
-msgstr "Nom du créateur"
-
 #: incidents/models.py:70
 msgid "Impact"
 msgstr "Impact"
