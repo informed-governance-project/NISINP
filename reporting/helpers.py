@@ -467,6 +467,7 @@ def get_risk_data(cleaned_data):
                 try:
                     risk = RiskData.objects.get(
                         uuid=uuid,
+                        service__service=risk.service.service,
                         service__company_reporting__year=past_year,
                         service__company_reporting__company__id=company_id,
                         service__company_reporting__sector__id=sector_id,
