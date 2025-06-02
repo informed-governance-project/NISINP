@@ -5,6 +5,7 @@ from django.db.models import Deferrable
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
+from datetime import datetime
 
 from governanceplatform.settings import TIME_ZONE
 
@@ -966,7 +967,8 @@ class QuestionOptions(models.Model):
         QuestionCategoryOptions,
         on_delete=models.PROTECT,
     )
-    created_at = models.DateTimeField(verbose_name=_("Created at"), default=timezone.now)
+    # creation date by default before the creation of app
+    created_at = models.DateTimeField(verbose_name=_("Created at"), default=datetime(2000, 1, 1))
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
 
