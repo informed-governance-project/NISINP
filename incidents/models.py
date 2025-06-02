@@ -239,7 +239,6 @@ class Workflow(TranslatableModel):
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts disclosure required")
     )
-    questions = models.ManyToManyField(Question, verbose_name=_("Questions"), through="WorkflowQuestions")
 
     submission_email = models.ForeignKey(
         Email,
@@ -275,19 +274,6 @@ class Workflow(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Incident reports")
         verbose_name = _("Incident report")
-
-
-# link between question and workflow
-# we keep the archive date to have the history
-class WorkflowQuestions(models.Model):
-    workflow = models.ForeignKey(
-        Workflow, verbose_name=_("Workflow"), on_delete=models.CASCADE
-    )
-    question = models.ForeignKey(
-        Question, verbose_name=_("Question"), on_delete=models.CASCADE
-    )
-    archive_date = models.DateTimeField(blank=True, null=True, default=None)
-    added_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
 
 # link between a regulation and a regulator,
@@ -946,6 +932,17 @@ class QuestionCategoryOptions(models.Model):
         verbose_name = _("Question category option")
 
 
+# save the history of the question inside a report
+class QuestionOptionsHistory(models.Model):
+    event = models.CharField(
+        max_length=100, verbose_name=_("Event recorded")
+    )
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
+    position = models.IntegerField(verbose_name=_("Position"))
+
+
 class QuestionOptions(models.Model):
     report = models.ForeignKey(
         Workflow, on_delete=models.CASCADE, null=True, blank=True
@@ -957,6 +954,8 @@ class QuestionOptions(models.Model):
         QuestionCategoryOptions,
         on_delete=models.PROTECT,
     )
+    historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
+    is_deleted = models.BooleanField(default=True, verbose_name=_("Deleted"))
 
     def __str__(self):
         return str(self.question) or ""
