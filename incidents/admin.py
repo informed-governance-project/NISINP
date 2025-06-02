@@ -241,7 +241,12 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     verbose_name = _("Question")
     verbose_name_plural = _("Questionnaire")
     ordering = ["category_option__position", "position"]
+    exclude = ["is_deleted", "historic"]
     extra = 0
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(is_deleted=False)
 
     def get_max_num(self, request, obj=None, **kwargs):
         max_num = super().get_max_num(request, obj, **kwargs)
@@ -392,6 +397,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
         "question",
         "category_option",
     ]
+    exclude = ["is_deleted", "historic"]
 
     # Hidden from register models list
     def has_module_permission(self, request):

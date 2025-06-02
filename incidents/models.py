@@ -63,7 +63,9 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        headline_translation = self.safe_translation_getter("headline", any_language=True)
+        headline_translation = self.safe_translation_getter(
+            "headline", any_language=True
+        )
         return headline_translation or ""
 
     class Meta:
@@ -934,9 +936,7 @@ class QuestionCategoryOptions(models.Model):
 
 # save the history of the question inside a report
 class QuestionOptionsHistory(models.Model):
-    event = models.CharField(
-        max_length=100, verbose_name=_("Event recorded")
-    )
+    event = models.CharField(max_length=100, verbose_name=_("Event recorded"))
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
@@ -956,6 +956,14 @@ class QuestionOptions(models.Model):
     )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
+
+    def delete(self, *args, **kwargs):
+        in_use = self.answer_set.exists()
+        if in_use:
+            self.is_deleted = True
+            self.save()
+        else:
+            super().delete(*args, **kwargs)
 
     def __str__(self):
         return str(self.question) or ""
