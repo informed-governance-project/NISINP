@@ -972,6 +972,25 @@ class QuestionOptions(models.Model):
         else:
             super().delete(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        if self.pk and self.answer_set.exists() and not self.is_deleted:
+            old = QuestionOptions.objects.get(pk=self.pk)
+
+            if (
+                old.question != self.question
+                or old.is_mandatory != self.is_mandatory
+                or old.position != self.position
+            ):
+                history = QuestionOptionsHistory.objects.create(
+                    event="change",
+                    question=old.question,
+                    is_mandatory=old.is_mandatory,
+                    position=old.position,
+                )
+                self.historic.add(history)
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return str(self.question) or ""
 
