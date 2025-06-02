@@ -955,7 +955,7 @@ class QuestionOptions(models.Model):
         on_delete=models.PROTECT,
     )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
-    is_deleted = models.BooleanField(default=True, verbose_name=_("Deleted"))
+    is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
 
     def __str__(self):
         return str(self.question) or ""
