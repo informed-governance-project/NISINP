@@ -970,6 +970,7 @@ class QuestionOptions(models.Model):
                 question=self.question,
                 is_mandatory=self.is_mandatory,
                 position=self.position,
+                category_option=self.category_option,
             )
             self.historic.add(history)
             self.is_deleted = True
@@ -985,12 +986,14 @@ class QuestionOptions(models.Model):
                 old.question != self.question
                 or old.is_mandatory != self.is_mandatory
                 or old.position != self.position
+                or old.category_option != self.category_option
             ):
                 history = QuestionOptionsHistory.objects.create(
                     event="change",
                     question=old.question,
                     is_mandatory=old.is_mandatory,
                     position=old.position,
+                    category_option=old.category_option,
                 )
                 self.historic.add(history)
 
