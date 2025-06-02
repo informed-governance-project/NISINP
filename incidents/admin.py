@@ -241,7 +241,7 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     verbose_name = _("Question")
     verbose_name_plural = _("Questionnaire")
     ordering = ["category_option__position", "position"]
-    exclude = ["is_deleted", "historic"]
+    exclude = ["created_at", "is_deleted", "historic"]
     extra = 0
 
     def get_queryset(self, request):
@@ -397,7 +397,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
         "question",
         "category_option",
     ]
-    exclude = ["is_deleted", "historic"]
+    exclude = ["created_at", "is_deleted", "historic"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
