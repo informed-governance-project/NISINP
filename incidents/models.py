@@ -941,6 +941,11 @@ class QuestionOptionsHistory(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     position = models.IntegerField(verbose_name=_("Position"))
+    category_option = models.ForeignKey(
+        QuestionCategoryOptions,
+        on_delete=models.PROTECT,
+        default=None,
+    )
 
 
 class QuestionOptions(models.Model):
