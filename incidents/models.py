@@ -113,6 +113,13 @@ class Question(TranslatableModel):
         default=QUESTION_TYPES[0][0],
         verbose_name=_("Question Type"),
     )  # MULTI, FREETEXT, DATE,
+    reference = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )     # reference to add context information on question
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         tooltip=models.TextField(verbose_name=_("Tooltip"), blank=True, null=True),
@@ -959,6 +966,7 @@ class QuestionOptions(models.Model):
         QuestionCategoryOptions,
         on_delete=models.PROTECT,
     )
+    created_at = models.DateTimeField(verbose_name=_("Created at"), default=timezone.now)
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
 
