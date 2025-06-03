@@ -1,4 +1,5 @@
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytz
 from django import forms
@@ -18,6 +19,7 @@ from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
+from .helpers import get_workflow_categories
 from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
 from .widgets import TempusDominusV6Widget
 
@@ -284,17 +286,12 @@ class QuestionForm(forms.Form):
         position = kwargs.pop("position", -1)
         workflow = kwargs.pop("workflow", None)
         incident_workflow = kwargs.pop("incident_workflow", None)
+        categories = kwargs.pop("categories_workflow", None)
         incident = kwargs.pop("incident", None)
         super().__init__(*args, **kwargs)
 
         if incident_workflow:
             workflow = incident_workflow.workflow
-
-        categories = (
-            workflow.questionoptions_set.values_list("category_option", flat=True)
-            .order_by("category_option__position")
-            .distinct()
-        )
 
         if position >= len(categories):
             raise ValueError("Position exceeds available categories.")
@@ -302,8 +299,33 @@ class QuestionForm(forms.Form):
         category = categories[position]
 
         category_question_options = workflow.questionoptions_set.filter(
-            category_option__id=category
+            category_option__question_category=category,
+            created_at__lte=incident_workflow.timestamp,
         ).order_by("position")
+
+        question_options_changed = workflow.questionoptions_set.filter(
+            historic__isnull=False
+        )
+        for question_option in question_options_changed:
+            historic = question_option.historic.filter(
+                timestamp__gte=incident_workflow.timestamp,
+                category_option__question_category=category,
+            ).first()
+            if historic:
+                category_question_options = list(category_question_options)
+                old_question_option = {
+                    "id": question_option.id,
+                    "question": historic.question,
+                    "is_mandatory": historic.is_mandatory,
+                    "position": historic.position,
+                }
+                category_question_options.append(SimpleNamespace(**old_question_option))
+                category_question_options = sorted(
+                    category_question_options, key=lambda c: c.position
+                )
+
+        if not category_question_options:
+            category_question_options = category.old_question_options
 
         for question_option in category_question_options:
             self.create_question(question_option, incident_workflow, incident)
@@ -596,7 +618,14 @@ def construct_sectors_array(regulations, regulators):
     return sorted(final_categs, key=lambda item: item[0])
 
 
-def get_forms_list(incident=None, workflow=None, is_regulator=False):
+def get_forms_list(
+    incident=None,
+    workflow=None,
+    incident_workflow=None,
+    is_regulator=False,
+    is_regulator_incident=False,
+    read_only=False,
+):
     category_tree = []
     if incident is None:
         category_tree = [
@@ -610,13 +639,18 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         category_tree.append(IncidenteDateForm)
         if workflow is None:
             workflow = incident.get_next_step()
-        categories = (
-            workflow.questionoptions_set.filter(category_option__isnull=False)
-            .values_list("category_option", flat=True)
-            .distinct()
+
+        categories = get_workflow_categories(
+            is_regulator,
+            is_regulator_incident,
+            read_only,
+            workflow,
+            incident_workflow,
         )
+
         for _category in categories:
             category_tree.append(QuestionForm)
+
         if workflow.is_impact_needed:
             regulation_sector_has_impacts = Impact.objects.filter(
                 regulations=incident.sector_regulation.regulation,
@@ -624,7 +658,8 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
             ).exists()
             if regulation_sector_has_impacts:
                 category_tree.append(ImpactForm)
-        if is_regulator:
+
+        if is_regulator and not is_regulator_incident:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
     return category_tree
 

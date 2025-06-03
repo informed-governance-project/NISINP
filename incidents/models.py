@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytz
 from django.contrib import admin
 from django.db import models
@@ -5,7 +7,6 @@ from django.db.models import Deferrable
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
-from datetime import datetime
 
 from governanceplatform.settings import TIME_ZONE
 
@@ -120,7 +121,7 @@ class Question(TranslatableModel):
         blank=True,
         default=None,
         null=True,
-    )     # reference to add context information on question
+    )  # reference to add context information on question
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         tooltip=models.TextField(verbose_name=_("Tooltip"), blank=True, null=True),
@@ -968,7 +969,9 @@ class QuestionOptions(models.Model):
         on_delete=models.PROTECT,
     )
     # creation date by default before the creation of app
-    created_at = models.DateTimeField(verbose_name=_("Created at"), default=datetime(2000, 1, 1))
+    created_at = models.DateTimeField(
+        verbose_name=_("Created at"), default=datetime(2000, 1, 1)
+    )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
 
@@ -1005,6 +1008,7 @@ class QuestionOptions(models.Model):
                     position=old.position,
                     category_option=old.category_option,
                 )
+                self.created_at = datetime.now()
                 self.historic.add(history)
 
         super().save(*args, **kwargs)

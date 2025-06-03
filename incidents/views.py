@@ -39,7 +39,7 @@ from .email import send_email
 from .filters import IncidentFilter
 from .forms import ContactForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
-from .helpers import is_deadline_exceeded
+from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
     Answer,
     Impact,
@@ -47,7 +47,6 @@ from .models import (
     IncidentWorkflow,
     LogReportRead,
     PredefinedAnswer,
-    QuestionCategoryOptions,
     QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
@@ -313,9 +312,10 @@ def review_workflow(request):
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=bool(
-                    is_user_regulator(user) and not is_regulator_incident
-                ),
+                incident_workflow=incident_workflow,
+                is_regulator=is_user_regulator(user),
+                is_regulator_incident=is_regulator_incident,
+                read_only=True,
             )
             request.incident_workflow = incident_workflow.id
             return WorkflowWizardView.as_view(
@@ -384,9 +384,9 @@ def edit_workflow(request):
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=bool(
-                    is_user_regulator(user) and not is_regulator_incident
-                ),
+                incident_workflow=incident_workflow,
+                is_regulator=is_user_regulator(user),
+                is_regulator_incident=is_regulator_incident,
             )
             request.incident_workflow = incident_workflow.id
 
@@ -406,7 +406,9 @@ def edit_workflow(request):
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
-            is_regulator=bool(is_user_regulator(user) and not is_regulator_incident),
+            incident_workflow=incident_workflow,
+            is_regulator=is_user_regulator(user),
+            is_regulator_incident=is_regulator_incident,
         )
         request.incident_workflow = incident_workflow.id
 
@@ -858,6 +860,14 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
 
+            self.categories_workflow = get_workflow_categories(
+                is_user_regulator(user),
+                self.is_regulator_incident,
+                self.read_only,
+                self.workflow,
+                self.incident_workflow,
+            )
+
             if position == 0:
                 kwargs.update({"instance": self.incident})
             # Regulator case
@@ -887,6 +897,7 @@ class WorkflowWizardView(SessionWizardView):
                     {
                         "position": position - 1,
                         "incident_workflow": self.incident_workflow,
+                        "categories_workflow": self.categories_workflow,
                     }
                 )
         elif self.request.incident:
@@ -911,6 +922,14 @@ class WorkflowWizardView(SessionWizardView):
             self.workflow.is_impact_needed = bool(
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
+
+            self.categories_workflow = get_workflow_categories(
+                is_user_regulator(user),
+                self.is_regulator_incident,
+                self.read_only,
+                self.workflow,
+                self.incident_workflow,
+            )
             if position == 0:
                 kwargs.update({"instance": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
@@ -921,6 +940,7 @@ class WorkflowWizardView(SessionWizardView):
                         "position": position - 1,
                         "workflow": self.workflow,
                         "incident": self.incident,
+                        "categories_workflow": self.categories_workflow,
                     }
                 )
 
@@ -1018,20 +1038,10 @@ class WorkflowWizardView(SessionWizardView):
                 or (is_user_regulator(user) and not self.is_regulator_incident)
                 else "Create"
             )
-            context["steps"] = []
             context["is_regulator_incident"] = self.is_regulator_incident
-
-            category_ids = self.workflow.questionoptions_set.values_list(
-                "category_option", flat=True
-            ).distinct()
-            categories_options = QuestionCategoryOptions.objects.filter(
-                id__in=category_ids
-            ).order_by("position")
-            categories = []
-            for categ in categories_options:
-                categories.append(categ.question_category)
+            context["steps"] = []
             context["steps"].append(_("Incident Timeline"))
-            context["steps"].extend(categories)
+            context["steps"].extend(self.categories_workflow)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
                     regulations=self.incident.sector_regulation.regulation,
