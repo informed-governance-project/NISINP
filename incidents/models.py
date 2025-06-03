@@ -1008,9 +1008,8 @@ class QuestionOptions(models.Model):
                     position=old.position,
                     category_option=old.category_option,
                 )
-                self.created_at = datetime.now()
                 self.historic.add(history)
-
+        self.created_at = datetime.now()
         super().save(*args, **kwargs)
 
     def __str__(self):
