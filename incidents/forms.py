@@ -173,7 +173,7 @@ class QuestionForm(forms.Form):
         question = question_option.question
         question_type = question_option.question.question_type
         answer_queryset = Answer.objects.filter(
-            question_options__question=question,
+            question_options=question_option.id,
             incident_workflow=(
                 incident.get_latest_incident_workflow()
                 if incident
@@ -288,6 +288,7 @@ class QuestionForm(forms.Form):
         incident_workflow = kwargs.pop("incident_workflow", None)
         categories = kwargs.pop("categories_workflow", None)
         incident = kwargs.pop("incident", None)
+        is_new_incident_workflow = kwargs.pop("is_new_incident_workflow", False)
         super().__init__(*args, **kwargs)
 
         if incident_workflow:
@@ -298,34 +299,41 @@ class QuestionForm(forms.Form):
 
         category = categories[position]
 
-        category_question_options = workflow.questionoptions_set.filter(
-            category_option__question_category=category,
-            created_at__lte=incident_workflow.timestamp,
-        ).order_by("position")
-
-        question_options_changed = workflow.questionoptions_set.filter(
-            historic__isnull=False
-        )
-        for question_option in question_options_changed:
-            historic = question_option.historic.filter(
-                timestamp__gte=incident_workflow.timestamp,
+        if is_new_incident_workflow:
+            category_question_options = workflow.questionoptions_set.filter(
                 category_option__question_category=category,
-            ).first()
-            if historic:
-                category_question_options = list(category_question_options)
-                old_question_option = {
-                    "id": question_option.id,
-                    "question": historic.question,
-                    "is_mandatory": historic.is_mandatory,
-                    "position": historic.position,
-                }
-                category_question_options.append(SimpleNamespace(**old_question_option))
-                category_question_options = sorted(
-                    category_question_options, key=lambda c: c.position
-                )
+            ).order_by("position")
+        else:
+            category_question_options = workflow.questionoptions_set.filter(
+                category_option__question_category=category,
+                created_at__lte=incident_workflow.timestamp,
+            ).order_by("position")
 
-        if not category_question_options:
-            category_question_options = category.old_question_options
+            question_options_changed = workflow.questionoptions_set.filter(
+                historic__isnull=False
+            )
+            for question_option in question_options_changed:
+                historic = question_option.historic.filter(
+                    timestamp__gte=incident_workflow.timestamp,
+                    category_option__question_category=category,
+                ).first()
+                if historic:
+                    category_question_options = list(category_question_options)
+                    old_question_option = {
+                        "id": question_option.id,
+                        "question": historic.question,
+                        "is_mandatory": historic.is_mandatory,
+                        "position": historic.position,
+                    }
+                    category_question_options.append(
+                        SimpleNamespace(**old_question_option)
+                    )
+                    category_question_options = sorted(
+                        category_question_options, key=lambda c: c.position
+                    )
+
+            if not category_question_options:
+                category_question_options = category.old_question_options
 
         for question_option in category_question_options:
             self.create_question(question_option, incident_workflow, incident)
