@@ -332,9 +332,6 @@ class QuestionForm(forms.Form):
                         category_question_options, key=lambda c: c.position
                     )
 
-            if not category_question_options:
-                category_question_options = category.old_question_options
-
         for question_option in category_question_options:
             self.create_question(question_option, incident_workflow, incident)
 

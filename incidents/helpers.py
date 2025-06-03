@@ -1,7 +1,6 @@
 import math
 from collections import OrderedDict
 from itertools import chain
-from types import SimpleNamespace
 
 from django.utils import timezone
 
@@ -109,16 +108,6 @@ def get_workflow_categories(
                 timestamp__gte=incident_workflow.timestamp
             ).first()
             if historic:
-                category_option = historic.category_option
-                old_question_option = {
-                    "id": q.id,
-                    "question": historic.question,
-                    "is_mandatory": historic.is_mandatory,
-                    "position": historic.position,
-                }
-                category_option.question_category.old_question_options = [
-                    SimpleNamespace(**old_question_option)
-                ]
                 old_categories.append(historic.category_option)
 
         categories_options = list(
