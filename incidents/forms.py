@@ -645,12 +645,14 @@ def get_forms_list(
         if workflow is None:
             workflow = incident.get_next_step()
 
+        is_new_incident_workflow = not read_only and (
+            is_regulator == is_regulator_incident
+        )
+
         categories = get_workflow_categories(
-            is_regulator,
-            is_regulator_incident,
-            read_only,
             workflow,
             incident_workflow,
+            is_new_incident_workflow,
         )
 
         for _category in categories:

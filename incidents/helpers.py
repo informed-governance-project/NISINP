@@ -60,15 +60,10 @@ def is_deadline_exceeded(report, incident):
 
 
 def get_workflow_categories(
-    is_user_regulator,
-    is_regulator_incident,
-    is_read_only,
     workflow,
     incident_workflow=None,
+    is_new_incident_workflow=False,
 ):
-    is_new_incident_workflow = not is_read_only and (
-        is_user_regulator == is_regulator_incident
-    )
     if is_new_incident_workflow:
         categories = [
             option.question_category

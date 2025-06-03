@@ -860,12 +860,14 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
 
+            is_new_incident_workflow = not self.read_only and (
+                is_user_regulator(user) == self.is_regulator_incident
+            )
+
             self.categories_workflow = get_workflow_categories(
-                is_user_regulator(user),
-                self.is_regulator_incident,
-                self.read_only,
                 self.workflow,
                 self.incident_workflow,
+                is_new_incident_workflow,
             )
 
             if position == 0:
@@ -925,12 +927,14 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
 
+            is_new_incident_workflow = not self.read_only and (
+                is_user_regulator(user) == self.is_regulator_incident
+            )
+
             self.categories_workflow = get_workflow_categories(
-                is_user_regulator(user),
-                self.is_regulator_incident,
-                self.read_only,
                 self.workflow,
                 self.incident_workflow,
+                is_new_incident_workflow,
             )
             if position == 0:
                 kwargs.update({"instance": self.incident})
