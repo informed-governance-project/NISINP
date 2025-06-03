@@ -898,6 +898,8 @@ class WorkflowWizardView(SessionWizardView):
                         "position": position - 1,
                         "incident_workflow": self.incident_workflow,
                         "categories_workflow": self.categories_workflow,
+                        "is_new_incident_workflow": not self.read_only
+                        and (is_user_regulator(user) == self.is_regulator_incident),
                     }
                 )
         elif self.request.incident:
@@ -941,6 +943,8 @@ class WorkflowWizardView(SessionWizardView):
                         "workflow": self.workflow,
                         "incident": self.incident,
                         "categories_workflow": self.categories_workflow,
+                        "is_new_incident_workflow": not self.read_only
+                        and (is_user_regulator(user) == self.is_regulator_incident),
                     }
                 )
 
