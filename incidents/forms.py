@@ -174,7 +174,13 @@ class AuthenticationForm(OTPAuthenticationForm):
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
     # for dynamicly add question to forms
-    def create_question(self, question_option, incident_workflow=None, incident=None, is_new_incident_workflow=False):
+    def create_question(
+        self,
+        question_option,
+        incident_workflow=None,
+        incident=None,
+        is_new_incident_workflow=False,
+    ):
         initial_data = None
         field_name = "__question__" + str(question_option.id)
         question = question_option.question
@@ -352,6 +358,7 @@ class QuestionForm(forms.Form):
         if is_new_incident_workflow:
             category_question_options = workflow.questionoptions_set.filter(
                 category_option__question_category=category,
+                is_deleted=False,
             ).order_by("position")
         else:
             category_question_options = workflow.questionoptions_set.filter(
@@ -360,7 +367,8 @@ class QuestionForm(forms.Form):
             ).order_by("position")
 
             question_options_changed = workflow.questionoptions_set.filter(
-                historic__isnull=False
+                created_at__lte=incident_workflow.timestamp,
+                historic__isnull=False,
             )
             for question_option in question_options_changed:
                 historic = question_option.historic.filter(
@@ -383,7 +391,9 @@ class QuestionForm(forms.Form):
                     )
 
         for question_option in category_question_options:
-            self.create_question(question_option, incident_workflow, incident, is_new_incident_workflow)
+            self.create_question(
+                question_option, incident_workflow, incident, is_new_incident_workflow
+            )
 
 
 # the first question for preliminary notification

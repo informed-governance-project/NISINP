@@ -1009,7 +1009,10 @@ class QuestionOptions(models.Model):
                     category_option=old.category_option,
                 )
                 self.historic.add(history)
-        self.created_at = datetime.now()
+
+        if not self.is_deleted:
+            self.created_at = datetime.now()
+
         super().save(*args, **kwargs)
 
     def __str__(self):
