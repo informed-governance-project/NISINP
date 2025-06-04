@@ -20,7 +20,14 @@ from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
 from .helpers import get_workflow_categories
-from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
+from .models import (
+    Answer,
+    Impact,
+    Incident,
+    IncidentWorkflow,
+    QuestionOptionsHistory,
+    SectorRegulation,
+)
 from .widgets import TempusDominusV6Widget
 
 
@@ -172,6 +179,9 @@ class QuestionForm(forms.Form):
         field_name = "__question__" + str(question_option.id)
         question = question_option.question
         question_type = question_option.question.question_type
+        last_historic_changes = QuestionOptionsHistory.objects.filter(
+            questionoptions__id=question_option.id
+        ).order_by("-timestamp")
         answer_queryset = Answer.objects.filter(
             question_options=question_option.id,
             incident_workflow=(
@@ -183,9 +193,14 @@ class QuestionForm(forms.Form):
 
         if question_type in ["MULTI", "MT", "SO", "ST"]:
             if answer_queryset.exists():
-                initial_data = list(
+                initial_predefined_answers = list(
                     answer_queryset.values_list("predefined_answers", flat=True)
                 )
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if last_historic.timestamp > answer_queryset.first().timestamp:
+                        initial_predefined_answers = []
+                initial_data = initial_predefined_answers
 
             choices = [
                 (choice.id, choice)
@@ -214,13 +229,19 @@ class QuestionForm(forms.Form):
             )
 
             if question_type in ["ST", "MT"]:
-                value = str(answer_queryset.first()) if answer_queryset.exists() else ""
+                if answer_queryset.exists():
+                    answer = answer_queryset.first()
+                    if last_historic_changes.exists():
+                        last_historic = last_historic_changes.first()
+                        if last_historic.timestamp > answer.timestamp:
+                            answer = ""
+                    value = str(answer) if str(answer) != "" else None
                 self.fields[field_name + "_answer"] = forms.CharField(
                     required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
-                            "value": value,
+                            "value": str(value or ""),
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
@@ -230,6 +251,10 @@ class QuestionForm(forms.Form):
         elif question_type == "DATE":
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if last_historic.timestamp > answer.timestamp:
+                        answer = ""
                 initial_data = (
                     datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
                     if str(answer) != ""
@@ -254,6 +279,10 @@ class QuestionForm(forms.Form):
         elif question_type == "FREETEXT":
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if last_historic.timestamp > answer.timestamp:
+                        answer = ""
                 initial_data = str(answer) if str(answer) != "" else None
 
             self.fields[field_name] = forms.CharField(
@@ -272,6 +301,10 @@ class QuestionForm(forms.Form):
         elif question_type in ["CL", "RL"]:
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if last_historic.timestamp > answer.timestamp:
+                        answer = ""
                 initial_data = list(filter(None, str(answer).split(",")))
 
             self.fields[field_name] = forms.MultipleChoiceField(
