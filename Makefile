@@ -1,5 +1,10 @@
 SHELL := /bin/bash
 
+VERSION?=$(shell git describe --exact-match --tags 2>/dev/null || echo "latest" )
+IMAGE?=local/nisinp
+
+.PHONY: image
+
 # target: all - Default target. Does nothing.
 all:
 	@echo "Hello $(LOGNAME), nothing to do by default."
@@ -42,3 +47,6 @@ update:
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
+
+image:
+	docker build -f docker/Dockerfile --build-arg APP_VERSION=$(shell git describe --tags) -t $(IMAGE):$(VERSION) .

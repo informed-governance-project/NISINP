@@ -1,6 +1,7 @@
 import logging
 import math
 
+from celery import shared_task
 from django.db import DatabaseError
 from django.utils import timezone
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 # Script to run every hour
 # Send an email when the delay is overdue
 # The status change is managed in frontend
+@shared_task(name="workflow_update_status")
 def run(logger=logger):
     logger.info("running workflow_update_status.py")
     # for all unclosed incident

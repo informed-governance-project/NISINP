@@ -1,25 +1,25 @@
 import logging
 from datetime import timedelta
 
+from celery import shared_task
 from django.db.models.functions import Now
 
-from governanceplatform.models import ScriptLogEntry
+from governanceplatform.models import ScriptLogEntry, User
 from governanceplatform.settings import ACCOUNT_ACTIVATION_LINK_TIMEOUT
-from governanceplatform.models import User
 
 logger = logging.getLogger(__name__)
 
 
 # Script to run every hour
 # remove users who are inactive, never logged, and recently joined
+@shared_task(name="unactive_account_cleaning")
 def run(logger=logger):
     logger.info("running incident_cleaning.py")
     # for all closed incident
     user_to_delete_qs = User.objects.filter(
         last_login__isnull=True,
         is_active=False,
-        date_joined__lte=Now()
-        - timedelta(seconds=ACCOUNT_ACTIVATION_LINK_TIMEOUT)
+        date_joined__lte=Now() - timedelta(seconds=ACCOUNT_ACTIVATION_LINK_TIMEOUT),
     )
     ScriptLogEntry.objects.create(
         object_id=None,

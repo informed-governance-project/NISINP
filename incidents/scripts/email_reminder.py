@@ -1,6 +1,7 @@
 import logging
 import math
 
+from celery import shared_task
 from django.utils import timezone
 
 from incidents.email import send_email
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 # Script to run every hour
+@shared_task(name="email_reminder")
 def run(logger=logger):
     logger.info("running email_reminder.py")
     # for all unclosed incident

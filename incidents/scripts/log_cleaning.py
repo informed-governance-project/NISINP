@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from celery import shared_task
 from django.contrib.admin.models import LogEntry
 from django.db.models.functions import Now
 
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Script to run once day
 # remove log after a period configured in config.py
+@shared_task(name="log_cleaning")
 def run(logger=logger):
     logger.info("running log_cleaning.py")
     log_to_delete = LogEntry.objects.filter(
