@@ -12,7 +12,6 @@ FROM python:3.11-bullseye
 
 ARG APP_VERSION
 ARG GUNICORN_VERSION=23.0
-ARG MULTIRUN_VERSION=1.1.3
 ENV APP_VERSION=$APP_VERSION
 
 WORKDIR /app
@@ -20,8 +19,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
   gettext \
   && rm -rf /var/lib/apt/lists/*
-
-RUN wget -c https://github.com/nicolas-van/multirun/releases/download/${MULTIRUN_VERSION}/multirun-x86_64-linux-gnu-${MULTIRUN_VERSION}.tar.gz -O - | tar -C /bin -xz
 
 # running as www-data, we need homedir and PATH for --user installed pip modules
 RUN mkdir -p /app /var/www && chown www-data: /app /var/www
@@ -46,7 +43,9 @@ COPY --chown=www-data manage.py /app/manage.py
 RUN python3 -m pip install --user .
 RUN python3 -m pip install --user gunicorn~=$GUNICORN_VERSION
 
-COPY cronjob.py /app/cronjob.py
+COPY celery_worker.py /app/
+COPY celery_beat.py /app/
+
 COPY docker/docker-init.sh /app/docker-init.sh
 
 ENTRYPOINT [ "/app/docker-init.sh" ]
