@@ -65,22 +65,31 @@ def get_workflow_categories(
     is_new_incident_workflow=False,
 ):
     if is_new_incident_workflow:
-        categories = [
-            option.question_category
-            for option in QuestionCategoryOptions.objects.filter(
+        category_options = (
+            QuestionCategoryOptions.objects.filter(
                 id__in=workflow.questionoptions_set.values_list(
                     "category_option", flat=True
-                ).distinct()
+                ).distinct(),
+                questionoptions__is_deleted=False,
             )
             .select_related("question_category")
             .order_by("position")
-        ]
+        )
+        seen = set()
+        categories = []
+        for option in category_options:
+            category = option.question_category
+            if category.id not in seen:
+                seen.add(category.id)
+                categories.append(category)
+
     elif incident_workflow:
         workflow = incident_workflow.workflow
 
         active_question_options = (
             workflow.questionoptions_set.filter(
                 created_at__lte=incident_workflow.timestamp,
+                is_deleted=False,
             )
             .select_related("category_option__question_category")
             .order_by("category_option__position")
