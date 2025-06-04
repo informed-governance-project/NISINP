@@ -7,11 +7,13 @@ from governanceplatform.models import ScriptLogEntry
 from governanceplatform.settings import ACCOUNT_ACTIVATION_LINK_TIMEOUT
 from governanceplatform.models import User
 
-logger = logging.getLogger(__name__)
+from celery import shared_task
 
+logger = logging.getLogger(__name__)
 
 # Script to run every hour
 # remove users who are inactive, never logged, and recently joined
+@shared_task(name="unactive_account_cleaning")
 def run(logger=logger):
     logger.info("running incident_cleaning.py")
     # for all closed incident

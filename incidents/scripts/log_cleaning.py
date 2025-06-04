@@ -7,11 +7,14 @@ from django.db.models.functions import Now
 from governanceplatform.models import ScriptLogEntry
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 
+from celery import shared_task
+
 logger = logging.getLogger(__name__)
 
 
 # Script to run once day
 # remove log after a period configured in config.py
+@shared_task(name="log_cleaning")
 def run(logger=logger):
     logger.info("running log_cleaning.py")
     log_to_delete = LogEntry.objects.filter(

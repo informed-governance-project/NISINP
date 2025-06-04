@@ -11,10 +11,13 @@ from incidents.models import (
     SectorRegulationWorkflowEmail,
 )
 
+from celery import shared_task
+
 logger = logging.getLogger(__name__)
 
 
 # Script to run every hour
+@shared_task(name="email_reminder")
 def run(logger=logger):
     logger.info("running email_reminder.py")
     # for all unclosed incident

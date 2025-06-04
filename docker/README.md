@@ -14,20 +14,19 @@ network mode anymore and `postgres` is now part of `docker-compose.yml`.
 > least the `theme` and, if used, `logs` volumes **need** to be owned by
 > `www-data` (uid **33**)
 
-There are now only two mandatory volumes to setup:
+There is now only one mandatory volumes to setup:
 
 - `/app/governanceplatform/config.py`  
   The application configuration, based on `governanceplatform/config_dev.py`
 
-- `/app/theme`  
-  The theme directory, currently by default based on
-  `github.com/informed-governance-project/default-theme`, that may change in the
-  future or if you wish to use a custom theme for your needs.
-  This directory needs to be writable as translation files (.po) are written
-  there at application start up. Most of the time specific version of this
-  application will require specific version of the theme - please ask your
-  theme developper which theme version you should use.
-
+The theme is now pulled from a docker image also, theme volume need to be
+deleted before update, to ensure data is pulled again and the Django `collectstatic`
+operation runs on fresh data. You can either delete the volume (`docker volume
+rm`), or, if and only if, `theme` is your only docker-compose *named volume*, use
+`docker-compose down -v && docker-compose up -d`. DO NOT use `docker-compose
+down -v` if you put your postgres volume in a named volume instead of a host
+path volume (`postgres:/var/lib/postgresql/data` vs
+`./volumes/postgres/data:/var/lib/postgresql/data`)
 
 ## Logging configuration
 
@@ -77,6 +76,15 @@ DATABASES = {
 }
 ```
 
+## Celery configuration
+
+Celery broker can be configured in the config.py file with:
+
+```
+CELERY_BROKER_URL =  os.getenv("CELERY_BROKER_URL", 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", 'redis://redis:6379/1')
+```
+
 ## Startup scripts
 
 Any `*.sh` script found under `/docker-init.d/` will be *sourced* before the
@@ -90,9 +98,22 @@ before the actual Django runtime init and application startup.
 
 `NISINP_VERSION=vX.Y.Z NISINP_ENVIRONMENT=prod docker-compose up -d`
 
-- `NISINP_VERSION`: which tag to deploy
+- `NISINP_VERSION` (required): which tag to deploy
 - `NISINP_IMAGE`: container image path (without version) (defaults to `ghcr.io/informed-governance-project/nisinp`)
-- `NISINP_ENVIRONMENT`: identifier for your environment, mainly for container naming
+- `NISINP_ENVIRONMENT` (required): identifier for your environment, mainly for container naming
+- `THEME_IMAGE`: theme container image path (without version) (defaults to `ghcr.io/informed-governance-project/default-theme`)
+- `THEME_VERSION` (required): whith theme tag to deploy
+- `POSTGRES_PASSWORD` (required): postgres db user password
+- `POSTGRES_USER`: defaults to `governanceplatform`
+- `POSTGRES_DB`: defaults to `governanceplatform`
+- `POSTGRES_HOST`: defaults to `postgres`
+- `CELERY_BROKER_URL`: defaults to 'redis://redis:6379/0'
+- `CELERY_RESULT_BACKEND`: defaults to 'redis://redis:6379/1'
+- `SUPERUSER_EMAIL` and `SUPERUSER_PASSWORD`: if *both* are set, Django initial
+  superuser is created (password can be updated in Django WebUI afterwards),
+  the initial creation is only performed if user does **not** already exist
+- `MAIN_SITE` and `MAIN_SITE_NAME`: if *both* are set, Django initial site
+  config is done on startup
 - `APP_PORT`: which port to bind to (defaults to `8888`)
 - `APP_BIND_ADDRESSS`: which address to bind to (defaults to `0.0.0.0`)
 

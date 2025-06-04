@@ -7,11 +7,14 @@ from governanceplatform.models import ScriptLogEntry
 from governanceplatform.settings import INCIDENT_RETENTION_TIME_IN_DAY
 from incidents.models import Incident
 
+from celery import shared_task
+
 logger = logging.getLogger(__name__)
 
 
 # Script to run once day
 # remove incidents after a period configured in config.py
+@shared_task(name="incident_cleaning")
 def run(logger=logger):
     logger.info("running incident_cleaning.py")
     # for all closed incident
