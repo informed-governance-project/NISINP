@@ -11,6 +11,7 @@ from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
+
 # Script to run every hour
 # remove users who are inactive, never logged, and recently joined
 @shared_task(name="unactive_account_cleaning")

@@ -10,7 +10,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.beat_schedule = {
     "email_reminder": {
         'task': 'email_reminder',
-        'schedule': crontab(minute=0) # every hour
+        'schedule': crontab(minute=0)  # every hour
     },
     "incident_cleaning": {
         'task': 'incident_cleaning',
@@ -22,14 +22,10 @@ app.conf.beat_schedule = {
     },
     "workflow_update_status": {
         'task': 'workflow_update_status',
-        'schedule': crontab(minute=0) # every hour
+        'schedule': crontab(minute=0)  # every hour
     },
     "unactive_account_cleaning": {
         'task': 'unactive_account_cleaning',
-        'schedule': crontab(minute=0) # every hour
+        'schedule': crontab(minute=0)  # every hour
     },
-#    "every_10_seconds": {
-#        'task': 'taskname',
-#        'schedule': 10.0 # every 10 seconds
-#    },
 }

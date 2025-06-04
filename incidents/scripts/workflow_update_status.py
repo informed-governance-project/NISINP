@@ -11,6 +11,7 @@ from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
+
 # Script to run every hour
 # Send an email when the delay is overdue
 # The status change is managed in frontend
