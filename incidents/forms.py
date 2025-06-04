@@ -198,7 +198,10 @@ class QuestionForm(forms.Form):
                 )
                 if last_historic_changes.exists():
                     last_historic = last_historic_changes.first()
-                    if last_historic.timestamp > answer_queryset.first().timestamp:
+                    if (
+                        last_historic.timestamp > answer_queryset.first().timestamp
+                        and last_historic.question != question_option.question
+                    ):
                         initial_predefined_answers = []
                 initial_data = initial_predefined_answers
 
@@ -233,7 +236,10 @@ class QuestionForm(forms.Form):
                     answer = answer_queryset.first()
                     if last_historic_changes.exists():
                         last_historic = last_historic_changes.first()
-                        if last_historic.timestamp > answer.timestamp:
+                        if (
+                            last_historic.timestamp > answer.timestamp
+                            and last_historic.question != question_option.question
+                        ):
                             answer = ""
                     value = str(answer) if str(answer) != "" else None
                 self.fields[field_name + "_answer"] = forms.CharField(
@@ -253,7 +259,10 @@ class QuestionForm(forms.Form):
                 answer = answer_queryset.first()
                 if last_historic_changes.exists():
                     last_historic = last_historic_changes.first()
-                    if last_historic.timestamp > answer.timestamp:
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
                         answer = ""
                 initial_data = (
                     datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
@@ -281,7 +290,10 @@ class QuestionForm(forms.Form):
                 answer = answer_queryset.first()
                 if last_historic_changes.exists():
                     last_historic = last_historic_changes.first()
-                    if last_historic.timestamp > answer.timestamp:
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
                         answer = ""
                 initial_data = str(answer) if str(answer) != "" else None
 
@@ -303,7 +315,10 @@ class QuestionForm(forms.Form):
                 answer = answer_queryset.first()
                 if last_historic_changes.exists():
                     last_historic = last_historic_changes.first()
-                    if last_historic.timestamp > answer.timestamp:
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
                         answer = ""
                 initial_data = list(filter(None, str(answer).split(",")))
 
