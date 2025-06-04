@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import logging  # noqa: F401
 import os
 
 import django
@@ -9,7 +8,7 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
 django.setup()
 
-from incidents.scripts import (  # noqa: F401, E402
+from incidents.scripts import (  # noqa: E402 F401
     email_reminder,
     incident_cleaning,
     log_cleaning,

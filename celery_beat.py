@@ -26,8 +26,4 @@ app.conf.beat_schedule = {
         "task": "unactive_account_cleaning",
         "schedule": crontab(minute=0),  # every hour
     },
-    #    "every_10_seconds": {
-    #        'task': 'taskname',
-    #        'schedule': 10.0 # every 10 seconds
-    #    },
 }
