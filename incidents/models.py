@@ -981,14 +981,7 @@ class QuestionOptions(models.Model):
     def delete(self, *args, **kwargs):
         in_use = self.answer_set.exists()
         if in_use:
-            history = QuestionOptionsHistory.objects.create(
-                event="delete",
-                question=self.question,
-                is_mandatory=self.is_mandatory,
-                position=self.position,
-                category_option=self.category_option,
-            )
-            self.historic.add(history)
+            self.updated_at = datetime.now()
             self.is_deleted = True
             self.save()
         else:
