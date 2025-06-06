@@ -88,7 +88,7 @@ def get_workflow_categories(
 
         active_question_options = (
             workflow.questionoptions_set.filter(
-                created_at__lte=incident_workflow.timestamp,
+                updated_at__lte=incident_workflow.timestamp,
                 is_deleted=False,
             )
             .select_related("category_option__question_category")

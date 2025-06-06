@@ -363,11 +363,11 @@ class QuestionForm(forms.Form):
         else:
             category_question_options = workflow.questionoptions_set.filter(
                 category_option__question_category=category,
-                created_at__lte=incident_workflow.timestamp,
+                updated_at__lte=incident_workflow.timestamp,
             ).order_by("position")
 
             question_options_changed = workflow.questionoptions_set.filter(
-                created_at__lte=incident_workflow.timestamp,
+                updated_at__lte=incident_workflow.timestamp,
                 historic__isnull=False,
             )
             for question_option in question_options_changed:

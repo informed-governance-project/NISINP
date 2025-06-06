@@ -944,8 +944,9 @@ class QuestionCategoryOptions(models.Model):
 
 
 # save the history of the question inside a report
+# we save only the changes, the deletion is managed
+# in QuestionOptions
 class QuestionOptionsHistory(models.Model):
-    event = models.CharField(max_length=100, verbose_name=_("Event recorded"))
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
@@ -969,7 +970,9 @@ class QuestionOptions(models.Model):
         on_delete=models.PROTECT,
     )
     # creation date by default before the creation of app
-    created_at = models.DateTimeField(
+    # we use the updated_at also to have the deletion date
+    # when is_deleted = True
+    updated_at = models.DateTimeField(
         verbose_name=_("Created at"), default=datetime(2000, 1, 1)
     )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
@@ -1011,7 +1014,7 @@ class QuestionOptions(models.Model):
                 self.historic.add(history)
 
         if not self.is_deleted:
-            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
 
         super().save(*args, **kwargs)
 
