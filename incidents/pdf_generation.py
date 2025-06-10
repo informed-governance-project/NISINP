@@ -1,5 +1,6 @@
 import logging
 import os
+from collections import OrderedDict
 from typing import Dict, List
 
 from django.conf import settings
@@ -57,6 +58,24 @@ def get_pdf_report(
                 answer,
                 incident_workflows_answer[workflow_name],
             )
+
+        incident_workflows_answer_sorted = {}
+
+        for workflow_name, category_dict in incident_workflows_answer.items():
+            sorted_category_dict = OrderedDict()
+
+            sorted_categories = sorted(
+                category_dict.items(), key=lambda item: item[0].position
+            )
+
+            for category_obj, question_dict in sorted_categories:
+                sorted_question_dict = OrderedDict(
+                    sorted(question_dict.items(), key=lambda item: item[0].position)
+                )
+                sorted_category_dict[category_obj] = sorted_question_dict
+
+            incident_workflows_answer_sorted[workflow_name] = sorted_category_dict
+
         # impacts
         incident_workflows_impact[workflow_name].extend(
             incident_workflow.impacts.all().order_by("translations__label").distinct()
@@ -77,7 +96,7 @@ def get_pdf_report(
         {
             "static_theme_dir": os.path.abspath(static_theme_dir),
             "incident": incident,
-            "incident_workflows_answer": incident_workflows_answer,
+            "incident_workflows_answer": incident_workflows_answer_sorted,
             "incident_workflows_impact": incident_workflows_impact,
             "sectors": sectors,
             "report_name": report_name,
@@ -109,8 +128,8 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
         ).first()
         question_option = old_question_option
 
-    category_label = question_option.category_option.question_category
-    question_label = question_option.question
+    category_label = question_option.category_option
+    question_label = question_option
     question_dict = preliminary_questions_answers.setdefault(category_label, {})
     answer_list = question_dict.setdefault(question_label, [])
 
