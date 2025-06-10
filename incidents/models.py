@@ -1002,7 +1002,6 @@ class QuestionOptions(models.Model):
                 or old.category_option != self.category_option
             ):
                 history = QuestionOptionsHistory.objects.create(
-                    event="change",
                     question=old.question,
                     is_mandatory=old.is_mandatory,
                     position=old.position,
