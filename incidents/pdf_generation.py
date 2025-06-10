@@ -97,8 +97,20 @@ def get_pdf_report(
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):
-    category_label = answer.question_options.category_option.question_category
-    question_label = answer.question_options.question
+    incident_workflow_timestamp = answer.incident_workflow.timestamp
+    question_option = answer.question_options
+
+    if (
+        answer.incident_workflow.timestamp < answer.question_options.updated_at
+        and answer.question_options.historic.all()
+    ):
+        old_question_option = answer.question_options.historic.filter(
+            timestamp__gte=incident_workflow_timestamp
+        ).first()
+        question_option = old_question_option
+
+    category_label = question_option.category_option.question_category
+    question_label = question_option.question
     question_dict = preliminary_questions_answers.setdefault(category_label, {})
     answer_list = question_dict.setdefault(question_label, [])
 
@@ -106,14 +118,14 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
         answer_list.extend(answer.predefined_answers.all())
     else:
         answer_string = answer
-        if answer.question_options.question.question_type == "RL":
+        if question_option.question.question_type == "RL":
             REGIONAL_AREA_DICT = dict(REGIONAL_AREA)
             region_name_list = [
                 REGIONAL_AREA_DICT.get(region_code, region_code)
                 for region_code in filter(None, str(answer).split(","))
             ]
             answer_string = " - ".join(map(str, region_name_list))
-        if answer.question_options.question.question_type == "CL":
+        if question_option.question.question_type == "CL":
             COUNTRY_DICT = dict(countries)
             region_name_list = [
                 COUNTRY_DICT.get(region_code, region_code)
