@@ -367,7 +367,7 @@ class QuestionForm(forms.Form):
             ).order_by("position")
 
             question_options_changed = workflow.questionoptions_set.filter(
-                updated_at__lte=incident_workflow.timestamp,
+                updated_at__gte=incident_workflow.timestamp,
                 historic__isnull=False,
             )
             for question_option in question_options_changed:
