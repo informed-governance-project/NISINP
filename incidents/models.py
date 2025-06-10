@@ -970,25 +970,29 @@ class QuestionOptions(models.Model):
         on_delete=models.PROTECT,
     )
     # creation date by default before the creation of app
-    # we use the updated_at also to have the deletion date
-    # when is_deleted = True
     updated_at = models.DateTimeField(
         verbose_name=_("Created at"), default=datetime(2000, 1, 1)
     )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
-    is_deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
+    deleted_date = models.DateTimeField(
+        verbose_name=_("Deleted date"), default=None, blank=True, null=True
+    )
+
+    def is_deleted(self):
+        if self.deleted_date is not None:
+            return True
+        return False
 
     def delete(self, *args, **kwargs):
         in_use = self.answer_set.exists()
         if in_use:
-            self.updated_at = datetime.now()
-            self.is_deleted = True
+            self.deleted_date = datetime.now()
             self.save()
         else:
             super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        if self.pk and self.answer_set.exists() and not self.is_deleted:
+        if self.pk and self.answer_set.exists() and not self.is_deleted():
             old = QuestionOptions.objects.get(pk=self.pk)
 
             if (
@@ -1006,7 +1010,7 @@ class QuestionOptions(models.Model):
                 )
                 self.historic.add(history)
 
-        if not self.is_deleted:
+        if not self.is_deleted():
             self.updated_at = datetime.now()
 
         super().save(*args, **kwargs)

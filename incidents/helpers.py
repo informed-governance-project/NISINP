@@ -70,7 +70,7 @@ def get_workflow_categories(
                 id__in=workflow.questionoptions_set.values_list(
                     "category_option", flat=True
                 ).distinct(),
-                questionoptions__is_deleted=False,
+                questionoptions__deleted_date=None,
             )
             .select_related("question_category")
             .order_by("position")
@@ -89,7 +89,7 @@ def get_workflow_categories(
         active_question_options = (
             workflow.questionoptions_set.filter(
                 updated_at__lte=incident_workflow.timestamp,
-                is_deleted=False,
+                deleted_date=None,
             )
             .select_related("category_option__question_category")
             .order_by("category_option__position")

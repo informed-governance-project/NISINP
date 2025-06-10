@@ -358,7 +358,7 @@ class QuestionForm(forms.Form):
         if is_new_incident_workflow:
             category_question_options = workflow.questionoptions_set.filter(
                 category_option__question_category=category,
-                is_deleted=False,
+                deleted_date=None,
             ).order_by("position")
         else:
             category_question_options = workflow.questionoptions_set.filter(
