@@ -288,13 +288,13 @@ def review_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
     if not incident_workflow_id:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
     user = request.user
     try:
         incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
     except IncidentWorkflow.DoesNotExist:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
 
     incident = incident_workflow.incident
@@ -338,7 +338,7 @@ def edit_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow = None
     if not workflow_id and not incident_id and not incident_workflow_id:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
     elif workflow_id and incident_id:
         incident = Incident.objects.filter(pk=incident_id).first()
@@ -358,7 +358,7 @@ def edit_workflow(request):
         try:
             incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
         except IncidentWorkflow.DoesNotExist:
-            messages.warning(request, _("No incident report could be found."))
+            messages.error(request, _("No incident report could be found."))
             return redirect("incidents")
     else:
         messages.error(request, _("Forbidden"))
@@ -418,7 +418,7 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.warning(request, _("No incident report could be found."))
+    messages.error(request, _("No incident report could be found."))
     return redirect("incidents")
 
 
@@ -479,7 +479,7 @@ def download_incident_pdf(request, incident_id: int):
         pdf_report = get_pdf_report(incident, None, request)
         create_entry_log(user, incident, None, "DOWNLOAD", request)
     except Exception:
-        messages.warning(request, _("An error occurred while generating the report."))
+        messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -501,7 +501,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
         incident = incident_workflow.incident
     except IncidentWorkflow.DoesNotExist:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
 
     if not can_access_incident(user, incident, company_id):
@@ -511,7 +511,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         pdf_report = get_pdf_report(incident, incident_workflow, request)
         create_entry_log(user, incident, incident_workflow, "DOWNLOAD", request)
     except Exception:
-        messages.warning(request, _("An error occurred while generating the report."))
+        messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -546,9 +546,9 @@ def delete_incident(request, incident_id: int):
                 incident.delete()
                 messages.success(request, _("The incident has been deleted."))
             else:
-                messages.warning(request, _("The incident could not be deleted."))
+                messages.error(request, _("The incident could not be deleted."))
     except Exception:
-        messages.warning(request, _("An error occurred while deleting the incident."))
+        messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
 
@@ -560,7 +560,7 @@ def is_incidents_report_limit_reached(request):
             contact_user=request.user, incident_notification_date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
-            messages.warning(
+            messages.error(
                 request,
                 _(
                     "The daily limit of incident reports has been reached. Please try again tomorrow."
