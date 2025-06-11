@@ -364,6 +364,8 @@ class QuestionForm(forms.Form):
             category_question_options = workflow.questionoptions_set.filter(
                 category_option__question_category=category,
                 updated_at__lte=incident_workflow.timestamp,
+            ).filter(
+                Q(deleted_date__isnull=True) | Q(deleted_date__gte=incident_workflow.timestamp)
             ).order_by("position")
 
             question_options_changed = workflow.questionoptions_set.filter(
