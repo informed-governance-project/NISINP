@@ -38,6 +38,7 @@ def get_pdf_report(
 
     incident_workflows_answer: Dict[str, Dict[str, str, List[str]]] = {}
     incident_workflows_impact: Dict[str, List[str]] = {}
+    incident_workflows_answer_sorted = {}
     # display for the full incident or just a report
     if incident_workflow is None:
         report_list = incident.get_latest_incident_workflows()
@@ -58,8 +59,6 @@ def get_pdf_report(
                 answer,
                 incident_workflows_answer[workflow_name],
             )
-
-        incident_workflows_answer_sorted = {}
 
         for workflow_name, category_dict in incident_workflows_answer.items():
             sorted_category_dict = OrderedDict()
