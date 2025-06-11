@@ -721,7 +721,6 @@ def import_so_declaration(request):
 
     if not standard_list:
         messages.error(request, _("No data available"))
-        return HttpResponseRedirect(request.headers.get("referer"))
 
     sectors_queryset = (
         user.get_sectors().all()
@@ -747,14 +746,12 @@ def import_so_declaration(request):
             company_id = int(request.GET.get("company_id"))
             if not companies_queryset.filter(id=company_id).exists():
                 messages.error(request, _("Forbidden"))
-                return HttpResponseRedirect(request.headers.get("referer"))
             initial["company"] = company_id
 
         if "sector_id" in request.GET:
             sector_id = int(request.GET.get("sector_id"))
             if not sectors_queryset.filter(id=sector_id).exists():
                 messages.error(request, _("Forbidden"))
-                return HttpResponseRedirect(request.headers.get("referer"))
             initial["sectors"] = sector_id
 
         if "year" in request.GET:
@@ -762,7 +759,6 @@ def import_so_declaration(request):
 
     except (ValueError, TypeError):
         messages.error(request, _("Invalid request"))
-        return HttpResponseRedirect(request.headers.get("referer"))
 
     choices = {
         "standard": standard_list,
