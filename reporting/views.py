@@ -74,9 +74,11 @@ def reporting(request):
     companies_queryset = (
         Company.objects.filter(
             companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-        ).distinct()
+        )
+        .distinct()
+        .order_by("id")
         if user_in_group(user, "RegulatorUser")
-        else Company.objects.all()
+        else Company.objects.all().order_by("id")
     )
 
     if "reset" in request.GET:
