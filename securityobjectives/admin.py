@@ -162,6 +162,7 @@ class StandardAdmin(
             kwargs["queryset"] = Regulation.objects.filter(
                 regulators=regulator
             ).distinct()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def import_action(self, request, *args, **kwargs):
         # Save the request to use later in the resource
