@@ -20,6 +20,7 @@ services:
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
       - theme:/app/theme
+      - shared_dir:/app/tmp
     restart: unless-stopped
   postgres:
     container_name: governanceplatform-postgres-${NISINP_ENVIRONMENT?:err}
@@ -44,6 +45,8 @@ services:
     command: worker
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
+      - theme:/app/theme
+      - shared_dir:/app/tmp
   celery-beat:
     container_name: governanceplatform-celery-beat-${NISINP_ENVIRONMENT?:err}
     image: ${NISINP_IMAGE:-ghcr.io/informed-governance-project/nisinp}:${NISINP_VERSION?:err}
@@ -60,3 +63,4 @@ services:
 
 volumes:
   theme:
+  shared_dir:
