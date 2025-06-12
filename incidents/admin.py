@@ -377,7 +377,14 @@ class QuestionAdmin(
     CustomTranslatableAdmin,
 ):
     actions = [duplicate_objects]
-    list_display = ["label", "question_type", "get_predefined_answers", "creator"]
+    list_display = [
+        "reference",
+        "label",
+        "question_type",
+        "get_predefined_answers",
+        "creator",
+    ]
+    list_display_links = ["reference", "label"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
     fields = [
