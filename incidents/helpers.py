@@ -104,7 +104,20 @@ def get_workflow_categories(
             .distinct()
         )
 
+        # fetch the categories which are deleted and
+        # are not fetched in other request
+        deleted_question_options = (
+            workflow.questionoptions_set.filter(
+                updated_at__lte=incident_workflow.timestamp,
+                deleted_date__gte=incident_workflow.timestamp
+            )
+            .select_related("category_option__question_category")
+            .order_by("category_option__position")
+            .distinct()
+        )
+
         active_categories = (q.category_option for q in active_question_options)
+        deleted_categories = (q.category_option for q in deleted_question_options)
 
         old_categories = []
         for q in old_question_options:
@@ -115,7 +128,7 @@ def get_workflow_categories(
                 old_categories.append(historic.category_option)
 
         categories_options = list(
-            OrderedDict.fromkeys(chain(active_categories, old_categories))
+            OrderedDict.fromkeys(chain(active_categories, old_categories, deleted_categories))
         )
         categories_options = sorted(categories_options, key=lambda c: c.position)
         categories = [c.question_category for c in categories_options]
