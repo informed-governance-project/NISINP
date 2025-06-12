@@ -18,7 +18,11 @@ from .models import CompanyReporting, GeneratedReport
 
 @shared_task
 def generate_pdf_data(cleaned_data):
-    static_dir = settings.STATIC_ROOT
+    static_theme_dir = settings.STATIC_THEME_DIR
+    bootstrap_icons_dir = os.path.join(
+        settings.STATIC_DIR, "npm_components/bootstrap-icons"
+    )
+
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
     charts = get_charts(so_data, risk_data)
@@ -36,7 +40,8 @@ def generate_pdf_data(cleaned_data):
             "risk_data": risk_data,
             "nb_years": cleaned_data["nb_years"],
             "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
-            "static_dir": os.path.abspath(static_dir),
+            "static_theme_dir": os.path.abspath(static_theme_dir),
+            "bootstrap_icons_dir": os.path.abspath(bootstrap_icons_dir),
             "company_reporting": cleaned_data["company_reporting"],
         },
     )

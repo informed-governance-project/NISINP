@@ -1129,11 +1129,11 @@ def get_pdf_report(
     is_multiple_files: bool,
 ):
     user = request.user
-    static_dir = settings.STATIC_ROOT
+    static_theme_dir = settings.STATIC_THEME_DIR
 
     stylesheets = [
-        os.path.join(static_dir, "css/custom.css"),
-        os.path.join(static_dir, "css/report.css"),
+        os.path.join(static_theme_dir, "css/custom.css"),
+        os.path.join(static_theme_dir, "css/report.css"),
     ]
 
     # Send the pdf to celery
