@@ -500,7 +500,7 @@ except AttributeError:
 try:
     PATH_FOR_REPORTING_PDF = config.PATH_FOR_REPORTING_PDF
 except AttributeError:
-    PATH_FOR_REPORTING_PDF = "/tmp/"
+    PATH_FOR_REPORTING_PDF = f"{os.getcwd()}/tmp/"
 # Email adress for FROM field and RETURN-PATH
 try:
     EMAIL_CONTACT_FROM = config.EMAIL_CONTACT_FROM
