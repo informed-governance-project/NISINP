@@ -116,7 +116,7 @@ class Question(TranslatableModel):
         verbose_name=_("Question Type"),
     )  # MULTI, FREETEXT, DATE,
     reference = models.CharField(
-        verbose_name=_("Creator name"),
+        verbose_name=_("Reference"),
         max_length=255,
         blank=True,
         default=None,

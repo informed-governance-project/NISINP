@@ -216,6 +216,10 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    reference = fields.Field(
+        column_name="reference",
+        attribute="reference",
+    )
     tooltip = fields.Field(
         column_name="tooltip",
         attribute="tooltip",
@@ -229,6 +233,7 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         model = Question
         fields = (
             "id",
+            "reference",
             "label",
             "tooltip",
             "question_type",
@@ -377,6 +382,7 @@ class QuestionAdmin(
     resource_class = QuestionResource
     fields = [
         "question_type",
+        "reference",
         "label",
         "tooltip",
     ]
