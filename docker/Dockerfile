@@ -46,6 +46,8 @@ COPY celery_beat.py /app/
 
 COPY docker/docker-init.sh /app/docker-init.sh
 
+RUN mkdir -p /app/tmp
+
 ENTRYPOINT [ "/app/docker-init.sh" ]
 
 ENV APP_PORT="8888"
