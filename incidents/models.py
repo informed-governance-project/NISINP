@@ -986,7 +986,7 @@ class QuestionOptions(models.Model):
     def delete(self, *args, **kwargs):
         in_use = self.answer_set.exists()
         if in_use:
-            self.deleted_date = datetime.now()
+            self.deleted_date = timezone.now()
             self.save()
         else:
             super().delete(*args, **kwargs)
@@ -1010,7 +1010,7 @@ class QuestionOptions(models.Model):
                 self.historic.add(history)
 
         if not self.is_deleted():
-            self.updated_at = datetime.now()
+            self.updated_at = timezone.now()
 
         super().save(*args, **kwargs)
 
