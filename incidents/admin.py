@@ -418,7 +418,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 
 
 @admin.register(QuestionCategoryOptions, site=admin_site)
-class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
+class QuestionCategoryOptionsAdmin(PermissionMixin, admin.ModelAdmin):
     list_display = ["question_category", "position"]
     list_display_links = ["position", "question_category"]
     fields = ["question_category", "position"]

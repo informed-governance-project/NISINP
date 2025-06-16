@@ -13,6 +13,7 @@ from incidents.models import (
     PredefinedAnswer,
     Question,
     QuestionCategoryOptions,
+    QuestionOptionsHistory,
     Workflow,
 )
 
@@ -268,11 +269,17 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
 
     # [Question Category] Check if obj is already in use
     if isinstance(obj, QuestionCategoryOptions):
-        in_use = Answer.objects.filter(question_options__category_option=obj).exists()
+        in_use = (
+            Answer.objects.filter(question_options__category_option=obj).exists()
+            or QuestionOptionsHistory.objects.filter(category_option=obj).exists()
+        )
 
     # [Question] Check if obj is already in use
     if isinstance(obj, Question):
-        in_use = Answer.objects.filter(question_options__question=obj).exists()
+        in_use = (
+            Answer.objects.filter(question_options__question=obj).exists()
+            or QuestionOptionsHistory.objects.filter(question=obj).exists()
+        )
 
     # [Workflow] in_use flag is set to False
     if isinstance(obj, Workflow):
