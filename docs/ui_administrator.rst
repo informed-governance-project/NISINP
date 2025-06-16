@@ -60,6 +60,8 @@ When clicking on the "Add" button or the first field of an object, you are direc
 
 Creation of workflow for incident notification
 -------------------------------------------------
+Creation of workflow
+~~~~~~~~~~~~~~~~~~~~~~
 
 The RegulatorAdmin role is the one who defines the workflows for incident notification.
 
@@ -102,3 +104,11 @@ or the date of the previous incident report.
 
 For each couple regulation/sector(s), it's possible to define an ``impact``, the impacts are here to qualify the incident as significative. If at least one impact is ticked by the
 person who submits the incident, the incident is qualified as "significative".
+
+Modification of workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+During the lifecycle of a workflow, it can evolve. For that you can change the questions of each incident reports. 
+The application is keeping the history of questions and answer. So it will show the correct value in the history of the incident and in the PDF. 
+
+The admin part only show the last version of the report. 
+
