@@ -25,6 +25,7 @@ from .models import (
     Impact,
     Incident,
     IncidentWorkflow,
+    QuestionOptions,
     QuestionOptionsHistory,
     SectorRegulation,
 )
@@ -361,12 +362,17 @@ class QuestionForm(forms.Form):
                 deleted_date=None,
             ).order_by("position")
         else:
-            category_question_options = workflow.questionoptions_set.filter(
-                category_option__question_category=category,
-                updated_at__lte=incident_workflow.timestamp,
-            ).filter(
-                Q(deleted_date__isnull=True) | Q(deleted_date__gte=incident_workflow.timestamp)
-            ).order_by("position")
+            category_question_options = (
+                workflow.questionoptions_set.filter(
+                    category_option__question_category=category,
+                    updated_at__lte=incident_workflow.timestamp,
+                )
+                .filter(
+                    Q(deleted_date__isnull=True)
+                    | Q(deleted_date__gte=incident_workflow.timestamp)
+                )
+                .order_by("position")
+            )
 
             question_options_changed = workflow.questionoptions_set.filter(
                 updated_at__gte=incident_workflow.timestamp,
@@ -1001,4 +1007,17 @@ def set_initial_datetime(form, field_name, datetime_value, timezone):
     else:
         form.fields[field_name].widget.attrs["class"] = (
             form.fields[field_name].widget.attrs.get("class", "") + " empty_field"
+        )
+
+
+class QuestionOptionsInlineForm(forms.ModelForm):
+    class Meta:
+        model = QuestionOptions
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["question"].label_from_instance = lambda obj: (
+            f"[{obj.reference}] {obj.label}" if obj.reference else obj.label
         )

@@ -35,6 +35,7 @@ from governanceplatform.mixins import (
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
+from incidents.forms import QuestionOptionsInlineForm
 from incidents.models import (
     Answer,
     Email,
@@ -243,6 +244,7 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     model = QuestionOptions
+    form = QuestionOptionsInlineForm
     verbose_name = _("Question")
     verbose_name_plural = _("Questionnaire")
     ordering = ["category_option__position", "position"]
