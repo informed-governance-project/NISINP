@@ -1018,6 +1018,6 @@ class QuestionOptionsInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["question"].label_from_instance = lambda obj: (
-            f"[{obj.reference}] {obj.label}" if obj.reference else obj.label
-        )
+        self.fields[
+            "question"
+        ].label_from_instance = lambda obj: obj.get_question_label_with_reference()

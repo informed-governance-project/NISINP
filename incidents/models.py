@@ -150,6 +150,11 @@ class Question(TranslatableModel):
             for predefined_answer in self.predefinedanswer_set.all()
         ]
 
+    def get_question_label_with_reference(self):
+        if self.reference:
+            return f"[{self.reference}] {str(self)}"
+        return str(self)
+
     def __str__(self):
         return (
             self.safe_translation_getter("label", any_language=True)
