@@ -7,37 +7,38 @@ from governanceplatform.settings import BASE_DIR
 
 def get_version():
     """
-    Returns the version of the software and the address of the exact commit
-    on the project home page.
-    Try to get the version from the Git tags.
+    Returns a dictionary containing:
+    - The app version (from environment or Git tag),
+    - The version URL on GitHub,
+    - The version from pyproject.toml (or fallback).
     """
-    version_res = ""
 
+    # Get version from pyproject.toml
     try:
         app_version_from_pyproject = version("governanceplatform")
     except PackageNotFoundError:
         app_version_from_pyproject = "inconnue"
-    if "APP_VERSION" in os.environ:
-        version_res = os.getenv("APP_VERSION")
-    else:
-        version_res = (
-            subprocess.run(
-                ["git", "-C", BASE_DIR, "describe", "--tags"], stdout=subprocess.PIPE
-            )
-            .stdout.decode()
-            .strip()
-        )
-    if not version_res:
-        try:
-            version_res = "v" + version("governanceplatform")
-        except PackageNotFoundError:
-            version_res = ""
 
-    else:
-        app_version = version_res
-        version_url = "https://github.com/informed-governance-project/NISINP/releases/tag/{}".format(
-            version_res
-        )
+    # Try to get version from env or Git tags
+    app_version = os.environ.get("APP_VERSION")
+
+    if not app_version:
+        try:
+            result = subprocess.run(
+                ["git", "-C", BASE_DIR, "describe", "--tags"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                check=True,
+            )
+            app_version = result.stdout.decode().strip()
+        except subprocess.SubprocessError:
+            app_version = ""
+
+    # Final fallback to pyproject version if Git version is unavailable
+    if not app_version:
+        app_version = f"v{app_version_from_pyproject}"
+
+    version_url = f"https://github.com/informed-governance-project/NISINP/releases/tag/{app_version}"
 
     return {
         "app_version": app_version,
