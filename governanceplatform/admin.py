@@ -100,7 +100,7 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
-class CustomTranslatableAdmin(TranslatableAdmin):
+class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     form = CustomTranslatableAdminForm
 
 
@@ -143,9 +143,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(
-    ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
-):
+class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
     search_fields = ["translations__name"]
@@ -1337,7 +1335,7 @@ class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Functionality, site=admin_site)
-class FunctionalityAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
+class FunctionalityAdmin(CustomTranslatableAdmin):
     list_display = ["type", "name"]
     search_fields = ["translations__name"]
     resource_class = FunctionalityResource
@@ -1402,7 +1400,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
+class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
     search_fields = ["name"]
     resource_class = RegulatorResource
@@ -1534,7 +1532,7 @@ class ObserverUserInline(admin.TabularInline):
 
 
 @admin.register(Observer, site=admin_site)
-class ObserverAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
+class ObserverAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = ObserverResource
@@ -1611,7 +1609,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Regulation, site=admin_site)
-class RegulationAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
+class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label", "get_regulators"]
     search_fields = ["translations__label"]
     resource_class = RegulationResource
