@@ -50,9 +50,17 @@ class PermissionMixin:
 
 
 class ShowReminderForTranslationsMixin:
+    reminder_message = _(
+        "Save your changes before you leave the tab of the respective language."
+    )
+
+    def _add_reminder_message(self, request):
+        messages.warning(request, self.reminder_message)
+
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        messages.warning(
-            request,
-            _("Save your changes before you leave the tab of the respective language."),
-        )
+        self._add_reminder_message(request)
         return super().change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url="", extra_context=None):
+        self._add_reminder_message(request)
+        return super().add_view(request, form_url, extra_context)
