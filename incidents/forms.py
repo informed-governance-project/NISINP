@@ -241,6 +241,7 @@ class QuestionForm(forms.Form):
             )
 
             if question_type in ["ST", "MT"]:
+                value = None
                 if answer_queryset.exists():
                     answer = answer_queryset.first()
                     if last_historic_changes.exists():
