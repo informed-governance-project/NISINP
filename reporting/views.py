@@ -61,7 +61,7 @@ from .models import (
 from .tasks import generate_pdf_data, generate_pdf_task, save_pdf_task, zip_pdfs_task
 
 # Increasing weasyprint log level
-for logger_name in ["weasyprint", "fontTools"]:
+for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.ERROR)
 

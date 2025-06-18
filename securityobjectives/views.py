@@ -63,7 +63,7 @@ from .models import (
 )
 
 # Increasing weasyprint log level
-for logger_name in ["weasyprint", "fontTools"]:
+for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.ERROR)
 

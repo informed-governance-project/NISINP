@@ -17,7 +17,7 @@ from .helpers import create_entry_log, get_charts, get_risk_data, get_so_data
 from .models import CompanyReporting, GeneratedReport
 
 # Increasing weasyprint log level
-for logger_name in ["weasyprint", "fontTools"]:
+for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.ERROR)
 
