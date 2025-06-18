@@ -27,14 +27,11 @@ from governanceplatform.helpers import (
     set_creator,
     user_in_group,
 )
-from governanceplatform.mixins import (
-    PermissionMixin,
-    ShowReminderForTranslationsMixin,
-    TranslationUpdateMixin,
-)
+from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
+from incidents.forms import QuestionOptionsInlineForm
 from incidents.models import (
     Answer,
     Email,
@@ -216,6 +213,10 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    reference = fields.Field(
+        column_name="reference",
+        attribute="reference",
+    )
     tooltip = fields.Field(
         column_name="tooltip",
         attribute="tooltip",
@@ -229,6 +230,7 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
         model = Question
         fields = (
             "id",
+            "reference",
             "label",
             "tooltip",
             "question_type",
@@ -238,10 +240,16 @@ class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
 
 class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
     model = QuestionOptions
+    form = QuestionOptionsInlineForm
     verbose_name = _("Question")
     verbose_name_plural = _("Questionnaire")
     ordering = ["category_option__position", "position"]
+    exclude = ["updated_at", "deleted_date", "historic"]
     extra = 0
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(deleted_date=None)
 
     def get_max_num(self, request, obj=None, **kwargs):
         max_num = super().get_max_num(request, obj, **kwargs)
@@ -361,17 +369,24 @@ def duplicate_objects(modeladmin, request, queryset):
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(
-    ShowReminderForTranslationsMixin,
     PermissionMixin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
     actions = [duplicate_objects]
-    list_display = ["label", "question_type", "get_predefined_answers", "creator"]
+    list_display = [
+        "reference",
+        "label",
+        "question_type",
+        "get_predefined_answers",
+        "creator",
+    ]
+    list_display_links = ["reference", "label"]
     search_fields = ["translations__label"]
     resource_class = QuestionResource
     fields = [
         "question_type",
+        "reference",
         "label",
         "tooltip",
     ]
@@ -392,6 +407,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
         "question",
         "category_option",
     ]
+    exclude = ["updated_at", "deleted_date", "historic"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
@@ -399,7 +415,7 @@ class QuestionOptionsAdmin(admin.ModelAdmin):
 
 
 @admin.register(QuestionCategoryOptions, site=admin_site)
-class QuestionCategoryOptionsAdmin(admin.ModelAdmin):
+class QuestionCategoryOptionsAdmin(PermissionMixin, admin.ModelAdmin):
     list_display = ["question_category", "position"]
     list_display_links = ["position", "question_category"]
     fields = ["question_category", "position"]
@@ -474,9 +490,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(
-    ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
-):
+class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "get_regulations",
         "get_sector_name",
@@ -628,9 +642,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(
-    ShowReminderForTranslationsMixin, ExportActionModelAdmin, CustomTranslatableAdmin
-):
+class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "name",
         "subject",
@@ -647,9 +659,7 @@ class EmailAdmin(
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(
-    ShowReminderForTranslationsMixin, PermissionMixin, CustomTranslatableAdmin
-):
+class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     list_display = ["name", "is_impact_needed", "submission_email", "creator"]
     search_fields = ["translations__name"]
     inlines = (QuestionOptionsInline,)
@@ -730,7 +740,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(ShowReminderForTranslationsMixin, CustomTranslatableAdmin):
+class SectorRegulationAdmin(CustomTranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -828,9 +838,7 @@ class SectorRegulationWorkflowEmailResource(
 
 
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
-class SectorRegulationWorkflowEmailAdmin(
-    ShowReminderForTranslationsMixin, CustomTranslatableAdmin
-):
+class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "sector_regulation_workflow",

@@ -39,7 +39,7 @@ from .email import send_email
 from .filters import IncidentFilter
 from .forms import ContactForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
-from .helpers import is_deadline_exceeded
+from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
     Answer,
     Impact,
@@ -47,7 +47,6 @@ from .models import (
     IncidentWorkflow,
     LogReportRead,
     PredefinedAnswer,
-    QuestionCategoryOptions,
     QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflow,
@@ -289,13 +288,13 @@ def review_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow_id = request.GET.get("incident_workflow_id", None)
     if not incident_workflow_id:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
     user = request.user
     try:
         incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
     except IncidentWorkflow.DoesNotExist:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
 
     incident = incident_workflow.incident
@@ -313,9 +312,10 @@ def review_workflow(request):
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=bool(
-                    is_user_regulator(user) and not is_regulator_incident
-                ),
+                incident_workflow=incident_workflow,
+                is_regulator=is_user_regulator(user),
+                is_regulator_incident=is_regulator_incident,
+                read_only=True,
             )
             request.incident_workflow = incident_workflow.id
             return WorkflowWizardView.as_view(
@@ -338,7 +338,7 @@ def edit_workflow(request):
     company_id = request.session.get("company_in_use")
     incident_workflow = None
     if not workflow_id and not incident_id and not incident_workflow_id:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
     elif workflow_id and incident_id:
         incident = Incident.objects.filter(pk=incident_id).first()
@@ -358,7 +358,7 @@ def edit_workflow(request):
         try:
             incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
         except IncidentWorkflow.DoesNotExist:
-            messages.warning(request, _("No incident report could be found."))
+            messages.error(request, _("No incident report could be found."))
             return redirect("incidents")
     else:
         messages.error(request, _("Forbidden"))
@@ -384,9 +384,9 @@ def edit_workflow(request):
             form_list = get_forms_list(
                 incident=incident_workflow.incident,
                 workflow=incident_workflow.workflow,
-                is_regulator=bool(
-                    is_user_regulator(user) and not is_regulator_incident
-                ),
+                incident_workflow=incident_workflow,
+                is_regulator=is_user_regulator(user),
+                is_regulator_incident=is_regulator_incident,
             )
             request.incident_workflow = incident_workflow.id
 
@@ -406,7 +406,9 @@ def edit_workflow(request):
         form_list = get_forms_list(
             incident=incident_workflow.incident,
             workflow=incident_workflow.workflow,
-            is_regulator=bool(is_user_regulator(user) and not is_regulator_incident),
+            incident_workflow=incident_workflow,
+            is_regulator=is_user_regulator(user),
+            is_regulator_incident=is_regulator_incident,
         )
         request.incident_workflow = incident_workflow.id
 
@@ -416,7 +418,7 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.warning(request, _("No incident report could be found."))
+    messages.error(request, _("No incident report could be found."))
     return redirect("incidents")
 
 
@@ -477,7 +479,7 @@ def download_incident_pdf(request, incident_id: int):
         pdf_report = get_pdf_report(incident, None, request)
         create_entry_log(user, incident, None, "DOWNLOAD", request)
     except Exception:
-        messages.warning(request, _("An error occurred while generating the report."))
+        messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -499,7 +501,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         incident_workflow = IncidentWorkflow.objects.get(pk=incident_workflow_id)
         incident = incident_workflow.incident
     except IncidentWorkflow.DoesNotExist:
-        messages.warning(request, _("No incident report could be found."))
+        messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
 
     if not can_access_incident(user, incident, company_id):
@@ -509,7 +511,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         pdf_report = get_pdf_report(incident, incident_workflow, request)
         create_entry_log(user, incident, incident_workflow, "DOWNLOAD", request)
     except Exception:
-        messages.warning(request, _("An error occurred while generating the report."))
+        messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
@@ -544,9 +546,9 @@ def delete_incident(request, incident_id: int):
                 incident.delete()
                 messages.success(request, _("The incident has been deleted."))
             else:
-                messages.warning(request, _("The incident could not be deleted."))
+                messages.error(request, _("The incident could not be deleted."))
     except Exception:
-        messages.warning(request, _("An error occurred while deleting the incident."))
+        messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
 
@@ -558,7 +560,7 @@ def is_incidents_report_limit_reached(request):
             contact_user=request.user, incident_notification_date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
-            messages.warning(
+            messages.error(
                 request,
                 _(
                     "The daily limit of incident reports has been reached. Please try again tomorrow."
@@ -858,6 +860,16 @@ class WorkflowWizardView(SessionWizardView):
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
 
+            is_new_incident_workflow = not self.read_only and (
+                is_user_regulator(user) == self.is_regulator_incident
+            )
+
+            self.categories_workflow = get_workflow_categories(
+                self.workflow,
+                self.incident_workflow,
+                is_new_incident_workflow,
+            )
+
             if position == 0:
                 kwargs.update({"instance": self.incident})
             # Regulator case
@@ -887,6 +899,9 @@ class WorkflowWizardView(SessionWizardView):
                     {
                         "position": position - 1,
                         "incident_workflow": self.incident_workflow,
+                        "categories_workflow": self.categories_workflow,
+                        "is_new_incident_workflow": not self.read_only
+                        and (is_user_regulator(user) == self.is_regulator_incident),
                     }
                 )
         elif self.request.incident:
@@ -911,6 +926,16 @@ class WorkflowWizardView(SessionWizardView):
             self.workflow.is_impact_needed = bool(
                 self.workflow.is_impact_needed and regulation_sector_has_impacts
             )
+
+            is_new_incident_workflow = not self.read_only and (
+                is_user_regulator(user) == self.is_regulator_incident
+            )
+
+            self.categories_workflow = get_workflow_categories(
+                self.workflow,
+                self.incident_workflow,
+                is_new_incident_workflow,
+            )
             if position == 0:
                 kwargs.update({"instance": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
@@ -921,6 +946,9 @@ class WorkflowWizardView(SessionWizardView):
                         "position": position - 1,
                         "workflow": self.workflow,
                         "incident": self.incident,
+                        "categories_workflow": self.categories_workflow,
+                        "is_new_incident_workflow": not self.read_only
+                        and (is_user_regulator(user) == self.is_regulator_incident),
                     }
                 )
 
@@ -1018,20 +1046,10 @@ class WorkflowWizardView(SessionWizardView):
                 or (is_user_regulator(user) and not self.is_regulator_incident)
                 else "Create"
             )
-            context["steps"] = []
             context["is_regulator_incident"] = self.is_regulator_incident
-
-            category_ids = self.workflow.questionoptions_set.values_list(
-                "category_option", flat=True
-            ).distinct()
-            categories_options = QuestionCategoryOptions.objects.filter(
-                id__in=category_ids
-            ).order_by("position")
-            categories = []
-            for categ in categories_options:
-                categories.append(categ.question_category)
+            context["steps"] = []
             context["steps"].append(_("Incident Timeline"))
-            context["steps"].extend(categories)
+            context["steps"].extend(self.categories_workflow)
             if self.workflow.is_impact_needed:
                 regulation_sector_has_impacts = Impact.objects.filter(
                     regulations=self.incident.sector_regulation.regulation,

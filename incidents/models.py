@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytz
 from django.contrib import admin
 from django.db import models
@@ -63,7 +65,9 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        headline_translation = self.safe_translation_getter("headline", any_language=True)
+        headline_translation = self.safe_translation_getter(
+            "headline", any_language=True
+        )
         return headline_translation or ""
 
     class Meta:
@@ -111,6 +115,13 @@ class Question(TranslatableModel):
         default=QUESTION_TYPES[0][0],
         verbose_name=_("Question Type"),
     )  # MULTI, FREETEXT, DATE,
+    reference = models.CharField(
+        verbose_name=_("Reference"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )  # reference to add context information on question
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
         tooltip=models.TextField(verbose_name=_("Tooltip"), blank=True, null=True),
@@ -138,6 +149,11 @@ class Question(TranslatableModel):
             predefined_answer.predefined_answer
             for predefined_answer in self.predefinedanswer_set.all()
         ]
+
+    def get_question_label_with_reference(self):
+        if self.reference:
+            return f"[{self.reference}] {str(self)}"
+        return str(self)
 
     def __str__(self):
         return (
@@ -239,7 +255,6 @@ class Workflow(TranslatableModel):
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts disclosure required")
     )
-    questions = models.ManyToManyField(Question, verbose_name=_("Questions"), through="WorkflowQuestions")
 
     submission_email = models.ForeignKey(
         Email,
@@ -275,19 +290,6 @@ class Workflow(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Incident reports")
         verbose_name = _("Incident report")
-
-
-# link between question and workflow
-# we keep the archive date to have the history
-class WorkflowQuestions(models.Model):
-    workflow = models.ForeignKey(
-        Workflow, verbose_name=_("Workflow"), on_delete=models.CASCADE
-    )
-    question = models.ForeignKey(
-        Question, verbose_name=_("Question"), on_delete=models.CASCADE
-    )
-    archive_date = models.DateTimeField(blank=True, null=True, default=None)
-    added_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
 
 # link between a regulation and a regulator,
@@ -946,6 +948,21 @@ class QuestionCategoryOptions(models.Model):
         verbose_name = _("Question category option")
 
 
+# save the history of the question inside a report
+# we save only the changes, the deletion is managed
+# in QuestionOptions
+class QuestionOptionsHistory(models.Model):
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
+    position = models.IntegerField(verbose_name=_("Position"))
+    category_option = models.ForeignKey(
+        QuestionCategoryOptions,
+        on_delete=models.PROTECT,
+        default=None,
+    )
+
+
 class QuestionOptions(models.Model):
     report = models.ForeignKey(
         Workflow, on_delete=models.CASCADE, null=True, blank=True
@@ -957,6 +974,50 @@ class QuestionOptions(models.Model):
         QuestionCategoryOptions,
         on_delete=models.PROTECT,
     )
+    # creation date by default before the creation of app
+    updated_at = models.DateTimeField(
+        verbose_name=_("Updated at"), default=datetime(2000, 1, 1)
+    )
+    historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
+    deleted_date = models.DateTimeField(
+        verbose_name=_("Deleted date"), default=None, blank=True, null=True
+    )
+
+    def is_deleted(self):
+        if self.deleted_date is not None:
+            return True
+        return False
+
+    def delete(self, *args, **kwargs):
+        in_use = self.answer_set.exists()
+        if in_use:
+            self.deleted_date = timezone.now()
+            self.save()
+        else:
+            super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        if self.pk and self.answer_set.exists() and not self.is_deleted():
+            old = QuestionOptions.objects.get(pk=self.pk)
+
+            if (
+                old.question != self.question
+                or old.is_mandatory != self.is_mandatory
+                or old.position != self.position
+                or old.category_option != self.category_option
+            ):
+                history = QuestionOptionsHistory.objects.create(
+                    question=old.question,
+                    is_mandatory=old.is_mandatory,
+                    position=old.position,
+                    category_option=old.category_option,
+                )
+                self.historic.add(history)
+
+        if not self.is_deleted():
+            self.updated_at = timezone.now()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.question) or ""

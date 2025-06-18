@@ -1,8 +1,10 @@
 import math
+from collections import OrderedDict
+from itertools import chain
 
 from django.utils import timezone
 
-from .models import IncidentWorkflow, SectorRegulationWorkflow
+from .models import IncidentWorkflow, QuestionCategoryOptions, SectorRegulationWorkflow
 
 
 def is_deadline_exceeded(report, incident):
@@ -55,3 +57,81 @@ def is_deadline_exceeded(report, incident):
                     return "OUT"
 
     return "UNDE"
+
+
+def get_workflow_categories(
+    workflow,
+    incident_workflow=None,
+    is_new_incident_workflow=False,
+):
+    if is_new_incident_workflow:
+        category_options = (
+            QuestionCategoryOptions.objects.filter(
+                id__in=workflow.questionoptions_set.values_list(
+                    "category_option", flat=True
+                ).distinct(),
+                questionoptions__deleted_date=None,
+            )
+            .select_related("question_category")
+            .order_by("position")
+        )
+        seen = set()
+        categories = []
+        for option in category_options:
+            category = option.question_category
+            if category.id not in seen:
+                seen.add(category.id)
+                categories.append(category)
+
+    elif incident_workflow:
+        workflow = incident_workflow.workflow
+
+        active_question_options = (
+            workflow.questionoptions_set.filter(
+                updated_at__lte=incident_workflow.timestamp,
+                deleted_date=None,
+            )
+            .select_related("category_option__question_category")
+            .order_by("category_option__position")
+            .distinct()
+        )
+
+        old_question_options = (
+            workflow.questionoptions_set.filter(
+                historic__isnull=False,
+            )
+            .prefetch_related("historic__category_option__question_category")
+            .distinct()
+        )
+
+        # fetch the categories which are deleted and
+        # are not fetched in other request
+        deleted_question_options = (
+            workflow.questionoptions_set.filter(
+                updated_at__lte=incident_workflow.timestamp,
+                deleted_date__gte=incident_workflow.timestamp
+            )
+            .select_related("category_option__question_category")
+            .order_by("category_option__position")
+            .distinct()
+        )
+
+        active_categories = (q.category_option for q in active_question_options)
+        deleted_categories = (q.category_option for q in deleted_question_options)
+
+        old_categories = []
+        for q in old_question_options:
+            historic = q.historic.filter(
+                timestamp__gte=incident_workflow.timestamp
+            ).first()
+            if historic:
+                old_categories.append(historic.category_option)
+
+        categories_options = list(
+            OrderedDict.fromkeys(chain(active_categories, old_categories, deleted_categories))
+        )
+        categories_options = sorted(categories_options, key=lambda c: c.position)
+        categories = [c.question_category for c in categories_options]
+    else:
+        categories = []
+    return categories

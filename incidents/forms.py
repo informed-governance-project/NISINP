@@ -1,4 +1,5 @@
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytz
 from django import forms
@@ -18,7 +19,16 @@ from governanceplatform.models import Regulation, Regulator, Sector, Service
 from governanceplatform.settings import TIME_ZONE
 
 from .globals import REGIONAL_AREA
-from .models import Answer, Impact, Incident, IncidentWorkflow, SectorRegulation
+from .helpers import get_workflow_categories
+from .models import (
+    Answer,
+    Impact,
+    Incident,
+    IncidentWorkflow,
+    QuestionOptions,
+    QuestionOptionsHistory,
+    SectorRegulation,
+)
 from .widgets import TempusDominusV6Widget
 
 
@@ -165,13 +175,24 @@ class AuthenticationForm(OTPAuthenticationForm):
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
     # for dynamicly add question to forms
-    def create_question(self, question_option, incident_workflow=None, incident=None):
+    def create_question(
+        self,
+        question_option,
+        incident_workflow=None,
+        incident=None,
+        is_new_incident_workflow=False,
+    ):
         initial_data = None
         field_name = "__question__" + str(question_option.id)
         question = question_option.question
         question_type = question_option.question.question_type
+        last_historic_changes = QuestionOptionsHistory.objects.none()
+        if is_new_incident_workflow:
+            last_historic_changes = QuestionOptionsHistory.objects.filter(
+                questionoptions__id=question_option.id
+            ).order_by("-timestamp")
         answer_queryset = Answer.objects.filter(
-            question_options__question=question,
+            question_options=question_option.id,
             incident_workflow=(
                 incident.get_latest_incident_workflow()
                 if incident
@@ -181,9 +202,17 @@ class QuestionForm(forms.Form):
 
         if question_type in ["MULTI", "MT", "SO", "ST"]:
             if answer_queryset.exists():
-                initial_data = list(
+                initial_predefined_answers = list(
                     answer_queryset.values_list("predefined_answers", flat=True)
                 )
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if (
+                        last_historic.timestamp > answer_queryset.first().timestamp
+                        and last_historic.question != question_option.question
+                    ):
+                        initial_predefined_answers = []
+                initial_data = initial_predefined_answers
 
             choices = [
                 (choice.id, choice)
@@ -212,13 +241,22 @@ class QuestionForm(forms.Form):
             )
 
             if question_type in ["ST", "MT"]:
-                value = str(answer_queryset.first()) if answer_queryset.exists() else ""
+                if answer_queryset.exists():
+                    answer = answer_queryset.first()
+                    if last_historic_changes.exists():
+                        last_historic = last_historic_changes.first()
+                        if (
+                            last_historic.timestamp > answer.timestamp
+                            and last_historic.question != question_option.question
+                        ):
+                            answer = ""
+                    value = str(answer) if str(answer) != "" else None
                 self.fields[field_name + "_answer"] = forms.CharField(
                     required=question_option.is_mandatory,
                     widget=forms.TextInput(
                         attrs={
                             "class": "multichoice-input-freetext",
-                            "value": value,
+                            "value": str(value or ""),
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
@@ -228,6 +266,13 @@ class QuestionForm(forms.Form):
         elif question_type == "DATE":
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
+                        answer = ""
                 initial_data = (
                     datetime.strptime(str(answer), "%Y-%m-%d %H:%M")
                     if str(answer) != ""
@@ -252,6 +297,13 @@ class QuestionForm(forms.Form):
         elif question_type == "FREETEXT":
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
+                        answer = ""
                 initial_data = str(answer) if str(answer) != "" else None
 
             self.fields[field_name] = forms.CharField(
@@ -270,6 +322,13 @@ class QuestionForm(forms.Form):
         elif question_type in ["CL", "RL"]:
             if answer_queryset.exists():
                 answer = answer_queryset.first()
+                if last_historic_changes.exists():
+                    last_historic = last_historic_changes.first()
+                    if (
+                        last_historic.timestamp > answer.timestamp
+                        and last_historic.question != question_option.question
+                    ):
+                        answer = ""
                 initial_data = list(filter(None, str(answer).split(",")))
 
             self.fields[field_name] = forms.MultipleChoiceField(
@@ -284,29 +343,65 @@ class QuestionForm(forms.Form):
         position = kwargs.pop("position", -1)
         workflow = kwargs.pop("workflow", None)
         incident_workflow = kwargs.pop("incident_workflow", None)
+        categories = kwargs.pop("categories_workflow", None)
         incident = kwargs.pop("incident", None)
+        is_new_incident_workflow = kwargs.pop("is_new_incident_workflow", False)
         super().__init__(*args, **kwargs)
 
         if incident_workflow:
             workflow = incident_workflow.workflow
-
-        categories = (
-            workflow.questionoptions_set.values_list("category_option", flat=True)
-            .order_by("category_option__position")
-            .distinct()
-        )
 
         if position >= len(categories):
             raise ValueError("Position exceeds available categories.")
 
         category = categories[position]
 
-        category_question_options = workflow.questionoptions_set.filter(
-            category_option__id=category
-        ).order_by("position")
+        if is_new_incident_workflow:
+            category_question_options = workflow.questionoptions_set.filter(
+                category_option__question_category=category,
+                deleted_date=None,
+            ).order_by("position")
+        else:
+            category_question_options = (
+                workflow.questionoptions_set.filter(
+                    category_option__question_category=category,
+                    updated_at__lte=incident_workflow.timestamp,
+                )
+                .filter(
+                    Q(deleted_date__isnull=True)
+                    | Q(deleted_date__gte=incident_workflow.timestamp)
+                )
+                .order_by("position")
+            )
+
+            question_options_changed = workflow.questionoptions_set.filter(
+                updated_at__gte=incident_workflow.timestamp,
+                historic__isnull=False,
+            )
+            for question_option in question_options_changed:
+                historic = question_option.historic.filter(
+                    timestamp__gte=incident_workflow.timestamp,
+                    category_option__question_category=category,
+                ).first()
+                if historic:
+                    category_question_options = list(category_question_options)
+                    old_question_option = {
+                        "id": question_option.id,
+                        "question": historic.question,
+                        "is_mandatory": historic.is_mandatory,
+                        "position": historic.position,
+                    }
+                    category_question_options.append(
+                        SimpleNamespace(**old_question_option)
+                    )
+                    category_question_options = sorted(
+                        category_question_options, key=lambda c: c.position
+                    )
 
         for question_option in category_question_options:
-            self.create_question(question_option, incident_workflow, incident)
+            self.create_question(
+                question_option, incident_workflow, incident, is_new_incident_workflow
+            )
 
 
 # the first question for preliminary notification
@@ -596,7 +691,14 @@ def construct_sectors_array(regulations, regulators):
     return sorted(final_categs, key=lambda item: item[0])
 
 
-def get_forms_list(incident=None, workflow=None, is_regulator=False):
+def get_forms_list(
+    incident=None,
+    workflow=None,
+    incident_workflow=None,
+    is_regulator=False,
+    is_regulator_incident=False,
+    read_only=False,
+):
     category_tree = []
     if incident is None:
         category_tree = [
@@ -610,13 +712,20 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
         category_tree.append(IncidenteDateForm)
         if workflow is None:
             workflow = incident.get_next_step()
-        categories = (
-            workflow.questionoptions_set.filter(category_option__isnull=False)
-            .values_list("category_option", flat=True)
-            .distinct()
+
+        is_new_incident_workflow = not read_only and (
+            is_regulator == is_regulator_incident
         )
+
+        categories = get_workflow_categories(
+            workflow,
+            incident_workflow,
+            is_new_incident_workflow,
+        )
+
         for _category in categories:
             category_tree.append(QuestionForm)
+
         if workflow.is_impact_needed:
             regulation_sector_has_impacts = Impact.objects.filter(
                 regulations=incident.sector_regulation.regulation,
@@ -624,7 +733,8 @@ def get_forms_list(incident=None, workflow=None, is_regulator=False):
             ).exists()
             if regulation_sector_has_impacts:
                 category_tree.append(ImpactForm)
-        if is_regulator:
+
+        if is_regulator and not is_regulator_incident:
             category_tree.append(RegulatorIncidentWorkflowCommentForm)
     return category_tree
 
@@ -898,3 +1008,16 @@ def set_initial_datetime(form, field_name, datetime_value, timezone):
         form.fields[field_name].widget.attrs["class"] = (
             form.fields[field_name].widget.attrs.get("class", "") + " empty_field"
         )
+
+
+class QuestionOptionsInlineForm(forms.ModelForm):
+    class Meta:
+        model = QuestionOptions
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields[
+            "question"
+        ].label_from_instance = lambda obj: obj.get_question_label_with_reference()

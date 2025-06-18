@@ -25,7 +25,7 @@ from .helpers import (
     is_user_regulator,
     user_in_group,
 )
-from .mixins import TranslationUpdateMixin
+from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
     Company,
     CompanyUser,
@@ -100,7 +100,7 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
-class CustomTranslatableAdmin(TranslatableAdmin):
+class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     form = CustomTranslatableAdminForm
 
 
@@ -247,7 +247,7 @@ class EntityCategoryResource(resources.ModelResource):
 
 
 @admin.register(EntityCategory, site=admin_site)
-class EntityCategoryAdmin(TranslatableAdmin):
+class EntityCategoryAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     resource_class = EntityCategoryResource
 
     list_display = ["label", "code"]
