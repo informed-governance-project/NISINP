@@ -192,7 +192,7 @@ class QuestionForm(forms.Form):
                 questionoptions__id=question_option.id
             ).order_by("-timestamp")
         answer_queryset = Answer.objects.filter(
-            question_options=question_option.id,
+            question_options__question=question,
             incident_workflow=(
                 incident.get_latest_incident_workflow()
                 if incident
