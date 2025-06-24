@@ -8,7 +8,4 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "governanceplatform.settings")
 django.setup()
 
-from governanceplatform.scripts import (  # noqa: E402 F401
-    unactive_account_cleaning,
-    update_all_group_permissions,
-)
+from governanceplatform.scripts import unactive_account_cleaning  # noqa: E402 F401
