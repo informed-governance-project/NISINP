@@ -557,7 +557,7 @@ def is_incidents_report_limit_reached(request):
     if request.user.is_authenticated:
         # if a user make too many declaration we prevent to save
         number_preliminary_today = Incident.objects.filter(
-            contact_user=request.user, incident_notification_date=timezone.now()
+            contact_user=request.user, incident_notification_date__date=date.today()
         ).count()
         if number_preliminary_today >= MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER:
             messages.error(
