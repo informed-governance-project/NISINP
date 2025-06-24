@@ -195,7 +195,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-if DEBUG:
+if DEBUG and not os.environ.get("READTHEDOCS"):
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     context_processors.append("django.template.context_processors.debug")
