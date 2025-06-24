@@ -43,3 +43,8 @@ repos:
     rev: v2.7.2
     hooks:
       -   id: pip-audit
+  - repo: https://github.com/python-poetry/poetry-plugin-export
+    rev: 1.9.0
+    hooks:
+    -   id: poetry-export
+        args: ["-f", "requirements.txt", "-o", "docs/requirements-app.txt", "--without-hashes"]
