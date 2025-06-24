@@ -32,6 +32,7 @@ case "$component" in
         python manage.py collectstatic --noinput > /dev/null
         python manage.py migrate
         python manage.py compilemessages
+        python manage.py update_group_permissions
 
         if [ "$SUPERUSER_EMAIL" -a "$SUPERUSER_PASSWORD" ]; then
             echo >&2 "INFO: setting $SUPERUSER_EMAIL as superuser"
