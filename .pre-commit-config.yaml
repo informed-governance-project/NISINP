@@ -48,4 +48,3 @@ repos:
     hooks:
     -   id: poetry-export
         args: ["-f", "requirements.txt", "-o", "docs/requirements-app.txt", "--without-hashes"]
-        always_run: true
