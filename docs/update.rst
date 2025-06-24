@@ -21,6 +21,7 @@ Or manually:
     $ poetry run python manage.py collectstatic
     $ poetry run python manage.py migrate
     $ poetry run python manage.py compilemessages
+    $ poetry run python manage.py update_group_permissions
 
 
 Finally, restart Apache:
