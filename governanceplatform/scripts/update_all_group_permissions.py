@@ -1,8 +1,8 @@
 import logging
 
-from governanceplatform.permissions import update_all_group_permissions
-
 from celery import shared_task
+
+from governanceplatform.permissions import update_all_group_permissions
 
 logger = logging.getLogger(__name__)
 

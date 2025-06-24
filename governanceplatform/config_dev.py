@@ -194,6 +194,14 @@ SECURE_PROXY_SSL_HEADER = (
 PASSWORD_RESET_TIMEOUT = 1800
 # account activation link timeout
 ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
+
+# CELERY config
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+PATH_FOR_REPORTING_PDF = f"{os.getcwd()}/tmp/"
+
 # Email adress for contact form
 EMAIL_FOR_CONTACT = "email@nisinp.nisinp"
 

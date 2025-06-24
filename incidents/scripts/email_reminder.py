@@ -1,6 +1,7 @@
 import logging
 import math
 
+from celery import shared_task
 from django.utils import timezone
 
 from incidents.email import send_email
@@ -10,8 +11,6 @@ from incidents.models import (
     SectorRegulationWorkflow,
     SectorRegulationWorkflowEmail,
 )
-
-from celery import shared_task
 
 logger = logging.getLogger(__name__)
 

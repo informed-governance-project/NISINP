@@ -1,13 +1,12 @@
 import logging
 from datetime import timedelta
 
+from celery import shared_task
 from django.contrib.admin.models import LogEntry
 from django.db.models.functions import Now
 
 from governanceplatform.models import ScriptLogEntry
 from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
-
-from celery import shared_task
 
 logger = logging.getLogger(__name__)
 

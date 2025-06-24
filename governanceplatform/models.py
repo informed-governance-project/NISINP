@@ -465,9 +465,13 @@ class User(AbstractUser, PermissionsMixin):
     def get_module_permissions(self):
         user_entity = None
         if governanceplatform.helpers.is_user_regulator(self):
-            user_entity = self.regulatoruser_set.first().regulator
-        if governanceplatform.helpers.is_observer_user(self):
-            user_entity = self.observeruser_set.first().observer
+            regulator_user = self.regulatoruser_set.first()
+            if regulator_user:
+                user_entity = regulator_user.regulator
+        elif governanceplatform.helpers.is_observer_user(self):
+            observer_user = self.observeruser_set.first()
+            if observer_user:
+                user_entity = observer_user.observer
         if user_entity:
             return list(user_entity.functionalities.values_list("type", flat=True))
         return []
