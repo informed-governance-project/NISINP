@@ -3,7 +3,7 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.helpers import set_creator, is_user_regulator
+from governanceplatform.helpers import is_user_regulator
 from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation
 from governanceplatform.widgets import TranslatedNameWidget
@@ -17,19 +17,7 @@ from securityobjectives.models import (
     Standard,
 )
 
-
-# check if the user has access to SO
-def check_access(request):
-    user = request.user
-    functionalities = None
-    if user.regulators.first() is not None:
-        functionalities = user.regulators.first().functionalities
-    if user.observers.first() is not None:
-        functionalities = user.observers.first().functionalities
-    if functionalities is not None:
-        if "securityobjectives" in functionalities.all().values_list("type", flat=True):
-            return {"change": True, "add": True}
-    return {"change": False, "add": False}
+from .mixins import ImportMixin
 
 
 class DomainResource(TranslationUpdateMixin, resources.ModelResource):
@@ -57,6 +45,7 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Domain, site=admin_site)
 class DomainAdmin(
     PermissionMixin,
+    ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -71,24 +60,6 @@ class DomainAdmin(
     ]
     ordering = ["position"]
     list_filter = ["creator"]
-
-    def get_model_perms(self, request):
-        return check_access(request)
-
-    def import_action(self, request, *args, **kwargs):
-        # Save the request to use later in the resource
-        self.request = request
-        return super().import_action(request, *args, **kwargs)
-
-    def get_import_data_kwargs(self, *args, **kwargs):
-        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
-        cr = self.request.user.regulators.first()
-        data_kwargs.update({"creator": cr})
-        return data_kwargs
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -128,9 +99,11 @@ class SecurityObjectiveInline(admin.TabularInline):
         if db_field.name == "security_objective":
             # Regulator
             if is_user_regulator(user):
-                kwargs["queryset"] = SecurityObjective.objects.filter(
-                    creator__in=user.regulators.all()
-                ).order_by("unique_code").distinct()
+                kwargs["queryset"] = (
+                    SecurityObjective.objects.filter(creator__in=user.regulators.all())
+                    .order_by("unique_code")
+                    .distinct()
+                )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -138,6 +111,7 @@ class SecurityObjectiveInline(admin.TabularInline):
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(
     PermissionMixin,
+    ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -164,25 +138,11 @@ class StandardAdmin(
             ).distinct()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-    def import_action(self, request, *args, **kwargs):
-        # Save the request to use later in the resource
-        self.request = request
-        return super().import_action(request, *args, **kwargs)
-
-    def get_import_data_kwargs(self, *args, **kwargs):
-        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
-        cr = self.request.user.regulators.first()
-        data_kwargs.update({"creator": cr})
-        return data_kwargs
-
     # save by default the regulator
     def save_model(self, request, obj, form, change):
         user = request.user
         obj.regulator = user.regulators.first()
         super().save_model(request, obj, form, change)
-
-    def get_model_perms(self, request):
-        return check_access(request)
 
 
 class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
@@ -210,6 +170,7 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(MaturityLevel, site=admin_site)
 class MaturityLevelAdmin(
     PermissionMixin,
+    ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -220,24 +181,6 @@ class MaturityLevelAdmin(
     list_display = ["level", "label", "creator"]
     ordering = ["level"]
     list_filter = ["creator"]
-
-    def get_model_perms(self, request):
-        return check_access(request)
-
-    def import_action(self, request, *args, **kwargs):
-        # Save the request to use later in the resource
-        self.request = request
-        return super().import_action(request, *args, **kwargs)
-
-    def get_import_data_kwargs(self, *args, **kwargs):
-        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
-        cr = self.request.user.regulators.first()
-        data_kwargs.update({"creator": cr})
-        return data_kwargs
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
@@ -316,6 +259,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 @admin.register(SecurityObjective, site=admin_site)
 class SecurityObjectiveAdmin(
     PermissionMixin,
+    ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -339,24 +283,6 @@ class SecurityObjectiveAdmin(
                 regulator=request.user.regulators.first()
             )
         return super().formfield_for_manytomany(db_field, request, **kwargs)
-
-    def get_model_perms(self, request):
-        return check_access(request)
-
-    def import_action(self, request, *args, **kwargs):
-        # Save the request to use later in the resource
-        self.request = request
-        return super().import_action(request, *args, **kwargs)
-
-    def get_import_data_kwargs(self, *args, **kwargs):
-        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
-        cr = self.request.user.regulators.first()
-        data_kwargs.update({"creator": cr})
-        return data_kwargs
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
@@ -428,6 +354,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(SecurityMeasure, site=admin_site)
 class SecurityMeasureAdmin(
     PermissionMixin,
+    ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -439,32 +366,16 @@ class SecurityMeasureAdmin(
     ordering = ["security_objective__unique_code", "position"]
     list_filter = ["creator"]
 
-    def get_model_perms(self, request):
-        return check_access(request)
-
-    def import_action(self, request, *args, **kwargs):
-        # Save the request to use later in the resource
-        self.request = request
-        return super().import_action(request, *args, **kwargs)
-
-    def get_import_data_kwargs(self, *args, **kwargs):
-        data_kwargs = super().get_import_data_kwargs(*args, **kwargs)
-        cr = self.request.user.regulators.first()
-        data_kwargs.update({"creator": cr})
-        return data_kwargs
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
-
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
         if db_field.name == "security_objective":
             # Regulator
             if is_user_regulator(user):
-                kwargs["queryset"] = SecurityObjective.objects.filter(
-                    creator__in=user.regulators.all()
-                ).order_by("unique_code").distinct()
+                kwargs["queryset"] = (
+                    SecurityObjective.objects.filter(creator__in=user.regulators.all())
+                    .order_by("unique_code")
+                    .distinct()
+                )
 
         if db_field.name == "maturity_level":
             # Regulator
@@ -499,7 +410,9 @@ class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(SecurityObjectiveEmail, site=admin_site)
-class SOEmailAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin):
+class SOEmailAdmin(
+    PermissionMixin, ImportMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+):
     list_display = [
         "name",
         "subject",
@@ -511,10 +424,3 @@ class SOEmailAdmin(PermissionMixin, ExportActionModelAdmin, CustomTranslatableAd
     resource_class = SOEmailResource
     should_escape_html = False
     list_filter = ["creator"]
-
-    def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
-        super().save_model(request, obj, form, change)
-
-    def get_model_perms(self, request):
-        return check_access(request)
