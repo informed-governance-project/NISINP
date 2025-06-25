@@ -9,7 +9,10 @@ class ImportMixin:
         return data_kwargs
 
     def save_model(self, request, obj, form, change):
-        set_creator(request, obj, change)
+        try:
+            set_creator(request, obj, change)
+        except Exception:
+            pass
         super().save_model(request, obj, form, change)
 
     def get_model_perms(self, request):
