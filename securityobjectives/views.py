@@ -351,6 +351,7 @@ def declaration(request):
                             "created": sma_created,
                             "data": field_to_update,
                             "objective_state": objective_state,
+                            "so_score": f"{float(so_score):.2f}",
                         },
                         status=201 if sma_created else 200,
                     )
