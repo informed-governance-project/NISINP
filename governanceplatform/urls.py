@@ -19,6 +19,10 @@ from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog, set_language
 from two_factor.urls import urlpatterns as tf_urls
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from two_factor.views import LoginView
 
 from governanceplatform import views
@@ -34,6 +38,8 @@ urlpatterns = [
     path("", views.index, name="index"),
     # Admin
     path("admin/", admin_site.urls),
+    # API
+    path('api/v1/governanceplatform/', include('governanceplatform.api.v1.urls')),
     # Accounts
     path("account/", include("django.contrib.auth.urls")),
     path("", include(tf_urls)),
@@ -66,6 +72,11 @@ urlpatterns = [
         "securityobjectives/",
         include("securityobjectives.urls"),
         name="securityobjectives",
+    ),
+    path(
+        "dependencies/",
+        include("dependencies.urls"),
+        name="dependencies",
     ),
     # Logout
     path("logout", views.logout_view, name="logout"),
@@ -105,6 +116,9 @@ urlpatterns = [
     path("healthz", include("health_check.urls")),
     # URL patterns to serve the translations in JavaScript
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    # api token management
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
 

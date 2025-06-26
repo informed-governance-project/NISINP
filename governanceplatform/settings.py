@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 try:
     from governanceplatform import config  # type: ignore
@@ -127,6 +128,7 @@ INSTALLED_APPS = [
     "health_check",
     "health_check.db",
     "captcha",
+    "rest_framework"
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -140,15 +142,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "0/day", "user": "20/day"},
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # API only accessible for authenticated user
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "0/day"},  # Anonymous user has no rate to query the API
 }
 
 SPECTACULAR_SETTINGS = {
@@ -512,3 +517,9 @@ try:
     CAPTCHA_FONT_SIZE = config.CAPTCHA_FONT_SIZE
 except AttributeError:
     CAPTCHA_FONT_SIZE = 30
+
+# JWT parameter, used for exemple for the API
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}

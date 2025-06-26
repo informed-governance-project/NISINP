@@ -7,6 +7,7 @@ from django.db import connection
 from django.http import HttpRequest
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from incidents.models import (
     Answer,
@@ -384,3 +385,9 @@ def get_sectors_grouped(sectors):
     )
 
     return sorted(sectors_grouped, key=lambda item: item[0])
+
+
+# get a token for user in case of api call
+def get_access_token_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return str(refresh.access_token)
