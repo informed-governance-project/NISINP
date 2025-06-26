@@ -250,40 +250,6 @@ def declaration(request):
                     standard_answer.last_update = timezone.now()
                     standard_answer.save()
 
-                    status_counts_queryset = (
-                        SecurityObjectiveStatus.objects.filter(
-                            standard_answer=standard_answer
-                        )
-                        .values("status")
-                        .annotate(count=Count("status"))
-                    )
-
-                    status_counts_dict = defaultdict(
-                        int,
-                        {
-                            item["status"]: item["count"]
-                            for item in status_counts_queryset
-                        },
-                    )
-
-                    security_objectives_count = security_objectives_queryset.count()
-
-                    if sum(status_counts_dict.values()) == security_objectives_count:
-                        pass_counts = status_counts_dict["PASS"]
-                        fail_counts = status_counts_dict["FAIL"]
-                        old_status = standard_answer.status
-                        if pass_counts == security_objectives_count:
-                            standard_answer.status = "PASS"
-                        elif fail_counts >= 1:
-                            standard_answer.status = "FAIL"
-                        else:
-                            standard_answer.status = "DELIV"
-                        if old_status != standard_answer.status:
-                            send_email(
-                                standard_answer.standard.security_objective_status_changed_email,
-                                standard_answer,
-                            )
-                        standard_answer.save()
                     return JsonResponse(
                         {
                             "success": True,
@@ -567,12 +533,15 @@ def review_comment_declaration(request, standard_answer_id: int):
         initial["is_readonly"] = is_user_operator(user)
     else:
         initial["is_readonly"] = not is_user_regulator(user)
+        if standard_answer.status == "DELIV":
+            initial["status"] = get_standard_answer_status(standard_answer)
 
     if request.method == "POST":
         form = ReviewForm(request.POST, initial=initial)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data["status"] != "DELIV":
             standard_answer.review_comment = form.cleaned_data["review_comment"]
             standard_answer.deadline = form.cleaned_data["deadline"]
+            standard_answer.status = form.cleaned_data["status"]
             standard_answer.last_update = timezone.now()
             standard_answer.save()
             email_to_send = False
@@ -596,7 +565,7 @@ def review_comment_declaration(request, standard_answer_id: int):
                     standard_answer,
                 )
 
-            return redirect("securityobjectives")
+        return redirect("securityobjectives")
 
     form = ReviewForm(initial=initial)
     context = {"form": form, "standard_answer_id": standard_answer_id}
@@ -1141,3 +1110,38 @@ def render_error_messages(request):
         {"messages": messages.get_messages(request)},
         request=request,
     )
+
+
+def get_standard_answer_status(standard_answer):
+    standard = standard_answer.standard
+    status = STANDARD_ANSWER_REVIEW_STATUS[1][0]
+
+    security_objectives_queryset = (
+        standard.securityobjectivesinstandard_set.all().order_by("position")
+    )
+
+    status_counts_queryset = (
+        SecurityObjectiveStatus.objects.filter(standard_answer=standard_answer)
+        .values("status")
+        .annotate(count=Count("status"))
+    )
+
+    status_counts_dict = defaultdict(
+        int,
+        {item["status"]: item["count"] for item in status_counts_queryset},
+    )
+
+    security_objectives_count = security_objectives_queryset.count()
+
+    if (
+        sum(status_counts_dict.values()) == security_objectives_count
+        and status_counts_dict["NOT_REVIEWED"] == 0
+    ):
+        pass_counts = status_counts_dict["PASS"]
+        fail_counts = status_counts_dict["FAIL"]
+        if pass_counts == security_objectives_count:
+            status = STANDARD_ANSWER_REVIEW_STATUS[2][0]
+        elif fail_counts >= 1:
+            status = STANDARD_ANSWER_REVIEW_STATUS[4][0]
+
+    return status
