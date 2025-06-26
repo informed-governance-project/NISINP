@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, Permission
 GROUP_PERMISSIONS = {
     "PlatformAdmin": {
         "site": ["change"],
+        "logentry": ["view"],
         "user": ["add", "change", "delete"],
         "regulatoruser": ["add", "change", "delete"],
         "regulator": ["add", "change", "delete"],
@@ -14,6 +15,7 @@ GROUP_PERMISSIONS = {
     },
     "RegulatorAdmin": {},
     "RegulatorUser": {
+        "logentry": ["view"],
         "user": ["add", "view", "import", "export"],
         "companyuser": ["add", "view", "change", "delete"],
         "company": ["add", "view", "change", "delete"],

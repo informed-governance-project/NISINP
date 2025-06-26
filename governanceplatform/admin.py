@@ -70,9 +70,12 @@ class CustomAdminSite(admin.AdminSite):
         """
         app_list = super().get_app_list(request, app_label)
 
+        user = request.user
+        has_permission = user.has_module_perms("scriptlogentry")
+
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
-            if app["app_label"] == "admin":
+            if app["app_label"] == "admin" and has_permission:
                 app["models"].append(
                     {
                         "name": capfirst(
@@ -82,7 +85,8 @@ class CustomAdminSite(admin.AdminSite):
                         "admin_url": "/admin/governanceplatform/scriptlogentry/",
                         "perms": {
                             "add": False,
-                            "change": True,
+                            "change": False,
+                            "view": True,
                             "delete": False,
                         },
                     }
@@ -1660,3 +1664,6 @@ class ScriptLogEntryAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False  # Disable deleting logs
+
+    def has_module_permission(self, request, obj=None):
+        return is_user_regulator(request.user)
