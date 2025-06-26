@@ -24,6 +24,7 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
+    is_user_regulator,
     set_creator,
     user_in_group,
 )
@@ -65,16 +66,33 @@ class LogUserFilter(SimpleListFilter):
     parameter_name = "user"
 
     def lookups(self, request, model_admin):
+        user = request.user
+        user_ids = LogEntry.objects.values_list("user", flat=True).distinct()
+        users = User.objects.filter(id__in=user_ids)
         PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
-        RegulatorUserGroupId = get_group_id(name="RegulatorUser")
-        users = User.objects.filter(
-            groups__in=[
-                PlatformAdminGroupId,
-                RegulatorAdminGroupId,
-                RegulatorUserGroupId,
-            ]
-        )
+
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            users = users.filter(groups__in=[PlatformAdminGroupId])
+
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            users = users.exclude(
+                groups__in=[
+                    PlatformAdminGroupId,
+                ]
+            )
+        # Regulator User
+        if user_in_group(user, "RegulatorUser"):
+            users = users.exclude(
+                groups__in=[
+                    PlatformAdminGroupId,
+                    RegulatorAdminGroupId,
+                ]
+            )
+        users = users.distinct()
+
         return [(user.id, user.email) for user in users]
 
     def queryset(self, request, queryset):
@@ -125,9 +143,6 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        # if obj is not None and obj.user:
-        #     if not LogEntry.objects.all().filter(user=obj.user).exists():
-        #         return True
         if obj is not None and obj.action_time:
             actual_time = timezone.now()
             dt = actual_time - obj.action_time
@@ -139,7 +154,38 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
     def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return user_in_group(request.user, "PlatformAdmin") or is_user_regulator(
+            request.user
+        )
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+
+        PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
+        RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
+
+        # Platform Admin
+        if user_in_group(user, "PlatformAdmin"):
+            return queryset.filter(user__groups__in=[PlatformAdminGroupId])
+
+        # Regulator Admin
+        if user_in_group(user, "RegulatorAdmin"):
+            return queryset.exclude(
+                user__groups__in=[
+                    PlatformAdminGroupId,
+                ]
+            )
+        # Regulator User
+        if user_in_group(user, "RegulatorUser"):
+            return queryset.exclude(
+                user__groups__in=[
+                    PlatformAdminGroupId,
+                    RegulatorAdminGroupId,
+                ]
+            )
+
+        return queryset
 
     @admin.display(description=_("Activity"))
     def _action_flag(self, obj):
