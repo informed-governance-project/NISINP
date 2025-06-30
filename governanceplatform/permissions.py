@@ -15,7 +15,6 @@ GROUP_PERMISSIONS = {
     },
     "RegulatorAdmin": {},
     "RegulatorUser": {
-        "logentry": ["view"],
         "user": ["add", "view", "import", "export"],
         "companyuser": ["add", "view", "change", "delete"],
         "company": ["add", "view", "change", "delete"],

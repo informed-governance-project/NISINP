@@ -24,7 +24,6 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
-    is_user_regulator,
     set_creator,
     user_in_group,
 )
@@ -70,7 +69,6 @@ class LogUserFilter(SimpleListFilter):
         user_ids = LogEntry.objects.values_list("user", flat=True).distinct()
         users = User.objects.filter(id__in=user_ids)
         PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
-        RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -83,14 +81,7 @@ class LogUserFilter(SimpleListFilter):
                     PlatformAdminGroupId,
                 ]
             )
-        # Regulator User
-        if user_in_group(user, "RegulatorUser"):
-            users = users.exclude(
-                groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
-                ]
-            )
+
         users = users.distinct()
 
         return [(user.id, user.email) for user in users]
@@ -154,8 +145,9 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
     def has_view_permission(self, request, obj=None):
-        return user_in_group(request.user, "PlatformAdmin") or is_user_regulator(
-            request.user
+        user = request.user
+        return user_in_group(user, "PlatformAdmin") or user_in_group(
+            user, "RegulatorAdmin"
         )
 
     def get_queryset(self, request):
@@ -163,7 +155,6 @@ class LogEntryAdmin(admin.ModelAdmin):
         user = request.user
 
         PlatformAdminGroupId = get_group_id(name="PlatformAdmin")
-        RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -174,14 +165,6 @@ class LogEntryAdmin(admin.ModelAdmin):
             return queryset.exclude(
                 user__groups__in=[
                     PlatformAdminGroupId,
-                ]
-            )
-        # Regulator User
-        if user_in_group(user, "RegulatorUser"):
-            return queryset.exclude(
-                user__groups__in=[
-                    PlatformAdminGroupId,
-                    RegulatorAdminGroupId,
                 ]
             )
 
