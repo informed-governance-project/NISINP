@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from collections import defaultdict
-from math import modf
 
 import openpyxl
 from django.conf import settings
@@ -1009,14 +1008,9 @@ def calculate_so_score(security_measure, standard_answer):
     except Exception:
         return None
 
-    final_score = scores_by_level[0]["rate"]
-    for score in scores_by_level[1:]:
-        if modf(final_score)[0] == 0 and score["rate"] > 0 and final_score > 0:
-            final_score += score["rate"]
-        else:
-            break
+    total_rate = sum(score["rate"] for score in scores_by_level)
 
-    return final_score
+    return total_rate
 
 
 def create_entry_log(user, standard_answer, action, request=None):
