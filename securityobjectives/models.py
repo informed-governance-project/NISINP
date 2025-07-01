@@ -348,6 +348,13 @@ class SecurityObjectiveStatus(models.Model):
         decimal_places=2,
     )
 
+    actions = models.TextField(
+        blank=True,
+        default=None,
+        null=True,
+        verbose_name=_("Planned actions"),
+    )
+
 
 class LogStandardAnswer(models.Model):
     user = models.ForeignKey(
