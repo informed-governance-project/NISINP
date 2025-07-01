@@ -65,11 +65,18 @@ class SecurityObjectiveAnswerForm(forms.Form):
 class SecurityObjectiveStatusForm(forms.ModelForm):
     class Meta:
         model = SecurityObjectiveStatus
-        fields = ["status"]
+        fields = ["status", "actions"]
         widgets = {
             "status": forms.Select(
                 attrs={
                     "class": "so_status_form",
+                    "onchange": "update_so_declaration(this)",
+                }
+            ),
+            "actions": forms.Textarea(
+                attrs={
+                    "class": "so_actions_form",
+                    "placeholder": "",
                     "onchange": "update_so_declaration(this)",
                 }
             ),
@@ -78,8 +85,22 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial", None)
         super().__init__(*args, **kwargs)
+
+        def set_readonly(field_name):
+            field = self.fields[field_name]
+            field_classes = field.widget.attrs.get("class", "")
+            field.widget.attrs.update({"class": f"{field_classes} readonly_field"})
+            field.disabled = True
+
+        self.fields["status"].required = False
+        self.fields["actions"].required = False
+
         if initial:
+            is_regulator = initial.get("is_regulator", True)
             current_class = self.fields["status"].widget.attrs.get("class", "")
+
+            if is_regulator:
+                set_readonly("actions")
             if initial["status"] == "PASS":
                 self.fields["status"].widget.attrs.update(
                     {"class": f"{current_class} text-white bg-success"},

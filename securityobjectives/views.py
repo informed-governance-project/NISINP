@@ -16,6 +16,8 @@ from django.db.models import (
     ExpressionWrapper,
     F,
     FloatField,
+    Max,
+    Min,
     OuterRef,
     Q,
     Value,
@@ -53,6 +55,7 @@ from .forms import (
 from .globals import STANDARD_ANSWER_REVIEW_STATUS
 from .models import (
     LogStandardAnswer,
+    MaturityLevel,
     SecurityMeasure,
     SecurityMeasureAnswer,
     SecurityObjective,
@@ -230,7 +233,7 @@ def declaration(request):
                 },
                 status=403,
             )
-        if field_name == "status":
+        if field_name in ["status", "actions"]:
             form = SecurityObjectiveStatusForm(data)
             if form.is_valid():
                 try:
@@ -249,12 +252,18 @@ def declaration(request):
                     standard_answer.last_update = timezone.now()
                     standard_answer.save()
 
+                    objective_state = get_completion_objective(
+                        security_objective, standard_answer
+                    )
+                    objective_state["id"] = security_objective.pk
+
                     return JsonResponse(
                         {
                             "success": True,
                             "created": created,
                             "id": id_object,
                             "data": field_to_update,
+                            "objective_state": objective_state,
                         },
                         status=201 if created else 200,
                     )
@@ -342,7 +351,9 @@ def declaration(request):
                 standard_answer=standard_answer,
                 security_objective=security_objective,
             )
-            initial = model_to_dict(so_status, fields=["status"])
+            initial = model_to_dict(so_status, fields=["status", "actions"])
+            initial["is_regulator"] = is_user_regulator(user)
+
             security_objective.score = so_status.score
         except SecurityObjectiveStatus.DoesNotExist:
             initial = {}
@@ -1044,6 +1055,13 @@ def create_entry_log(user, standard_answer, action, request=None):
 
 
 def get_completion_objective(security_objective, standard_answer):
+    levels = MaturityLevel.objects.filter(
+        securitymeasure__security_objective=security_objective,
+    ).aggregate(first_level=Min("level"), last_level=Max("level"))
+
+    first_maturity_level = levels["first_level"]
+    last_maturity_level = levels["last_level"]
+
     queryset = SecurityMeasureAnswer.objects.filter(
         security_measure__security_objective=security_objective,
         standard_answer=standard_answer,
@@ -1063,7 +1081,7 @@ def get_completion_objective(security_objective, standard_answer):
                         justification__gt="",
                     )
                     | Q(
-                        security_measure__maturity_level__level=0,
+                        security_measure__maturity_level__level=first_maturity_level,
                     ),
                     then=True,
                 ),
@@ -1076,7 +1094,7 @@ def get_completion_objective(security_objective, standard_answer):
                         (Q(is_implemented=True) & Q(justification=""))
                         | (~Q(is_implemented=True) & Q(justification__gt=""))
                     )
-                    & ~Q(security_measure__maturity_level__level=0),
+                    & ~Q(security_measure__maturity_level__level=first_maturity_level),
                     then=True,
                 ),
                 default=False,
@@ -1090,6 +1108,31 @@ def get_completion_objective(security_objective, standard_answer):
     total_count = annotated_queryset.count()
     all_completed = completed_count == total_count
     any_partially = partially_count > 0
+
+    if all_completed and not any_partially:
+        last_level_security_measures = SecurityMeasure.objects.filter(
+            security_objective=security_objective,
+            maturity_level__level=last_maturity_level,
+        ).count()
+
+        last_level_security_measures_checked = SecurityMeasureAnswer.objects.filter(
+            security_measure__security_objective=security_objective,
+            security_measure__maturity_level__level=last_maturity_level,
+            is_implemented=True,
+            justification__gt="",
+            standard_answer=standard_answer,
+        ).count()
+
+        so_status = SecurityObjectiveStatus.objects.filter(
+            security_objective=security_objective,
+            standard_answer=standard_answer,
+        ).first()
+
+        actions_planned = bool(so_status and so_status.actions)
+
+        if last_level_security_measures != last_level_security_measures_checked:
+            all_completed = actions_planned
+            any_partially = not actions_planned
 
     return {
         "is_completed": all_completed,
