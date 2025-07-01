@@ -1176,7 +1176,7 @@ def generate_colorbar():
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False)
 
-    graph = convert_graph_to_base64(fig)
+    graph = convert_graph_to_base64(fig, "png")
 
     return graph
 
@@ -1193,9 +1193,9 @@ def text_wrap(text, max_line_length=20):
     return text_wrapped
 
 
-def convert_graph_to_base64(fig):
+def convert_graph_to_base64(fig, export_format="svg"):
     buffer = BytesIO()
-    fig.write_image(buffer, format="svg")
+    fig.write_image(buffer, format=export_format, engine="kaleido", scale=3)
     buffer.seek(0)
     image_svg = buffer.getvalue()
     buffer.close()
