@@ -15,6 +15,7 @@ node_modules/
 
 logs/
 sent_emails/
+tmp/
 
 governanceplatform/config_prod.py
 governanceplatform/config.py
@@ -23,3 +24,4 @@ theme/
 
 static/npm_components
 volumes/
+dump.rdb
