@@ -89,6 +89,16 @@ def update_user_groups(sender, instance, created, **kwargs):
         return
 
 
+# Update incidents from IncidentUser
+@receiver(pre_save, sender=CompanyUser)
+def update_user_incidents(sender, instance, **kwargs):
+    user = instance.user
+    if not user.companyuser_set.exists():
+        user.incident_set.filter(company__isnull=True).update(
+            company=instance.company, company_name=instance.company.identifier
+        )
+
+
 @receiver(post_save, sender=RegulatorUser)
 def update_regulator_user_groups(sender, instance, created, **kwargs):
     user = instance.user
