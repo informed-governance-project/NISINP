@@ -1,11 +1,17 @@
+from datetime import date
+
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 
+from governanceplatform.config import EMAIL_SENDER
 from governanceplatform.models import User
 
 from .helpers import user_in_group
@@ -92,11 +98,66 @@ def update_user_groups(sender, instance, created, **kwargs):
 # Update incidents from IncidentUser
 @receiver(pre_save, sender=CompanyUser)
 def update_user_incidents(sender, instance, **kwargs):
+    def is_valid_email(email):
+        try:
+            validate_email(email)
+            return True
+        except ValidationError:
+            return False
+
     user = instance.user
-    if not user.companyuser_set.exists():
-        user.incident_set.filter(company__isnull=True).update(
-            company=instance.company, company_name=instance.company.identifier
+    company = instance.company
+    if (
+        user
+        and user_in_group(user, "IncidentUser")
+        and company
+        and company.identifier
+        and not user.companyuser_set.exclude(pk=instance.pk).exists()
+    ):
+        current_year = date.today().year
+        incidents = user.incident_set.filter(
+            company__isnull=True, regulator__isnull=True
         )
+        incidents_per_company = company.incident_set.filter(
+            incident_notification_date__year=current_year
+        ).count()
+
+        admins_qs = company.companyuser_set.filter(
+            is_company_administrator=True
+        ).select_related("user")
+        admin_emails = [admin.user.email for admin in admins_qs if admin.user.email]
+        if company.email:
+            admin_emails.append(company.email)
+        admin_emails = [email for email in set(admin_emails) if is_valid_email(email)]
+
+        if admin_emails:
+            subject = _("New company user")
+            message = _(
+                "Hello,\n\n"
+                "A new user has been added to your company:\n"
+                "{new_user_name} ({new_user_email})"
+            ).format(
+                new_user_name=user.get_full_name(),
+                new_user_email=user.email,
+            )
+            send_mail(subject, message, EMAIL_SENDER, admin_emails)
+
+        for incident in incidents:
+            sector_for_ref = ""
+            subsector_for_ref = ""
+            sector = incident.affected_sectors.first()
+            if sector:
+                subsector_for_ref = sector.acronym[:3]
+                if sector.parent:
+                    sector_for_ref = sector.parent.acronym[:3]
+
+            incidents_per_company += 1
+            number_of_incident = f"{incidents_per_company:04}"
+
+            incident.incident_id = f"{company.identifier}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{current_year}"
+            incident.company = company
+            incident.company_name = company.identifier
+            incident.save()
 
 
 @receiver(post_save, sender=RegulatorUser)
