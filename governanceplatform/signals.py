@@ -4,19 +4,16 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.mail import send_mail
-from django.core.validators import validate_email
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
-from django.utils.translation import gettext_lazy as _
 
-from governanceplatform.config import EMAIL_SENDER
 from governanceplatform.models import User
 
 from .helpers import user_in_group
 from .models import CompanyUser, ObserverUser, PasswordUserHistory, RegulatorUser
 from .permissions import (
+    set_incident_user_permissions,
     set_observer_admin_permissions,
     set_observer_user_permissions,
     set_operator_admin_permissions,
@@ -90,25 +87,20 @@ def update_user_groups(sender, instance, created, **kwargs):
     # Operator Administrator permission
     if some_company_is_administrator.exists():
         set_operator_admin_permissions(user)
+    elif user_in_group(user, "IncidentUser") and not instance.approved:
+        set_incident_user_permissions(user)
     else:
         set_operator_user_permissions(user)
-        return
 
 
 # Update incidents from IncidentUser
 @receiver(pre_save, sender=CompanyUser)
 def update_user_incidents(sender, instance, **kwargs):
-    def is_valid_email(email):
-        try:
-            validate_email(email)
-            return True
-        except ValidationError:
-            return False
-
     user = instance.user
     company = instance.company
     if (
         user
+        and instance.approved
         and user_in_group(user, "IncidentUser")
         and company
         and company.identifier
@@ -118,29 +110,11 @@ def update_user_incidents(sender, instance, **kwargs):
         incidents = user.incident_set.filter(
             company__isnull=True, regulator__isnull=True
         )
-        incidents_per_company = company.incident_set.filter(
-            incident_notification_date__year=current_year
-        ).count()
-
-        admins_qs = company.companyuser_set.filter(
-            is_company_administrator=True
-        ).select_related("user")
-        admin_emails = [admin.user.email for admin in admins_qs if admin.user.email]
-        if company.email:
-            admin_emails.append(company.email)
-        admin_emails = [email for email in set(admin_emails) if is_valid_email(email)]
-
-        if admin_emails:
-            subject = _("New company user")
-            message = _(
-                "Hello,\n\n"
-                "A new user has been added to your company:\n"
-                "{new_user_name} ({new_user_email})"
-            ).format(
-                new_user_name=user.get_full_name(),
-                new_user_email=user.email,
-            )
-            send_mail(subject, message, EMAIL_SENDER, admin_emails)
+        incidents_per_company = (
+            company.incident_set.exclude(contact_user=user)
+            .filter(incident_notification_date__year=current_year)
+            .count()
+        )
 
         for incident in incidents:
             sector_for_ref = ""
@@ -232,5 +206,9 @@ def delete_user_groups(sender, instance, **kwargs):
     if not user.companyuser_set.exists():
         user.is_staff = False
         user.is_superuser = False
+        new_group, created = Group.objects.get_or_create(name="IncidentUser")
+        if new_group:
+            user.groups.clear()
+            user.groups.add(new_group)
 
     user.save()
