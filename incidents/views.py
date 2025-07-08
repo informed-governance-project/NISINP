@@ -1011,6 +1011,7 @@ class WorkflowWizardView(SessionWizardView):
             step = self.steps.current
         position = int(step)
         user = self.request.user
+        self.is_review = False
 
         # Operator : Complete an existing workflow or see historic
         # Regulator : See the report
@@ -1027,6 +1028,7 @@ class WorkflowWizardView(SessionWizardView):
             and not self.is_regulator_incident
             or self.read_only
         ):
+            self.is_review = True
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
@@ -1109,6 +1111,15 @@ class WorkflowWizardView(SessionWizardView):
         if form.is_valid():
             self.storage.set_step_data(current_step, self.process_step(form))
             self.storage.set_step_files(current_step, self.process_step_files(form))
+
+        # If the user is in review mode and is going to the last step,
+        # we ensure that all previous steps are stored, this avoid render validation.
+        if self.is_review and not self.read_only and goto_step == self.steps.last:
+            for step in self.steps.all:
+                if step == goto_step or self.storage.get_step_data(step):
+                    continue
+                form = self.get_form(step)
+                self.storage.set_step_data(step, self.process_step(form))
 
         return super().render_goto_step(goto_step, **kwargs)
 
