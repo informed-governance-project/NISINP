@@ -71,6 +71,7 @@ try:
     LANGUAGES = config.LANGUAGES
     PARLER_DEFAULT_LANGUAGE_CODE = config.PARLER_DEFAULT_LANGUAGE_CODE
     PARLER_LANGUAGES = config.PARLER_LANGUAGES
+    PARLER_ENABLE_CACHING = False
 
 except AttributeError as e:
     print("Please check you configuration file for the missing configuration variable:")
