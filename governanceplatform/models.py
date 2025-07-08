@@ -496,17 +496,10 @@ class CompanyUser(models.Model):
                 )
 
         else:
-            if not has_admin:
-                if not self.is_company_administrator:
-                    raise ValidationError(
-                        _("The first user of an operator must be an administrator.")
-                    )
-                elif not self.approved:
-                    raise ValidationError(
-                        _(
-                            "The first operator administrator must be approved before being added."
-                        )
-                    )
+            if not has_admin and not self.is_company_administrator:
+                raise ValidationError(
+                    _("The first user of an operator must be an administrator.")
+                )
 
 
 # link between the admin regulator users and the regulators.
