@@ -597,7 +597,7 @@ def access_log(request, standard_answer_id: int):
     log = LogStandardAnswer.objects.filter(standard_answer=standard_answer).order_by(
         "-timestamp"
     )
-    if is_user_operator(user):
+    if is_user_operator(user) or user_in_group(user, "IncidentUser"):
         log = log.exclude(user__regulatoruser__isnull=False)
 
     context = {"log": log}
