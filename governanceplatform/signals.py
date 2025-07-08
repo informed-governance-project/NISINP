@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
@@ -11,6 +13,7 @@ from governanceplatform.models import User
 from .helpers import user_in_group
 from .models import CompanyUser, ObserverUser, PasswordUserHistory, RegulatorUser
 from .permissions import (
+    set_incident_user_permissions,
     set_observer_admin_permissions,
     set_observer_user_permissions,
     set_operator_admin_permissions,
@@ -84,9 +87,51 @@ def update_user_groups(sender, instance, created, **kwargs):
     # Operator Administrator permission
     if some_company_is_administrator.exists():
         set_operator_admin_permissions(user)
+    elif user_in_group(user, "IncidentUser") and not instance.approved:
+        set_incident_user_permissions(user)
     else:
         set_operator_user_permissions(user)
-        return
+
+
+# Update incidents from IncidentUser
+@receiver(pre_save, sender=CompanyUser)
+def update_user_incidents(sender, instance, **kwargs):
+    user = instance.user
+    company = instance.company
+    if (
+        user
+        and instance.approved
+        and user_in_group(user, "IncidentUser")
+        and company
+        and company.identifier
+        and not user.companyuser_set.exclude(pk=instance.pk).exists()
+    ):
+        current_year = date.today().year
+        incidents = user.incident_set.filter(
+            company__isnull=True, regulator__isnull=True
+        )
+        incidents_per_company = (
+            company.incident_set.exclude(contact_user=user)
+            .filter(incident_notification_date__year=current_year)
+            .count()
+        )
+
+        for incident in incidents:
+            sector_for_ref = ""
+            subsector_for_ref = ""
+            sector = incident.affected_sectors.first()
+            if sector:
+                subsector_for_ref = sector.acronym[:3]
+                if sector.parent:
+                    sector_for_ref = sector.parent.acronym[:3]
+
+            incidents_per_company += 1
+            number_of_incident = f"{incidents_per_company:04}"
+
+            incident.incident_id = f"{company.identifier}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{current_year}"
+            incident.company = company
+            incident.company_name = company.identifier
+            incident.save()
 
 
 @receiver(post_save, sender=RegulatorUser)
@@ -161,5 +206,9 @@ def delete_user_groups(sender, instance, **kwargs):
     if not user.companyuser_set.exists():
         user.is_staff = False
         user.is_superuser = False
+        new_group, created = Group.objects.get_or_create(name="IncidentUser")
+        if new_group:
+            user.groups.clear()
+            user.groups.add(new_group)
 
     user.save()

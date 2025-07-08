@@ -950,11 +950,14 @@ class IncidenteDateForm(forms.ModelForm):
 class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
-        # prevent is_significative_impact to go FALSE when we change an other field
-        if len(cleaned_data) > 1:
+        if "is_significative_impact" not in self.data:
             cleaned_data[
                 "is_significative_impact"
             ] = self.instance.is_significative_impact
+
+        for field in ["incident_id", "incident_status", "is_significative_impact"]:
+            if cleaned_data.get(field) in [None, ""]:
+                cleaned_data[field] = getattr(self.instance, field)
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
@@ -963,15 +966,16 @@ class IncidentStatusForm(forms.ModelForm):
         onchange_funtion = f"onChangeIncident(this, {self.instance.pk})"
         classes_select_widget = "border-0 form-select-sm py-0 select-break-spaces"
 
+        # Set fields to not required
+        self.fields["incident_id"].required = False
+        self.fields["incident_status"].required = False
+        self.fields["is_significative_impact"].required = False
+
         self.fields["incident_id"].widget.attrs = {
             "class": "form-control-sm",
             "onchange": onchange_funtion,
         }
         self.fields["incident_status"].widget.attrs = {
-            "class": classes_select_widget,
-            "onchange": onchange_funtion,
-        }
-        self.fields["review_status"].widget.attrs = {
             "class": classes_select_widget,
             "onchange": onchange_funtion,
         }
@@ -985,17 +989,9 @@ class IncidentStatusForm(forms.ModelForm):
         model = Incident
         fields = [
             "incident_id",
-            "review_status",
             "incident_status",
             "is_significative_impact",
         ]
-
-        required = {
-            "incident_id": False,
-            "review_status": False,
-            "incident_status": False,
-            "is_significative_impact": False,
-        }
 
 
 def format_datetime_astimezone(datetime, timezone):

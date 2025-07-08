@@ -3,11 +3,15 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import redirect
+from django.template.loader import render_to_string
 from django.urls import path
+from django.utils.html import strip_tags
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -42,7 +46,7 @@ from .models import (  # OperatorType,; Service,
     User,
 )
 from .permissions import set_platform_admin_permissions
-from .settings import SITE_NAME
+from .settings import EMAIL_SENDER, SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
@@ -307,8 +311,6 @@ class CompanyUserInline(admin.TabularInline):
     verbose_name = _("Contact for company")
     verbose_name_plural = _("Contacts for company")
     extra = 0
-    min_num = 1
-    max_num = 1
 
     filter_horizontal = [
         "sectors",
@@ -400,6 +402,19 @@ class CompanyUserInline(admin.TabularInline):
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        if obj:
+            has_admin = obj.companyuser_set.filter(
+                is_company_administrator=True
+            ).exists()
+
+        if not user_in_group(user, "OperatorAdmin") and has_admin:
+            readonly_fields += ("approved",)
+
+        return readonly_fields
+
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
         form = formset.form
@@ -407,10 +422,6 @@ class CompanyUserInline(admin.TabularInline):
             widget = form.base_fields["user"].widget
             widget.can_add_related = False
 
-        # if 'sectors' in form.base_fields and user_in_group(request.user, "OperatorAdmin"):
-        #     form.base_fields['sectors'].widget = (
-        #         forms.HiddenInput()
-        #     )
         return formset
 
     # Revoke the permissions of the logged user
@@ -637,6 +648,80 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                                 obj.save()  # Explicitly save changes
         else:
             super().save_related(request, form, formsets, change)
+
+    def save_formset(self, request, form, formset, change):
+        def is_valid_email(email):
+            try:
+                validate_email(email)
+                return True
+            except ValidationError:
+                return False
+
+        def send_suggestion_email(context, email_list):
+            html_message = render_to_string(
+                "emails/suggestion_link_user_account.html", context
+            )
+            subject = _("Suggestion to Link a User Account with Your Company")
+            plain_message = strip_tags(html_message)
+
+            send_mail(
+                subject,
+                plain_message,
+                EMAIL_SENDER,
+                email_list,
+                html_message=html_message,
+            )
+
+        instances = formset.save(commit=False)
+        company = formset.instance
+        admins_qs = company.companyuser_set.filter(
+            is_company_administrator=True
+        ).select_related("user")
+
+        for instance in instances:
+            if user_in_group(instance.user, "IncidentUser") and user_in_group(
+                request.user, "RegulatorUser"
+            ):
+                instance.approved = False
+                user = instance.user
+                if (
+                    user
+                    and company
+                    and not user.companyuser_set.exclude(pk=instance.pk).exists()
+                ):
+                    context = {
+                        "operator_admin_name": None,
+                        "new_user_name": user.get_full_name(),
+                        "new_user_email": user.email,
+                        "regulator": request.user.regulators.first().full_name,
+                    }
+
+                    if company.email and is_valid_email(company.email):
+                        context["operator_admin_name"] = None
+                        send_suggestion_email(
+                            context,
+                            [company.email],
+                        )
+
+                    for operator_admin in admins_qs:
+                        admin_user = operator_admin.user
+                        admin_email = admin_user.email
+                        if is_valid_email(operator_admin.user.email):
+                            context["operator_admin_name"] = admin_user.get_full_name()
+                            send_suggestion_email(
+                                context,
+                                [admin_email],
+                            )
+
+            if not user_in_group(instance.user, "IncidentUser"):
+                instance.approved = True
+
+            instance.save()
+
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        formset.save_m2m()
 
 
 class UserResource(resources.ModelResource):

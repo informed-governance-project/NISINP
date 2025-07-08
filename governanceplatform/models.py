@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Deferrable
 from django.utils.translation import gettext_lazy as _
@@ -510,6 +511,8 @@ class CompanyUser(models.Model):
         default=False, verbose_name=_("Is administrator")
     )
 
+    approved = models.BooleanField(default=False, verbose_name=_("Approved"))
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -521,6 +524,33 @@ class CompanyUser(models.Model):
 
     def __str__(self):
         return ""
+
+    def clean(self):
+        is_incident_user = self.user.groups.filter(name="IncidentUser").exists()
+        has_admin = self.company.companyuser_set.filter(
+            is_company_administrator=True
+        ).exists()
+
+        if is_incident_user:
+            if self.is_company_administrator and not self.approved:
+                raise ValidationError(
+                    _(
+                        "Incident users can only become administrator after being approved."
+                    )
+                )
+
+            if not has_admin:
+                raise ValidationError(
+                    _(
+                        "An incident user cannot be added before at least one operator administrator exists."
+                    )
+                )
+
+        else:
+            if not has_admin and not self.is_company_administrator:
+                raise ValidationError(
+                    _("The first user of an operator must be an administrator.")
+                )
 
 
 # link between the admin regulator users and the regulators.

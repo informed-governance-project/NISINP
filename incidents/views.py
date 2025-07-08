@@ -7,11 +7,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
@@ -34,7 +35,7 @@ from governanceplatform.settings import (
     TIME_ZONE,
 )
 
-from .decorators import check_user_is_correct
+from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
 from .forms import ContactForm, IncidentStatusForm, get_forms_list
@@ -424,6 +425,42 @@ def edit_workflow(request):
 
 @login_required
 @otp_required
+@regulator_role_required
+@check_user_is_correct
+@require_http_methods(["POST"])
+def edit_incident(request, incident_id: int):
+    """Returns the list of incident as regulator."""
+
+    try:
+        incident = Incident.objects.get(pk=incident_id)
+    except Incident.DoesNotExist:
+        messages.error(request, _("Incident not found"))
+        return redirect("incidents")
+
+    if not can_edit_incident_report(request.user, incident):
+        return redirect("incidents")
+
+    incident_form = IncidentStatusForm(request.POST, instance=incident)
+
+    if incident_form.is_valid():
+        incident = incident_form.save(commit=False)
+        response = {"id": incident.pk}
+        incident_status = incident_form.cleaned_data.get("incident_status")
+        if incident_status == "CLOSE" and incident.sector_regulation.closing_email:
+            send_email(incident.sector_regulation.closing_email, incident)
+
+        for field_name in incident_form.cleaned_data:
+            response[field_name] = incident_form.cleaned_data[field_name]
+
+        incident.save()
+
+        return JsonResponse(response)
+
+    return redirect("incidents")
+
+
+@login_required
+@otp_required
 @check_user_is_correct
 def access_log(request, incident_id: int):
     user = request.user
@@ -447,7 +484,7 @@ def access_log(request, incident_id: int):
     )
 
     log = LogReportRead.objects.filter(incident=incident).order_by("-timestamp")
-    if is_user_operator(user):
+    if is_user_operator(user) or user_in_group(user, "IncidentUser"):
         log = log.exclude(user__regulatoruser__isnull=False)
     if is_regulator_incident:
         log = log.filter(user__regulatoruser__regulator=user.regulators.first())
