@@ -105,14 +105,14 @@ def get_incidents(request):
     elif user_in_group(user, "OperatorAdmin"):
         company_in_use = request.session.get("company_in_use")
         if not company_in_use:
-            return redirect("logout")
+            return redirect("index")
         # OperatorAdmin can see all the reports of the selected company.
         incidents = incidents.filter(company__id=company_in_use)
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         company_in_use = request.session.get("company_in_use")
         if not company_in_use:
-            return redirect("logout")
+            return redirect("index")
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
             company__id=company_in_use,
