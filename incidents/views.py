@@ -105,19 +105,13 @@ def get_incidents(request):
         incidents = user.observers.first().get_incidents()
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin"):
-        company_in_use = request.session.get("company_in_use")
-        if not company_in_use:
-            return redirect("index")
         # OperatorAdmin can see all the reports of the selected company.
-        incidents = incidents.filter(company__id=company_in_use)
+        incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
-        company_in_use = request.session.get("company_in_use")
-        if not company_in_use:
-            return redirect("index")
         # OperatorUser see his incident and the one oh his sectors for the company
         query1 = incidents.filter(
-            company__id=company_in_use,
+            company__id=request.session.get("company_in_use"),
             affected_sectors__in=user.companyuser_set.all()
             .distinct()
             .values_list("sectors", flat=True),
