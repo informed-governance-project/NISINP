@@ -3,9 +3,8 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
-from django.core.validators import validate_email
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import redirect
@@ -27,6 +26,7 @@ from .helpers import (
     instance_user_in_group,
     is_user_operator,
     is_user_regulator,
+    is_valid_email,
     user_in_group,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
@@ -650,13 +650,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             super().save_related(request, form, formsets, change)
 
     def save_formset(self, request, form, formset, change):
-        def is_valid_email(email):
-            try:
-                validate_email(email)
-                return True
-            except ValidationError:
-                return False
-
         def send_suggestion_email(context, email_list):
             html_message = render_to_string(
                 "emails/suggestion_link_user_account.html", context

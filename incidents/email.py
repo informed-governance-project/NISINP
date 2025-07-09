@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
+from governanceplatform.helpers import is_valid_email
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
@@ -55,6 +56,16 @@ def send_email(email, incident):
         },
     )
     recipient_list = [incident.contact_user.email]
+    # get also emails of company administrators
+    if incident.company:
+        company_admins_qs = incident.company.companyuser_set.filter(
+            is_company_administrator=True
+        ).select_related("user")
+    else:
+        company_admins_qs = []
+    company_admins_emails = [admin.user.email for admin in company_admins_qs]
+
+    recipient_list.extend(company_admins_emails)
     # get also regulator email and emails of responsible people for the designated sectors
     sector_regulation = incident.sector_regulation
     regulator_email = sector_regulation.regulator.email_for_notification
@@ -77,5 +88,7 @@ def send_email(email, incident):
             observer_emails.append(obs.email_for_notification)
 
     recipient_list.extend(observer_emails)
+
+    recipient_list = [mail for mail in recipient_list if is_valid_email(mail)]
 
     send_html_email(subject, html_content, recipient_list)

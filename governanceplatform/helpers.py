@@ -2,6 +2,8 @@ import secrets
 from typing import Any, Optional
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import connection
 from django.http import HttpRequest
 from django.utils.html import format_html
@@ -320,3 +322,11 @@ def filter_languages_not_translated(form):
     form.context_data["language_tabs"] = filtered_languages
 
     return form
+
+
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
