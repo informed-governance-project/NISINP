@@ -203,7 +203,9 @@ class QuestionForm(forms.Form):
         if question_type in ["MULTI", "MT", "SO", "ST"]:
             if answer_queryset.exists():
                 initial_predefined_answers = list(
-                    answer_queryset.values_list("predefined_answers", flat=True)
+                    answer_queryset.exclude(
+                        predefined_answers__isnull=True
+                    ).values_list("predefined_answers", flat=True)
                 )
                 if last_historic_changes.exists():
                     last_historic = last_historic_changes.first()

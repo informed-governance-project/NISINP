@@ -1032,21 +1032,6 @@ class WorkflowWizardView(SessionWizardView):
             for field in form.fields:
                 form.fields[field].disabled = True
                 form.fields[field].required = False
-                # hack for review when a multiple choice is empty
-                if (
-                    form.fields[field].initial == [None]
-                    and form.fields[field].__class__.__name__ == "MultipleChoiceField"
-                ):
-                    form.fields[field].initial = []
-
-                # replace for SO the initial_data by an empty iterable
-                if (
-                    form.fields[field].__class__.__name__ == "MultipleChoiceField"
-                    and form.fields[field].widget.__class__.__name__
-                    == "OtherCheckboxSelectMultiple"
-                    and form.fields[field].initial == [None]
-                ):
-                    form.fields[field].initial = []
 
                 # replace following widget by more readable in read only
                 if (
