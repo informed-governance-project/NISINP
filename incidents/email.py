@@ -1,13 +1,22 @@
 from datetime import date
 
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
+from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.urls import reverse
 
 from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
-from governanceplatform.helpers import is_valid_email
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
+
+
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
 
 
 # replace the variables in globals.py by the right value
@@ -34,12 +43,75 @@ def replace_email_variables(content, incident):
 
 
 def send_html_email(subject, content, recipient_list):
-    email = EmailMessage(subject, content, EMAIL_SENDER, bcc=recipient_list)
-    email.content_subtype = "html"
-    email.send(fail_silently=True)
+    recipient_list = [email for email in recipient_list if is_valid_email(email)]
+    if recipient_list:
+        email = EmailMessage(subject, content, EMAIL_SENDER, bcc=recipient_list)
+        email.content_subtype = "html"
+        email.send(fail_silently=True)
 
 
-def send_email(email, incident):
+def get_emails_from_qs(queryset):
+    return [obj.user.email for obj in queryset]
+
+
+def get_recipient_list(incident, send_to_observers):
+    # Contact user's email
+    recipient_list = [incident.contact_user.email]
+    company = incident.company
+    sector_regulation = incident.sector_regulation
+    regulator = sector_regulation.regulator
+
+    if company:
+        # Company's email
+        recipient_list.append(company.email)
+
+        company_admins_qs = company.companyuser_set.filter(
+            is_company_administrator=True
+        ).select_related("user")
+    else:
+        company_admins_qs = []
+
+    # Company administrators' emails
+    recipient_list.extend(get_emails_from_qs(company_admins_qs))
+
+    # Regulator's email
+    recipient_list.append(regulator.email_for_notification)
+
+    # Regulator administrators' emails
+    regulator_admins_qs = regulator.regulatoruser_set.filter(
+        is_regulator_administrator=True
+    ).select_related("user")
+    recipient_list.extend(get_emails_from_qs(regulator_admins_qs))
+
+    # Sector managers' emails
+    regulator_users_sectored = RegulatorUser.objects.filter(
+        regulator=regulator,
+        sectors__in=incident.affected_sectors.all(),
+    ).distinct("user")
+    recipient_list.extend(get_emails_from_qs(regulator_users_sectored))
+
+    if send_to_observers:
+        observer_emails = []
+        observers = Observer.objects.all()
+        for observer in observers:
+            if observer.can_access_incident(incident):
+                # Observer's mail
+                observer_emails.append(observer.email_for_notification)
+                # Observer users' email
+                observer_user_qs = observer.observeruser_set.all().select_related(
+                    "user"
+                )
+                observer_emails.extend(get_emails_from_qs(observer_user_qs))
+
+        recipient_list.extend(observer_emails)
+
+    # Remove duplicates
+    recipient_list = list(dict.fromkeys(recipient_list))
+
+    return recipient_list
+
+
+def send_email(email, incident, send_to_observers=False):
     subject = replace_email_variables(email.subject, incident)
     html_content = render_to_string(
         "incidents/email.html",
@@ -55,40 +127,6 @@ def send_email(email, incident):
             "technical_contact_lastname": incident.technical_lastname,
         },
     )
-    recipient_list = [incident.contact_user.email]
-    # get also emails of company administrators
-    if incident.company:
-        company_admins_qs = incident.company.companyuser_set.filter(
-            is_company_administrator=True
-        ).select_related("user")
-    else:
-        company_admins_qs = []
-    company_admins_emails = [admin.user.email for admin in company_admins_qs]
-
-    recipient_list.extend(company_admins_emails)
-    # get also regulator email and emails of responsible people for the designated sectors
-    sector_regulation = incident.sector_regulation
-    regulator_email = sector_regulation.regulator.email_for_notification
-    recipient_list.append(regulator_email)
-
-    regulator_users_sectored = RegulatorUser.objects.filter(
-        regulator=sector_regulation.regulator,
-        sectors__in=incident.affected_sectors.all(),
-    ).distinct("user")
-    regulator_users_sectored_emails = []
-    for u in regulator_users_sectored:
-        regulator_users_sectored_emails.append(u.user.email)
-
-    recipient_list.extend(regulator_users_sectored_emails)
-
-    observer_emails = []
-    observers = Observer.objects.all()
-    for obs in observers:
-        if obs.can_access_incident(incident):
-            observer_emails.append(obs.email_for_notification)
-
-    recipient_list.extend(observer_emails)
-
-    recipient_list = [mail for mail in recipient_list if is_valid_email(mail)]
+    recipient_list = get_recipient_list(incident, send_to_observers)
 
     send_html_email(subject, html_content, recipient_list)
