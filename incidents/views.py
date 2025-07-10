@@ -1150,7 +1150,7 @@ class WorkflowWizardView(SessionWizardView):
                 user, self.incident, incident_workflow, "CREATE", self.request
             )
 
-            if email:
+            if email and not self.incident.incident_status == "CLOSE":
                 send_email(email, self.incident, send_to_observers=True)
         # save the comment if the user is regulator
         elif is_user_regulator(user) and not self.read_only:
@@ -1165,6 +1165,7 @@ class WorkflowWizardView(SessionWizardView):
             if incident_workflow.review_status != review_status:
                 if (
                     incident_workflow.incident.sector_regulation.report_status_changed_email
+                    and not incident_workflow.incident.incident_status == "CLOSE"
                 ):
                     send_email(
                         incident_workflow.incident.sector_regulation.report_status_changed_email,
