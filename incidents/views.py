@@ -521,9 +521,8 @@ def download_incident_pdf(request, incident_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    response[
-        "Content-Disposition"
-    ] = f"attachment;filename=Incident_{incident_id}_{date.today()}.pdf"
+    filename = f"Incident_{incident_id}_{date.today()}.pdf"
+    response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
 
@@ -553,9 +552,10 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    response[
-        "Content-Disposition"
-    ] = f"attachment;filename={incident.incident_id}_{incident_workflow.workflow.name}_{date.today()}.pdf"
+    filename = (
+        f"{incident.incident_id}_{incident_workflow.workflow.name}_{date.today()}.pdf"
+    )
+    response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
 
@@ -843,7 +843,11 @@ class FormWizardView(SessionWizardView):
 
                 # send The email notification opening
                 if sector_regulation.opening_email is not None:
-                    send_email(sector_regulation.opening_email, incident)
+                    send_email(
+                        sector_regulation.opening_email,
+                        incident,
+                        send_to_observers=True,
+                    )
 
         return (
             redirect("regulator_incidents")
@@ -1147,7 +1151,7 @@ class WorkflowWizardView(SessionWizardView):
             )
 
             if email:
-                send_email(email, self.incident)
+                send_email(email, self.incident, send_to_observers=True)
         # save the comment if the user is regulator
         elif is_user_regulator(user) and not self.read_only:
             incident_workflow = (
