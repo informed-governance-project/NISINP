@@ -15,6 +15,7 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import Functionality
 from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
+from governanceplatform.views import select_company
 
 
 class SessionExpiryMiddleware:
@@ -60,6 +61,12 @@ class SessionExpiryMiddleware:
             current_timestamp + settings.SESSION_COOKIE_AGE
         )
         request.session.modified = True
+
+        if not request.session.get("company_in_use") and user.companies.exists():
+            if user.companies.distinct().count() > 1:
+                return select_company(request)
+
+            request.session["company_in_use"] = user.companies.first().id
 
         return self.get_response(request)
 

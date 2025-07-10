@@ -3,15 +3,12 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.mail import send_mail
-from django.core.validators import validate_email
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import path
-from django.utils.html import strip_tags
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -20,6 +17,8 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+
+from incidents.email import send_html_email
 
 from .forms import CustomTranslatableAdminForm
 from .helpers import (
@@ -46,7 +45,7 @@ from .models import (  # OperatorType,; Service,
     User,
 )
 from .permissions import set_platform_admin_permissions
-from .settings import EMAIL_SENDER, SITE_NAME
+from .settings import SITE_NAME
 from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
@@ -650,27 +649,13 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             super().save_related(request, form, formsets, change)
 
     def save_formset(self, request, form, formset, change):
-        def is_valid_email(email):
-            try:
-                validate_email(email)
-                return True
-            except ValidationError:
-                return False
-
         def send_suggestion_email(context, email_list):
             html_message = render_to_string(
                 "emails/suggestion_link_user_account.html", context
             )
             subject = _("Suggestion to Link a User Account with Your Company")
-            plain_message = strip_tags(html_message)
 
-            send_mail(
-                subject,
-                plain_message,
-                EMAIL_SENDER,
-                email_list,
-                html_message=html_message,
-            )
+            send_html_email(subject, html_message, email_list)
 
         instances = formset.save(commit=False)
         company = formset.instance
@@ -696,7 +681,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                         "regulator": request.user.regulators.first().full_name,
                     }
 
-                    if company.email and is_valid_email(company.email):
+                    if company.email:
                         context["operator_admin_name"] = None
                         send_suggestion_email(
                             context,
@@ -706,12 +691,11 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     for operator_admin in admins_qs:
                         admin_user = operator_admin.user
                         admin_email = admin_user.email
-                        if is_valid_email(operator_admin.user.email):
-                            context["operator_admin_name"] = admin_user.get_full_name()
-                            send_suggestion_email(
-                                context,
-                                [admin_email],
-                            )
+                        context["operator_admin_name"] = admin_user.get_full_name()
+                        send_suggestion_email(
+                            context,
+                            [admin_email],
+                        )
 
             if not user_in_group(instance.user, "IncidentUser"):
                 instance.approved = True

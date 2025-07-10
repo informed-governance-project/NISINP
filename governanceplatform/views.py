@@ -29,14 +29,6 @@ from .models import User
 @login_required
 @check_user_is_correct
 def index(request):
-    user = request.user
-
-    if not request.session.get("company_in_use") and user.companies.exists():
-        if user.companies.distinct().count() > 1:
-            return select_company(request)
-
-        request.session["company_in_use"] = user.companies.first().id
-
     return redirect("incidents")
 
 
