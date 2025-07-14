@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from incidents.forms import DropdownCheckboxSelectMultiple
+from incidents.widgets import TempusDominusV6Widget
 
 from .models import SecurityObjectiveStatus, StandardAnswer
 
@@ -241,6 +242,7 @@ class ReviewForm(forms.ModelForm):
                     "rows": 3,
                 }
             ),
+            "deadline": TempusDominusV6Widget(),
         }
 
     def __init__(self, *args, **kwargs):
