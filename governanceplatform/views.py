@@ -12,7 +12,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from governanceplatform.config import EMAIL_SENDER
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
 
@@ -80,7 +79,7 @@ def send_activation_email(user):
         "Hello {username}! Please click here to activate your account : {activation_link}"
     ).format(username=user.first_name, activation_link=activation_link)
 
-    send_mail(subject, message, EMAIL_SENDER, [user.email])
+    send_mail(subject, message, settings.EMAIL_SENDER, [user.email])
 
 
 def registration_view(request, *args, **kwargs):

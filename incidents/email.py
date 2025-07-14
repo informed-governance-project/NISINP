@@ -1,12 +1,12 @@
 from datetime import date
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
@@ -23,11 +23,11 @@ def is_valid_email(email):
 def replace_email_variables(content, incident):
     # find the incidents which don't have final notification.
     modify_content = content
-    modify_content = modify_content.replace("#PUBLIC_URL#", PUBLIC_URL)
+    modify_content = modify_content.replace("#PUBLIC_URL#", settings.PUBLIC_URL)
     for _i, (variable, key) in enumerate(INCIDENT_EMAIL_VARIABLES):
         if variable == "#INCIDENT_FINAL_NOTIFICATION_URL#":
             incident_id = getattr(incident, key)
-            final_notification_url = PUBLIC_URL + reverse(
+            final_notification_url = settings.PUBLIC_URL + reverse(
                 "final-notification", args=[incident_id]
             )
             var_txt = f'<a href="{final_notification_url}">{final_notification_url}</a>'
@@ -45,7 +45,9 @@ def replace_email_variables(content, incident):
 def send_html_email(subject, content, recipient_list):
     recipient_list = [email for email in recipient_list if is_valid_email(email)]
     if recipient_list:
-        email = EmailMessage(subject, content, EMAIL_SENDER, bcc=recipient_list)
+        email = EmailMessage(
+            subject, content, settings.EMAIL_SENDER, bcc=recipient_list
+        )
         email.content_subtype = "html"
         email.send(fail_silently=True)
 
@@ -117,7 +119,7 @@ def send_email(email, incident, send_to_observers=False):
         "incidents/email.html",
         {
             "content": replace_email_variables(email.content, incident),
-            "url_site": PUBLIC_URL,
+            "url_site": settings.PUBLIC_URL,
             "company_name": incident.company_name,
             "incident_contact_title": incident.contact_title,
             "incident_contact_firstname": incident.contact_firstname,
