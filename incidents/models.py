@@ -1047,3 +1047,12 @@ class Answer(models.Model):
     class meta:
         verbose_name_plural = _("Answer")
         verbose_name = _("Answers")
+
+
+class RTTicket(models.Model):
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
+    ticket_id = models.CharField(max_length=50)
+    observer = models.ForeignKey(
+        "governanceplatform.Observer", on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -266,6 +266,19 @@ class Observer(TranslatableModel):
         blank=True,
     )
 
+    rt_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="e.g., https://rt.exemple.com",
+        verbose_name=_("URL"),
+    )
+    rt_token = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_("Token")
+    )
+    rt_queue = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_("Queue")
+    )
+
     def get_incidents(self):
         if self.is_receiving_all_incident:
             return Incident.objects.all().order_by("-incident_notification_date")
