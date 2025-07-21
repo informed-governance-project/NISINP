@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
 
+from .models import Observer
+
 User = get_user_model()
 
 
@@ -116,10 +118,14 @@ class RegistrationForm(UserCreationForm):
     )
     email = forms.CharField(widget=forms.TextInput(attrs={"autocomplete": "email"}))
     first_name = forms.CharField(
-        widget=forms.TextInput(attrs={"autocomplete": "given-name", "title": _("First name")})
+        widget=forms.TextInput(
+            attrs={"autocomplete": "given-name", "title": _("First name")}
+        )
     )
     last_name = forms.CharField(
-        widget=forms.TextInput(attrs={"autocomplete": "family-name", "title": _("Last name")})
+        widget=forms.TextInput(
+            attrs={"autocomplete": "family-name", "title": _("Last name")}
+        )
     )
     field_order = (
         "email",
@@ -208,3 +214,17 @@ class ContactForm(forms.Form):
         required=True,
         error_messages={"required": "You must accept the use of your personal data."},
     )
+
+
+class CustomObserverAdminForm(CustomTranslatableAdminForm):
+    class Meta:
+        model = Observer
+        fields = "__all__"
+        widgets = {
+            "rt_token": forms.PasswordInput(
+                render_value=True, attrs={"class": "vTextField", "id": "id_rt_token"}
+            ),
+        }
+
+    class Media:
+        js = ("js/rt_token_toggle.js",)

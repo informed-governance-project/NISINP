@@ -20,10 +20,11 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from incidents.email import send_html_email
 
-from .forms import CustomTranslatableAdminForm
+from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .helpers import (
     get_active_company_from_session,
     instance_user_in_group,
+    is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
@@ -1606,20 +1607,10 @@ class ObserverUserInline(admin.TabularInline):
 
 @admin.register(Observer, site=admin_site)
 class ObserverAdmin(CustomTranslatableAdmin):
+    form = CustomObserverAdminForm
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = ObserverResource
-    fields = (
-        "name",
-        "full_name",
-        "description",
-        "country",
-        "address",
-        "email_for_notification",
-        "is_receiving_all_incident",
-        "functionalities",
-    )
-
     filter_horizontal = [
         "functionalities",
     ]
@@ -1628,6 +1619,38 @@ class ObserverAdmin(CustomTranslatableAdmin):
         ObserverUserInline,
         ObserverRegulationInline,
     )
+
+    def get_fieldsets(self, request, obj=None):
+        base_fieldsets = [
+            (
+                None,
+                {
+                    "fields": [
+                        "name",
+                        "full_name",
+                        "description",
+                        "country",
+                        "address",
+                        "email_for_notification",
+                        "is_receiving_all_incident",
+                        "functionalities",
+                    ],
+                },
+            ),
+        ]
+
+        if is_observer_user(request.user):
+            base_fieldsets.append(
+                (
+                    "RT Configuration",
+                    {
+                        "classes": ["collapse"],
+                        "fields": ["rt_url", "rt_token", "rt_queue"],
+                    },
+                )
+            )
+
+        return base_fieldsets
 
     def has_add_permission(self, request, obj=None):
         user = request.user
