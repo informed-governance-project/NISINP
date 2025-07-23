@@ -9,8 +9,6 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
 
-from .models import Observer
-
 User = get_user_model()
 
 
@@ -221,15 +219,21 @@ class CustomObserverAdminForm(CustomTranslatableAdminForm):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")
         if instance and instance.rt_token:
+            self.fields["rt_token"].widget = forms.TextInput(
+                attrs={"type": "password", "class": "vTextField"}
+            )
+            self.fields["rt_token"].help_text = (
+                "Token is already set. To remove it, delete the stars and save. "
+                "To change it, clear the field and enter a new token."
+            )
+
             try:
-                self.fields["rt_token"].initial = instance.rt_token  # use the getter
+                self.fields["rt_token"].initial = "*" * len(self.instance.rt_token)
             except Exception:
                 self.fields["rt_token"].initial = ""
 
     rt_token = forms.CharField(
-        widget=forms.PasswordInput(
-            render_value=True, attrs={"class": "vTextField", "id": "id_rt_token"}
-        ),
+        widget=forms.PasswordInput(render_value=False, attrs={"class": "vTextField"}),
         required=False,
         label=_("Token"),
     )
@@ -238,16 +242,12 @@ class CustomObserverAdminForm(CustomTranslatableAdminForm):
         obj = super().save(commit=False)
         val = self.cleaned_data.get("rt_token")
         if val:
-            obj.rt_token = val  # use the setter
+            if set(val) == {"*"}:
+                obj.rt_token = obj.rt_token  # keep the existing token
+            else:
+                obj.rt_token = val  # use the setter
         else:
             obj.rt_token = None
         if commit:
             obj.save()
         return obj
-
-    class Meta:
-        model = Observer
-        fields = "__all__"
-
-    class Media:
-        js = ("js/rt_token_toggle.js",)
