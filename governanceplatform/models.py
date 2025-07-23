@@ -1,3 +1,4 @@
+from cryptography.fernet import Fernet
 import uuid
 
 from django.contrib import admin
@@ -11,6 +12,7 @@ from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
+from .settings import RT_SECRET_KEY
 from incidents.models import Incident
 
 from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
@@ -272,9 +274,24 @@ class Observer(TranslatableModel):
         help_text="e.g., https://rt.exemple.com",
         verbose_name=_("URL"),
     )
-    rt_token = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_("Token")
+    _rt_token = models.CharField(
+        db_column="rt_token", max_length=255, blank=True, null=True, verbose_name=_("Token"),
     )
+
+    @property
+    def rt_token(self):
+        if self._rt_token is None or self._rt_token == '' or self._rt_token.strip() == '':
+            return ''
+        cipher_suite = Fernet(governanceplatform.helpers.get_fernet_key_from_password_string(RT_SECRET_KEY))
+        val = cipher_suite.decrypt(str.encode(self._rt_token))
+        return val.decode()
+
+    @rt_token.setter
+    def rt_token(self, val):
+        cipher_suite = Fernet(governanceplatform.helpers.get_fernet_key_from_password_string(RT_SECRET_KEY))
+        enc_val = cipher_suite.encrypt(str.encode(val))
+        self._rt_token = enc_val.decode()
+
     rt_queue = models.CharField(
         max_length=255, blank=True, null=True, verbose_name=_("Queue")
     )

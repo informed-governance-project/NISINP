@@ -217,6 +217,26 @@ class ContactForm(forms.Form):
 
 
 class CustomObserverAdminForm(CustomTranslatableAdminForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance and instance.rt_token:
+            try:
+                self.fields['rt_token'].initial = instance.rt_token  # use the getter
+            except Exception:
+                self.fields['rt_token'].initial = ''
+
+    rt_token = forms.CharField(required=False, label=_("Token"))
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        val = self.cleaned_data.get('rt_token')
+        if val:
+            obj.rt_token = val  # use the setter
+        if commit:
+            obj.save()
+        return obj
+
     class Meta:
         model = Observer
         fields = "__all__"

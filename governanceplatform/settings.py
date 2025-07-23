@@ -511,3 +511,9 @@ try:
     CAPTCHA_FONT_SIZE = config.CAPTCHA_FONT_SIZE
 except AttributeError:
     CAPTCHA_FONT_SIZE = 30
+
+# key to store the token for connection to RT
+try:
+    RT_SECRET_KEY = config.RT_SECRET_KEY
+except AttributeError:
+    RT_SECRET_KEY = SECRET_KEY

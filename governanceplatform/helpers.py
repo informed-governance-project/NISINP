@@ -1,4 +1,6 @@
 import secrets
+import hashlib
+import base64
 from typing import Any, Optional
 
 from django.contrib import messages
@@ -320,3 +322,12 @@ def filter_languages_not_translated(form):
     form.context_data["language_tabs"] = filtered_languages
 
     return form
+
+
+# generate a 32 url-safe base64-encoded bytes.
+def get_fernet_key_from_password_string(password: str) -> bytes:
+    key = password
+    hashed_key = hashlib.sha256(key.encode('utf-8'))
+    hashed_key_digest = hashed_key.digest()
+    base64_key = base64.b64encode(hashed_key_digest)
+    return base64_key
