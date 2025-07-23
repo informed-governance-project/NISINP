@@ -222,9 +222,10 @@ class CustomObserverAdminForm(CustomTranslatableAdminForm):
             self.fields["rt_token"].widget = forms.TextInput(
                 attrs={"type": "password", "class": "vTextField"}
             )
-            self.fields["rt_token"].help_text = (
-                "Token is already set. To remove it, delete the stars and save. "
-                "To change it, clear the field and enter a new token."
+
+            self.fields["rt_token"].help_text = _(
+                "A token is already set. To remove it, clear the field and save. "
+                "To update it, enter a new token."
             )
 
             try:
