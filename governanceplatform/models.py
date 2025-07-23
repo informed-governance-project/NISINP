@@ -1,6 +1,6 @@
-from cryptography.fernet import Fernet
 import uuid
 
+from cryptography.fernet import Fernet
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.exceptions import ValidationError
@@ -12,11 +12,11 @@ from parler.models import TranslatableModel, TranslatedFields
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
-from .settings import RT_SECRET_KEY
 from incidents.models import Incident
 
 from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 from .managers import CustomUserManager
+from .settings import RT_SECRET_KEY
 
 
 # sector
@@ -275,20 +275,39 @@ class Observer(TranslatableModel):
         verbose_name=_("URL"),
     )
     _rt_token = models.CharField(
-        db_column="rt_token", max_length=255, blank=True, null=True, verbose_name=_("Token"),
+        db_column="rt_token",
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_("Token"),
     )
 
     @property
     def rt_token(self):
-        if self._rt_token is None or self._rt_token == '' or self._rt_token.strip() == '':
-            return ''
-        cipher_suite = Fernet(governanceplatform.helpers.get_fernet_key_from_password_string(RT_SECRET_KEY))
-        val = cipher_suite.decrypt(str.encode(self._rt_token))
-        return val.decode()
+        if (
+            self._rt_token is None
+            or self._rt_token == ""
+            or self._rt_token.strip() == ""
+        ):
+            return ""
+        try:
+            cipher_suite = Fernet(
+                governanceplatform.helpers.get_fernet_key_from_password_string(
+                    RT_SECRET_KEY
+                )
+            )
+            val = cipher_suite.decrypt(str.encode(self._rt_token))
+            return val.decode()
+        except Exception:
+            return ""
 
     @rt_token.setter
     def rt_token(self, val):
-        cipher_suite = Fernet(governanceplatform.helpers.get_fernet_key_from_password_string(RT_SECRET_KEY))
+        cipher_suite = Fernet(
+            governanceplatform.helpers.get_fernet_key_from_password_string(
+                RT_SECRET_KEY
+            )
+        )
         enc_val = cipher_suite.encrypt(str.encode(val))
         self._rt_token = enc_val.decode()
 
