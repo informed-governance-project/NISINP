@@ -219,18 +219,24 @@ class ContactForm(forms.Form):
 class CustomObserverAdminForm(CustomTranslatableAdminForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        instance = kwargs.get('instance')
+        instance = kwargs.get("instance")
         if instance and instance.rt_token:
             try:
-                self.fields['rt_token'].initial = instance.rt_token  # use the getter
+                self.fields["rt_token"].initial = instance.rt_token  # use the getter
             except Exception:
-                self.fields['rt_token'].initial = ''
+                self.fields["rt_token"].initial = ""
 
-    rt_token = forms.CharField(required=False, label=_("Token"))
+    rt_token = forms.CharField(
+        widget=forms.PasswordInput(
+            render_value=True, attrs={"class": "vTextField", "id": "id_rt_token"}
+        ),
+        required=False,
+        label=_("Token"),
+    )
 
     def save(self, commit=True):
         obj = super().save(commit=False)
-        val = self.cleaned_data.get('rt_token')
+        val = self.cleaned_data.get("rt_token")
         if val:
             obj.rt_token = val  # use the setter
         if commit:
@@ -240,11 +246,6 @@ class CustomObserverAdminForm(CustomTranslatableAdminForm):
     class Meta:
         model = Observer
         fields = "__all__"
-        widgets = {
-            "rt_token": forms.PasswordInput(
-                render_value=True, attrs={"class": "vTextField", "id": "id_rt_token"}
-            ),
-        }
 
     class Media:
         js = ("js/rt_token_toggle.js",)
