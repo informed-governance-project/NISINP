@@ -291,11 +291,7 @@ class Observer(TranslatableModel):
         ):
             return ""
         try:
-            cipher_suite = Fernet(
-                governanceplatform.helpers.get_fernet_key_from_password_string(
-                    RT_SECRET_KEY
-                )
-            )
+            cipher_suite = Fernet(RT_SECRET_KEY)
             val = cipher_suite.decrypt(str.encode(self._rt_token))
             return val.decode()
         except Exception:
@@ -307,11 +303,7 @@ class Observer(TranslatableModel):
             self._rt_token = None
             return
 
-        cipher_suite = Fernet(
-            governanceplatform.helpers.get_fernet_key_from_password_string(
-                RT_SECRET_KEY
-            )
-        )
+        cipher_suite = Fernet(RT_SECRET_KEY)
 
         enc_val = cipher_suite.encrypt(str.encode(val))
         self._rt_token = enc_val.decode()

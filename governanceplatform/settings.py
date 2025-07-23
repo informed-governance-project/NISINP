@@ -513,7 +513,8 @@ except AttributeError:
     CAPTCHA_FONT_SIZE = 30
 
 # key to store the token for connection to RT
+# python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key())'
 try:
     RT_SECRET_KEY = config.RT_SECRET_KEY
 except AttributeError:
-    RT_SECRET_KEY = SECRET_KEY
+    RT_SECRET_KEY = HASH_KEY
