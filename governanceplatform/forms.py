@@ -239,6 +239,8 @@ class CustomObserverAdminForm(CustomTranslatableAdminForm):
         val = self.cleaned_data.get("rt_token")
         if val:
             obj.rt_token = val  # use the setter
+        else:
+            obj.rt_token = None
         if commit:
             obj.save()
         return obj

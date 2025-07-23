@@ -303,11 +303,16 @@ class Observer(TranslatableModel):
 
     @rt_token.setter
     def rt_token(self, val):
+        if not val:
+            self._rt_token = None
+            return
+
         cipher_suite = Fernet(
             governanceplatform.helpers.get_fernet_key_from_password_string(
                 RT_SECRET_KEY
             )
         )
+
         enc_val = cipher_suite.encrypt(str.encode(val))
         self._rt_token = enc_val.decode()
 
