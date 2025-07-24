@@ -974,7 +974,7 @@ class UserCompaniesListFilter(SimpleListFilter):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            companies = user.companies.all()
+            companies = user.companies.filter(companyuser__is_company_administrator=True)
 
         return [(company.id, company.name) for company in companies]
 
@@ -1309,7 +1309,9 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
-                companies__in=request.user.companies.all(),
+                companies__in=request.user.companies.filter(
+                    companyuser__is_company_administrator=True
+                ),
             ).distinct()
         return queryset
 
