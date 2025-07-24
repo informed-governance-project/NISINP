@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
@@ -25,8 +25,7 @@ from .forms import (
     TermsAcceptanceForm,
 )
 from .models import User
-
-from django.core.mail import EmailMessage
+from .permissions import set_operator_admin_permissions, set_operator_user_permissions
 
 
 @login_required
@@ -162,7 +161,16 @@ def select_company(request):
                 id=form.cleaned_data["select_company"].id
             )
             if user_company:
+                user = request.user
                 request.session["company_in_use"] = user_company.id
+                is_administrator = user.companyuser_set.filter(
+                    company=user_company, is_company_administrator=True
+                ).exists()
+                if is_administrator:
+                    set_operator_admin_permissions(user)
+                else:
+                    set_operator_user_permissions(user)
+
                 return index(request)
 
             messages.warning(
@@ -216,7 +224,7 @@ def contact(request):
                 from_email=settings.EMAIL_CONTACT_FROM,
                 to=[settings.EMAIL_FOR_CONTACT],
                 reply_to=[requestor_email],
-                headers={'Return-Path': settings.EMAIL_CONTACT_FROM},
+                headers={"Return-Path": settings.EMAIL_CONTACT_FROM},
             )
             email.send()
 
