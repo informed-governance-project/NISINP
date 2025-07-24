@@ -199,14 +199,11 @@ def delete_user_groups(sender, instance, **kwargs):
                 if new_group:
                     user.groups.add(new_group)
 
-                user.is_active = False
-
             if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
                 user.groups.remove(group)
                 new_group, created = Group.objects.get_or_create(name="RegulatorUser")
                 if new_group:
                     user.groups.add(new_group)
-                user.is_active = False
 
     if not user.companyuser_set.exists():
         user.is_staff = False
