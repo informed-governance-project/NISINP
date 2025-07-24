@@ -974,7 +974,9 @@ class UserCompaniesListFilter(SimpleListFilter):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            companies = user.companies.all()
+            companies = user.companies.filter(
+                companyuser__is_company_administrator=True
+            )
 
         return [(company.id, company.name) for company in companies]
 
@@ -1140,7 +1142,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, obj):
-        user = getattr(self, '_request', None).user
+        user = getattr(self, "_request", None).user
         return obj.get_companies_for_operator_admin(op_admin=user)
 
     def get_urls(self):
@@ -1231,7 +1233,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies", "get_companies_for_operator_admin"]
+            fields_to_exclude = [
+                "get_sectors",
+                "get_companies",
+                "get_companies_for_operator_admin",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1249,7 +1255,12 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active", "get_companies_for_operator_admin"]
+            fields_to_exclude = [
+                "get_regulators",
+                "get_observers",
+                "is_active",
+                "get_companies_for_operator_admin",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1259,7 +1270,12 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active", "get_companies"]
+            fields_to_exclude = [
+                "get_regulators",
+                "get_observers",
+                "is_active",
+                "get_companies",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
