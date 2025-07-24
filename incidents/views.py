@@ -102,20 +102,27 @@ def get_incidents(request):
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = user.observers.first().get_incidents()
-    elif user_in_group(user, "OperatorAdmin"):
-        # OperatorAdmin can see all the reports of the selected company.
-        incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
-    elif user_in_group(user, "OperatorUser"):
-        # OperatorUser see his incident and the one oh his sectors for the company
-        query1 = incidents.filter(
+    elif user_in_group(user, "OperatorAdmin") or user_in_group(user, "OperatorUser"):
+        # OperatorAdmin can see all the reports of the selected company if he is administrator:
+        is_administrator = CompanyUser.objects.filter(
             company__id=request.session.get("company_in_use"),
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        )
+            user=user,
+            is_company_administrator=True,
+        ).count()
+        if is_administrator > 0:
+            query1 = incidents.filter(
+                company__id=request.session.get("company_in_use")
+            )
+        else:
+            query1 = incidents.filter(
+                company__id=request.session.get("company_in_use"),
+                affected_sectors__in=user.companyuser_set.all()
+                .distinct()
+                .values_list("sectors", flat=True),
+            )
         query2 = incidents.filter(contact_user=user)
         incidents = (query1 | query2).distinct()
+        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # OperatorUser and IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
