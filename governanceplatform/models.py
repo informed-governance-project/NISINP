@@ -427,6 +427,11 @@ class User(AbstractUser, PermissionsMixin):
     def get_companies(self):
         return [company.name for company in self.companies.all().distinct()]
 
+    @admin.display(description="companies")
+    def get_companies_for_operator_admin(self, op_admin):
+        companies = self.companies.all().distinct() & op_admin.companies.all().distinct()
+        return [company.name for company in companies.all().distinct()]
+
     @admin.display(description="regulators")
     def get_regulators(self):
         return [

@@ -974,7 +974,7 @@ class UserCompaniesListFilter(SimpleListFilter):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            companies = user.companies.filter(companyuser__is_company_administrator=True)
+            companies = user.companies.all()
 
         return [(company.id, company.name) for company in companies]
 
@@ -1094,6 +1094,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "phone_number",
         "get_regulators",
         "get_companies",
+        "get_companies_for_operator_admin",
         "get_observers",
         # "get_sectors",
         "get_permissions_groups",
@@ -1136,6 +1137,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
+
+    @admin.display(description=_("Companies"))
+    def get_companies_for_operator_admin(self, obj):
+        user = getattr(self, '_request', None).user
+        return obj.get_companies_for_operator_admin(op_admin=user)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -1225,7 +1231,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies"]
+            fields_to_exclude = ["get_sectors", "get_companies", "get_companies_for_operator_admin"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1234,6 +1240,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             fields_to_exclude = [
                 "get_sectors",
                 "get_companies",
+                "get_companies_for_operator_admin",
                 "get_regulators",
                 "is_active",
             ]
@@ -1242,17 +1249,17 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
+            fields_to_exclude = ["get_regulators", "get_observers", "is_active", "get_companies_for_operator_admin"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "RegulatorAdmin"):
-            fields_to_exclude = ["get_observers"]
+            fields_to_exclude = ["get_observers", "get_companies_for_operator_admin"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
+            fields_to_exclude = ["get_regulators", "get_observers", "is_active", "get_companies"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1260,6 +1267,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         return list_display
 
     def get_queryset(self, request):
+        # stock the request
+        self._request = request
         queryset = super().get_queryset(request)
         user = request.user
 
