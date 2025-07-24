@@ -1,4 +1,5 @@
 import uuid
+
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
@@ -371,6 +372,13 @@ class User(AbstractUser, PermissionsMixin):
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all().distinct()]
+
+    @admin.display(description="companies")
+    def get_companies_for_operator_admin(self, op_admin):
+        companies = (
+            self.companies.all().distinct() & op_admin.companies.all().distinct()
+        )
+        return [company.name for company in companies.all().distinct()]
 
     @admin.display(description="regulators")
     def get_regulators(self):
