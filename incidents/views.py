@@ -110,13 +110,14 @@ def get_incidents(request):
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     elif user_in_group(user, "OperatorUser"):
         # OperatorUser see his incident and the one oh his sectors for the company
+        company_in_use = request.session.get("company_in_use")
         query1 = incidents.filter(
-            company__id=request.session.get("company_in_use"),
-            affected_sectors__in=user.companyuser_set.all()
+            company__id=company_in_use,
+            affected_sectors__in=user.companyuser_set.filter(company__id=company_in_use)
             .distinct()
             .values_list("sectors", flat=True),
         )
-        query2 = incidents.filter(contact_user=user)
+        query2 = incidents.filter(company__id=company_in_use, contact_user=user)
         incidents = (query1 | query2).distinct()
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
