@@ -412,8 +412,11 @@ class CompanyUserInline(admin.TabularInline):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(is_company_administrator=True)
-
+            return queryset.filter(
+                company__in=request.user.companies.filter(
+                    companyuser__is_company_administrator=True
+                ),
+            ).distinct()
         return queryset
 
 
