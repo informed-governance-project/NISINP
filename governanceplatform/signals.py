@@ -4,6 +4,8 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sessions.models import Session
+from django.utils.timezone import now
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
@@ -81,8 +83,11 @@ def update_user_groups(sender, instance, created, **kwargs):
     user.is_superuser = False
 
     some_company_is_administrator = user.companyuser_set.filter(
+        company=instance.company,
         is_company_administrator=True
     )
+    # force user to reconnect
+    force_logout_user(instance.user)
 
     # Operator Administrator permission
     if some_company_is_administrator.exists():
@@ -214,3 +219,12 @@ def delete_user_groups(sender, instance, **kwargs):
             user.groups.add(new_group)
 
     user.save()
+
+
+def force_logout_user(user):
+    # get the active sessions
+    sessions = Session.objects.filter(expire_date__gte=now())
+    for session in sessions:
+        data = session.get_decoded()
+        if data.get('_auth_user_id') == str(user.id):
+            session.delete()

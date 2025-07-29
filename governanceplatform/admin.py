@@ -452,6 +452,18 @@ class CompanyUserInline(admin.TabularInline):
             return True
         return super().has_delete_permission(request, obj)
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                company__in=request.user.companies.filter(
+                    companyuser__is_company_administrator=True
+                ),
+            ).distinct()
+        return queryset
+
 
 class CompanyUserMultipleInline(CompanyUserInline):
     max_num = None
