@@ -2,6 +2,7 @@ import logging
 import math
 
 from celery import shared_task
+from django.db import DatabaseError
 from django.utils import timezone
 
 from incidents.email import send_email
@@ -21,7 +22,13 @@ def run(logger=logger):
     logger.info("running email_reminder.py")
     # for all unclosed incident
     actual_time = timezone.now()
-    for incident in Incident.objects.filter(incident_status="GOING"):
+    try:
+        ongoing_incidents = Incident.objects.filter(incident_status="GOING")
+    except DatabaseError as e:
+        logger.error("Failed to fetch ongoing incidents: %s", e, exc_info=True)
+        raise
+
+    for incident in ongoing_incidents:
         # Workflow with deadline from prev workflow
         try:
             for incident_workflow in incident.get_latest_incident_workflows():
