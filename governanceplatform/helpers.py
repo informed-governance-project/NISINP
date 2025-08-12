@@ -15,6 +15,7 @@ from incidents.models import (
     Question,
     QuestionCategoryOptions,
     QuestionOptionsHistory,
+    SectorRegulation,
     Workflow,
 )
 from securityobjectives.models import (
@@ -124,13 +125,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     # OperatorUser can access incidents related to selected company and sectors
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # OperatorStaff and IncidentUser can access their reports.
@@ -170,13 +165,7 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # if he is admin of the company he can create
@@ -208,13 +197,7 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # if he is admin of the company he can create
@@ -259,14 +242,11 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     return obj
 
 
-def can_change_or_delete_obj(
-    request: HttpRequest, obj: Any, check_request=True, send_message=True
-) -> bool:
-    if check_request:
-        if not hasattr(request, "_can_change_or_delete_obj"):
-            request._can_change_or_delete_obj = True
-        else:
-            return request._can_change_or_delete_obj
+def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool:
+    if not hasattr(request, "_can_change_or_delete_obj"):
+        request._can_change_or_delete_obj = True
+    else:
+        return request._can_change_or_delete_obj
 
     if not obj.pk:
         return True
@@ -298,6 +278,10 @@ def can_change_or_delete_obj(
     # [Workflow] in_use flag is set to False
     if isinstance(obj, Workflow):
         in_use = False
+
+    # [Sector Regulation] Check if obj is already in use
+    if isinstance(obj, SectorRegulation):
+        in_use = Incident.objects.filter(sector_regulation=obj).exists()
 
     # [Standard] Check if obj is already in use
     if isinstance(obj, Standard):
@@ -333,11 +317,14 @@ def can_change_or_delete_obj(
     if creator == regulator and not in_use:
         return True
 
-    message = _(
-        "<strong>Modification and deletion actions are not allowed.</strong><br>"
-        "- This {object_name} is either in use.<br>"
-        "- You are not its creator ({creator_name})"
-    )
+    if not message:
+        message = _(
+            "<strong>Modification and deletion actions are not allowed.</strong><br>"
+            "- This {object_name} is either in use.<br>"
+            "- You are not its creator ({creator_name})"
+        )
+    else:
+        message = message
 
     object_name = obj._meta.verbose_name.lower()
     creator_name = creator

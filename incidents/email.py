@@ -1,5 +1,7 @@
+import logging
 from datetime import date
 
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
@@ -9,6 +11,10 @@ from django.urls import reverse
 
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
+
+from .models import RTTicket
+
+logger = logging.getLogger(__name__)
 
 
 def is_valid_email(email):
@@ -56,7 +62,7 @@ def get_emails_from_qs(queryset):
     return [obj.user.email for obj in queryset]
 
 
-def get_recipient_list(incident, send_to_observers):
+def get_recipient_list(incident):
     # Contact user's email
     recipient_list = [incident.contact_user.email]
     company = incident.company
@@ -92,24 +98,6 @@ def get_recipient_list(incident, send_to_observers):
     ).distinct("user")
     recipient_list.extend(get_emails_from_qs(regulator_users_sectored))
 
-    if send_to_observers:
-        observer_emails = []
-        observers = Observer.objects.all()
-        for observer in observers:
-            if observer.can_access_incident(incident):
-                # Observer's mail
-                observer_emails.append(observer.email_for_notification)
-                # Observer users' email
-                observer_user_qs = observer.observeruser_set.all().select_related(
-                    "user"
-                )
-                observer_emails.extend(get_emails_from_qs(observer_user_qs))
-
-        recipient_list.extend(observer_emails)
-
-    # Remove duplicates
-    recipient_list = list(dict.fromkeys(recipient_list))
-
     return recipient_list
 
 
@@ -129,6 +117,103 @@ def send_email(email, incident, send_to_observers=False):
             "technical_contact_lastname": incident.technical_lastname,
         },
     )
-    recipient_list = get_recipient_list(incident, send_to_observers)
+    recipient_list = get_recipient_list(incident)
+
+    if send_to_observers:
+        observer_emails = []
+        observers = Observer.objects.all()
+        for observer in observers:
+            if observer.can_access_incident(incident):
+                if check_rt_config(observer):
+                    create_or_update_rt_ticket(
+                        observer, subject, html_content, incident
+                    )
+                else:
+                    # Observer's mail
+                    observer_emails.append(observer.email_for_notification)
+                    # Observer users' email
+                    observer_user_qs = observer.observeruser_set.all().select_related(
+                        "user"
+                    )
+                    observer_emails.extend(get_emails_from_qs(observer_user_qs))
+
+        recipient_list.extend(observer_emails)
+
+    # Remove duplicates
+    recipient_list = list(dict.fromkeys(recipient_list))
 
     send_html_email(subject, html_content, recipient_list)
+
+
+def create_or_update_rt_ticket(recipient, subject, content, incident):
+    is_new_ticket = not RTTicket.objects.filter(
+        incident=incident, observer=recipient
+    ).exists()
+    base_url = recipient.rt_url.rstrip("/")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"token {recipient.rt_token}",
+    }
+
+    try:
+        ticket = RTTicket.objects.filter(incident=incident, observer=recipient).first()
+        is_new_ticket = ticket is None
+        if is_new_ticket:
+            url = f"{base_url}/REST/2.0/ticket"
+            payload = {
+                "Requestor": settings.EMAIL_SENDER,
+                "Queue": recipient.rt_queue,
+                "Subject": subject,
+                "Content": content,
+                "ContentType": "text/html",
+            }
+        else:
+            url = f"{base_url}/REST/2.0/ticket/{ticket.ticket_id}/correspond"
+            payload = {
+                "Content": content,
+                "ContentType": "text/html",
+            }
+
+        response = requests.post(url, json=payload, headers=headers, timeout=5)
+
+        if response.ok:
+            if is_new_ticket and response.status_code == 201:
+                ticket_data = response.json()
+                RTTicket.objects.create(
+                    incident=incident,
+                    observer=recipient,
+                    ticket_id=ticket_data.get("id"),
+                )
+        else:
+            logger.error(f"RT API Error {response.status_code}: {response.text}")
+    except requests.RequestException as e:
+        logger.error(f"Error connecting to RT API: {e}")
+
+
+def check_rt_config(observer):
+    if not observer.rt_url or not observer.rt_queue or not observer.rt_token:
+        return False
+
+    base_url = observer.rt_url.rstrip("/")
+    url = f"{base_url}/REST/2.0/queue/{observer.rt_queue}"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"token {observer.rt_token}",
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=5)
+        if response.status_code == 200:
+            return True
+        elif response.status_code == 401:
+            logger.warning("RT token unauthorized (401) for %s", str(observer))
+        elif response.status_code == 404:
+            logger.warning("RT queue '%s' not found at %s", observer.rt_queue, url)
+        else:
+            logger.warning(
+                "Unexpected RT response (%s): %s", response.status_code, response.text
+            )
+        return False
+    except requests.RequestException as e:
+        logger.error(f"Error connecting to RT API: {e}")
+        return False

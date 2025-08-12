@@ -23,6 +23,7 @@ from .forms import (
     TermsAcceptanceForm,
 )
 from .models import User
+from .permissions import set_operator_admin_permissions, set_operator_user_permissions
 
 
 @login_required
@@ -149,7 +150,16 @@ def select_company(request):
                 id=form.cleaned_data["select_company"].id
             )
             if user_company:
+                user = request.user
                 request.session["company_in_use"] = user_company.id
+                is_administrator = user.companyuser_set.filter(
+                    company=user_company, is_company_administrator=True
+                ).exists()
+                if is_administrator:
+                    set_operator_admin_permissions(user)
+                else:
+                    set_operator_user_permissions(user)
+
                 return index(request)
 
             messages.warning(

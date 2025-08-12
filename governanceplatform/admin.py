@@ -20,10 +20,11 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from incidents.email import send_html_email
 
-from .forms import CustomTranslatableAdminForm
+from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .helpers import (
     get_active_company_from_session,
     instance_user_in_group,
+    is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
@@ -450,6 +451,18 @@ class CompanyUserInline(admin.TabularInline):
         elif user_in_group(request.user, "RegulatorUser"):
             return True
         return super().has_delete_permission(request, obj)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        user = request.user
+        # Operator Admin
+        if user_in_group(user, "OperatorAdmin"):
+            return queryset.filter(
+                company__in=request.user.companies.filter(
+                    companyuser__is_company_administrator=True
+                ),
+            ).distinct()
+        return queryset
 
 
 class CompanyUserMultipleInline(CompanyUserInline):
@@ -973,7 +986,9 @@ class UserCompaniesListFilter(SimpleListFilter):
             companies = Company.objects.none()
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            companies = user.companies.all()
+            companies = user.companies.filter(
+                companyuser__is_company_administrator=True
+            )
 
         return [(company.id, company.name) for company in companies]
 
@@ -1093,6 +1108,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "phone_number",
         "get_regulators",
         "get_companies",
+        "get_companies_for_operator_admin",
         "get_observers",
         # "get_sectors",
         "get_permissions_groups",
@@ -1135,6 +1151,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
+
+    @admin.display(description=_("Companies"))
+    def get_companies_for_operator_admin(self, obj):
+        user = getattr(self, "_request", None).user
+        return obj.get_companies_for_operator_admin(op_admin=user)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -1224,7 +1245,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
-            fields_to_exclude = ["get_sectors", "get_companies"]
+            fields_to_exclude = [
+                "get_sectors",
+                "get_companies",
+                "get_companies_for_operator_admin",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1233,6 +1258,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             fields_to_exclude = [
                 "get_sectors",
                 "get_companies",
+                "get_companies_for_operator_admin",
                 "get_regulators",
                 "is_active",
             ]
@@ -1241,17 +1267,27 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             ]
 
         if user_in_group(request.user, "RegulatorUser"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
+            fields_to_exclude = [
+                "get_regulators",
+                "get_observers",
+                "is_active",
+                "get_companies_for_operator_admin",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "RegulatorAdmin"):
-            fields_to_exclude = ["get_observers"]
+            fields_to_exclude = ["get_observers", "get_companies_for_operator_admin"]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
         if user_in_group(request.user, "OperatorAdmin"):
-            fields_to_exclude = ["get_regulators", "get_observers", "is_active"]
+            fields_to_exclude = [
+                "get_regulators",
+                "get_observers",
+                "is_active",
+                "get_companies",
+            ]
             list_display = [
                 field for field in list_display if field not in fields_to_exclude
             ]
@@ -1259,6 +1295,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         return list_display
 
     def get_queryset(self, request):
+        # stock the request
+        self._request = request
         queryset = super().get_queryset(request)
         user = request.user
 
@@ -1308,7 +1346,9 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
             return queryset.filter(
-                companies__in=request.user.companies.all(),
+                companies__in=request.user.companies.filter(
+                    companyuser__is_company_administrator=True
+                ),
             ).distinct()
         return queryset
 
@@ -1606,20 +1646,10 @@ class ObserverUserInline(admin.TabularInline):
 
 @admin.register(Observer, site=admin_site)
 class ObserverAdmin(CustomTranslatableAdmin):
+    form = CustomObserverAdminForm
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
     search_fields = ["name"]
     resource_class = ObserverResource
-    fields = (
-        "name",
-        "full_name",
-        "description",
-        "country",
-        "address",
-        "email_for_notification",
-        "is_receiving_all_incident",
-        "functionalities",
-    )
-
     filter_horizontal = [
         "functionalities",
     ]
@@ -1628,6 +1658,38 @@ class ObserverAdmin(CustomTranslatableAdmin):
         ObserverUserInline,
         ObserverRegulationInline,
     )
+
+    def get_fieldsets(self, request, obj=None):
+        base_fieldsets = [
+            (
+                None,
+                {
+                    "fields": [
+                        "name",
+                        "full_name",
+                        "description",
+                        "country",
+                        "address",
+                        "email_for_notification",
+                        "is_receiving_all_incident",
+                        "functionalities",
+                    ],
+                },
+            ),
+        ]
+
+        if is_observer_user(request.user):
+            base_fieldsets.append(
+                (
+                    "RT Configuration",
+                    {
+                        "classes": ["collapse"],
+                        "fields": ["rt_url", "rt_token", "rt_queue"],
+                    },
+                )
+            )
+
+        return base_fieldsets
 
     def has_add_permission(self, request, obj=None):
         user = request.user

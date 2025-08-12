@@ -1,5 +1,6 @@
 import uuid
 
+from cryptography.fernet import Fernet
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.exceptions import ValidationError
@@ -16,6 +17,7 @@ from reporting.models import ObservationRecommendationThrough
 
 from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
 from .managers import CustomUserManager
+from .settings import RT_SECRET_KEY
 
 
 # sector
@@ -315,6 +317,50 @@ class Observer(TranslatableModel):
         blank=True,
     )
 
+    rt_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="e.g., https://rt.exemple.com",
+        verbose_name=_("URL"),
+    )
+    _rt_token = models.CharField(
+        db_column="rt_token",
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_("Token"),
+    )
+
+    @property
+    def rt_token(self):
+        if (
+            self._rt_token is None
+            or self._rt_token == ""
+            or self._rt_token.strip() == ""
+        ):
+            return ""
+        try:
+            cipher_suite = Fernet(RT_SECRET_KEY)
+            val = cipher_suite.decrypt(str.encode(self._rt_token))
+            return val.decode()
+        except Exception:
+            return ""
+
+    @rt_token.setter
+    def rt_token(self, val):
+        if not val:
+            self._rt_token = None
+            return
+
+        cipher_suite = Fernet(RT_SECRET_KEY)
+
+        enc_val = cipher_suite.encrypt(str.encode(val))
+        self._rt_token = enc_val.decode()
+
+    rt_queue = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_("Queue")
+    )
+
     def get_incidents(self):
         if self.is_receiving_all_incident:
             return Incident.objects.all().order_by("-incident_notification_date")
@@ -429,6 +475,13 @@ class User(AbstractUser, PermissionsMixin):
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all().distinct()]
+
+    @admin.display(description="companies")
+    def get_companies_for_operator_admin(self, op_admin):
+        companies = (
+            self.companies.all().distinct() & op_admin.companies.all().distinct()
+        )
+        return [company.name for company in companies.all().distinct()]
 
     @admin.display(description="regulators")
     def get_regulators(self):

@@ -4,9 +4,11 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django.utils.timezone import now
 
 from governanceplatform.models import User
 
@@ -81,8 +83,10 @@ def update_user_groups(sender, instance, created, **kwargs):
     user.is_superuser = False
 
     some_company_is_administrator = user.companyuser_set.filter(
-        is_company_administrator=True
+        company=instance.company, is_company_administrator=True
     )
+    # force user to reconnect
+    force_logout_user(user)
 
     # Operator Administrator permission
     if some_company_is_administrator.exists():
@@ -140,6 +144,8 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     user.is_staff = False
     user.is_superuser = False
 
+    force_logout_user(user)
+
     # Regulator Administrator permissions
     if instance.is_regulator_administrator:
         set_regulator_admin_permissions(user)
@@ -154,6 +160,8 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
+
+    force_logout_user(user)
 
     # Regulator Administrator permissions
     if instance.is_observer_administrator:
@@ -188,20 +196,22 @@ def delete_user_groups(sender, instance, **kwargs):
 
         if group and user.groups.filter(name=group_name).exists():
             # remove roles only if there is no linked company/regulator
-            if group_name == "OperatorAdmin" and user.companies.count() < 1:
+            if (
+                group_name == "OperatorAdmin"
+                and not user.companyuser_set.filter(
+                    is_company_administrator=True
+                ).exists()
+            ):
                 user.groups.remove(group)
                 new_group, created = Group.objects.get_or_create(name="OperatorUser")
                 if new_group:
                     user.groups.add(new_group)
-
-                user.is_active = False
 
             if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
                 user.groups.remove(group)
                 new_group, created = Group.objects.get_or_create(name="RegulatorUser")
                 if new_group:
                     user.groups.add(new_group)
-                user.is_active = False
 
     if not user.companyuser_set.exists():
         user.is_staff = False
@@ -211,4 +221,23 @@ def delete_user_groups(sender, instance, **kwargs):
             user.groups.clear()
             user.groups.add(new_group)
 
+        # Clear contact_user for incidents
+        user.incident_set.filter(company__isnull=False).update(contact_user=None)
+    else:
+        user_companies = user.companyuser_set.values_list("company_id", flat=True)
+        user.incident_set.filter(company__isnull=False).exclude(
+            company__in=user_companies
+        ).update(contact_user=None)
+
     user.save()
+
+    force_logout_user(user)
+
+
+def force_logout_user(user):
+    # get the active sessions
+    sessions = Session.objects.filter(expire_date__gte=now())
+    for session in sessions:
+        data = session.get_decoded()
+        if data.get("_auth_user_id") == str(user.id):
+            session.delete()
