@@ -114,13 +114,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     # OperatorUser can access incidents related to selected company and sectors
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # OperatorStaff and IncidentUser can access their reports.
@@ -160,13 +154,7 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # if he is admin of the company he can create
@@ -198,13 +186,7 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
     # if it's in his sector and user of the company
     if (
         user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(
-            pk=incident.id,
-            company__id=company_id,
-            affected_sectors__in=user.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True),
-        ).exists()
+        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
     # if he is admin of the company he can create
