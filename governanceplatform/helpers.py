@@ -14,6 +14,7 @@ from incidents.models import (
     Question,
     QuestionCategoryOptions,
     QuestionOptionsHistory,
+    SectorRegulation,
     Workflow,
 )
 
@@ -248,7 +249,7 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     return obj
 
 
-def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
+def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool:
     if not hasattr(request, "_can_change_or_delete_obj"):
         request._can_change_or_delete_obj = True
     else:
@@ -285,15 +286,24 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any) -> bool:
     if isinstance(obj, Workflow):
         in_use = False
 
+    # [Sector Regulation] Check if obj is already in use
+    if isinstance(obj, SectorRegulation):
+        in_use = (
+            Incident.objects.filter(sector_regulation=obj).exists()
+        )
+
     regulator = request.user.regulators.first()
     if creator == regulator and not in_use:
         return True
 
-    message = _(
-        "<strong>Modification and deletion actions are not allowed.</strong><br>"
-        "- This {object_name} is either in use.<br>"
-        "- You are not its creator ({creator_name})"
-    )
+    if not message:
+        message = _(
+            "<strong>Modification and deletion actions are not allowed.</strong><br>"
+            "- This {object_name} is either in use.<br>"
+            "- You are not its creator ({creator_name})"
+        )
+    else:
+        message = message
 
     object_name = obj._meta.verbose_name.lower()
     creator_name = creator

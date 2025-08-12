@@ -769,7 +769,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(CustomTranslatableAdmin):
+class SectorRegulationAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = ["translations__name"]
     resource_class = SectorRegulationResource
@@ -855,6 +855,26 @@ class SectorRegulationAdmin(CustomTranslatableAdmin):
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def has_delete_permission(self, request, obj=None):
+        permission = super().has_delete_permission(request, obj)
+        header_message = _(
+            "<strong>Deletion is not allowed.</strong><br>"
+            "- This {object_name} is either in use.<br>"
+            "- You are not its creator ({creator_name})"
+        )
+        if obj and permission:
+            permission = can_change_or_delete_obj(request, obj, header_message)
+
+            if not permission and request._can_change_or_delete_obj:
+                message = _(
+                    "<strong>Deletion forbidden</strong><br>"
+                    "- This {object_name} is either in use.<br>"
+                )
+                object_name = obj._meta.verbose_name.lower()
+
+                messages.warning(request, format_html(message, object_name=object_name))
+        return permission
 
 
 class SectorRegulationWorkflowEmailResource(
