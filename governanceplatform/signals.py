@@ -86,7 +86,7 @@ def update_user_groups(sender, instance, created, **kwargs):
         company=instance.company, is_company_administrator=True
     )
     # force user to reconnect
-    force_logout_user(instance.user)
+    force_logout_user(user)
 
     # Operator Administrator permission
     if some_company_is_administrator.exists():
@@ -144,6 +144,8 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     user.is_staff = False
     user.is_superuser = False
 
+    force_logout_user(user)
+
     # Regulator Administrator permissions
     if instance.is_regulator_administrator:
         set_regulator_admin_permissions(user)
@@ -158,6 +160,8 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
+
+    force_logout_user(user)
 
     # Regulator Administrator permissions
     if instance.is_observer_administrator:
@@ -226,6 +230,8 @@ def delete_user_groups(sender, instance, **kwargs):
         ).update(contact_user=None)
 
     user.save()
+
+    force_logout_user(user)
 
 
 def force_logout_user(user):
