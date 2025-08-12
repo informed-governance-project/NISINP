@@ -689,8 +689,15 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
-    list_display = ["name", "is_impact_needed", "submission_email", "creator"]
-    search_fields = ["translations__name"]
+    list_display = [
+        "name",
+        "label",
+        "description",
+        "is_impact_needed",
+        "submission_email",
+        "creator",
+    ]
+    search_fields = ["translations__label"]
     inlines = (QuestionOptionsInline,)
     save_as = True
     exclude = ["creator_name", "creator"]
@@ -699,7 +706,7 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
             _("General"),
             {
                 "classes": ["wide", "extrapretty"],
-                "fields": ["name", "is_impact_needed"],
+                "fields": ["name", "label", "description", "is_impact_needed"],
             },
         ),
         (
