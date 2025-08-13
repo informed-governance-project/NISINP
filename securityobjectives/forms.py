@@ -116,7 +116,7 @@ class SelectSOStandardForm(forms.Form):
     so_standard = forms.ChoiceField(
         widget=forms.Select(),
         required=True,
-        label=_("Standard"),
+        label=_("Evaluation Framework"),
     )
 
     year = forms.ChoiceField(
@@ -157,7 +157,7 @@ class ImportSOForm(forms.Form):
     standard = forms.ChoiceField(
         widget=forms.Select(),
         required=True,
-        label=_("Standard"),
+        label=_("Evaluation Framework"),
     )
 
     company = forms.ChoiceField(
