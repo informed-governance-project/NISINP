@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-13 10:58+0200\n"
+"POT-Creation-Date: 2025-08-13 11:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1564,7 +1564,7 @@ msgid "Fail"
 msgstr ""
 
 #: securityobjectives/models.py:355
-msgid "Planned actions"
+msgid "Planned Measures"
 msgstr ""
 
 #: securityobjectives/views.py:149 securityobjectives/views.py:703
