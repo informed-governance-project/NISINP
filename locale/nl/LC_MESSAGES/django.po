@@ -263,16 +263,14 @@ msgid "Logout"
 msgstr "Uitloggen"
 
 #: governanceplatform/globals.py:22
-#, fuzzy
 #| msgid "Security objective"
 msgid "Security Objective"
-msgstr "Beveiligingsdoelstelling"
+msgstr ""
 
 #: governanceplatform/globals.py:23 reporting/apps.py:8
-#, fuzzy
 #| msgid "Report"
 msgid "Reporting"
-msgstr "Verslag"
+msgstr ""
 
 #: governanceplatform/helpers.py:322
 #, python-brace-format
@@ -1134,16 +1132,14 @@ msgid "JSON File"
 msgstr ""
 
 #: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:166
-#, fuzzy
 #| msgid "Company User"
 msgid "Company"
-msgstr "Gebruiker van de onderneming"
+msgstr ""
 
 #: reporting/globals.py:4
-#, fuzzy
 #| msgid "Description"
 msgid "Reduction"
-msgstr "Beschrijving"
+msgstr ""
 
 #: reporting/globals.py:5
 msgid "Deny"
@@ -1162,16 +1158,14 @@ msgid "Untreated"
 msgstr ""
 
 #: reporting/globals.py:11
-#, fuzzy
 #| msgid "Sector"
 msgid "Sector average"
-msgstr "Sector"
+msgstr ""
 
 #: reporting/helpers.py:654 reporting/helpers.py:733
-#, fuzzy
 #| msgid "Services"
 msgid "All services"
-msgstr "Diensten"
+msgstr ""
 
 #: reporting/helpers.py:692
 msgid "Postponed"
@@ -1207,10 +1201,9 @@ msgid "Assets"
 msgstr ""
 
 #: reporting/models.py:84
-#, fuzzy
 #| msgid "Functionalities"
 msgid "Vulnerabilities"
-msgstr "Functies"
+msgstr ""
 
 #: reporting/models.py:85 reporting/models.py:198
 msgid "Vulnerability"
@@ -1221,10 +1214,9 @@ msgid "Threats"
 msgstr ""
 
 #: reporting/models.py:111 reporting/models.py:190
-#, fuzzy
 #| msgid "Creator"
 msgid "Threat"
-msgstr "Maker"
+msgstr ""
 
 #: reporting/models.py:129 reporting/models.py:363
 msgid "Risk Analysis"
@@ -1307,10 +1299,9 @@ msgid "Availability risk"
 msgstr ""
 
 #: reporting/models.py:231
-#, fuzzy
 #| msgid "Significant impact"
 msgid "Confidentility impact"
-msgstr "Aanzienlijke impact"
+msgstr ""
 
 #: reporting/models.py:235
 msgid "Integrity impact"
@@ -1345,10 +1336,9 @@ msgid "Status of the recommendation"
 msgstr ""
 
 #: reporting/models.py:267
-#, fuzzy
 #| msgid "Detection date"
 msgid "Due date"
-msgstr "Datum van ontdekking"
+msgstr ""
 
 #: reporting/models.py:270
 msgid "Recommendations"
@@ -1383,34 +1373,29 @@ msgid "Top 10"
 msgstr ""
 
 #: reporting/models.py:319
-#, fuzzy
 #| msgid "Security objective"
 msgid "Security objectives excluded"
-msgstr "Beveiligingsdoelstelling"
+msgstr ""
 
 #: reporting/models.py:323
-#, fuzzy
 #| msgid "Configuration information"
 msgid "Configurations"
-msgstr "Configuratiegegevens"
+msgstr ""
 
 #: reporting/models.py:324
-#, fuzzy
 #| msgid "Configuration information"
 msgid "Configuration"
-msgstr "Configuratiegegevens"
+msgstr ""
 
 #: reporting/models.py:331
-#, fuzzy
 #| msgid "Description"
 msgid "description"
-msgstr "Beschrijving"
+msgstr ""
 
 #: reporting/models.py:347
-#, fuzzy
 #| msgid "Detection date"
 msgid "Creation date"
-msgstr "Datum van ontdekking"
+msgstr ""
 
 #: reporting/models.py:354
 msgid "Recommendations for observation"
@@ -1421,46 +1406,39 @@ msgid "Recommendation for observation"
 msgstr ""
 
 #: reporting/models.py:368
-#, fuzzy
 #| msgid "Observer regulations"
 msgid "Observation recommendations"
-msgstr "Waarnemer regelgevingen"
+msgstr ""
 
 #: reporting/models.py:372
-#, fuzzy
 #| msgid "Observer regulations"
 msgid "Observations"
-msgstr "Waarnemer regelgevingen"
+msgstr ""
 
 #: reporting/models.py:373
-#, fuzzy
 #| msgid "Observer regulation"
 msgid "Observation"
-msgstr "Waarnemer regelgeving"
+msgstr ""
 
 #: reporting/models.py:384
-#, fuzzy
 #| msgid "Observer regulations"
 msgid "Observations order"
-msgstr "Waarnemer regelgevingen"
+msgstr ""
 
 #: reporting/models.py:385
-#, fuzzy
 #| msgid "Observer"
 msgid "Observation order"
-msgstr "Waarnemer"
+msgstr ""
 
 #: reporting/models.py:400 securityobjectives/models.py:368
-#, fuzzy
 #| msgid "Full name"
 msgid "User full name"
-msgstr "Volledige naam"
+msgstr ""
 
 #: reporting/models.py:429
-#, fuzzy
 #| msgid "Full name"
 msgid "Filename"
-msgstr "Volledige naam"
+msgstr ""
 
 #: reporting/views.py:146
 #, python-format
@@ -1472,10 +1450,9 @@ msgid "No reporting data"
 msgstr ""
 
 #: reporting/views.py:183 reporting/views.py:189
-#, fuzzy
 #| msgid "Configuration information"
 msgid "No configuration for sector"
-msgstr "Configuratiegegevens"
+msgstr ""
 
 #: reporting/views.py:212
 msgid "No data found for security objectives report"
@@ -1502,16 +1479,14 @@ msgid "All sectors have been configured"
 msgstr ""
 
 #: reporting/views.py:392
-#, fuzzy
 #| msgid "Configuration information"
 msgid "Configuration not found"
-msgstr "Configuratiegegevens"
+msgstr ""
 
 #: reporting/views.py:486
-#, fuzzy
 #| msgid "The account has been successfully saved."
 msgid "Recommendations have been added successfully"
-msgstr "Het opslaan van de account is geslaagd."
+msgstr ""
 
 #: reporting/views.py:522
 #, python-brace-format
@@ -1528,16 +1503,14 @@ msgid "No report recommendation found"
 msgstr ""
 
 #: reporting/views.py:567
-#, fuzzy
 #| msgid "The incident has been deleted."
 msgid "The report recommendation has been deleted."
-msgstr "Het incident is verwijderd."
+msgstr ""
 
 #: reporting/views.py:638 securityobjectives/views.py:741
-#, fuzzy
 #| msgid "Invalid captcha"
 msgid "Invalid request"
-msgstr "Ongeldige captcha"
+msgstr ""
 
 #: reporting/views.py:728
 msgid "Risk analysis successfully imported"
@@ -1576,10 +1549,9 @@ msgid "Invalid year. Please provide a valid year."
 msgstr ""
 
 #: securityobjectives/apps.py:7
-#, fuzzy
 #| msgid "Security objective"
 msgid "Security objectives"
-msgstr "Beveiligingsdoelstelling"
+msgstr ""
 
 #: securityobjectives/forms.py:119 securityobjectives/forms.py:160
 msgid "Evaluation Framework"
@@ -1602,22 +1574,19 @@ msgid "is archived"
 msgstr ""
 
 #: securityobjectives/models.py:145
-#, fuzzy
 #| msgid "Email type"
 msgid "Email templates"
-msgstr "E-mailtype"
+msgstr ""
 
 #: securityobjectives/models.py:146
-#, fuzzy
 #| msgid "Email type"
 msgid "Email template"
-msgstr "E-mailtype"
+msgstr ""
 
 #: securityobjectives/models.py:167
-#, fuzzy
 #| msgid "Submission email"
 msgid "Submission e-mail"
-msgstr "E-mail voor indiening"
+msgstr ""
 
 #: securityobjectives/models.py:176
 msgid "Email for status change"
@@ -1632,10 +1601,9 @@ msgid "Review comment"
 msgstr ""
 
 #: securityobjectives/models.py:284
-#, fuzzy
 #| msgid "Deadline in hours"
 msgid "Deadline"
-msgstr "Deadline in uren"
+msgstr ""
 
 #: securityobjectives/models.py:314
 msgid "Implemented"
@@ -1646,10 +1614,9 @@ msgid "Not reviewed"
 msgstr ""
 
 #: securityobjectives/models.py:337
-#, fuzzy
 #| msgid "Passed"
 msgid "Pass"
-msgstr "Aanvaard"
+msgstr ""
 
 #: securityobjectives/models.py:338
 msgid "Fail"
@@ -1671,51 +1638,44 @@ msgstr ""
 #: securityobjectives/views.py:415 securityobjectives/views.py:492
 #: securityobjectives/views.py:522 securityobjectives/views.py:535
 #: securityobjectives/views.py:594 securityobjectives/views.py:615
-#, fuzzy
 #| msgid "Incident not found"
 msgid "Declaration not found"
-msgstr "Incident niet gevonden"
+msgstr ""
 
 #: securityobjectives/views.py:409
 msgid "No sectors data available"
 msgstr ""
 
 #: securityobjectives/views.py:474
-#, fuzzy
 #| msgid "The incident has been deleted."
 msgid "The security objectives declaration has been duplicated."
-msgstr "Het incident is verwijderd."
+msgstr ""
 
 #: securityobjectives/views.py:504
-#, fuzzy
 #| msgid "The report has not been submitted yet."
 msgid "The security objectives declaration has been submitted."
-msgstr "Het verslag is nog niet ingediend."
+msgstr ""
 
 #: securityobjectives/views.py:519
-#, fuzzy
 #| msgid "The incident has been deleted."
 msgid "The security objectives declaration has been deleted."
-msgstr "Het incident is verwijderd."
+msgstr ""
 
 #: securityobjectives/views.py:562
-#, fuzzy
 #| msgid "The incident has been deleted."
 msgid "The review comment has been saved."
-msgstr "Het incident is verwijderd."
+msgstr ""
 
 #: securityobjectives/views.py:761
 msgid "Error opening the file: {}"
 msgstr ""
 
 #: securityobjectives/views.py:781
-#, fuzzy
 #| msgid "Contacts for company"
 msgid "No users for this company"
-msgstr "Aanspreekpunten voor de onderneming"
+msgstr ""
 
 #: securityobjectives/views.py:814
-#, fuzzy
 #| msgid "An error occurred while generating the report."
 msgid "An error occurred while importing the declaration file."
-msgstr "Er is een fout opgetreden bij het genereren van het verslag."
+msgstr ""
