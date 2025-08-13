@@ -826,7 +826,9 @@ class IncidentWorkflow(models.Model):
         verbose_name=_("Impacts"),
         default=None,
     )
-    comment = models.TextField(verbose_name=_("Comment"), null=True, blank=True)
+    comment = models.TextField(
+        verbose_name=_("Comment/Explanation"), null=True, blank=True
+    )
 
     class meta:
         verbose_name_plural = _("Incident")
