@@ -1080,7 +1080,7 @@ class WorkflowWizardView(SessionWizardView):
 
             user = self.request.user
             if is_user_regulator(user) and not self.is_regulator_incident:
-                context["steps"].append(_("Comment"))
+                context["steps"].append(_("Comment/Explanation"))
         return context
 
     def render_goto_step(self, goto_step, **kwargs):

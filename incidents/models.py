@@ -249,8 +249,13 @@ class Email(TranslatableModel, models.Model):
 # Workflow for each sector_regulation, N workflow for 1 reglementation,
 # 1 Workflow for N recommendation ?
 class Workflow(TranslatableModel):
+    name = models.CharField(verbose_name=_("Name"), max_length=255, unique=True)
+
     translations = TranslatedFields(
-        name=models.CharField(verbose_name=_("Name"), max_length=255)
+        label=models.CharField(verbose_name=_("Label"), max_length=255),
+        description=models.TextField(
+            blank=True, default="", null=True, verbose_name=_("Description")
+        ),
     )
     is_impact_needed = models.BooleanField(
         default=False, verbose_name=_("Impacts disclosure required")
@@ -284,8 +289,8 @@ class Workflow(TranslatableModel):
     )
 
     def __str__(self):
-        name_translation = self.safe_translation_getter("name", any_language=True)
-        return name_translation or ""
+        label_translation = self.safe_translation_getter("label", any_language=True)
+        return label_translation or ""
 
     class Meta:
         verbose_name_plural = _("Incident reports")
@@ -821,7 +826,9 @@ class IncidentWorkflow(models.Model):
         verbose_name=_("Impacts"),
         default=None,
     )
-    comment = models.TextField(verbose_name=_("Comment"), null=True, blank=True)
+    comment = models.TextField(
+        verbose_name=_("Comment/Explanation"), null=True, blank=True
+    )
 
     class meta:
         verbose_name_plural = _("Incident")

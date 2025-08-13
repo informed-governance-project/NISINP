@@ -41,7 +41,7 @@ REVIEW_STATUS = [
     ("UNDE", _("Unsubmitted")),
     ("DELIV", _("Under review")),
     ("PASS", _("Passed")),
-    ("FAIL", _("Failed")),
+    ("FAIL", _("Revision required")),
     ("OUT", _("Submission overdue")),
 ]
 
@@ -49,7 +49,7 @@ WORKFLOW_REVIEW_STATUS = [
     ("UNDE", _("Unsubmitted")),
     ("DELIV", _("Under review")),
     ("PASS", _("Passed")),
-    ("FAIL", _("Failed")),
+    ("FAIL", _("Revision required")),
     ("OUT", _("Submission overdue")),
     ("LATE", _("Late submission")),
 ]
