@@ -352,7 +352,7 @@ class SecurityObjectiveStatus(models.Model):
         blank=True,
         default=None,
         null=True,
-        verbose_name=_("Planned actions"),
+        verbose_name=_("Planned Measures"),
     )
 
 
