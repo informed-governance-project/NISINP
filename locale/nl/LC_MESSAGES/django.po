@@ -246,12 +246,6 @@ msgid ""
 "it, enter a new token."
 msgstr ""
 
-#: governanceplatform/forms.py:227
-msgid ""
-"A token is already set. To remove it, clear the field and save. To update "
-"it, enter a new token."
-msgstr ""
-
 #: governanceplatform/globals.py:12
 msgid "Addition"
 msgstr "Ajout"
@@ -664,13 +658,6 @@ msgstr "Rapport d'incident"
 #: incidents/models.py:591
 msgid "Incident reports"
 msgstr "Rapports d'incidents"
-
-#: incidents/admin.py:869
-#, python-brace-format
-msgid ""
-"<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
-"in use.<br>- You are not its creator ({creator_name})"
-msgstr ""
 
 #: incidents/admin.py:869
 #, python-brace-format
