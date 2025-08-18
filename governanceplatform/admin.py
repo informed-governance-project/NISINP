@@ -154,7 +154,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
-    search_fields = ["translations__name"]
+    search_fields = ["translations__name", "acronym"]
     resource_class = SectorResource
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
@@ -259,7 +259,7 @@ class EntityCategoryAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     resource_class = EntityCategoryResource
 
     list_display = ["label", "code"]
-    search_fields = ["translations__label"]
+    search_fields = ["translations__label", "code"]
     fields = (
         "label",
         "code",
@@ -516,7 +516,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
-    search_fields = ["name"]
+    search_fields = ["name", "address", "country", "email", "phone_number"]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
         (
@@ -1114,7 +1114,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_permissions_groups",
         "get_2FA_activation",
     ]
-    search_fields = ["first_name", "last_name", "email"]
+    search_fields = ["first_name", "last_name", "email", "phone_number"]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
@@ -1515,7 +1515,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
-    search_fields = ["translations__name"]
+    search_fields = ["translations__name", "translations__full_name", "translations__description"]
     resource_class = RegulatorResource
     fields = (
         "name",
@@ -1648,7 +1648,11 @@ class ObserverUserInline(admin.TabularInline):
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
-    search_fields = ["translations__name"]
+    search_fields = [
+        "translations__name",
+        "translations__full_name",
+        "translations__description",
+    ]
     resource_class = ObserverResource
     filter_horizontal = [
         "functionalities",
@@ -1746,7 +1750,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label", "get_regulators"]
-    search_fields = ["translations__label"]
+    search_fields = ["translations__label", "regulators__translations__name"]
     resource_class = RegulationResource
     fields = (
         "label",
