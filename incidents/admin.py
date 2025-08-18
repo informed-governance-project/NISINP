@@ -411,7 +411,13 @@ class QuestionAdmin(
         "creator",
     ]
     list_display_links = ["reference", "label"]
-    search_fields = ["translations__label"]
+    search_fields = [
+        "translations__label",
+        "translations__tooltip",
+        "reference",
+        "creator__translations__name",
+        "predefinedanswer__translations__predefined_answer",
+    ]
     resource_class = QuestionResource
     fields = [
         "question_type",
@@ -526,7 +532,11 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "get_subsector_name",
         "headline",
     ]
-    search_fields = ["translations__label", "regulation__translations__label"]
+    search_fields = [
+        "translations__label",
+        "regulations__translations__label",
+        "sectors__translations__name",
+    ]
     resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
     exclude = ["creator_name", "creator"]
@@ -677,7 +687,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "subject",
         "content",
     ]
-    search_fields = ["translations__subject", "translations__content"]
+    search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
     fields = ("name", "subject", "content")
     resource_class = EmailResource
@@ -697,7 +707,12 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
         "submission_email",
         "creator",
     ]
-    search_fields = ["translations__label"]
+    search_fields = [
+        "translations__label",
+        "name",
+        "translations__description",
+        "creator__translations__name",
+    ]
     inlines = (QuestionOptionsInline,)
     save_as = True
     exclude = ["creator_name", "creator"]
@@ -778,7 +793,11 @@ class SectorRegulationInline(admin.TabularInline):
 @admin.register(SectorRegulation, site=admin_site)
 class SectorRegulationAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
-    search_fields = ["translations__name"]
+    search_fields = [
+        "translations__name",
+        "regulator__translations__name",
+        "regulation__translations__label",
+    ]
     resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
     save_as = True
@@ -905,6 +924,7 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     search_fields = [
         "sector_regulation_workflow__sector_regulation__regulation__translations__label",
         "translations__headline",
+        "sector_regulation_workflow__workflow__name"
     ]
     resource_class = SectorRegulationWorkflowEmailResource
     fields = (
