@@ -402,7 +402,7 @@ class SectorRegulationWorkflow(models.Model):
 
     def __str__(self):
         return (
-            self.workflow.safe_translation_getter("name", any_language=True)
+            self.workflow.name
             if self.workflow
             else ""
         )

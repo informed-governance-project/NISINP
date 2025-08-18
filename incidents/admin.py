@@ -769,8 +769,8 @@ class SectorRegulationInline(admin.TabularInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "workflow":
-            kwargs["queryset"] = Workflow.objects.translated(get_language()).order_by(
-                "translations__name"
+            kwargs["queryset"] = Workflow.objects.order_by(
+                "name"
             )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -903,8 +903,8 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
         "delay_in_hours",
     ]
     search_fields = [
-        "sector_regulation_workflow__workflow__translations__name",
-        "headline",
+        "sector_regulation_workflow__sector_regulation__regulation__translations__label",
+        "translations__headline",
     ]
     resource_class = SectorRegulationWorkflowEmailResource
     fields = (

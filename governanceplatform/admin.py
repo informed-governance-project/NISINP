@@ -259,7 +259,7 @@ class EntityCategoryAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     resource_class = EntityCategoryResource
 
     list_display = ["label", "code"]
-    search_fields = ["label"]
+    search_fields = ["translations__label"]
     fields = (
         "label",
         "code",
@@ -1515,7 +1515,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = RegulatorResource
     fields = (
         "name",
@@ -1648,7 +1648,7 @@ class ObserverUserInline(admin.TabularInline):
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
-    search_fields = ["name"]
+    search_fields = ["translations__name"]
     resource_class = ObserverResource
     filter_horizontal = [
         "functionalities",
