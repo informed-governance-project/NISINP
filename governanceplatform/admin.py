@@ -507,6 +507,7 @@ class CompanySectorListFilter(SimpleListFilter):
 class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
     list_display = [
+        "identifier",
         "name",
         "address",
         "country",
@@ -516,7 +517,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
-    search_fields = ["name", "address", "country", "email", "phone_number"]
+    search_fields = ["name", "address", "country", "email", "phone_number", "identifier"]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
         (
