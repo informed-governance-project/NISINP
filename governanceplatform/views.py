@@ -189,10 +189,11 @@ def accept_terms(request):
 
 @login_required
 def contact(request):
+    user = request.user
     context = {}
     context["regulator"] = settings.REGULATOR_CONTACT
     if request.method == "POST":
-        form = ContactForm(request.POST)
+        form = ContactForm(request.POST, user=user)
 
         if form.is_valid() and request.user.is_authenticated:
             # send email
@@ -226,7 +227,7 @@ def contact(request):
                 messages.error(request, _("Invalid captcha"))
             context["form"] = form
     else:
-        form = ContactForm()
+        form = ContactForm(user=user)
         context["form"] = form
 
     return render(request, "home/contact.html", context)

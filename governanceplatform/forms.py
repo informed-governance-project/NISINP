@@ -199,10 +199,10 @@ class TermsAcceptanceForm(forms.Form):
 
 
 class ContactForm(forms.Form):
-    firstname = forms.CharField(max_length=100, required=True)
-    lastname = forms.CharField(max_length=100, required=True)
-    phone = forms.CharField(max_length=20, required=False)
-    email = forms.EmailField(required=True)
+    firstname = forms.CharField(max_length=150, required=True)
+    lastname = forms.CharField(max_length=150, required=True)
+    phone = forms.CharField(max_length=30, required=False)
+    email = forms.EmailField(max_length=254, required=True, disabled=True)
     message = forms.CharField(widget=forms.Textarea, required=True)
     captcha = CaptchaField()
     terms_accepted = forms.BooleanField(
@@ -212,6 +212,16 @@ class ContactForm(forms.Form):
         required=True,
         error_messages={"required": "You must accept the use of your personal data."},
     )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['firstname'].initial = user.first_name
+            self.fields['lastname'].initial = user.last_name
+            self.fields['email'].initial = user.email
+            self.fields['email'].disabled = True
+            self.fields['phone'].initial = user.phone_number
 
 
 class CustomObserverAdminForm(CustomTranslatableAdminForm):
