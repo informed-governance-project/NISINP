@@ -187,6 +187,7 @@ def accept_terms(request):
     return render(request, "modals/accept_terms.html", {"form": form})
 
 
+@login_required
 def contact(request):
     context = {}
     context["regulator"] = settings.REGULATOR_CONTACT
