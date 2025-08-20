@@ -711,7 +711,7 @@ class FormWizardView(SessionWizardView):
         sectors_id = extract_ids(data.get("sectors", []))
         regulators_id = extract_ids(data.get("regulators", []))
         regulations_id = extract_ids(data.get("regulations", []))
-        company_name = data.get("company_name")
+        company_name = f"{data.get('company_name')} ({_('Not verified')})"
         if company or regulator:
             company_name = company.name if company else str(regulator)
 
