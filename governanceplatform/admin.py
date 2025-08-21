@@ -362,6 +362,7 @@ class CompanyUserInline(admin.TabularInline):
                         ]
                     )
                     .filter(companies__in=request.user.companies.all())
+                    .exclude(id=user.id)
                     .distinct()
                     .order_by("email")
                 )
@@ -454,7 +455,7 @@ class CompanyUserInline(admin.TabularInline):
                 company__in=request.user.companies.filter(
                     companyuser__is_company_administrator=True
                 ),
-            ).distinct()
+            ).exclude(user=user).distinct()
         return queryset
 
 
