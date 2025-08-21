@@ -1092,6 +1092,9 @@ class WorkflowWizardView(SessionWizardView):
         if form.is_valid():
             self.storage.set_step_data(current_step, self.process_step(form))
             self.storage.set_step_files(current_step, self.process_step_files(form))
+        elif int(current_step) < int(goto_step):
+            # If the form is not valid, we don't allow to go to the next step
+            return self.render_revalidation_failure(current_step, form)
 
         # If the user is in review mode and is going to the last step,
         # we ensure that all previous steps are stored, this avoid render validation.
@@ -1230,9 +1233,7 @@ def save_answers(data=None, incident=None, workflow=None):
             else:  # MULTI
                 for val in value:
                     predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
-                answer = None
-                if questions_data.get(key + "_answer", None):
-                    answer = questions_data.get(key + "_answer")
+                answer = questions_data.get(key + "_freetext_answer", None)
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
                 question_options=question_option,
