@@ -21,6 +21,7 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
+from .formset import CompanyUserInlineFormset
 from .helpers import (
     get_active_company_from_session,
     instance_user_in_group,
@@ -311,6 +312,7 @@ class CompanyUserInline(admin.TabularInline):
     verbose_name = _("Contact for company")
     verbose_name_plural = _("Contacts for company")
     extra = 0
+    formset = CompanyUserInlineFormset  # define formset for the clean function
 
     filter_horizontal = [
         "sectors",
@@ -416,7 +418,13 @@ class CompanyUserInline(admin.TabularInline):
             widget = form.base_fields["user"].widget
             widget.can_add_related = False
 
-        return formset
+        # inject user into formset
+        class UserFormset(formset):
+            def __init__(self, *args, **inner_kwargs):
+                inner_kwargs["user"] = request.user
+                super().__init__(*args, **inner_kwargs)
+
+        return UserFormset
 
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
