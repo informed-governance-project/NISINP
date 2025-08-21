@@ -324,6 +324,13 @@ class CompanyUserInline(admin.TabularInline):
             if user_in_group(user, "RegulatorUser"):
                 kwargs["queryset"] = user.get_sectors().distinct()
 
+            if user_in_group(user, "OperatorAdmin"):
+                kwargs["queryset"] = Sector.objects.filter(
+                    id__in=user.companyuser_set.all()
+                    .distinct()
+                    .values_list("sectors", flat=True)
+                )
+
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
