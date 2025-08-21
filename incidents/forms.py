@@ -174,6 +174,8 @@ class AuthenticationForm(OTPAuthenticationForm):
 
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
+    suffix_freetext = "_freetext_answer"
+
     # for dynamicly add question to forms
     def create_question(
         self,
@@ -254,16 +256,16 @@ class QuestionForm(forms.Form):
                         ):
                             answer = ""
                     value = str(answer) if str(answer) != "" else None
-                self.fields[field_name + "_answer"] = forms.CharField(
-                    required=question_option.is_mandatory,
-                    widget=forms.TextInput(
+                self.fields[field_name + self.suffix_freetext] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(
                         attrs={
-                            "class": "multichoice-input-freetext",
-                            "value": str(value or ""),
+                            "rows": 3,
                             "title": question.tooltip,
                             "data-bs-toggle": "tooltip",
                         }
                     ),
+                    initial=str(value or ""),
                     label=_("Add details"),
                 )
         elif question_type == "DATE":
@@ -341,6 +343,24 @@ class QuestionForm(forms.Form):
                 label=question.label,
                 initial=initial_data or [],
             )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # this loop checks if there is a freetext answer value for a MT/ST question
+        for field_name in list(cleaned_data.keys()):
+            if self.suffix_freetext in field_name:
+                main_question_field = field_name.removesuffix(self.suffix_freetext)
+                freetext_value = cleaned_data.get(field_name)
+                main_value = cleaned_data.get(main_question_field)
+
+                if freetext_value and main_value in (None, "", []):
+                    cleaned_data[main_question_field] = []
+
+                    if self.has_error(main_question_field, code="required"):
+                        self._errors.pop(main_question_field, None)
+
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         position = kwargs.pop("position", -1)
