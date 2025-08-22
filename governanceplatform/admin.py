@@ -730,6 +730,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         formset.save_m2m()
 
+    def has_export_permission(self, request):
+        return self.has_view_permission(request)
+
 
 class UserResource(resources.ModelResource):
     first_name = fields.Field(column_name="firstname", attribute="first_name")
@@ -1438,6 +1441,9 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             obj.is_active = False
         else:
             obj.delete()
+
+    def has_export_permission(self, request):
+        return self.has_view_permission(request)
 
 
 class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
