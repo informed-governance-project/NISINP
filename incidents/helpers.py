@@ -9,7 +9,6 @@ from .models import IncidentWorkflow, QuestionCategoryOptions, SectorRegulationW
 
 def is_deadline_exceeded(report, incident):
     latest_incident_workflow = incident.get_latest_incident_workflow_by_workflow(report)
-
     if latest_incident_workflow is not None:
         return latest_incident_workflow.review_status
     if incident is not None and report is not None:
@@ -23,7 +22,14 @@ def is_deadline_exceeded(report, incident):
         )
         actual_time = timezone.now()
         if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
-            if incident.incident_detection_date is not None:
+            detection_date = None
+            if incident.sector_regulation.is_detection_date_needed:
+                detection_date = incident.incident_detection_date
+            else:
+                last_report = incident.get_latest_incident_workflow()
+                if last_report is not None:
+                    detection_date = last_report.report_timeleine.incident_detection_date
+            if detection_date is not None:
                 dt = actual_time - incident.incident_detection_date
                 if (
                     math.floor(dt.total_seconds() / 60 / 60)
