@@ -28,6 +28,7 @@ from .models import (
     QuestionOptions,
     QuestionOptionsHistory,
     SectorRegulation,
+    ReportTimeline,
 )
 from .widgets import TempusDominusV6Widget
 
@@ -888,30 +889,71 @@ class IncidenteDateForm(forms.ModelForm):
         help_text=_("Date format yyyy-mm-dd hh:mm"),
     )
 
+    incident_resolution_date = forms.DateTimeField(
+        widget=TempusDominusV6Widget(),
+        required=False,
+        label=_("Incident resolution date"),
+        help_text=_("Date format yyyy-mm-dd hh:mm"),
+    )
+
     def __init__(self, *args, **kwargs):
+        self.incident = kwargs.pop("incident", None)
         super().__init__(*args, **kwargs)
-        self.incident = self.instance
+        self.report_timeline = self.instance
 
         self.fields["incident_notification_date"].disabled = True
 
-        if self.incident:
+        if self.report_timeline:
             i_timezone = (
-                self.incident.incident_timezone
-                if self.incident.incident_timezone
+                self.report_timeline.report_timeline_timezone
+                if self.report_timeline.report_timeline_timezone
                 else TIME_ZONE
             )
+
+            i_detection_date = (
+                self.report_timeline.incident_detection_date
+                if self.report_timeline.incident_detection_date
+                else None
+            )
+
+            i_resolution_date = (
+                self.report_timeline.incident_resolution_date
+                if self.report_timeline.incident_resolution_date
+                else None
+            )
+
+        if self.incident:
+            if not i_timezone:
+                i_timezone = (
+                    self.incident.incident_timezone
+                    if self.incident.incident_timezone
+                    else TIME_ZONE
+                )
             i_notification_date = (
                 self.incident.incident_notification_date
                 if self.incident.incident_notification_date
                 else None
             )
 
-            i_detection_date = (
-                self.incident.incident_detection_date
-                if self.incident.incident_detection_date
-                else None
-            )
+            if not i_detection_date and self.incident.sector_regulation.is_detection_date_needed:
+                i_detection_date = (
+                    self.incident.incident_detection_date
+                    if self.incident.incident_detection_date
+                    else None
+                )
+
             timezone = pytz.timezone(i_timezone)
+
+            if i_resolution_date:
+                # minDate_resolution = format_datetime_astimezone(
+                #     i_detection_date, timezone
+                # )
+                self.fields["incident_resolution_date"].widget = TempusDominusV6Widget(
+                    # min_date=minDate_resolution,
+                )
+                self.fields["incident_resolution_date"].widget = TempusDominusV6Widget(
+                    # min_date=minDate_resolution,
+                )
 
             if i_notification_date:
                 maxDate_notification = format_datetime_astimezone(
@@ -954,18 +996,23 @@ class IncidenteDateForm(forms.ModelForm):
             set_initial_datetime(
                 self,
                 "incident_starting_date",
-                self.incident.incident_starting_date,
+                self.report_timeline.incident_starting_date,
+                timezone,
+            )
+            set_initial_datetime(
+                self,
+                "incident_resolution_date",
+                i_resolution_date,
                 timezone,
             )
 
     class Meta:
-        model = Incident
+        model = ReportTimeline
         fields = [
             "id",
-            "incident_timezone",
-            "incident_notification_date",
             "incident_detection_date",
             "incident_starting_date",
+            "incident_resolution_date",
         ]
 
 

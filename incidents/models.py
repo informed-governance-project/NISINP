@@ -423,7 +423,7 @@ class SectorRegulationWorkflow(models.Model):
         return False
 
     # calculates the time between an incident update and actual_time
-    def how_late_is_the_report(self, incident, actual_time=None):
+    def how_late_is_the_report(self, incident, report, actual_time=None):
         if actual_time is None:
             actual_time = timezone.now()
 
@@ -436,9 +436,9 @@ class SectorRegulationWorkflow(models.Model):
         # detection date
         elif (
             trigger_event == "DETECT_DATE"
-            and incident.incident_detection_date is not None
+            and report.report_timeline.incident_detection_date is not None
         ):
-            dt = actual_time - incident.incident_detection_date
+            dt = actual_time - report.report_timeline.incident_detection_date
 
         # previous incident_workflow
         elif trigger_event == "PREV_WORK":
@@ -506,7 +506,6 @@ class Incident(models.Model):
     )
     incident_notification_date = models.DateTimeField(default=timezone.now)
     incident_detection_date = models.DateTimeField(blank=True, null=True)
-    incident_starting_date = models.DateTimeField(blank=True, null=True)
     company_name = models.CharField(
         max_length=100, verbose_name=_("Name of the Operator")
     )
@@ -801,6 +800,24 @@ class Incident(models.Model):
         verbose_name = _("Incidents")
 
 
+class ReportTimeline(models.Model):
+    incident_detection_date = models.DateTimeField(
+        blank=True, null=True, verbose_name=_("Incident detection date")
+    )
+    incident_starting_date = models.DateTimeField(
+        blank=True, null=True, verbose_name=_("Incident starting date")
+    )
+    incident_resolution_date = models.DateTimeField(
+        blank=True, null=True, verbose_name=_("Incident resolution date")
+    )
+    report_timeline_timezone = models.CharField(
+        max_length=50,
+        choices=[(tz, tz) for tz in pytz.all_timezones],
+        default=TIME_ZONE,
+        verbose_name=_("Report timeline timezone")
+    )
+
+
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
     incident = models.ForeignKey(
@@ -828,6 +845,13 @@ class IncidentWorkflow(models.Model):
     )
     comment = models.TextField(
         verbose_name=_("Comment/Explanation"), null=True, blank=True
+    )
+    report_timeline = models.ForeignKey(
+        ReportTimeline,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Timeline"),
+        related_name="incident_workflow",
     )
 
     class meta:
@@ -895,7 +919,7 @@ class IncidentWorkflow(models.Model):
         ).first()
         delay_in_hours = report.delay_in_hours_before_deadline
 
-        dt = report.how_late_is_the_report(self.incident)
+        dt = report.how_late_is_the_report(self.incident, self)
 
         if dt and dt.total_seconds() / 60 / 60 >= delay_in_hours:
             return True

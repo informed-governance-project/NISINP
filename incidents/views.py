@@ -49,6 +49,7 @@ from .models import (
     LogReportRead,
     PredefinedAnswer,
     QuestionOptions,
+    ReportTimeline,
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
@@ -904,7 +905,7 @@ class WorkflowWizardView(SessionWizardView):
             )
 
             if position == 0:
-                kwargs.update({"instance": self.incident})
+                kwargs.update({"instance": self.incident_workflow.report_timeline, "incident": self.incident})
             # Regulator case
             elif (
                 position == len(self.form_list) - 2
@@ -970,7 +971,7 @@ class WorkflowWizardView(SessionWizardView):
                 is_new_incident_workflow,
             )
             if position == 0:
-                kwargs.update({"instance": self.incident})
+                kwargs.update({"incident": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
                 kwargs.update({"incident": self.incident})
             else:
@@ -1116,6 +1117,7 @@ class WorkflowWizardView(SessionWizardView):
             incident_timezone = data.get("incident_timezone", TIME_ZONE)
             incident_starting_date = data.get("incident_starting_date", None)
             incident_detection_date = data.get("incident_detection_date", None)
+            incident_resolution_date = data.get("incident_resolution_date", None)
             local_tz = pytz.timezone(incident_timezone)
             email = self.workflow.submission_email or None
             self.incident = self.incident or get_object_or_404(
@@ -1138,8 +1140,15 @@ class WorkflowWizardView(SessionWizardView):
                 )
 
             self.incident.save()
+            # create the report timeline
+            report_timeline = ReportTimeline.objects.create(
+                report_timeline_timezone=incident_timezone,
+                incident_starting_date=incident_starting_date,
+                incident_detection_date=incident_detection_date,
+                incident_resolution_date=incident_resolution_date,
+            )
             # manage question
-            incident_workflow = save_answers(data, self.incident, self.workflow)
+            incident_workflow = save_answers(data, self.incident, self.workflow, report_timeline)
             create_entry_log(
                 user, self.incident, incident_workflow, "CREATE", self.request
             )
@@ -1183,7 +1192,7 @@ class WorkflowWizardView(SessionWizardView):
         )
 
 
-def save_answers(data=None, incident=None, workflow=None):
+def save_answers(data=None, incident=None, workflow=None, report_timeline=None):
     """Save the answers."""
     prefix = "__question__"
     questions_data = {
@@ -1194,7 +1203,7 @@ def save_answers(data=None, incident=None, workflow=None):
 
     # We create a new incident workflow in all the case (history)
     incident_workflow = IncidentWorkflow.objects.create(
-        incident=incident, workflow=workflow
+        incident=incident, workflow=workflow, report_timeline=report_timeline
     )
     incident_workflow.save()
     # TO DO manage impact

@@ -37,7 +37,18 @@ def replace_email_variables(content, incident):
                 "final-notification", args=[incident_id]
             )
             var_txt = f'<a href="{final_notification_url}">{final_notification_url}</a>'
-
+        elif variable == "#INCIDENT_DETECTION_DATE#":
+            last_report = incident.get_latest_incident_workflow()
+            if not last_report:
+                var_txt = incident.incident_detection_date.strftime("%Y-%m-%d")
+            else:
+                var_txt = last_report.report_timeline.incident_detection_date.strftime("%Y-%m-%d")
+        elif variable == "#INCIDENT_STARTING_DATE#":
+            last_report = incident.get_latest_incident_workflow()
+            if not last_report:
+                var_txt = ""
+            else:
+                var_txt = last_report.report_timeline.incident_starting_date.strftime("%Y-%m-%d")
         else:
             var_txt = (
                 getattr(incident, key) if getattr(incident, key) is not None else ""
