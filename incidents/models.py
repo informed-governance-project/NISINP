@@ -401,11 +401,7 @@ class SectorRegulationWorkflow(models.Model):
         verbose_name = _("Reports")
 
     def __str__(self):
-        return (
-            self.workflow.name
-            if self.workflow
-            else ""
-        )
+        return self.workflow.name if self.workflow else ""
 
     def get_previous_report(self):
         previous = (
@@ -968,6 +964,9 @@ class QuestionOptionsHistory(models.Model):
         on_delete=models.PROTECT,
         default=None,
     )
+
+    def __str__(self):
+        return str(self.question) or ""
 
 
 class QuestionOptions(models.Model):
