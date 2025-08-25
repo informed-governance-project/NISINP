@@ -6,6 +6,7 @@ from typing import Dict, List
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from weasyprint import CSS, HTML
 
@@ -134,6 +135,8 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
 
     if answer.predefined_answers.all():
         answer_list.extend(answer.predefined_answers.all())
+        if question_option.question.question_type in ["MT", "ST"]:
+            answer_list.append(f"{_('Details')}:\r\n{answer}")
     else:
         answer_string = answer
         if question_option.question.question_type == "RL":
