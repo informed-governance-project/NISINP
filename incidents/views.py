@@ -905,7 +905,12 @@ class WorkflowWizardView(SessionWizardView):
             )
 
             if position == 0:
-                kwargs.update({"instance": self.incident_workflow.report_timeline, "incident": self.incident})
+                kwargs.update(
+                    {
+                        "instance": self.incident_workflow.report_timeline,
+                        "incident": self.incident,
+                    }
+                )
             # Regulator case
             elif (
                 position == len(self.form_list) - 2
@@ -1127,7 +1132,7 @@ class WorkflowWizardView(SessionWizardView):
             self.incident.incident_timezone = incident_timezone
 
             if incident_starting_date:
-                self.incident.incident_starting_date = convert_to_utc(
+                incident_starting_date = convert_to_utc(
                     incident_starting_date, local_tz
                 )
 
@@ -1139,6 +1144,11 @@ class WorkflowWizardView(SessionWizardView):
                     incident_detection_date, local_tz
                 )
 
+            if incident_resolution_date:
+                incident_resolution_date = convert_to_utc(
+                    incident_resolution_date, local_tz
+                )
+
             self.incident.save()
             # create the report timeline
             report_timeline = ReportTimeline.objects.create(
@@ -1148,7 +1158,9 @@ class WorkflowWizardView(SessionWizardView):
                 incident_resolution_date=incident_resolution_date,
             )
             # manage question
-            incident_workflow = save_answers(data, self.incident, self.workflow, report_timeline)
+            incident_workflow = save_answers(
+                data, self.incident, self.workflow, report_timeline
+            )
             create_entry_log(
                 user, self.incident, incident_workflow, "CREATE", self.request
             )
