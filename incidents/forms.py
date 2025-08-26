@@ -918,7 +918,7 @@ class IncidenteDateForm(forms.ModelForm):
         if self.incident:
             i_notification_date = self.incident.incident_notification_date or None
             lastest_report = self.incident.get_latest_incident_workflow()
-            if lastest_report:
+            if lastest_report and not self.report_timeline.pk:
                 lastest_report_timeline = lastest_report.report_timeline
                 i_timezone = lastest_report_timeline.report_timeline_timezone
                 i_detection_date = lastest_report_timeline.incident_detection_date
