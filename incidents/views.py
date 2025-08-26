@@ -1154,7 +1154,7 @@ class WorkflowWizardView(SessionWizardView):
             report_timeline = ReportTimeline.objects.create(
                 report_timeline_timezone=incident_timezone,
                 incident_starting_date=incident_starting_date,
-                incident_detection_date=convert_to_utc(incident_detection_date, local_tz),
+                incident_detection_date=self.incident.incident_detection_date,
                 incident_resolution_date=incident_resolution_date,
             )
             # manage question
