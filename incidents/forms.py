@@ -903,59 +903,33 @@ class IncidenteDateForm(forms.ModelForm):
 
         self.fields["incident_notification_date"].disabled = True
 
-        if self.report_timeline:
-            i_timezone = (
-                self.report_timeline.report_timeline_timezone
-                if self.report_timeline.report_timeline_timezone
-                else TIME_ZONE
-            )
+        i_timezone = None
+        i_detection_date = None
+        i_resolution_date = None
 
-            i_detection_date = (
-                self.report_timeline.incident_detection_date
-                if self.report_timeline.incident_detection_date
-                else None
-            )
-
-            i_resolution_date = (
-                self.report_timeline.incident_resolution_date
-                if self.report_timeline.incident_resolution_date
-                else None
-            )
+        if self.report_timeline.pk:
+            i_timezone = self.report_timeline.report_timeline_timezone
+            i_detection_date = self.report_timeline.incident_detection_date
+            i_resolution_date = self.report_timeline.incident_resolution_date
 
         if self.incident:
-            if not i_timezone:
-                i_timezone = (
-                    self.incident.incident_timezone
-                    if self.incident.incident_timezone
-                    else TIME_ZONE
-                )
-            i_notification_date = (
-                self.incident.incident_notification_date
-                if self.incident.incident_notification_date
-                else None
-            )
+            i_timezone = self.incident.incident_timezone or TIME_ZONE
+            i_notification_date = self.incident.incident_notification_date or None
 
             if (
                 not i_detection_date
                 and self.incident.sector_regulation.is_detection_date_needed
             ):
-                i_detection_date = (
-                    self.incident.incident_detection_date
-                    if self.incident.incident_detection_date
-                    else None
-                )
+                i_detection_date = self.incident.incident_detection_date or None
 
             timezone = pytz.timezone(i_timezone)
 
-            if i_resolution_date:
-                # minDate_resolution = format_datetime_astimezone(
-                #     i_detection_date, timezone
-                # )
-                self.fields["incident_resolution_date"].widget = TempusDominusV6Widget(
-                    # min_date=minDate_resolution,
+            if i_detection_date:
+                minDate_resolution = format_datetime_astimezone(
+                    i_detection_date, timezone
                 )
                 self.fields["incident_resolution_date"].widget = TempusDominusV6Widget(
-                    # min_date=minDate_resolution,
+                    min_date=minDate_resolution,
                 )
 
             if i_notification_date:
@@ -982,6 +956,8 @@ class IncidenteDateForm(forms.ModelForm):
 
             if i_timezone != TIME_ZONE:
                 self.fields["incident_timezone"].disabled = True
+
+            self.initial["incident_timezone"] = i_timezone
 
             set_initial_datetime(
                 self,
