@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytz
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms.widgets import ChoiceWidget
 from django.utils.html import format_html
@@ -984,6 +985,26 @@ class IncidenteDateForm(forms.ModelForm):
                 i_resolution_date,
                 timezone,
             )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        starting_date = cleaned_data.get("incident_starting_date")
+        detection_date = cleaned_data.get("incident_detection_date")
+        resolution_date = cleaned_data.get("incident_resolution_date")
+
+        if starting_date and detection_date and starting_date > detection_date:
+            self.add_error(
+                "incident_starting_date",
+                ValidationError(_("Starting date cannot be after detection date.")),
+            )
+
+        if resolution_date and detection_date and resolution_date < detection_date:
+            self.add_error(
+                "incident_resolution_date",
+                ValidationError(_("Resolution date cannot be before detection date.")),
+            )
+
+        return cleaned_data
 
     class Meta:
         model = ReportTimeline
