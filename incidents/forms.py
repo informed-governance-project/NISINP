@@ -27,8 +27,8 @@ from .models import (
     IncidentWorkflow,
     QuestionOptions,
     QuestionOptionsHistory,
-    SectorRegulation,
     ReportTimeline,
+    SectorRegulation,
 )
 from .widgets import TempusDominusV6Widget
 
@@ -935,7 +935,10 @@ class IncidenteDateForm(forms.ModelForm):
                 else None
             )
 
-            if not i_detection_date and self.incident.sector_regulation.is_detection_date_needed:
+            if (
+                not i_detection_date
+                and self.incident.sector_regulation.is_detection_date_needed
+            ):
                 i_detection_date = (
                     self.incident.incident_detection_date
                     if self.incident.incident_detection_date
@@ -1010,6 +1013,8 @@ class IncidenteDateForm(forms.ModelForm):
         model = ReportTimeline
         fields = [
             "id",
+            "incident_timezone",
+            "incident_notification_date",
             "incident_detection_date",
             "incident_starting_date",
             "incident_resolution_date",
