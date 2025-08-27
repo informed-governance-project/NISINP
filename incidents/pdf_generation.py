@@ -26,6 +26,9 @@ def get_pdf_report(
     sectors: Dict[str, List[str]] = {}
     # boolean to see if it's report or incident
     report_name = None
+    report_timeline = None
+    incident.incident_starting_date = None
+    incident.incident_resolution_date = None
 
     for sector in incident.affected_sectors.all():
         sector_name = sector.get_safe_translation()
@@ -51,9 +54,10 @@ def get_pdf_report(
         report_name = incident_workflow.workflow.name
         report_timeline = incident_workflow.report_timeline
 
-    incident.incident_detection_date = report_timeline.incident_detection_date
-    incident.incident_starting_date = report_timeline.incident_starting_date
-    incident.incident_resolution_date = report_timeline.incident_resolution_date
+    if report_timeline:
+        incident.incident_detection_date = report_timeline.incident_detection_date
+        incident.incident_starting_date = report_timeline.incident_starting_date
+        incident.incident_resolution_date = report_timeline.incident_resolution_date
 
     for incident_workflow in report_list:
         workflow_name = incident_workflow.workflow
