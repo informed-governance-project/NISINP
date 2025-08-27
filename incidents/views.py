@@ -49,6 +49,7 @@ from .models import (
     LogReportRead,
     PredefinedAnswer,
     QuestionOptions,
+    ReportTimeline,
     SectorRegulation,
     SectorRegulationWorkflow,
     Workflow,
@@ -711,7 +712,7 @@ class FormWizardView(SessionWizardView):
         sectors_id = extract_ids(data.get("sectors", []))
         regulators_id = extract_ids(data.get("regulators", []))
         regulations_id = extract_ids(data.get("regulations", []))
-        company_name = data.get("company_name")
+        company_name = f"{data.get('company_name')} ({_('Not verified')})"
         if company or regulator:
             company_name = company.name if company else str(regulator)
 
@@ -775,7 +776,7 @@ class FormWizardView(SessionWizardView):
                         .order_by("position")
                         .first()
                     )
-
+                    # TO DO get the correct detection date
                     if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
                         dt = timezone.now() - incident.incident_detection_date
                         if (
@@ -904,7 +905,12 @@ class WorkflowWizardView(SessionWizardView):
             )
 
             if position == 0:
-                kwargs.update({"instance": self.incident})
+                kwargs.update(
+                    {
+                        "instance": self.incident_workflow.report_timeline,
+                        "incident": self.incident,
+                    }
+                )
             # Regulator case
             elif (
                 position == len(self.form_list) - 2
@@ -970,7 +976,7 @@ class WorkflowWizardView(SessionWizardView):
                 is_new_incident_workflow,
             )
             if position == 0:
-                kwargs.update({"instance": self.incident})
+                kwargs.update({"incident": self.incident})
             elif position == len(self.form_list) - 1 and self.workflow.is_impact_needed:
                 kwargs.update({"incident": self.incident})
             else:
@@ -1092,6 +1098,9 @@ class WorkflowWizardView(SessionWizardView):
         if form.is_valid():
             self.storage.set_step_data(current_step, self.process_step(form))
             self.storage.set_step_files(current_step, self.process_step_files(form))
+        elif int(current_step) < int(goto_step):
+            # If the form is not valid, we don't allow to go to the next step
+            return self.render_revalidation_failure(current_step, form)
 
         # If the user is in review mode and is going to the last step,
         # we ensure that all previous steps are stored, this avoid render validation.
@@ -1113,6 +1122,7 @@ class WorkflowWizardView(SessionWizardView):
             incident_timezone = data.get("incident_timezone", TIME_ZONE)
             incident_starting_date = data.get("incident_starting_date", None)
             incident_detection_date = data.get("incident_detection_date", None)
+            incident_resolution_date = data.get("incident_resolution_date", None)
             local_tz = pytz.timezone(incident_timezone)
             email = self.workflow.submission_email or None
             self.incident = self.incident or get_object_or_404(
@@ -1122,7 +1132,7 @@ class WorkflowWizardView(SessionWizardView):
             self.incident.incident_timezone = incident_timezone
 
             if incident_starting_date:
-                self.incident.incident_starting_date = convert_to_utc(
+                incident_starting_date = convert_to_utc(
                     incident_starting_date, local_tz
                 )
 
@@ -1134,9 +1144,23 @@ class WorkflowWizardView(SessionWizardView):
                     incident_detection_date, local_tz
                 )
 
+            if incident_resolution_date:
+                incident_resolution_date = convert_to_utc(
+                    incident_resolution_date, local_tz
+                )
+
             self.incident.save()
+            # create the report timeline
+            report_timeline = ReportTimeline.objects.create(
+                report_timeline_timezone=incident_timezone,
+                incident_starting_date=incident_starting_date,
+                incident_detection_date=self.incident.incident_detection_date,
+                incident_resolution_date=incident_resolution_date,
+            )
             # manage question
-            incident_workflow = save_answers(data, self.incident, self.workflow)
+            incident_workflow = save_answers(
+                data, self.incident, self.workflow, report_timeline
+            )
             create_entry_log(
                 user, self.incident, incident_workflow, "CREATE", self.request
             )
@@ -1180,7 +1204,7 @@ class WorkflowWizardView(SessionWizardView):
         )
 
 
-def save_answers(data=None, incident=None, workflow=None):
+def save_answers(data=None, incident=None, workflow=None, report_timeline=None):
     """Save the answers."""
     prefix = "__question__"
     questions_data = {
@@ -1191,7 +1215,7 @@ def save_answers(data=None, incident=None, workflow=None):
 
     # We create a new incident workflow in all the case (history)
     incident_workflow = IncidentWorkflow.objects.create(
-        incident=incident, workflow=workflow
+        incident=incident, workflow=workflow, report_timeline=report_timeline
     )
     incident_workflow.save()
     # TO DO manage impact
@@ -1230,9 +1254,7 @@ def save_answers(data=None, incident=None, workflow=None):
             else:  # MULTI
                 for val in value:
                     predefined_answers.append(PredefinedAnswer.objects.get(pk=val))
-                answer = None
-                if questions_data.get(key + "_answer", None):
-                    answer = questions_data.get(key + "_answer")
+                answer = questions_data.get(key + "_freetext_answer", None)
             answer_object = Answer.objects.create(
                 incident_workflow=incident_workflow,
                 question_options=question_option,

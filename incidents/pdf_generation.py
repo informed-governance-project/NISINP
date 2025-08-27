@@ -6,6 +6,7 @@ from typing import Dict, List
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from weasyprint import CSS, HTML
 
@@ -42,9 +43,17 @@ def get_pdf_report(
     # display for the full incident or just a report
     if incident_workflow is None:
         report_list = incident.get_latest_incident_workflows()
+        lastest_report = incident.get_latest_incident_workflow()
+        if lastest_report:
+            report_timeline = lastest_report.report_timeline
     else:
         report_list = [incident_workflow]
         report_name = incident_workflow.workflow.name
+        report_timeline = incident_workflow.report_timeline
+
+    incident.incident_detection_date = report_timeline.incident_detection_date
+    incident.incident_starting_date = report_timeline.incident_starting_date
+    incident.incident_resolution_date = report_timeline.incident_resolution_date
 
     for incident_workflow in report_list:
         workflow_name = incident_workflow.workflow
@@ -134,6 +143,8 @@ def populate_questions_answers(answer: Answer, preliminary_questions_answers: Di
 
     if answer.predefined_answers.all():
         answer_list.extend(answer.predefined_answers.all())
+        if question_option.question.question_type in ["MT", "ST"]:
+            answer_list.append(f"{_('Details')}:\r\n{answer}")
     else:
         answer_string = answer
         if question_option.question.question_type == "RL":

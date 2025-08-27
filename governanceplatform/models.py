@@ -134,9 +134,10 @@ class OperatorType(TranslatableModel):
 # operator are companies
 class Company(models.Model):
     identifier = models.CharField(
-        max_length=4, verbose_name=_("Acronym")
+        max_length=4, verbose_name=_("Acronym"),
+        unique=True,
     )  # requirement from business concat(name_country_regulator)
-    name = models.CharField(max_length=64, verbose_name=_("Name"))
+    name = models.CharField(max_length=64, verbose_name=_("Name"), unique=True)
     country = models.CharField(
         max_length=200,
         verbose_name=_("Country"),

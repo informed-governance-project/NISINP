@@ -21,6 +21,7 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
+from .formset import CompanyUserInlineFormset
 from .helpers import (
     get_active_company_from_session,
     instance_user_in_group,
@@ -154,7 +155,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = ["acronym", "name", "parent"]
     list_display_links = ["acronym", "name"]
-    search_fields = ["translations__name"]
+    search_fields = ["translations__name", "acronym"]
     resource_class = SectorResource
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
@@ -259,7 +260,7 @@ class EntityCategoryAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     resource_class = EntityCategoryResource
 
     list_display = ["label", "code"]
-    search_fields = ["label"]
+    search_fields = ["translations__label", "code"]
     fields = (
         "label",
         "code",
@@ -311,6 +312,7 @@ class CompanyUserInline(admin.TabularInline):
     verbose_name = _("Contact for company")
     verbose_name_plural = _("Contacts for company")
     extra = 0
+    formset = CompanyUserInlineFormset  # define formset for the clean function
 
     filter_horizontal = [
         "sectors",
@@ -369,6 +371,7 @@ class CompanyUserInline(admin.TabularInline):
                         ]
                     )
                     .filter(companies__in=request.user.companies.all())
+                    .exclude(id=user.id)
                     .distinct()
                     .order_by("email")
                 )
@@ -422,7 +425,13 @@ class CompanyUserInline(admin.TabularInline):
             widget = form.base_fields["user"].widget
             widget.can_add_related = False
 
-        return formset
+        # inject user into formset
+        class UserFormset(formset):
+            def __init__(self, *args, **inner_kwargs):
+                inner_kwargs["user"] = request.user
+                super().__init__(*args, **inner_kwargs)
+
+        return UserFormset
 
     # Revoke the permissions of the logged user
     def has_add_permission(self, request, obj=None):
@@ -461,7 +470,7 @@ class CompanyUserInline(admin.TabularInline):
                 company__in=request.user.companies.filter(
                     companyuser__is_company_administrator=True
                 ),
-            ).distinct()
+            ).exclude(user=user).distinct()
         return queryset
 
 
@@ -507,6 +516,7 @@ class CompanySectorListFilter(SimpleListFilter):
 class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
     list_display = [
+        "identifier",
         "name",
         "address",
         "country",
@@ -516,7 +526,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
-    search_fields = ["name"]
+    search_fields = ["name", "address", "country", "email", "phone_number", "identifier"]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
         (
@@ -719,6 +729,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             obj.delete()
 
         formset.save_m2m()
+
+    def has_export_permission(self, request):
+        return self.has_view_permission(request)
 
 
 class UserResource(resources.ModelResource):
@@ -1114,7 +1127,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_permissions_groups",
         "get_2FA_activation",
     ]
-    search_fields = ["first_name", "last_name", "email"]
+    search_fields = ["first_name", "last_name", "email", "phone_number"]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
@@ -1429,6 +1442,9 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         else:
             obj.delete()
 
+    def has_export_permission(self, request):
+        return self.has_view_permission(request)
+
 
 class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
@@ -1515,7 +1531,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
-    search_fields = ["name"]
+    search_fields = ["translations__name", "translations__full_name", "translations__description"]
     resource_class = RegulatorResource
     fields = (
         "name",
@@ -1648,7 +1664,11 @@ class ObserverUserInline(admin.TabularInline):
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
     list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
-    search_fields = ["name"]
+    search_fields = [
+        "translations__name",
+        "translations__full_name",
+        "translations__description",
+    ]
     resource_class = ObserverResource
     filter_horizontal = [
         "functionalities",
@@ -1746,7 +1766,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label", "get_regulators"]
-    search_fields = ["translations__label"]
+    search_fields = ["translations__label", "regulators__translations__name"]
     resource_class = RegulationResource
     fields = (
         "label",
