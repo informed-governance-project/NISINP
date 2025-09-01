@@ -51,7 +51,7 @@ class PermissionMixin:
     def delete_queryset(self, request, queryset):
         all_deleted = True
         for obj in queryset:
-            if not can_change_or_delete_obj(request, obj, False, False):
+            if not can_change_or_delete_obj(request, obj):
                 queryset = queryset.exclude(id=obj.id)
                 all_deleted = False
         if not all_deleted:
