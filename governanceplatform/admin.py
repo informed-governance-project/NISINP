@@ -1165,6 +1165,12 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, obj):
         user = getattr(self, "_request", None).user
