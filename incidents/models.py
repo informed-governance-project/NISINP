@@ -401,7 +401,11 @@ class SectorRegulationWorkflow(models.Model):
         verbose_name = _("Reports")
 
     def __str__(self):
-        return self.workflow.name if self.workflow else ""
+        return (
+            self.sector_regulation.name + " : " + self.workflow.name
+            if self.workflow and self.sector_regulation
+            else ""
+        )
 
     def get_previous_report(self):
         previous = (
@@ -665,13 +669,12 @@ class Incident(models.Model):
         )
         return workflows
 
-    # TO DO : check if it returns always the correct values
-    def get_latest_incident_workflows(self):
+    def get_latest_incident_workflows(self, timestamp_order="-timestamp"):
         incident_workflows = (
             IncidentWorkflow.objects.filter(
                 incident=self,
             )
-            .order_by("workflow", "-timestamp")
+            .order_by("workflow", timestamp_order)
             .distinct("workflow")
         )
 

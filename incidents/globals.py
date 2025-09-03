@@ -30,6 +30,7 @@ INCIDENT_EMAIL_VARIABLES = [
 INCIDENT_EMAIL_TRIGGER_EVENT = [
     ("NOTIF_DATE", "Notification Date of the workflow"),
     ("PREV_WORK", "Previous Workflow date"),
+    ("DETEC_DATE", "Incident detection date"),
 ]
 
 INCIDENT_STATUS = [

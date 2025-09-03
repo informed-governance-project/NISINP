@@ -43,6 +43,7 @@ from incidents.models import (
     QuestionOptions,
     SectorRegulation,
     SectorRegulationWorkflowEmail,
+    SectorRegulationWorkflow,
     Workflow,
 )
 
@@ -934,3 +935,13 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
         "trigger_event",
         "delay_in_hours",
     )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "sector_regulation_workflow":
+            # Regulator Admin
+            kwargs["queryset"] = (
+                SectorRegulationWorkflow.objects.all()
+                .order_by("sector_regulation__translations__name", "workflow__name")
+                .distinct()
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

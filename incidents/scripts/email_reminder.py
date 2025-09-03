@@ -29,9 +29,30 @@ def run(logger=logger):
         raise
 
     for incident in ongoing_incidents:
-        # Workflow with deadline from prev workflow
         try:
-            for incident_workflow in incident.get_latest_incident_workflows():
+            # detection date, the email is sent xx hours if the report is not filled see #451
+            for report in incident.get_all_workflows():
+                if (
+                    not IncidentWorkflow.objects.filter(
+                        incident=incident,
+                        workflow=report,
+                    ).exists()
+                    and incident.incident_detection_date is not None
+                ):
+                    emails = SectorRegulationWorkflowEmail.objects.filter(
+                            sector_regulation_workflow__sector_regulation=incident.sector_regulation,
+                            sector_regulation_workflow__workflow=report,
+                            trigger_event="DETEC_DATE",
+                        )
+                    for email in emails:
+                        dt = actual_time - incident.incident_detection_date
+                        if (
+                            math.floor(dt.total_seconds() / 60 / 60)
+                            == email.delay_in_hours
+                        ):
+                            send_email(email.email, incident)
+            # Workflow with deadline from prev workflow
+            for incident_workflow in incident.get_latest_incident_workflows(timestamp_order="+timestamp"):
                 # chek if there is a next workflow
                 next_workflow = incident_workflow.get_next_workflow()
                 if next_workflow is not False:
