@@ -88,6 +88,8 @@ def get_emails_from_qs(queryset):
 def get_recipient_list(incident):
     # Contact user's email
     recipient_list = []
+    if incident.contact_user is not None:
+        recipient_list.append(incident.contact_user.email)
     company = incident.company
     sector_regulation = incident.sector_regulation
     regulator = sector_regulation.regulator
