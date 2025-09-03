@@ -669,13 +669,12 @@ class Incident(models.Model):
         )
         return workflows
 
-    # TO DO : check if it returns always the correct values
-    def get_latest_incident_workflows(self):
+    def get_latest_incident_workflows(self, timestamp_order="-timestamp"):
         incident_workflows = (
             IncidentWorkflow.objects.filter(
                 incident=self,
             )
-            .order_by("workflow", "-timestamp")
+            .order_by("workflow", timestamp_order)
             .distinct("workflow")
         )
 
