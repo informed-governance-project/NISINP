@@ -642,7 +642,9 @@ class FormWizardView(SessionWizardView):
             _("Detection date"),
         ]
         context["action"] = "Create"
-
+        context["is_regulator_incidents"] = self.request.session.get(
+            "is_regulator_incidents", False
+        )
         return context
 
     def render_goto_step(self, goto_step, **kwargs):
