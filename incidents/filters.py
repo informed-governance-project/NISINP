@@ -1,5 +1,6 @@
 import django_filters
 from django.db.models import F, Q
+from django.utils.translation import gettext as _
 
 from governanceplatform.models import Sector
 
@@ -29,6 +30,8 @@ class IncidentFilter(django_filters.FilterSet):
     )
     sector_regulation = django_filters.ModelChoiceFilter(queryset=sector_regulation)
 
+    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
+
     class Meta:
         model = Incident
         fields = [
@@ -38,3 +41,15 @@ class IncidentFilter(django_filters.FilterSet):
             "affected_sectors",
             "sector_regulation",
         ]
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(incident_id__icontains=value)
+            | Q(company_name__icontains=value)
+            | Q(company__identifier__icontains=value)
+            | Q(company__name__icontains=value)
+            | Q(regulator__translations__name__icontains=value)
+            | Q(regulator__translations__full_name__icontains=value)
+            | Q(sector_regulation__regulation__translations__label__icontains=value)
+            | Q(affected_sectors__translations__name__icontains=value)
+        )

@@ -68,11 +68,13 @@ def get_incidents(request):
     )
     html_view = "operator/incidents.html"
 
-    # Save filter params in user's session
-    if "reset" in request.GET:
+    search_value = request.GET.get("search", None)
+
+    if "reset" in request.GET or search_value == "":
         request.session.pop("incidents_filter_params", None)
         return redirect("incidents")
 
+    # Save filter params in user's session
     current_params = request.session.get("incidents_filter_params", {}).copy()
 
     for key, values in request.GET.lists():
@@ -642,7 +644,9 @@ class FormWizardView(SessionWizardView):
             _("Detection date"),
         ]
         context["action"] = "Create"
-
+        context["is_regulator_incidents"] = self.request.session.get(
+            "is_regulator_incidents", False
+        )
         return context
 
     def render_goto_step(self, goto_step, **kwargs):

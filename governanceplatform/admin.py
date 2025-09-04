@@ -408,6 +408,7 @@ class CompanyUserInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
         user = request.user
+        has_admin = False
         if obj:
             has_admin = obj.companyuser_set.filter(
                 is_company_administrator=True
@@ -466,11 +467,15 @@ class CompanyUserInline(admin.TabularInline):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            return queryset.filter(
-                company__in=request.user.companies.filter(
-                    companyuser__is_company_administrator=True
-                ),
-            ).exclude(user=user).distinct()
+            return (
+                queryset.filter(
+                    company__in=request.user.companies.filter(
+                        companyuser__is_company_administrator=True
+                    ),
+                )
+                .exclude(user=user)
+                .distinct()
+            )
         return queryset
 
 
@@ -526,7 +531,14 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
-    search_fields = ["name", "address", "country", "email", "phone_number", "identifier"]
+    search_fields = [
+        "name",
+        "address",
+        "country",
+        "email",
+        "phone_number",
+        "identifier",
+    ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
         (
@@ -1165,6 +1177,12 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, obj):
         user = getattr(self, "_request", None).user
@@ -1531,7 +1549,11 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(CustomTranslatableAdmin):
     list_display = ["name", "full_name", "description"]
-    search_fields = ["translations__name", "translations__full_name", "translations__description"]
+    search_fields = [
+        "translations__name",
+        "translations__full_name",
+        "translations__description",
+    ]
     resource_class = RegulatorResource
     fields = (
         "name",

@@ -28,7 +28,7 @@ def is_deadline_exceeded(report, incident):
             else:
                 last_report = incident.get_latest_incident_workflow()
                 if last_report is not None:
-                    detection_date = last_report.report_timeleine.incident_detection_date
+                    detection_date = last_report.report_timeline.incident_detection_date
             if detection_date is not None:
                 dt = actual_time - incident.incident_detection_date
                 if (
@@ -115,7 +115,7 @@ def get_workflow_categories(
         deleted_question_options = (
             workflow.questionoptions_set.filter(
                 updated_at__lte=incident_workflow.timestamp,
-                deleted_date__gte=incident_workflow.timestamp
+                deleted_date__gte=incident_workflow.timestamp,
             )
             .select_related("category_option__question_category")
             .order_by("category_option__position")
@@ -134,7 +134,9 @@ def get_workflow_categories(
                 old_categories.append(historic.category_option)
 
         categories_options = list(
-            OrderedDict.fromkeys(chain(active_categories, old_categories, deleted_categories))
+            OrderedDict.fromkeys(
+                chain(active_categories, old_categories, deleted_categories)
+            )
         )
         categories_options = sorted(categories_options, key=lambda c: c.position)
         categories = [c.question_category for c in categories_options]
