@@ -13,7 +13,7 @@ def extra_content_for_all_templates(request):
         "site_name": SITE_NAME,
         "is_staff": user.is_staff,
         "is_only_admin": False,
-        "regulator_name": REGULATOR_CONTACT["name"]
+        "regulator_name": REGULATOR_CONTACT["name"],
     }
     extra_data["is_regulator"] = is_user_regulator(user)
     extra_data["is_observer"] = is_observer_user(user)
@@ -44,25 +44,49 @@ def instance_configurations(request):
     return configurations
 
 
-def app_module_available(request):
-    app_module_available = {
-        "app_module_available": list(
-            Functionality.objects.filter(regulator__isnull=False).values_list(
-                "type", flat=True
-            )
-        )
+def user_modules(request):
+    path = request.path
+    user_modules = [
+        {"type": "incidents", "name": _("Incident notification")},
+    ]
+    module_labels = {
+        "/incidents": _("Incident notification"),
     }
 
-    return app_module_available
+    if request.user.is_authenticated:
+        user_module_permissions = []
+        # TODO: Uncomment next lines when merging with reporting branch
+        # user = request.user
 
+        # if is_user_regulator(user) or is_observer_user(user):
+        #     user_module_permissions = user.get_module_permissions()
+        # if is_user_operator(user):
+        #     user_module_permissions = ["securityobjectives"]
 
-def user_module_permissions(request):
-    user = request.user
-    user_module_permissions = {}
+        app_module_availables = (
+            Functionality.objects.filter(regulator__isnull=False)
+            .distinct()
+            .order_by("id")
+        )
+        for module in app_module_availables:
+            if module.type in user_module_permissions:
+                module_name = None
+                if hasattr(module, "safe_translation_getter"):
+                    module_name = module.safe_translation_getter(
+                        "name", language_code="en"
+                    )
+                else:
+                    module_name = getattr(module, "name", None)
 
-    if user.is_authenticated:
-        user_module_permissions[
-            "user_module_permissions"
-        ] = user.get_module_permissions()
+                user_modules.append({"type": module.type, "name": module_name})
+                module_labels[f"/{module.type}"] = _(module_name)
 
-    return user_module_permissions
+    name = next(
+        (label for prefix, label in module_labels.items() if path.startswith(prefix)),
+        None,
+    )
+
+    return {
+        "user_modules": user_modules,
+        "current_module": name,
+    }

@@ -52,4 +52,4 @@ class IncidentFilter(django_filters.FilterSet):
             | Q(regulator__translations__full_name__icontains=value)
             | Q(sector_regulation__regulation__translations__label__icontains=value)
             | Q(affected_sectors__translations__name__icontains=value)
-        )
+        ).distinct()
