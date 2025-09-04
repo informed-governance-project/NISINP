@@ -83,7 +83,7 @@ def user_modules(request):
 
     name = next(
         (label for prefix, label in module_labels.items() if path.startswith(prefix)),
-        None,
+        _("Modules"),
     )
 
     return {
