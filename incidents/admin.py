@@ -46,6 +46,7 @@ from incidents.models import (
     SectorRegulationWorkflow,
     Workflow,
 )
+from .globals import QUESTION_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -397,6 +398,20 @@ def duplicate_objects(modeladmin, request, queryset):
             messages.error(request, f"Error duplicating '{obj}': {str(e)}")
 
 
+class QuestionTypeListFilter(SimpleListFilter):
+    title = _("Question Type")
+    parameter_name = "question_type"
+
+    def lookups(self, request, model_admin):
+        return QUESTION_TYPES
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(question_type=self.value())
+        else:
+            return queryset
+
+
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(
     PermissionMixin,
@@ -427,6 +442,7 @@ class QuestionAdmin(
         "tooltip",
     ]
     inlines = [PredefinedAnswerInline]
+    list_filter = [QuestionTypeListFilter]
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
