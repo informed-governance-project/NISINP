@@ -1027,7 +1027,10 @@ class IncidenteDateForm(forms.ModelForm):
 class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
-        if "is_significative_impact" not in self.data:
+        if (
+            "is_significative_impact" not in self.data
+            and "is_significative_impact" not in cleaned_data
+        ):
             cleaned_data[
                 "is_significative_impact"
             ] = self.instance.is_significative_impact
@@ -1036,6 +1039,11 @@ class IncidentStatusForm(forms.ModelForm):
             if cleaned_data.get(field) in [None, ""]:
                 cleaned_data[field] = getattr(self.instance, field)
         return cleaned_data
+
+    def get_field_change(self, field_name):
+        if field_name in self.changed_data:
+            return self.initial.get(field_name), self.cleaned_data.get(field_name)
+        return None, None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

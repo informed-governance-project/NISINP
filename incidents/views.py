@@ -447,6 +447,14 @@ def edit_incident(request, incident_id: int):
         for field_name in incident_form.cleaned_data:
             response[field_name] = incident_form.cleaned_data[field_name]
 
+        old, new = incident_form.get_field_change("is_significative_impact")
+        if old != new:
+            if new is True:
+                message = "IMP. True"
+            else:
+                message = "IMP. False"
+            create_entry_log(request.user, incident, None, message, request)
+
         incident.save()
 
         return JsonResponse(response)
