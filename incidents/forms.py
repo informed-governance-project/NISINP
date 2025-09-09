@@ -9,7 +9,6 @@ from django.forms.widgets import ChoiceWidget
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
-from django_otp.forms import OTPAuthenticationForm
 from parler.widgets import SortedCheckboxSelectMultiple
 
 from governanceplatform.helpers import (
@@ -167,11 +166,6 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
                 if subindex is not None:
                     subindex += 1
         return groups
-
-
-class AuthenticationForm(OTPAuthenticationForm):
-    otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
-    otp_challenge = forms.CharField(required=False, widget=forms.HiddenInput)
 
 
 # create a form for each category and add fields which represent questions
