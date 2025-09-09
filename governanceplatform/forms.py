@@ -134,6 +134,12 @@ class RegistrationForm(UserCreationForm):
         "accept_terms",
     )
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email").lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError(_("There is an issue, please verify your e-mail"))
+        return email
+
     class Meta:
         model = User
         fields = (
