@@ -108,7 +108,7 @@ def update_user_incidents(sender, instance, **kwargs):
         and user_in_group(user, "IncidentUser")
         and company
         and company.identifier
-        and not user.companyuser_set.exclude(pk=instance.pk).exists()
+        and not user.companyuser_set.exclude(pk=instance.pk).exclude(approved=False).exists()
     ):
         current_year = date.today().year
         incidents = user.incident_set.filter(
@@ -119,7 +119,6 @@ def update_user_incidents(sender, instance, **kwargs):
             .filter(incident_notification_date__year=current_year)
             .count()
         )
-
         for incident in incidents:
             sector_for_ref = ""
             subsector_for_ref = ""
