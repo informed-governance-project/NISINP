@@ -133,7 +133,8 @@ class OperatorType(TranslatableModel):
 # operator are companies
 class Company(models.Model):
     identifier = models.CharField(
-        max_length=4, verbose_name=_("Acronym"),
+        max_length=4,
+        verbose_name=_("Acronym"),
         unique=True,
     )  # requirement from business concat(name_country_regulator)
     name = models.CharField(max_length=64, verbose_name=_("Name"), unique=True)
@@ -430,7 +431,9 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description="companies")
     def get_companies_for_operator_admin(self, op_admin):
-        companies = self.companies.all().distinct() & op_admin.companies.all().distinct()
+        companies = (
+            self.companies.all().distinct() & op_admin.companies.all().distinct()
+        )
         return [company.name for company in companies.all().distinct()]
 
     @admin.display(description="regulators")
@@ -532,20 +535,10 @@ class CompanyUser(models.Model):
             is_company_administrator=True
         ).exists()
 
-        if is_incident_user:
-            if self.is_company_administrator and not self.approved:
-                raise ValidationError(
-                    _(
-                        "Incident users can only become administrator after being approved."
-                    )
-                )
-
-            if not has_admin:
-                raise ValidationError(
-                    _(
-                        "An incident user cannot be added before at least one operator administrator exists."
-                    )
-                )
+        if is_incident_user and self.is_company_administrator and not self.approved:
+            raise ValidationError(
+                _("Incident users can only become administrator after being approved.")
+            )
 
         else:
             if not has_admin and not self.is_company_administrator:
