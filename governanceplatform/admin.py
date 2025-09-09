@@ -708,6 +708,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     user
                     and company
                     and not user.companyuser_set.exclude(pk=instance.pk).exists()
+                    and admins_qs
                 ):
                     context = {
                         "operator_admin_name": None,
@@ -731,6 +732,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                             context,
                             [admin_email],
                         )
+
+                if not admins_qs:
+                    instance.approved = True
 
             if not user_in_group(instance.user, "IncidentUser"):
                 instance.approved = True
