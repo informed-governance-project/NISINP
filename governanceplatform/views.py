@@ -143,7 +143,12 @@ def activate_account(request, token):
 
 def select_company(request):
     if request.method == "POST":
-        form = SelectCompany(request.POST, companies=request.user.companies.distinct())
+        form = SelectCompany(
+            request.POST,
+            companies=request.user.companies.filter(
+                companyuser__approved=True
+            ).distinct(),
+        )
 
         if form.is_valid() and request.user.is_authenticated:
             user_company = Company.objects.get(
@@ -166,7 +171,11 @@ def select_company(request):
                 request, "The select company is not linked to the account."
             )
     else:
-        form = SelectCompany(companies=request.user.companies.distinct())
+        form = form = SelectCompany(
+            companies=request.user.companies.filter(
+                companyuser__approved=True
+            ).distinct(),
+        )
 
     return render(request, "registration/select_company.html", {"form": form})
 
