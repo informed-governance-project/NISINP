@@ -1,20 +1,56 @@
+from datetime import timedelta
+
 from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
-from django_otp.forms import OTPAuthenticationForm
 from parler.forms import TranslatableModelForm
+
+from .helpers import send_activation_email
 
 User = get_user_model()
 
 
-class AuthenticationForm(OTPAuthenticationForm):
-    otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
-    otp_challenge = forms.CharField(required=False, widget=forms.HiddenInput)
+class CustomAuthenticationForm(AuthenticationForm):
+    def confirm_login_allowed(self, user):
+        delta = now() - timedelta(seconds=settings.ACCOUNT_ACTIVATION_LINK_TIMEOUT)
+        is_expired = user.date_joined < delta
+        if not user.is_active:
+            if user.last_login:
+                raise ValidationError(
+                    _(
+                        "Your account has been deactivated. Please contact the administrator for assistance."
+                    ),
+                    code="account_deactivated",
+                )
+
+            if is_expired:
+                user.date_joined = now()
+                user.accepted_terms_date = None
+                send_activation_email(user)
+                user.save(update_fields=["date_joined", "accepted_terms_date"])
+                raise ValidationError(
+                    _(
+                        "Your activation link has expired. A new activation email has been sent to your registered email address."
+                    ),
+                    code="activation_expired",
+                )
+            else:
+                raise ValidationError(
+                    _(
+                        "Your account is not yet activated. Please check your email for the activation link to complete registration."
+                    ),
+                    code="activation_pending",
+                )
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -223,11 +259,11 @@ class ContactForm(forms.Form):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user:
-            self.fields['firstname'].initial = user.first_name
-            self.fields['lastname'].initial = user.last_name
-            self.fields['email'].initial = user.email
-            self.fields['email'].disabled = True
-            self.fields['phone'].initial = user.phone_number
+            self.fields["firstname"].initial = user.first_name
+            self.fields["lastname"].initial = user.last_name
+            self.fields["email"].initial = user.email
+            self.fields["email"].disabled = True
+            self.fields["phone"].initial = user.phone_number
 
 
 class CustomObserverAdminForm(CustomTranslatableAdminForm):
