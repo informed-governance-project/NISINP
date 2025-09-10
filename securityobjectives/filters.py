@@ -1,5 +1,6 @@
 import django_filters
 from django.db.models import F, Q
+from django.utils.translation import gettext as _
 
 from governanceplatform.models import Company, Sector, User
 from incidents.forms import DropdownCheckboxSelectMultiple
@@ -29,6 +30,7 @@ class StandardAnswerFilter(django_filters.FilterSet):
             attrs={"data-selected-text-format": "count > 2"}
         ),
     )
+    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
 
     class Meta:
         model = StandardAnswer
@@ -62,3 +64,13 @@ class StandardAnswerFilter(django_filters.FilterSet):
         self.filters["year_of_submission"].extra["choices"] = [
             (year, year) for year in sorted(years)
         ]
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(standard__translations__label__icontains=value)
+            | Q(standard__translations__description__icontains=value)
+            | Q(creator_name__icontains=value)
+            | Q(submitter_company__name__icontains=value)
+            | Q(year_of_submission__icontains=value)
+            | Q(sectors__translations__name__icontains=value)
+        ).distinct()

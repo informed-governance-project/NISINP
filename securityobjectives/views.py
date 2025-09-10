@@ -100,7 +100,9 @@ def get_security_objectives(request):
     standard_answers = get_standard_answers_with_progress(standard_answer_queryset)
 
     # Filter
-    if "reset" in request.GET:
+    search_value = request.GET.get("search", None)
+
+    if "reset" in request.GET or search_value == "":
         if "so_filter_params" in request.session:
             del request.session["so_filter_params"]
         return redirect("securityobjectives")
