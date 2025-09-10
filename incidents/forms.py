@@ -9,7 +9,6 @@ from django.forms.widgets import ChoiceWidget
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
-from django_otp.forms import OTPAuthenticationForm
 from parler.widgets import SortedCheckboxSelectMultiple
 
 from governanceplatform.helpers import (
@@ -167,11 +166,6 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
                 if subindex is not None:
                     subindex += 1
         return groups
-
-
-class AuthenticationForm(OTPAuthenticationForm):
-    otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
-    otp_challenge = forms.CharField(required=False, widget=forms.HiddenInput)
 
 
 # create a form for each category and add fields which represent questions
@@ -1027,7 +1021,10 @@ class IncidenteDateForm(forms.ModelForm):
 class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
-        if "is_significative_impact" not in self.data:
+        if (
+            "is_significative_impact" not in self.data
+            and "is_significative_impact" not in cleaned_data
+        ):
             cleaned_data[
                 "is_significative_impact"
             ] = self.instance.is_significative_impact
@@ -1036,6 +1033,11 @@ class IncidentStatusForm(forms.ModelForm):
             if cleaned_data.get(field) in [None, ""]:
                 cleaned_data[field] = getattr(self.instance, field)
         return cleaned_data
+
+    def get_field_change(self, field_name):
+        if field_name in self.changed_data:
+            return self.initial.get(field_name), self.cleaned_data.get(field_name)
+        return None, None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

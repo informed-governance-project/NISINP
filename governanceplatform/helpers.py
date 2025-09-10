@@ -2,9 +2,13 @@ import secrets
 from collections import defaultdict
 from typing import Any, Optional
 
+from django.conf import settings
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.core.signing import TimestampSigner
 from django.db import connection
 from django.http import HttpRequest
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -41,6 +45,23 @@ def table_exists(table_name: str) -> bool:
 def generate_token():
     """Generates a random token-safe text string."""
     return secrets.token_urlsafe(32)[:32]
+
+
+# send an email with the token to activate the account
+def send_activation_email(user):
+    signer = TimestampSigner()
+    token = signer.sign(user.activation_token)
+
+    activation_link = (
+        f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
+    )
+
+    subject = _("Activate your account")
+    message = _(
+        "Hello {username}! Please click here to activate your account : {activation_link}"
+    ).format(username=user.first_name, activation_link=activation_link)
+
+    send_mail(subject, message, settings.EMAIL_SENDER, [user.email])
 
 
 def user_in_group(user, group_name) -> bool:

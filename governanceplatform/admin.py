@@ -708,6 +708,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     user
                     and company
                     and not user.companyuser_set.exclude(pk=instance.pk).exists()
+                    and admins_qs
                 ):
                     context = {
                         "operator_admin_name": None,
@@ -731,6 +732,9 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                             context,
                             [admin_email],
                         )
+
+                if not admins_qs:
+                    instance.approved = True
 
             if not user_in_group(instance.user, "IncidentUser"):
                 instance.approved = True
@@ -1218,13 +1222,14 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     def get_fieldsets(self, request, obj=None):
         # RegulatorAdmin
-        if user_in_group(request.user, "RegulatorAdmin"):
+        if is_user_regulator(request.user):
             if "object_id" in request.resolver_match.kwargs:
                 current_id = request.resolver_match.kwargs["object_id"]
                 user = User.objects.get(pk=current_id)
-                if user and (
-                    user_in_group(user, "RegulatorAdmin")
-                    or user_in_group(user, "RegulatorUser")
+                if (
+                    user
+                    and not user_in_group(user, "PlatformAdmin")
+                    and not user == request.user
                 ):
                     return self.admin_fieldsets
         # PlatformAdmin
@@ -1232,9 +1237,13 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if "object_id" in request.resolver_match.kwargs:
                 current_id = request.resolver_match.kwargs["object_id"]
                 user = User.objects.get(pk=current_id)
-                if user and (
-                    user_in_group(user, "RegulatorAdmin")
-                    or user_in_group(user, "PlatformAdmin")
+                if (
+                    user
+                    and (
+                        user_in_group(user, "RegulatorAdmin")
+                        or user_in_group(user, "PlatformAdmin")
+                    )
+                    and not user == request.user
                 ):
                     return self.admin_fieldsets
         return self.standard_fieldsets
@@ -1301,7 +1310,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             fields_to_exclude = [
                 "get_regulators",
                 "get_observers",
-                "is_active",
                 "get_companies_for_operator_admin",
             ]
             list_display = [
@@ -1388,7 +1396,11 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         if (
             obj
             and user_in_group(user, "RegulatorUser")
-            and (obj == user or user_in_group(obj, "OperatorAdmin"))
+            and (
+                obj == user
+                or is_user_operator(obj)
+                or user_in_group(obj, "IncidentUser")
+            )
         ):
             return True
         return super().has_change_permission(request, obj)

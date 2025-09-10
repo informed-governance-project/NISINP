@@ -423,7 +423,10 @@ class SectorRegulationWorkflow(models.Model):
         return False
 
     # calculates the time between an incident update and actual_time
-    def how_late_is_the_report(self, incident, report, actual_time=None):
+    # TO DO : if needed make a function get_incident_detection_date
+    # to have the right date depending of the IncidentWorkflow and not
+    # incident
+    def how_late_is_the_report(self, incident, actual_time=None):
         if actual_time is None:
             actual_time = timezone.now()
 
@@ -436,9 +439,9 @@ class SectorRegulationWorkflow(models.Model):
         # detection date
         elif (
             trigger_event == "DETECT_DATE"
-            and report.report_timeline.incident_detection_date is not None
+            and incident.incident_detection_date is not None
         ):
-            dt = actual_time - report.report_timeline.incident_detection_date
+            dt = actual_time - incident.incident_detection_date
 
         # previous incident_workflow
         elif trigger_event == "PREV_WORK":

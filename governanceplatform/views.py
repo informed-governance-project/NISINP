@@ -5,11 +5,10 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.models import Company
@@ -22,6 +21,7 @@ from .forms import (
     SelectCompany,
     TermsAcceptanceForm,
 )
+from .helpers import send_activation_email
 from .models import User
 from .permissions import set_operator_admin_permissions, set_operator_user_permissions
 
@@ -64,23 +64,6 @@ def accessibility(request):
 
 def privacy(request):
     return render(request, "home/privacy_policy.html")
-
-
-# send an email with the token to activate the account
-def send_activation_email(user):
-    signer = TimestampSigner()
-    token = signer.sign(user.activation_token)
-
-    activation_link = (
-        f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
-    )
-
-    subject = _("Activate your account")
-    message = _(
-        "Hello {username}! Please click here to activate your account : {activation_link}"
-    ).format(username=user.first_name, activation_link=activation_link)
-
-    send_mail(subject, message, settings.EMAIL_SENDER, [user.email])
 
 
 def registration_view(request, *args, **kwargs):
@@ -143,7 +126,12 @@ def activate_account(request, token):
 
 def select_company(request):
     if request.method == "POST":
-        form = SelectCompany(request.POST, companies=request.user.companies.distinct())
+        form = SelectCompany(
+            request.POST,
+            companies=request.user.companies.filter(
+                companyuser__approved=True
+            ).distinct(),
+        )
 
         if form.is_valid() and request.user.is_authenticated:
             user_company = Company.objects.get(
@@ -166,7 +154,11 @@ def select_company(request):
                 request, "The select company is not linked to the account."
             )
     else:
-        form = SelectCompany(companies=request.user.companies.distinct())
+        form = form = SelectCompany(
+            companies=request.user.companies.filter(
+                companyuser__approved=True
+            ).distinct(),
+        )
 
     return render(request, "registration/select_company.html", {"form": form})
 
