@@ -66,6 +66,16 @@ def privacy(request):
     return render(request, "home/privacy_policy.html")
 
 
+def cookies(request):
+    context = {"cb_settings": settings.COOKIEBANNER}
+    return render(request, "home/cookies_policy.html", context)
+
+
+def sitemap(request):
+    context = {}
+    return render(request, "home/sitemap.html", context)
+
+
 def registration_view(request, *args, **kwargs):
     context = {}
     user = request.user
