@@ -1,4 +1,5 @@
 import uuid
+from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.core.mail import EmailMessage
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.models import Company
@@ -21,7 +23,7 @@ from .forms import (
     SelectCompany,
     TermsAcceptanceForm,
 )
-from .helpers import send_activation_email
+from .helpers import is_user_regulator, send_activation_email
 from .models import User
 from .permissions import set_operator_admin_permissions, set_operator_user_permissions
 
@@ -72,7 +74,49 @@ def cookies(request):
 
 
 def sitemap(request):
-    context = {}
+    user = request.user
+    modules = OrderedDict(
+        {
+            _("Home"): [
+                {"name": _("Terms of service"), "url": reverse("terms")},
+                {"name": _("Cookies policy"), "url": reverse("cookies")},
+                {"name": _("Accessibility statement"), "url": reverse("accessibility")},
+            ],
+            _("Account"): [
+                {"name": _("Login"), "url": reverse("login")},
+                {"name": _("Create account"), "url": reverse("registration")},
+            ],
+        }
+    )
+
+    if user.is_authenticated:
+        modules[_("Home")].append({"name": _("Contact"), "url": reverse("contact")})
+        if user.is_staff:
+            modules[_("Home")].append(
+                {"name": _("Settings"), "url": reverse("admin:index")}
+            )
+
+        modules[_("Account")] = [
+            {"name": _("Account management"), "url": reverse("edit_account")},
+            {"name": _("Account security"), "url": reverse("two_factor:profile")},
+            {"name": _("Change password"), "url": reverse("password_change")},
+            {"name": _("Log out"), "url": reverse("logout")},
+        ]
+
+        incidents_pages = [
+            {"name": _("Overview"), "url": reverse("incidents")},
+            {"name": _("Report an incident"), "url": reverse("declaration")},
+        ]
+        if is_user_regulator(user):
+            incidents_pages.append(
+                {
+                    "name": _("My reported incidents"),
+                    "url": reverse("regulator_incidents"),
+                }
+            )
+        modules[_("Incident notification")] = incidents_pages
+
+    context = {"modules": modules}
     return render(request, "home/sitemap.html", context)
 
 
