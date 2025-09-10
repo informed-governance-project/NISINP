@@ -74,6 +74,10 @@ urlpatterns = [
     path("accessibility/", views.accessibility, name="accessibility"),
     # Privacy Policy
     path("privacy/", views.privacy, name="privacy"),
+    # Cookies Policy
+    path("cookies/", views.cookies, name="cookies"),
+    # Sitemap
+    path("sitemap/", views.sitemap, name="sitemap"),
     path(
         "robots.txt",
         TemplateView.as_view(
