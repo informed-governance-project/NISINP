@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
 
+from .context_processors import user_modules
 from .forms import (
     ContactForm,
     CustomUserChangeForm,
@@ -75,6 +76,7 @@ def cookies(request):
 
 def sitemap(request):
     user = request.user
+    available_modules = user_modules(request)["user_modules"]
     modules = OrderedDict(
         {
             _("Home"): [
@@ -103,18 +105,40 @@ def sitemap(request):
             {"name": _("Log out"), "url": reverse("logout")},
         ]
 
-        incidents_pages = [
-            {"name": _("Overview"), "url": reverse("incidents")},
-            {"name": _("Report an incident"), "url": reverse("declaration")},
-        ]
-        if is_user_regulator(user):
-            incidents_pages.append(
-                {
-                    "name": _("My reported incidents"),
-                    "url": reverse("regulator_incidents"),
-                }
-            )
-        modules[_("Incident notification")] = incidents_pages
+        for a_module in available_modules:
+            type_module = a_module["type"]
+            if type_module == "incidents":
+                incidents_pages = [
+                    {"name": _("Overview"), "url": reverse("incidents")},
+                    {"name": _("Report an incident"), "url": reverse("declaration")},
+                ]
+                if is_user_regulator(user):
+                    incidents_pages.append(
+                        {
+                            "name": _("My reported incidents"),
+                            "url": reverse("regulator_incidents"),
+                        }
+                    )
+                modules[_("Incident notification")] = incidents_pages
+
+            if type_module == "securityobjectives":
+                securityobjectives_pages = [
+                    {"name": _("Dashboard"), "url": reverse("securityobjectives")},
+                ]
+
+                modules[_("Security objectives")] = securityobjectives_pages
+
+            if type_module == "reporting" and is_user_regulator(user):
+                reporting_pages = [
+                    {"name": _("Dashboard"), "url": reverse("reporting")},
+                    {"name": _("Download Center"), "url": reverse("download_center")},
+                    {
+                        "name": _("Configuration"),
+                        "url": reverse("report_configuration"),
+                    },
+                ]
+
+                modules[_("Reporting")] = reporting_pages
 
     context = {"modules": modules}
     return render(request, "home/sitemap.html", context)
