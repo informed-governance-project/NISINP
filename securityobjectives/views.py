@@ -459,6 +459,11 @@ def copy_declaration(request, standard_answer_id: int):
                     so_score = calculate_so_score(security_measure, standard_answer)
 
                     if so_score is not None:
+                        old_so_status = (
+                            original_standard_answer.securityobjectivestatus_set.filter(
+                                security_objective=security_measure.security_objective
+                            ).first()
+                        )
                         SecurityObjectiveStatus.objects.update_or_create(
                             standard_answer=sma.standard_answer,
                             security_objective=sma.security_measure.security_objective,
@@ -466,6 +471,9 @@ def copy_declaration(request, standard_answer_id: int):
                                 "score": so_score,
                                 "standard_answer": standard_answer,
                                 "security_objective": security_measure.security_objective,
+                                "actions": (
+                                    "" if not old_so_status else old_so_status.actions
+                                ),
                             },
                         )
 
