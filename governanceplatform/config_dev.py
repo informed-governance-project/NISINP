@@ -14,6 +14,7 @@ REGULATOR_CONTACT = {
     "country": "Organization Country",
     "phone": "Organization Phone Number",
     "website": "https://www.example.org",
+    "short_url": "example.org",
     "contact_email": "contact@example.org",
     "privacy_email": "privacy@exemple.org",
     "tos_url": None,  # "https://www.example.org/tos"
