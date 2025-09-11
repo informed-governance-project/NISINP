@@ -5,7 +5,6 @@ STANDARD_ANSWER_REVIEW_STATUS = [
     ("DELIV", _("Under review")),
     ("PASS", _("Passed")),
     ("PASSM", _("Passed and sent")),
-    ("FAIL", _("Failed")),
-    ("FAILM", _("Failed and sent")),
-    ("OUT", _("Submission overdue")),
+    ("FAIL", _("Revision required")),
+    ("FAILM", _("Revision required and sent")),
 ]
