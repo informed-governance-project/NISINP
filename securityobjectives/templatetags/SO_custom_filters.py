@@ -33,22 +33,26 @@ def status_class(value):
     elif value == "OUT":
         return "table-dark"
     else:
-        return "table-secondary"
+        return "bg-unsubmitted"
 
 
-@register.simple_tag
-def status_icon(value):
+@register.simple_tag(takes_context=True)
+def status_icon(context, value):
     if value == "PASS":
         return "custom-icon-passed"
     elif value == "PASSM":
-        return "custom-icon-passed-sent"
+        if context["is_regulator"]:
+            return "custom-icon-passed-sent"
+        return "custom-icon-passed-white"
     elif value == "FAIL":
         return "custom-icon-failed"
     elif value == "FAILM":
-        return "custom-icon-failed-sent"
+        if context["is_regulator"]:
+            return "custom-icon-failed-sent"
+        return "custom-icon-failed-white"
     elif value == "DELIV":
         return "custom-icon-under-review-white"
     elif value == "OUT":
         return "table-dark"
     else:
-        return "table-secondary"
+        return "custom-icon-unsubmitted-white"
