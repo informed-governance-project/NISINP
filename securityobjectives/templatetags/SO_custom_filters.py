@@ -21,15 +21,33 @@ def settings_value(name):
 @register.simple_tag
 def status_class(value):
     if value == "PASS":
-        return "table-success"
+        return "border border-passed border-2"
     elif value == "PASSM":
-        return "table-success sent-success"
+        return "bg-passed"
     elif value == "FAIL":
-        return "table-danger"
+        return "border border-failed border-2"
     elif value == "FAILM":
-        return "table-danger sent-fail"
+        return "bg-failed "
     elif value == "DELIV":
-        return "table-info"
+        return "bg-under-review"
+    elif value == "OUT":
+        return "table-dark"
+    else:
+        return "table-secondary"
+
+
+@register.simple_tag
+def status_icon(value):
+    if value == "PASS":
+        return "custom-icon-passed"
+    elif value == "PASSM":
+        return "custom-icon-passed-sent"
+    elif value == "FAIL":
+        return "custom-icon-failed"
+    elif value == "FAILM":
+        return "custom-icon-failed-sent"
+    elif value == "DELIV":
+        return "custom-icon-under-review-white"
     elif value == "OUT":
         return "table-dark"
     else:
