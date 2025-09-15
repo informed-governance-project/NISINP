@@ -104,7 +104,7 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
                 set_readonly("actions")
             if initial["status"] == "PASS":
                 self.fields["status"].widget.attrs.update(
-                    {"class": f"{current_class} text-white bg-success"},
+                    {"class": f"{current_class} text-white bg-passed"},
                 )
             if initial["status"] == "FAIL":
                 self.fields["status"].widget.attrs.update(
