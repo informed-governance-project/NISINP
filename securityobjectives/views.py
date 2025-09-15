@@ -356,7 +356,7 @@ def declaration(request):
             initial = model_to_dict(so_status, fields=["status", "actions"])
             initial["is_regulator"] = is_user_regulator(user)
 
-            security_objective.score = so_status.score
+            security_objective.status = so_status
         except SecurityObjectiveStatus.DoesNotExist:
             initial = {}
 
@@ -396,7 +396,10 @@ def declaration(request):
 
     create_entry_log(user, standard_answer, "READ", request)
 
-    context = {"security_objectives": security_objectives}
+    context = {
+        "security_objectives": security_objectives,
+        "standard_answer": standard_answer,
+    }
 
     return render(request, "security_objectives/declaration.html", context=context)
 
