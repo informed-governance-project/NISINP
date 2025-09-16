@@ -921,7 +921,7 @@ class IncidentWorkflow(models.Model):
         ).first()
         delay_in_hours = report.delay_in_hours_before_deadline
 
-        dt = report.how_late_is_the_report(self.incident, self)
+        dt = report.how_late_is_the_report(self.incident)
 
         if dt and dt.total_seconds() / 60 / 60 >= delay_in_hours:
             return True
