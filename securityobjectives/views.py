@@ -918,14 +918,65 @@ def import_so_declaration(request):
 
 
 def get_standard_answers_with_progress(standard_answer_queryset):
+    levels = SecurityMeasure.objects.aggregate(
+        min_level=Min("maturity_level__level"),
+        max_level=Max("maturity_level__level"),
+    )
+
+    min_level = levels["min_level"]
+    max_level = levels["max_level"]
+
+    single_measure_subquery = (
+        SecurityMeasure.objects.filter(
+            security_objective=OuterRef("security_measure__security_objective"),
+            maturity_level__level=max_level,
+        )
+        .values("security_objective")
+        .annotate(n=Count("pk"))
+        .filter(n=1)
+    )
+
+    single_measure_case = Q(
+        security_measure__maturity_level__level=max_level, justification=""
+    ) & Exists(single_measure_subquery)
+
+    missing_answers_subquery = SecurityMeasure.objects.filter(
+        security_objective=OuterRef("security_measure__security_objective"),
+        maturity_level__level=max_level,
+    ).exclude(
+        pk__in=SecurityMeasureAnswer.objects.filter(
+            standard_answer=OuterRef("securitymeasureanswers__standard_answer")
+        ).values("security_measure")
+    )
+
+    all_linked_case = Q(
+        security_measure__maturity_level__level=max_level, justification=""
+    ) & ~Exists(missing_answers_subquery)
+
+    actions = (
+        SecurityObjectiveStatus.objects.filter(
+            security_objective=OuterRef("security_measure__security_objective"),
+            standard_answer=OuterRef("standard_answer"),
+        )
+        .exclude(actions="")
+        .exclude(actions__isnull=True)
+    )
+
+    max_level_invalid = single_measure_case | all_linked_case
+
     invalid_answers = SecurityMeasureAnswer.objects.filter(
         standard_answer=OuterRef("pk"),
         security_measure__security_objective=OuterRef(
             "securitymeasureanswers__security_measure__security_objective"
         ),
-        is_implemented=True,
-        justification="",
-    ).exclude(security_measure__maturity_level__level=0)
+    ).filter(
+        (Q(security_measure__maturity_level__level=min_level) & ~Exists(actions))
+        | (
+            ~Q(security_measure__maturity_level__level__in=[min_level, max_level])
+            & (Q(justification="") | ~Exists(actions))
+        )
+        | max_level_invalid
+    )
 
     standard_answers = standard_answer_queryset.annotate(
         total_security_objectives=Count(
