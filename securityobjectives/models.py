@@ -355,6 +355,10 @@ class SecurityObjectiveStatus(models.Model):
         verbose_name=_("Planned Measures"),
     )
 
+    is_completely_filled_out = models.BooleanField(
+        default=False, verbose_name=_("It is completely filled out")
+    )
+
 
 class LogStandardAnswer(models.Model):
     user = models.ForeignKey(

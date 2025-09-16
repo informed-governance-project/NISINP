@@ -12,13 +12,11 @@ from django.db.models import (
     BooleanField,
     Case,
     Count,
-    Exists,
     ExpressionWrapper,
     F,
     FloatField,
     Max,
     Min,
-    OuterRef,
     Q,
     Value,
     When,
@@ -97,8 +95,6 @@ def get_security_objectives(request):
             submitter_company=company
         )
 
-    standard_answers = get_standard_answers_with_progress(standard_answer_queryset)
-
     # Filter
     search_value = request.GET.get("search", None)
 
@@ -112,7 +108,7 @@ def get_security_objectives(request):
 
     so_filter_params = request.session.get("so_filter_params", request.GET)
     security_objective_filter = StandardAnswerFilter(
-        so_filter_params, queryset=standard_answers.order_by("-last_update")
+        so_filter_params, queryset=standard_answer_queryset.order_by("-last_update")
     )
 
     # Filter
@@ -122,6 +118,7 @@ def get_security_objectives(request):
     page_number = so_filter_params.get("page")
     paginator = Paginator(so_answer_list, per_page)
     page_obj = paginator.get_page(page_number)
+    page_obj.object_list = get_standard_answers_with_progress(page_obj.object_list)
 
     is_filtered = {
         k: v for k, v in so_filter_params.items() if k not in ["page", "per_page"]
@@ -918,75 +915,14 @@ def import_so_declaration(request):
 
 
 def get_standard_answers_with_progress(standard_answer_queryset):
-    levels = SecurityMeasure.objects.aggregate(
-        min_level=Min("maturity_level__level"),
-        max_level=Max("maturity_level__level"),
-    )
-
-    min_level = levels["min_level"]
-    max_level = levels["max_level"]
-
-    single_measure_subquery = (
-        SecurityMeasure.objects.filter(
-            security_objective=OuterRef("security_measure__security_objective"),
-            maturity_level__level=max_level,
-        )
-        .values("security_objective")
-        .annotate(n=Count("pk"))
-        .filter(n=1)
-    )
-
-    single_measure_case = Q(
-        security_measure__maturity_level__level=max_level, justification=""
-    ) & Exists(single_measure_subquery)
-
-    missing_answers_subquery = SecurityMeasure.objects.filter(
-        security_objective=OuterRef("security_measure__security_objective"),
-        maturity_level__level=max_level,
-    ).exclude(
-        pk__in=SecurityMeasureAnswer.objects.filter(
-            standard_answer=OuterRef("securitymeasureanswers__standard_answer")
-        ).values("security_measure")
-    )
-
-    all_linked_case = Q(
-        security_measure__maturity_level__level=max_level, justification=""
-    ) & ~Exists(missing_answers_subquery)
-
-    actions = (
-        SecurityObjectiveStatus.objects.filter(
-            security_objective=OuterRef("security_measure__security_objective"),
-            standard_answer=OuterRef("standard_answer"),
-        )
-        .exclude(actions="")
-        .exclude(actions__isnull=True)
-    )
-
-    max_level_invalid = single_measure_case | all_linked_case
-
-    invalid_answers = SecurityMeasureAnswer.objects.filter(
-        standard_answer=OuterRef("pk"),
-        security_measure__security_objective=OuterRef(
-            "securitymeasureanswers__security_measure__security_objective"
-        ),
-    ).filter(
-        (Q(security_measure__maturity_level__level=min_level) & ~Exists(actions))
-        | (
-            ~Q(security_measure__maturity_level__level__in=[min_level, max_level])
-            & (Q(justification="") | ~Exists(actions))
-        )
-        | max_level_invalid
-    )
-
     standard_answers = standard_answer_queryset.annotate(
         total_security_objectives=Count(
             "standard__securityobjectivesinstandard__security_objective",
             distinct=True,
         ),
         total_security_objectives_answered=Count(
-            "securitymeasureanswers__security_measure__security_objective",
-            filter=Q(securitymeasureanswers__is_implemented=True)
-            & ~Exists(invalid_answers),
+            "securityobjectivestatus",
+            filter=Q(securityobjectivestatus__is_completely_filled_out=True),
             distinct=True,
         ),
         answered_percentage=Case(
@@ -999,7 +935,6 @@ def get_standard_answers_with_progress(standard_answer_queryset):
             ),
         ),
     )
-
     return standard_answers
 
 
@@ -1130,7 +1065,17 @@ def get_completion_objective(security_objective, standard_answer):
         security_measure__security_objective=security_objective,
         standard_answer=standard_answer,
     )
+
+    so_status = SecurityObjectiveStatus.objects.filter(
+        security_objective=security_objective,
+        standard_answer=standard_answer,
+    ).first()
+
     if not queryset.exists():
+        if so_status:
+            so_status.is_completely_filled_out = False
+            so_status.save()
+
         return {
             "is_completed": False,
             "is_partially": False,
@@ -1187,16 +1132,14 @@ def get_completion_objective(security_objective, standard_answer):
             standard_answer=standard_answer,
         ).count()
 
-        so_status = SecurityObjectiveStatus.objects.filter(
-            security_objective=security_objective,
-            standard_answer=standard_answer,
-        ).first()
-
         actions_planned = bool(so_status and so_status.actions)
 
         if last_level_security_measures != last_level_security_measures_checked:
             all_completed = actions_planned
             any_partially = not actions_planned
+
+    so_status.is_completely_filled_out = all_completed
+    so_status.save()
 
     return {
         "is_completed": all_completed,
