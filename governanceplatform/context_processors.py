@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform import __version__
-from governanceplatform import settings
 
 from .helpers import is_observer_user, is_user_regulator, user_in_group
 from .models import Functionality, ApplicationConfig
@@ -93,14 +92,10 @@ def user_modules(request):
     }
 
 
-def cookiebanner_name(request):
-    base = getattr(settings, "COOKIEBANNER", {}).get("name", "cookiebanner")
+def cookiebanner_version(request):
     try:
         cfg = ApplicationConfig.objects.get(key="cookiebanner")
         version = cfg.value
-        print(cfg)
-        print(version)
     except Exception:
-        version = ""
-    final = f"{base}_{version}" if version else base
-    return {"cookiebanner_name": final}
+        version = 0
+    return {"cookiebanner_version": version}

@@ -1216,6 +1216,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         cfg = ApplicationConfig.objects.get(key="cookiebanner")
         if cfg:
             cfg.change_uuid_value()
+        messages.success(request, _("Cookies acceptation has been reseted"))
         return redirect("..")
 
     def reset_accepted_terms(self, request):
@@ -1223,6 +1224,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             raise Http404()
 
         User.objects.update(accepted_terms=False)
+        messages.success(request, _("Terms acceptation has been reseted"))
         return redirect("..")
 
     def changelist_view(self, request, extra_context=None):
