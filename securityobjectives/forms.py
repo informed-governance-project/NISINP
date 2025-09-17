@@ -97,11 +97,13 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
         self.fields["actions"].required = False
 
         if initial:
+            is_readonly = initial.get("is_readonly", True)
             is_regulator = initial.get("is_regulator", True)
             current_class = self.fields["status"].widget.attrs.get("class", "")
 
-            if is_regulator:
+            if is_readonly or is_regulator:
                 set_readonly("actions")
+
             if initial["status"] == "PASS":
                 self.fields["status"].widget.attrs.update(
                     {"class": f"{current_class} text-white bg-passed"},

@@ -352,6 +352,9 @@ def declaration(request):
             )
             initial = model_to_dict(so_status, fields=["status", "actions"])
             initial["is_regulator"] = is_user_regulator(user)
+            initial["is_readonly"] = (
+                is_user_operator(user) and standard_answer.status != "UNDE"
+            )
 
             security_objective.status = so_status
         except SecurityObjectiveStatus.DoesNotExist:
