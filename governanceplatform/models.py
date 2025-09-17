@@ -19,6 +19,15 @@ from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
 
 
+class ApplicationConfig(models.Model):
+    key = models.CharField(max_length=128, unique=True)
+    value = models.CharField(max_length=255)
+
+    def change_uuid_value(self):
+        self.value = uuid.uuid4().hex[:8]
+        self.save()
+
+
 # sector
 class Sector(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))

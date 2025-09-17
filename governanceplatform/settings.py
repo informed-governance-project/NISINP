@@ -233,6 +233,7 @@ TEMPLATES = [
                 "governanceplatform.context_processors.get_version",
                 "governanceplatform.context_processors.instance_configurations",
                 "governanceplatform.context_processors.user_modules",
+                "governanceplatform.context_processors.cookiebanner_name",
             ],
         },
     },

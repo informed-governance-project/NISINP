@@ -32,6 +32,7 @@ from .helpers import (
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
+    ApplicationConfig,
     Company,
     CompanyUser,
     EntityCategory,
@@ -1200,8 +1201,22 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.reset_accepted_terms),
                 name="reset_accepted_terms",
             ),
+            path(
+                "reset-cookie-acceptation/",
+                self.admin_site.admin_view(self.reset_cookie_acceptation),
+                name="reset_cookie_acceptation",
+            ),
         ]
         return custom_urls + urls
+
+    def reset_cookie_acceptation(self, request):
+        if not user_in_group(request.user, "PlatformAdmin"):
+            raise Http404()
+
+        cfg = ApplicationConfig.objects.get(key="cookiebanner")
+        if cfg:
+            cfg.change_uuid_value()
+        return redirect("..")
 
     def reset_accepted_terms(self, request):
         if not user_in_group(request.user, "PlatformAdmin"):
@@ -1214,6 +1229,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         extra_context = extra_context or {}
         if user_in_group(request.user, "PlatformAdmin"):
             extra_context["reset_url"] = "reset-accepted-terms/"
+            extra_context["reset_url_cookies"] = "reset-cookie-acceptation/"
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="2FA", boolean=True)
