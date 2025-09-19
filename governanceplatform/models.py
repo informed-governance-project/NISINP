@@ -659,6 +659,9 @@ class EntityCategory(TranslatableModel):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
 
+    def get_safe_translation(self):
+        return str(self)
+
     class Meta:
         verbose_name_plural = _("Entity categories")
         verbose_name = _("Entity category")
