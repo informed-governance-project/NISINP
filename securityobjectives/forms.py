@@ -99,7 +99,8 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
         if initial:
             is_readonly = initial.get("is_readonly", True)
             is_regulator = initial.get("is_regulator", True)
-            current_class = self.fields["status"].widget.attrs.get("class", "")
+            current_classes = self.fields["status"].widget.attrs.get("class", "")
+            new_classes = current_classes
 
             if is_readonly:
                 set_readonly("status")
@@ -109,13 +110,14 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
                 set_readonly("actions")
 
             if initial["status"] == "PASS":
-                self.fields["status"].widget.attrs.update(
-                    {"class": f"{current_class} text-white bg-passed"},
-                )
+                new_classes = f"{current_classes} text-white bg-passed"
+
             if initial["status"] == "FAIL":
-                self.fields["status"].widget.attrs.update(
-                    {"class": f"{current_class} text-white bg-danger"},
-                )
+                new_classes = f"{current_classes} text-white bg-failed"
+
+            self.fields["status"].widget.attrs.update(
+                {"class": new_classes},
+            )
 
 
 class SelectSOStandardForm(forms.Form):
@@ -260,6 +262,18 @@ class ReviewForm(forms.ModelForm):
         self.fields["status"].disabled = True
 
         if initial:
+            current_classes = self.fields["status"].widget.attrs.get("class", "")
             is_read_only = initial.get("is_readonly", True)
             self.fields["review_comment"].disabled = is_read_only
             self.fields["deadline"].disabled = is_read_only
+            new_classes = f"{current_classes} fw-bolder text-white"
+
+            if initial["status"] == "PASS":
+                new_classes = f"{new_classes} bg-passed"
+
+            if initial["status"] == "FAIL":
+                new_classes = f"{new_classes} bg-failed"
+
+            self.fields["status"].widget.attrs.update(
+                {"class": new_classes},
+            )
