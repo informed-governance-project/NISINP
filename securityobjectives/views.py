@@ -249,7 +249,10 @@ def declaration(request):
                     )
 
                     standard_answer.last_update = timezone.now()
-                    standard_answer.status = get_standard_answer_status(standard_answer)
+                    if is_user_regulator(user):
+                        standard_answer.status = get_standard_answer_status(
+                            standard_answer
+                        )
                     standard_answer.save()
 
                     objective_state = get_completion_objective(
