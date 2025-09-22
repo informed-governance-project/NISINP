@@ -249,6 +249,7 @@ def declaration(request):
                     )
 
                     standard_answer.last_update = timezone.now()
+                    standard_answer.status = get_standard_answer_status(standard_answer)
                     standard_answer.save()
 
                     objective_state = get_completion_objective(
@@ -263,6 +264,12 @@ def declaration(request):
                             "id": id_object,
                             "data": field_to_update,
                             "objective_state": objective_state,
+                            "ready_to_submit": declaration_is_ready_to(standard_answer)[
+                                "submit"
+                            ],
+                            "ready_to_send": declaration_is_ready_to(standard_answer)[
+                                "send"
+                            ],
                         },
                         status=201 if created else 200,
                     )
@@ -325,6 +332,9 @@ def declaration(request):
                             "data": field_to_update,
                             "objective_state": objective_state,
                             "so_score": f"{float(so_score):.2f}",
+                            "ready_to_submit": declaration_is_ready_to(standard_answer)[
+                                "submit"
+                            ],
                         },
                         status=201 if sma_created else 200,
                     )
@@ -354,6 +364,8 @@ def declaration(request):
             initial["is_regulator"] = is_user_regulator(user)
             initial["is_readonly"] = (
                 is_user_operator(user) and standard_answer.status != "UNDE"
+            ) or (
+                is_user_regulator(user) and standard_answer.status in ["PASSM", "FAILM"]
             )
 
             security_objective.status = so_status
@@ -380,6 +392,8 @@ def declaration(request):
             initial["is_regulator"] = is_user_regulator(user)
             initial["is_readonly"] = (
                 is_user_operator(user) and standard_answer.status != "UNDE"
+            ) or (
+                is_user_regulator(user) and standard_answer.status in ["PASSM", "FAILM"]
             )
 
             security_objective = measure.security_objective
@@ -395,6 +409,9 @@ def declaration(request):
     }
 
     create_entry_log(user, standard_answer, "READ", request)
+
+    standard_answer.ready_to_submit = declaration_is_ready_to(standard_answer)["submit"]
+    standard_answer.ready_to_send = declaration_is_ready_to(standard_answer)["send"]
 
     context = {
         "security_objectives": security_objectives,
@@ -469,6 +486,12 @@ def copy_declaration(request, standard_answer_id: int):
                                 security_objective=security_measure.security_objective
                             ).first()
                         )
+                        if old_so_status:
+                            actions = old_so_status.actions
+                            is_completely_filled_out = (
+                                old_so_status.is_completely_filled_out
+                            )
+
                         SecurityObjectiveStatus.objects.update_or_create(
                             standard_answer=sma.standard_answer,
                             security_objective=sma.security_measure.security_objective,
@@ -476,9 +499,8 @@ def copy_declaration(request, standard_answer_id: int):
                                 "score": so_score,
                                 "standard_answer": standard_answer,
                                 "security_objective": security_measure.security_objective,
-                                "actions": (
-                                    "" if not old_so_status else old_so_status.actions
-                                ),
+                                "actions": actions,
+                                "is_completely_filled_out": is_completely_filled_out,
                             },
                         )
 
@@ -928,6 +950,20 @@ def get_standard_answers_with_progress(standard_answer_queryset):
             filter=Q(securityobjectivestatus__is_completely_filled_out=True),
             distinct=True,
         ),
+        total_security_objectives_reviewed=Count(
+            "securityobjectivestatus",
+            filter=~Q(securityobjectivestatus__status="NOT_REVIEWED"),
+            distinct=True,
+        ),
+        reviewed_percentage=Case(
+            When(total_security_objectives=0, then=Value(0.0)),
+            default=ExpressionWrapper(
+                F("total_security_objectives_reviewed")
+                * 100.0
+                / F("total_security_objectives"),
+                output_field=FloatField(),
+            ),
+        ),
         answered_percentage=Case(
             When(total_security_objectives=0, then=Value(0.0)),
             default=ExpressionWrapper(
@@ -1192,3 +1228,17 @@ def get_standard_answer_status(standard_answer):
             status = STANDARD_ANSWER_REVIEW_STATUS[4][0]
 
     return status
+
+
+def declaration_is_ready_to(standard_answer):
+    try:
+        declaration = get_standard_answers_with_progress(
+            StandardAnswer.objects.filter(pk=standard_answer.pk)
+        ).first()
+        submit = declaration.answered_percentage == 100
+        send = declaration.reviewed_percentage == 100
+    except Exception:
+        submit = False
+        send = False
+
+    return {"submit": submit, "send": send}
