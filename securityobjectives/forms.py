@@ -268,6 +268,14 @@ class ReviewForm(forms.ModelForm):
             self.fields["deadline"].disabled = is_read_only
             new_classes = f"{current_classes} fw-bolder text-white"
 
+            if initial["status"] == "PASSM":
+                initial["status"] = "PASS"
+                self.initial["status"] = "PASS"
+
+            if initial["status"] == "FAILM":
+                initial["status"] = "FAIL"
+                self.initial["status"] = "FAIL"
+
             if initial["status"] == "PASS":
                 new_classes = f"{new_classes} bg-passed"
 
@@ -277,3 +285,9 @@ class ReviewForm(forms.ModelForm):
             self.fields["status"].widget.attrs.update(
                 {"class": new_classes},
             )
+
+    def clean_status(self):
+        status = self.cleaned_data.get("status")
+        if status not in ["PASS", "FAIL"]:
+            raise forms.ValidationError("Status must be either PASS or FAIL.")
+        return status

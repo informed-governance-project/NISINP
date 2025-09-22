@@ -583,7 +583,7 @@ def review_comment_declaration(request, standard_answer_id: int):
 
     if request.method == "POST":
         form = ReviewForm(request.POST, initial=initial)
-        if form.is_valid() and form.cleaned_data["status"] != "DELIV":
+        if is_user_regulator(user) and form.is_valid():
             standard_answer.review_comment = form.cleaned_data["review_comment"]
             standard_answer.deadline = form.cleaned_data["deadline"]
             standard_answer.status = form.cleaned_data["status"]
