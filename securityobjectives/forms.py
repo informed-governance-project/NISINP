@@ -101,7 +101,11 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
             is_regulator = initial.get("is_regulator", True)
             current_class = self.fields["status"].widget.attrs.get("class", "")
 
-            if is_readonly or is_regulator:
+            if is_readonly:
+                set_readonly("status")
+                set_readonly("actions")
+
+            if is_regulator:
                 set_readonly("actions")
 
             if initial["status"] == "PASS":
