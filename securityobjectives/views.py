@@ -585,7 +585,7 @@ def review_comment_declaration(request, standard_answer_id: int):
             initial["status"] = get_standard_answer_status(standard_answer)
 
     if request.method == "POST":
-        form = ReviewForm(request.POST, initial=initial)
+        form = ReviewForm(request.POST, instance=standard_answer, initial=initial)
         if is_user_regulator(user) and form.is_valid():
             standard_answer.review_comment = form.cleaned_data["review_comment"]
             standard_answer.deadline = form.cleaned_data["deadline"]
@@ -615,7 +615,7 @@ def review_comment_declaration(request, standard_answer_id: int):
 
         return redirect("securityobjectives")
 
-    form = ReviewForm(initial=initial)
+    form = ReviewForm(instance=standard_answer, initial=initial)
     context = {"form": form, "standard_answer_id": standard_answer_id}
     return render(request, "modals/review_comment_so_declaration.html", context=context)
 
