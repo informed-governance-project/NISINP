@@ -540,9 +540,13 @@ class CompanyUser(models.Model):
 
     def clean(self):
         is_incident_user = self.user.groups.filter(name="IncidentUser").exists()
-        has_admin = self.company.companyuser_set.filter(
-            is_company_administrator=True
-        ).exists()
+        # manage the case of the creation of the company pk is none
+        if self.company.pk is not None:
+            has_admin = self.company.companyuser_set.filter(
+                is_company_administrator=True
+            ).exists()
+        else:
+            has_admin = False
 
         if is_incident_user and self.is_company_administrator and not self.approved:
             raise ValidationError(
