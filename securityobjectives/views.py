@@ -209,6 +209,10 @@ def declaration(request):
         standard.securityobjectivesinstandard_set.all().order_by("position")
     )
 
+    levels = MaturityLevel.objects.all().aggregate(
+        first_level=Min("level"), last_level=Max("level")
+    )
+
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
         id_object = data.pop("id", None)
@@ -334,7 +338,7 @@ def declaration(request):
                             "created": sma_created,
                             "data": field_to_update,
                             "objective_state": objective_state,
-                            "so_score": f"{float(so_score):.2f}",
+                            "so_score": f"{float(so_score):.1f}",
                             "ready_to_submit": declaration_is_ready_to(standard_answer)[
                                 "submit"
                             ],
@@ -417,6 +421,7 @@ def declaration(request):
     standard_answer.ready_to_send = declaration_is_ready_to(standard_answer)["send"]
 
     context = {
+        "last_maturity_level": levels["last_level"],
         "security_objectives": security_objectives,
         "standard_answer": standard_answer,
     }
