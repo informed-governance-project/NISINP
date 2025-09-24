@@ -60,3 +60,9 @@ def status_icon(context, value):
         return "custom-icon-under-review-white"
     else:
         return "custom-icon-unsubmitted-white"
+
+
+@register.filter
+def split(value, delimiter=","):
+    """Splits the string by delimiter."""
+    return value.split(delimiter)
