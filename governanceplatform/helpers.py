@@ -379,3 +379,25 @@ def translated_queryset(qs, language, default_language, translated_fields=[], or
         qs = qs.annotate(**sort_annotations)
 
     return qs
+
+
+def generate_display_methods(translated_fields):
+    """"
+    Dynamically generates display methods for translated fields.
+    Example: for “label” → creates label_display() with
+    - admin_order_field = “_label”
+    - short_description = “Label”
+    _label is for exemple generated with CustomTranslatableAdmin
+    """
+    methods = {}
+
+    for field in translated_fields:
+        def make_method(f):
+            def _method(self, obj):
+                return getattr(obj, f"_{f}")
+            _method.admin_order_field = f"_{f}"
+            _method.short_description = _(f.replace("_", " ").capitalize())
+            return _method
+
+        methods[f"{field}_display"] = make_method(field)
+    return methods

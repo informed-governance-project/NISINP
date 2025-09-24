@@ -32,6 +32,7 @@ from .helpers import (
     is_user_operator,
     is_user_regulator,
     user_in_group,
+    generate_display_methods,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
@@ -155,32 +156,6 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
 
         return qs.annotate(**final_annotations)
 
-    # sort on translated field
-    # TO DO : optimize with automatic field generation
-    def name_display(self, obj):
-        return obj._name
-
-    name_display.admin_order_field = "_name"
-    name_display.short_description = _("Name")
-
-    def label_display(self, obj):
-        return obj._label
-
-    label_display.admin_order_field = "_label"
-    label_display.short_description = _("Label")
-
-    def full_name_display(self, obj):
-        return obj._full_name
-
-    full_name_display.admin_order_field = "_full_name"
-    full_name_display.short_description = _("Full name")
-
-    def description_display(self, obj):
-        return obj._description
-
-    description_display.admin_order_field = "_description"
-    description_display.short_description = _("Description")
-
 
 class CustomTranslatableTabularInline(TranslatableTabularInline):
     form = CustomTranslatableAdminForm
@@ -275,6 +250,9 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             super().save_model(request, obj, form, change)
 
 
+for name, method in generate_display_methods(["name"]).items():
+    setattr(SectorAdmin, name, method)
+
 # class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
 #     id = fields.Field(
 #         column_name="id",
@@ -359,6 +337,10 @@ class EntityCategoryAdmin(CustomTranslatableAdmin):
         if user_in_group(user, "PlatformAdmin"):
             return True
         return False
+
+
+for name, method in generate_display_methods(["label"]).items():
+    setattr(EntityCategoryAdmin, name, method)
 
 
 class CompanyResource(resources.ModelResource):
@@ -1609,6 +1591,9 @@ class FunctionalityAdmin(CustomTranslatableAdmin):
         return False
 
 
+for name, method in generate_display_methods(["name"]).items():
+    setattr(FunctionalityAdmin, name, method)
+
 # class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
 #     id = fields.Field(
 #         column_name="id",
@@ -1877,6 +1862,10 @@ class ObserverAdmin(CustomTranslatableAdmin):
             readonly_fields += ("is_receiving_all_incident", "functionalities")
 
         return readonly_fields
+
+
+for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+    setattr(ObserverAdmin, name, method)
 
 
 class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
