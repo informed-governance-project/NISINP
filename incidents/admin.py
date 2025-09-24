@@ -26,10 +26,11 @@ from governanceplatform.helpers import (
     can_change_or_delete_obj,
     set_creator,
     user_in_group,
+    translated_queryset,
 )
 from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
-from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY
+from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY, PARLER_DEFAULT_LANGUAGE_CODE
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.forms import QuestionOptionsInlineForm
 from incidents.models import (
@@ -299,6 +300,13 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
                 .distinct()
             )
 
+        if db_field.name == "question" and not request.POST:
+            lang = getattr(request, "LANGUAGE_CODE")
+            queryset = (
+                Question.objects.all()
+            )
+            qs = translated_queryset(queryset, lang, PARLER_DEFAULT_LANGUAGE_CODE, ["label", "tooltip"], True)
+            kwargs["queryset"] = qs.order_by("_label_sort")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 

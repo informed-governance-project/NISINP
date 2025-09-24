@@ -118,9 +118,6 @@ class Question(TranslatableModel):
     reference = models.CharField(
         verbose_name=_("Reference"),
         max_length=255,
-        blank=True,
-        default=None,
-        null=True,
     )  # reference to add context information on question
     translations = TranslatedFields(
         label=models.TextField(verbose_name=_("Label")),
