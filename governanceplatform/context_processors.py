@@ -8,7 +8,7 @@ from .helpers import (
     is_user_regulator,
     user_in_group,
 )
-from .models import Functionality
+from .models import ApplicationConfig, Functionality
 from .settings import COOKIEBANNER, REGULATOR_CONTACT, SITE_NAME
 
 
@@ -94,3 +94,12 @@ def user_modules(request):
         "user_modules": user_modules,
         "current_module": name,
     }
+
+
+def cookiebanner_version(request):
+    try:
+        cfg = ApplicationConfig.objects.get(key="cookiebanner")
+        version = cfg.value
+    except Exception:
+        version = 0
+    return {"cookiebanner_version": version}

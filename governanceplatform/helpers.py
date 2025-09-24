@@ -7,6 +7,9 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.core.signing import TimestampSigner
 from django.db import connection
+from django.db.models import F, Max, Q, Value
+from django.db.models.fields import TextField
+from django.db.models.functions import Coalesce, Lower
 from django.http import HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
@@ -392,3 +395,57 @@ def get_sectors_grouped(sectors):
     )
 
     return sorted(sectors_grouped, key=lambda item: item[0])
+
+
+# From a queryset with translated fields, build a queryset that selects:
+#  1. the value in the requested language,
+#  2. falling back to the default language if the translation is missing.
+#
+# If orderable = True, the function also creates normalized sort fields for
+# each entry in translated_fields. For example, with translated_fields = ["label", "tooltip"],
+# it will generate _label_sort and _tooltip_sort.
+#
+# These *_sort fields are case-insensitive (they ignore uppercase/lowercase when sorting).
+# If it is important to sort with case sensitivity, set orderable = False
+# and order directly by the translated field, e.g. .order_by("_label").
+def translated_queryset(
+    qs, language, default_language, translated_fields=None, orderable=False
+):
+    default_lang = default_language
+    lang = language
+
+    if translated_fields is None:
+        translated_fields = []
+
+    annotations = {}
+
+    for f in translated_fields:
+        # Annotate value with the requested lang and default one
+        annotations[f"_{f}_lang"] = Max(
+            f"translations__{f}", filter=Q(translations__language_code=lang)
+        )
+        annotations[f"_{f}_default"] = Max(
+            f"translations__{f}", filter=Q(translations__language_code=default_lang)
+        )
+
+    qs = qs.annotate(**annotations)
+
+    # Apply Coalesce for fallback (_field = _field_lang or _field_default or "")
+    final_annotations = {}
+    for f in translated_fields:
+        final_annotations[f"_{f}"] = Coalesce(
+            f"_{f}_lang",
+            f"_{f}_default",
+            Value(""),
+            output_field=TextField(),
+        )
+    qs = qs.annotate(**final_annotations)
+
+    if orderable:
+        sort_annotations = {}
+
+        for f in translated_fields:
+            sort_annotations[f"_{f}_sort"] = Lower(F(f"_{f}"))
+        qs = qs.annotate(**sort_annotations)
+
+    return qs

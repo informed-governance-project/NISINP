@@ -4,7 +4,9 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max, Value
+from django.db.models.fields import TextField
+from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -17,6 +19,7 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
+from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 
 from incidents.email import send_html_email
 
@@ -32,6 +35,7 @@ from .helpers import (
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
+    ApplicationConfig,
     Company,
     CompanyUser,
     EntityCategory,
@@ -112,6 +116,71 @@ admin_site = CustomAdminSite()
 class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     form = CustomTranslatableAdminForm
 
+    translated_fields = []
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        lang = request.LANGUAGE_CODE
+        queryset = queryset.active_translations(lang).distinct()
+        return queryset.distinct(), use_distinct
+
+    """
+    Automaticaly annotate field in translated_fields
+    Give sortable column via `_field`
+    Manage fallback if translation is not here
+    """
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        lang = getattr(request, "LANGUAGE_CODE")
+        default_lang = PARLER_DEFAULT_LANGUAGE_CODE
+
+        annotations = {}
+
+        for f in self.translated_fields:
+            # Annotate value with the request lang and default one
+            annotations[f"_{f}_lang"] = Max(f"translations__{f}", filter=Q(translations__language_code=lang))
+            annotations[f"_{f}_default"] = Max(f"translations__{f}", filter=Q(translations__language_code=default_lang))
+
+        qs = qs.annotate(**annotations)
+
+        # Apply Coalesce for fallback (_field = _field_lang or _field_default or "")
+        final_annotations = {}
+        for f in self.translated_fields:
+            final_annotations[f"_{f}"] = Coalesce(
+                f"_{f}_lang",
+                f"_{f}_default",
+                Value(""),
+                output_field=TextField(),
+            )
+
+        return qs.annotate(**final_annotations)
+
+    # sort on translated field
+    # TO DO : optimize with automatic field generation
+    def name_display(self, obj):
+        return obj._name
+
+    name_display.admin_order_field = "_name"
+    name_display.short_description = _("Name")
+
+    def label_display(self, obj):
+        return obj._label
+
+    label_display.admin_order_field = "_label"
+    label_display.short_description = _("Label")
+
+    def full_name_display(self, obj):
+        return obj._full_name
+
+    full_name_display.admin_order_field = "_full_name"
+    full_name_display.short_description = _("Full name")
+
+    def description_display(self, obj):
+        return obj._description
+
+    description_display.admin_order_field = "_description"
+    description_display.short_description = _("Description")
+
 
 class CustomTranslatableTabularInline(TranslatableTabularInline):
     form = CustomTranslatableAdminForm
@@ -153,12 +222,13 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Sector, site=admin_site)
 class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
-    list_display = ["acronym", "name", "parent"]
-    list_display_links = ["acronym", "name"]
-    search_fields = ["translations__name", "acronym"]
+    list_display = ["acronym", "name_display", "parent"]
+    list_display_links = ["acronym", "name_display"]
+    search_fields = ["translations__name", "acronym", "parent__translations__name"]
     resource_class = SectorResource
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
+    translated_fields = ["name"]
 
     def has_change_permission(self, request, obj=None):
         user = request.user
@@ -256,15 +326,17 @@ class EntityCategoryResource(resources.ModelResource):
 
 
 @admin.register(EntityCategory, site=admin_site)
-class EntityCategoryAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
+class EntityCategoryAdmin(CustomTranslatableAdmin):
     resource_class = EntityCategoryResource
 
-    list_display = ["label", "code"]
+    list_display = ["code", "label_display"]
     search_fields = ["translations__label", "code"]
+    order_list = ["code"]
     fields = (
         "label",
         "code",
     )
+    translated_fields = ["label"]
 
     # Only accessible for platform admin
     def has_add_permission(self, request, obj=None):
@@ -1200,20 +1272,37 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.reset_accepted_terms),
                 name="reset_accepted_terms",
             ),
+            path(
+                "reset-cookie-acceptation/",
+                self.admin_site.admin_view(self.reset_cookie_acceptation),
+                name="reset_cookie_acceptation",
+            ),
         ]
         return custom_urls + urls
+
+    def reset_cookie_acceptation(self, request):
+        if not user_in_group(request.user, "PlatformAdmin"):
+            raise Http404()
+
+        cfg = ApplicationConfig.objects.get(key="cookiebanner")
+        if cfg:
+            cfg.change_uuid_value()
+        messages.success(request, _("Cookies acceptation has been reseted"))
+        return redirect("..")
 
     def reset_accepted_terms(self, request):
         if not user_in_group(request.user, "PlatformAdmin"):
             raise Http404()
 
         User.objects.update(accepted_terms=False)
+        messages.success(request, _("Terms acceptation has been reseted"))
         return redirect("..")
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         if user_in_group(request.user, "PlatformAdmin"):
             extra_context["reset_url"] = "reset-accepted-terms/"
+            extra_context["reset_url_cookies"] = "reset-cookie-acceptation/"
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description="2FA", boolean=True)
@@ -1495,8 +1584,10 @@ class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Functionality, site=admin_site)
 class FunctionalityAdmin(CustomTranslatableAdmin):
-    list_display = ["type", "name"]
+    list_display = ["type", "name_display"]
     search_fields = ["translations__name"]
+    order_list = ["type"]
+    translated_fields = ["name"]
     resource_class = FunctionalityResource
 
     def has_add_permission(self, request, obj=None):
@@ -1697,7 +1788,7 @@ class ObserverUserInline(admin.TabularInline):
 @admin.register(Observer, site=admin_site)
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
-    list_display = ["name", "full_name", "is_receiving_all_incident", "description"]
+    list_display = ["name_display", "full_name_display", "is_receiving_all_incident", "description_display"]
     search_fields = [
         "translations__name",
         "translations__full_name",
@@ -1707,6 +1798,7 @@ class ObserverAdmin(CustomTranslatableAdmin):
     filter_horizontal = [
         "functionalities",
     ]
+    translated_fields = ["name", "description", "full_name"]
 
     inlines = (
         ObserverUserInline,

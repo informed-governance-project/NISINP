@@ -20,6 +20,15 @@ from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
 
 
+class ApplicationConfig(models.Model):
+    key = models.CharField(max_length=128, unique=True)
+    value = models.CharField(max_length=255)
+
+    def change_uuid_value(self):
+        self.value = uuid.uuid4().hex[:8]
+        self.save()
+
+
 # sector
 class Sector(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
@@ -582,9 +591,13 @@ class CompanyUser(models.Model):
 
     def clean(self):
         is_incident_user = self.user.groups.filter(name="IncidentUser").exists()
-        has_admin = self.company.companyuser_set.filter(
-            is_company_administrator=True
-        ).exists()
+        # manage the case of the creation of the company pk is none
+        if self.company.pk is not None:
+            has_admin = self.company.companyuser_set.filter(
+                is_company_administrator=True
+            ).exists()
+        else:
+            has_admin = False
 
         if is_incident_user and self.is_company_administrator and not self.approved:
             raise ValidationError(
@@ -700,6 +713,9 @@ class EntityCategory(TranslatableModel):
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
+
+    def get_safe_translation(self):
+        return str(self)
 
     class Meta:
         verbose_name_plural = _("Entity categories")

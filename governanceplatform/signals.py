@@ -6,7 +6,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.signals import post_delete, post_save, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.utils.timezone import now
 
@@ -23,6 +23,9 @@ from .permissions import (
     set_regulator_admin_permissions,
     set_regulator_staff_permissions,
 )
+from threading import local
+_thread_locals = local()
+_thread_locals.deleting_users = set()
 
 
 @receiver(pre_save, sender=User)
@@ -171,66 +174,82 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
         return
 
 
+# mark use for deletion to avoid removing group on inexisting object
+@receiver(pre_delete, sender=User)
+def mark_user_for_deletion(sender, instance, **kwargs):
+    print("mark user for deletion")
+    if not hasattr(_thread_locals, "deleting_users"):
+        _thread_locals.deleting_users = set()
+    _thread_locals.deleting_users.add(instance.pk)
+
+
+# check if a user is being deleted
+def is_user_being_deleted(user):
+    return user.pk in getattr(_thread_locals, "deleting_users", set())
+
+
 @receiver(post_delete, sender=CompanyUser)
 @receiver(post_delete, sender=RegulatorUser)
 @receiver(post_delete, sender=ObserverUser)
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
-    group_names = [
-        "PlatformAdmin",
-        "RegulatorAdmin",
-        "RegulatorUser",
-        "OperatorAdmin",
-        "OperatorUser",
-        "IncidentUser",
-        "ObserverAdmin",
-        "ObserverUser",
-    ]
 
-    for group_name in group_names:
-        try:
-            group = Group.objects.get(name=group_name)
-        except ObjectDoesNotExist:
-            group = None
+    if not is_user_being_deleted(user):
+        group_names = [
+            "PlatformAdmin",
+            "RegulatorAdmin",
+            "RegulatorUser",
+            "OperatorAdmin",
+            "OperatorUser",
+            "IncidentUser",
+            "ObserverAdmin",
+            "ObserverUser",
+        ]
 
-        if group and user.groups.filter(name=group_name).exists():
-            # remove roles only if there is no linked company/regulator
-            if (
-                group_name == "OperatorAdmin"
-                and not user.companyuser_set.filter(
-                    is_company_administrator=True
-                ).exists()
-            ):
-                user.groups.remove(group)
-                new_group, created = Group.objects.get_or_create(name="OperatorUser")
-                if new_group:
-                    user.groups.add(new_group)
+        for group_name in group_names:
+            try:
+                group = Group.objects.get(name=group_name)
+            except ObjectDoesNotExist:
+                group = None
 
-            if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
-                user.groups.remove(group)
-                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
-                if new_group:
-                    user.groups.add(new_group)
+            if group and user.groups.filter(name=group_name).exists():
+                # remove roles only if there is no linked company/regulator
+                if (
+                    group_name == "OperatorAdmin"
+                    and not user.companyuser_set.filter(
+                        is_company_administrator=True
+                    ).exists()
+                ):
+                    user.groups.remove(group)
+                    new_group, created = Group.objects.get_or_create(name="OperatorUser")
+                    if new_group:
+                        user.groups.add(new_group)
 
-    if not user.companyuser_set.exists():
-        user.is_staff = False
-        user.is_superuser = False
-        new_group, created = Group.objects.get_or_create(name="IncidentUser")
-        if new_group:
-            user.groups.clear()
-            user.groups.add(new_group)
+                if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
+                    user.groups.remove(group)
+                    new_group, created = Group.objects.get_or_create(name="RegulatorUser")
+                    if new_group:
+                        user.groups.add(new_group)
 
-        # Clear contact_user for incidents
-        user.incident_set.filter(company__isnull=False).update(contact_user=None)
-    else:
-        user_companies = user.companyuser_set.values_list("company_id", flat=True)
-        user.incident_set.filter(company__isnull=False).exclude(
-            company__in=user_companies
-        ).update(contact_user=None)
+        if not user.companyuser_set.exists():
+            user.is_staff = False
+            user.is_superuser = False
+            new_group, created = Group.objects.get_or_create(name="IncidentUser")
+            if new_group:
+                user.groups.clear()
+                user.groups.add(new_group)
 
-    user.save()
+            # Clear contact_user for incidents
+            user.incident_set.filter(company__isnull=False).update(contact_user=None)
+        else:
+            user_companies = user.companyuser_set.values_list("company_id", flat=True)
+            user.incident_set.filter(company__isnull=False).exclude(
+                company__in=user_companies
+            ).update(contact_user=None)
 
-    force_logout_user(user)
+        user.save()
+
+        force_logout_user(user)
 
 
 def force_logout_user(user):
