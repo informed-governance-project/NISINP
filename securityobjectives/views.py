@@ -663,6 +663,10 @@ def download_declaration_pdf(request, standard_answer_id: int):
         if not has_change_permission(request, standard_answer, "download"):
             return redirect("securityobjectives")
         standard = standard_answer.standard
+
+        levels = MaturityLevel.objects.all().aggregate(
+            first_level=Min("level"), last_level=Max("level")
+        )
         security_objectives_queryset = (
             standard.securityobjectivesinstandard_set.all().order_by("position")
         )
@@ -706,6 +710,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
         output_from_parsed_template = render_to_string(
             "security_objectives/report/template.html",
             {
+                "last_maturity_level": levels["last_level"],
                 "static_theme_dir": os.path.abspath(static_theme_dir),
                 "standard_answer": standard_answer,
                 "security_objectives": security_objectives,
@@ -720,7 +725,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
             CSS(os.path.join(static_theme_dir, "css/report.css")),
         ]
 
-        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets)
+        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets, pdf_variant="pdf/ua-1")
         response = HttpResponse(pdf_report, content_type="application/pdf")
         response[
             "Content-Disposition"
