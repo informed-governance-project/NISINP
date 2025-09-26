@@ -35,6 +35,8 @@ def index(request):
     return redirect("incidents")
 
 
+@login_required
+@check_user_is_correct
 def logout_view(request):
     logout(request)
     return redirect("login")
