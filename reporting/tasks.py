@@ -24,17 +24,15 @@ for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
 
 @shared_task
 def generate_pdf_data(cleaned_data):
-    static_theme_dir = settings.STATIC_THEME_DIR
     bootstrap_icons_dir = os.path.join(
         settings.STATIC_DIR, "npm_components/bootstrap-icons"
     )
-
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
     charts = get_charts(so_data, risk_data)
 
     rendered_data = render_to_string(
-        "reporting/template.html",
+        "report/reporting/template.html",
         {
             "company": cleaned_data["company"],
             "year": cleaned_data["year"],
@@ -46,7 +44,6 @@ def generate_pdf_data(cleaned_data):
             "risk_data": risk_data,
             "nb_years": cleaned_data["nb_years"],
             "service_color_palette": pc.DEFAULT_PLOTLY_COLORS,
-            "static_theme_dir": os.path.abspath(static_theme_dir),
             "bootstrap_icons_dir": os.path.abspath(bootstrap_icons_dir),
             "company_reporting": cleaned_data["company_reporting"],
         },
@@ -56,9 +53,12 @@ def generate_pdf_data(cleaned_data):
 
 @shared_task
 def generate_pdf_task(data, css_paths):
+    static_theme_dir = settings.STATIC_THEME_DIR
     stylesheets = [CSS(path) for path in css_paths]
     pdf_buffer = BytesIO()
-    HTML(string=data).write_pdf(pdf_buffer, stylesheets=stylesheets)
+    HTML(string=data, base_url=static_theme_dir).write_pdf(
+        pdf_buffer, stylesheets=stylesheets, pdf_variant="pdf/ua-1"
+    )
     pdf_buffer.seek(0)
     return pdf_buffer.getvalue()
 
