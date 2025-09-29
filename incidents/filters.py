@@ -45,6 +45,10 @@ class IncidentFilter(django_filters.FilterSet):
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(incident_id__icontains=value)
+            | Q(contact_firstname__icontains=value)
+            | Q(contact_lastname__icontains=value)
+            | Q(technical_firstname__icontains=value)
+            | Q(technical_lastname__icontains=value)
             | Q(company_name__icontains=value)
             | Q(company__identifier__icontains=value)
             | Q(company__name__icontains=value)
