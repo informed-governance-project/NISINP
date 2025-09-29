@@ -39,7 +39,10 @@ class Migration(migrations.Migration):
             model_name="questionoptions",
             name="updated_at",
             field=models.DateTimeField(
-                default=datetime.datetime(2000, 1, 1, 0, 0), verbose_name="Updated at"
+                default=datetime.datetime(
+                    1999, 12, 31, 23, 0, tzinfo=datetime.timezone.utc
+                ),
+                verbose_name="Updated at"
             ),
         ),
         migrations.CreateModel(

@@ -1010,7 +1010,7 @@ class QuestionOptions(models.Model):
     )
     # creation date by default before the creation of app
     updated_at = models.DateTimeField(
-        verbose_name=_("Updated at"), default=datetime(2000, 1, 1)
+        verbose_name=_("Updated at"), default=timezone.make_aware(datetime(2000, 1, 1))
     )
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
     deleted_date = models.DateTimeField(
