@@ -708,10 +708,9 @@ def download_declaration_pdf(request, standard_answer_id: int):
         }
         static_theme_dir = settings.STATIC_THEME_DIR
         output_from_parsed_template = render_to_string(
-            "security_objectives/report/template.html",
+            "report/security_objectives/template.html",
             {
                 "last_maturity_level": levels["last_level"],
-                "static_theme_dir": os.path.abspath(static_theme_dir),
                 "standard_answer": standard_answer,
                 "security_objectives": security_objectives,
             },
@@ -725,7 +724,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
             CSS(os.path.join(static_theme_dir, "css/report.css")),
         ]
 
-        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets, pdf_variant="pdf/ua-1")
+        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets)
         response = HttpResponse(pdf_report, content_type="application/pdf")
         response[
             "Content-Disposition"
