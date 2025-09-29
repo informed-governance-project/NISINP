@@ -100,6 +100,9 @@ class CompanySelectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["name"].widget = forms.HiddenInput()
 
+    def validate_unique(self):
+        return
+
 
 class CompanySelectFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
@@ -160,10 +163,10 @@ class CompanySelectFormSet(BaseModelFormSet):
 
             kwargs["initial"] = {
                 "sector": sector,
+                "object": company,
                 "id": company.id,
                 "name": company.name,
             }
-            kwargs["instance"] = company
         return super()._construct_form(i, **kwargs)
 
 
