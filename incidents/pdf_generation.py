@@ -106,7 +106,6 @@ def get_pdf_report(
     output_from_parsed_template = render_to_string(
         "report/incidents/template.html",
         {
-            "static_theme_dir": os.path.abspath(static_theme_dir),
             "incident": incident,
             "incident_workflows_answer": incident_workflows_answer_sorted,
             "incident_workflows_impact": incident_workflows_impact,
