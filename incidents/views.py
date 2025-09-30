@@ -104,7 +104,11 @@ def get_incidents(request):
             )
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
-        incidents = user.observers.first().get_incidents()
+        incidents = (
+            user.observers.first()
+            .get_incidents()
+            .order_by("-incident_notification_date")
+        )
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif user_in_group(user, "OperatorAdmin") or user_in_group(user, "OperatorUser"):
         # OperatorAdmin can see all the reports of the selected company.
