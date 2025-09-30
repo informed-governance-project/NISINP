@@ -69,27 +69,27 @@ REGIONAL_AREA = regional_area
 
 REPORT_STATUS_MAP = {
     "PASS": {
-        "class": "report-pass",
+        "class": "passed",
         "tooltip": _("The report has passed the review."),
     },
     "FAIL": {
-        "class": "report-fail",
+        "class": "failed",
         "tooltip": _("The report has failed the review."),
     },
     "DELIV": {
-        "class": "report-under-review",
+        "class": "under-review",
         "tooltip": _("The report is currently under review."),
     },
     "LATE": {
-        "class": "report-late-under-review",
+        "class": "late-under-review",
         "tooltip": _("The report is currently under review."),
     },
     "OUT": {
-        "class": "report-overdue",
+        "class": "overdue",
         "tooltip": _("The submission of the report is overdue."),
     },
     "UNDE": {
-        "class": "report-unsubmitted",
+        "class": "unsubmitted",
         "tooltip": _("The report has not been submitted yet."),
     },
 }
