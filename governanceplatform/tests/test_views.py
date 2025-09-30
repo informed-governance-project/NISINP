@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.urls import reverse
 
 
-# poetry run python manage.py test governanceplatform.tests.test_views
 class UrlAccess(TestCase):
     restricted_names = [
         "admin:index",
