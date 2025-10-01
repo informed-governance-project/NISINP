@@ -106,6 +106,7 @@ class Functionality(TranslatableModel):
         max_length=100,
         choices=FUNCTIONALITIES,
         null=False,
+        unique=True,
     )
 
     def __str__(self):
