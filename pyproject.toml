@@ -19,7 +19,7 @@ keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-django = "^5.2.2"
+django = "^5.2.7"
 psycopg2-binary = "^2.8.4"
 cryptography = "^44.0.1"
 django-cors-headers = "^4.3.1"
