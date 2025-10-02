@@ -52,7 +52,7 @@ def run(logger=logger):
                         ):
                             send_email(email.email, incident)
             # Workflow with deadline from prev workflow
-            for incident_workflow in incident.get_latest_incident_workflows(timestamp_order="+timestamp"):
+            for incident_workflow in incident.get_latest_incident_workflows(timestamp_order="timestamp"):
                 # chek if there is a next workflow
                 next_workflow = incident_workflow.get_next_workflow()
                 if next_workflow is not False:

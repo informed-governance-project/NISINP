@@ -32,7 +32,7 @@ from .permissions import set_operator_admin_permissions, set_operator_user_permi
 @login_required
 @check_user_is_correct
 def index(request):
-    return redirect("incidents")
+    return render(request, "home/index.html")
 
 
 @login_required
