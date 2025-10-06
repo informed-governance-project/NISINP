@@ -217,7 +217,16 @@ class Email(TranslatableModel, models.Model):
             verbose_name=_("Subject"),
             max_length=255,
         ),
-        content=models.TextField(verbose_name=_("Content")),
+        content=models.TextField(
+            verbose_name=_("Content"),
+            help_text=_(
+                """Available placeholders: #INCIDENT_NOTIFICATION_DATE#,
+                #INCIDENT_DETECTION_DATE#,
+                #INCIDENT_STARTING_DATE#,
+                #INCIDENT_ID#,
+                #DEADLINE#"""
+            ),
+        ),
     )
     name = models.CharField(verbose_name=_("Name"), max_length=255)
     # name of the regulator who create the object
