@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timedelta
 
 import pytz
 from django.contrib import admin
@@ -628,6 +629,27 @@ class Incident(models.Model):
     def get_no_childrens_sectors(self):
         return list(self.affected_sectors.filter(parent__isnull=True))
 
+    def get_next_sector_regulation_workflow(self):
+        current_workflow = (
+            IncidentWorkflow.objects.all()
+            .filter(
+                incident=self,
+            )
+            .values_list("workflow")
+        )
+        regulation = (
+            SectorRegulationWorkflow.objects.all()
+            .filter(
+                sector_regulation=self.sector_regulation,
+            )
+            .exclude(workflow__in=current_workflow)
+            .order_by("position")
+        )
+        if len(regulation) > 0:
+            return regulation[0]
+        else:
+            return None
+
     def get_next_step(self):
         current_workflow = (
             IncidentWorkflow.objects.all()
@@ -794,6 +816,34 @@ class Incident(models.Model):
                         return True
             return False
         return False
+
+    # calculate the deadline of the incident
+    def get_deadline(self):
+        next_srw = self.get_next_sector_regulation_workflow()
+        if next_srw is None:
+            return None
+        else:
+            deadline = None
+            if next_srw.trigger_event_before_deadline is not None and next_srw.delay_in_hours_before_deadline is not None:
+                if next_srw.trigger_event_before_deadline == "DETECT_DATE":
+                    if self.incident_detection_date is not None:
+                        deadline = self.incident_detection_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+                elif next_srw.trigger_event_before_deadline == "NOTIF_DATE":
+                    deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+                elif next_srw.trigger_event_before_deadline == "PREV_WORK":
+                    previous_workflow = self.get_previous_workflow(next_srw.workflow)
+                    print("previous")
+                    if previous_workflow:
+                        print("troptrop")
+                        previous_incident_workflow = (
+                            IncidentWorkflow.objects.all()
+                            .filter(incident=self, workflow=previous_workflow.workflow)
+                            .order_by("-timestamp")
+                            .first()
+                        )
+                        if previous_incident_workflow is not None:
+                            deadline = previous_incident_workflow.timestamp + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+            return deadline
 
     class meta:
         verbose_name_plural = _("Incident")
