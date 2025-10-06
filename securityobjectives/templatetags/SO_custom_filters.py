@@ -1,6 +1,8 @@
 from django import template
 from django.conf import settings
 
+from securityobjectives.globals import STANDARD_ANSWER_REVIEW_STATUS
+
 register = template.Library()
 
 
@@ -60,6 +62,16 @@ def status_icon(context, value):
         return "custom-icon-under-review-white"
     else:
         return "custom-icon-unsubmitted-white"
+
+
+@register.simple_tag(takes_context=True)
+def status_tooltip(context, value):
+    STANDARD_ANSWER_REVIEW_STATUS_DICT = dict(STANDARD_ANSWER_REVIEW_STATUS)
+    if value == "PASSM" and not context["is_regulator"]:
+        value = "PASS"
+    if value == "FAILM" and not context["is_regulator"]:
+        value = "FAIL"
+    return STANDARD_ANSWER_REVIEW_STATUS_DICT.get(value)
 
 
 @register.filter
