@@ -24,6 +24,7 @@ INCIDENT_EMAIL_VARIABLES = [
     ("#INCIDENT_DETECTION_DATE#", "incident_detection_date"),
     ("#INCIDENT_STARTING_DATE#", "incident_starting_date"),
     ("#INCIDENT_ID#", "incident_id"),
+    ("#DEADLINE#", "get_deadline"),
 ]
 
 # the different trigger on when to send an email to the Incident.User

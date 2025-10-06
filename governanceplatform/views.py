@@ -214,6 +214,8 @@ def select_company(request):
         )
 
         if form.is_valid() and request.user.is_authenticated:
+            if not form.cleaned_data["select_company"]:
+                return render(request, "registration/select_company.html", {"form": form})
             user_company = Company.objects.get(
                 id=form.cleaned_data["select_company"].id
             )

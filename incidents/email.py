@@ -8,6 +8,7 @@ from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
@@ -61,6 +62,13 @@ def replace_email_variables(content, incident):
                     if last_report.report_timeline.incident_starting_date is not None
                     else ""
                 )
+        elif variable == "#DEADLINE#":
+            deadline = incident.get_deadline()
+            if not deadline:
+                var_txt = ""
+            else:
+                deadline = timezone.localtime(deadline)
+                var_txt = deadline.strftime("%Y-%m-%d %H:%M %Z")
         else:
             var_txt = (
                 getattr(incident, key) if getattr(incident, key) is not None else ""
