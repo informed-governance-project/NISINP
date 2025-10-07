@@ -1,5 +1,5 @@
 from datetime import date
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import pytz
 from django import forms
@@ -875,11 +875,31 @@ class FormWizardView(SessionWizardView):
                         send_to_observers=True,
                     )
 
-        return (
-            redirect("regulator_incidents")
-            if self.is_regulator_incident
-            else redirect("incidents")
+        if sector_regulations.count() > 1:
+            return (
+                redirect("regulator_incidents")
+                if self.is_regulator_incident
+                else redirect("incidents")
+            )
+
+        sr_workflow = (
+            SectorRegulationWorkflow.objects.filter(sector_regulation=sector_regulation)
+            .order_by("position")
+            .first()
         )
+
+        if not sr_workflow or not sr_workflow.workflow:
+            return redirect("incidents")
+
+        query_params = urlencode(
+            {
+                "incident_id": incident.id,
+                "workflow_id": sr_workflow.workflow.id,
+            }
+        )
+
+        url = f"{reverse('create_workflow')}?{query_params}"
+        return redirect(url)
 
 
 class WorkflowWizardView(SessionWizardView):
