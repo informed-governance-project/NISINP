@@ -45,7 +45,7 @@ def get_incident_workflow_by_workflow(incident, workflow):
     if not queryset:
         return None
 
-    data = list(queryset.values("id", "timestamp"))
+    data = list(queryset.values("id", "timestamp", "review_status", "comment"))
     for item in data:
         item["timestamp"] = item["timestamp"].isoformat()
 
