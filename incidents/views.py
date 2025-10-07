@@ -167,6 +167,8 @@ def get_incidents(request):
             is_disabled = False
 
             if html_view == "operator/incidents.html":
+                if incident.incident_status == "CLOSE":
+                    is_disabled = True
                 if not completed_workflows and idx != 0:
                     is_disabled = True
                 elif (
@@ -261,6 +263,10 @@ def create_workflow(request):
         messages.error(request, _("Incident not found"))
         return redirect("incidents")
 
+    if incident.incident_status == "CLOSE":
+        messages.error(request, _("Incident is closed"))
+        return redirect("incidents")
+
     if not incident.is_fillable(workflow):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
@@ -348,6 +354,9 @@ def edit_workflow(request):
             return redirect("incidents")
         if not incident:
             messages.error(request, _("Incident not found"))
+            return redirect("incidents")
+        if incident.incident_status == "CLOSE":
+            messages.error(request, _("Incident is closed"))
             return redirect("incidents")
         if not is_user_regulator(user):
             if not incident.is_fillable(workflow):
