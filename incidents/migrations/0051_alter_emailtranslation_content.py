@@ -14,7 +14,11 @@ class Migration(migrations.Migration):
             model_name="emailtranslation",
             name="content",
             field=models.TextField(
-                help_text="Available placeholders: #INCIDENT_NOTIFICATION_DATE#,\n                #INCIDENT_DETECTION_DATE#,\n                #INCIDENT_STARTING_DATE#,\n                #INCIDENT_ID#,\n                #DEADLINE#",
+                help_text="""Available placeholders: #INCIDENT_NOTIFICATION_DATE#,
+                #INCIDENT_DETECTION_DATE#,
+                #INCIDENT_STARTING_DATE#,
+                #INCIDENT_ID#,
+                #DEADLINE#""",
                 verbose_name="Content",
             ),
         ),
