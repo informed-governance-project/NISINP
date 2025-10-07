@@ -778,6 +778,17 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = self.instance.id
+
+        self.fields["review_status"].choices = [
+            ("", "-------------"),
+            ("PASS", _("Passed")),
+            ("FAIL", _("Revision required")),
+        ]
+
+        self.fields["review_status"].widget.attrs[
+            "onfocus"
+        ] = "this.options[0].disabled = true;"
+
         self.fields["comment"].widget.attrs.update(
             {
                 "rows": 3,
