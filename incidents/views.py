@@ -536,7 +536,14 @@ def download_incident_pdf(request, incident_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    filename = f"Incident_{incident_id}_{date.today()}.pdf"
+
+    latest_workflow = incident.get_latest_incident_workflow()
+    timestamp = (
+        latest_workflow.timestamp
+        if latest_workflow
+        else incident.incident_notification_date
+    )
+    filename = f"Incident_{incident.incident_id}_{timestamp:%Y-%m-%d}.pdf"
     response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
@@ -568,8 +575,9 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
 
-    filename_timestamp = incident_workflow.timestamp.strftime("%Y-%m-%d")
-    filename = f"{incident.incident_id}_{incident_workflow.workflow.name}_{filename_timestamp}.pdf"
+    timestamp = incident_workflow.timestamp
+    report_name = incident_workflow.workflow.name
+    filename = f"{incident.incident_id}_{report_name}_{timestamp:%Y-%m-%d}.pdf"
 
     response["Content-Disposition"] = f"attachment;filename={filename}"
 
