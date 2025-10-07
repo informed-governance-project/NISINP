@@ -778,6 +778,17 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = self.instance.id
+
+        self.fields["review_status"].choices = [
+            ("", "-------------"),
+            ("PASS", _("Passed")),
+            ("FAIL", _("Revision required")),
+        ]
+
+        self.fields["review_status"].widget.attrs[
+            "onfocus"
+        ] = "this.options[0].disabled = true;"
+
         self.fields["comment"].widget.attrs.update(
             {
                 "rows": 3,
@@ -1021,10 +1032,7 @@ class IncidenteDateForm(forms.ModelForm):
 class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
-        if (
-            "is_significative_impact" not in self.data
-            and "is_significative_impact" not in cleaned_data
-        ):
+        if "is_significative_impact" not in self.data:
             cleaned_data[
                 "is_significative_impact"
             ] = self.instance.is_significative_impact
@@ -1059,10 +1067,15 @@ class IncidentStatusForm(forms.ModelForm):
             "onchange": onchange_funtion,
         }
 
-        self.fields["is_significative_impact"].widget.attrs = {
+        attrs = {
             "class": "large-checkbox",
             "onchange": onchange_funtion,
         }
+
+        if self.instance.incident_status == "CLOSE":
+            attrs["disabled"] = "true"
+
+        self.fields["is_significative_impact"].widget.attrs = attrs
 
     class Meta:
         model = Incident

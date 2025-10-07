@@ -167,6 +167,8 @@ def get_incidents(request):
             is_disabled = False
 
             if html_view == "operator/incidents.html":
+                if incident.incident_status == "CLOSE":
+                    is_disabled = True
                 if not completed_workflows and idx != 0:
                     is_disabled = True
                 elif (
@@ -261,6 +263,10 @@ def create_workflow(request):
         messages.error(request, _("Incident not found"))
         return redirect("incidents")
 
+    if incident.incident_status == "CLOSE":
+        messages.error(request, _("Incident is closed"))
+        return redirect("incidents")
+
     if not incident.is_fillable(workflow):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
@@ -348,6 +354,9 @@ def edit_workflow(request):
             return redirect("incidents")
         if not incident:
             messages.error(request, _("Incident not found"))
+            return redirect("incidents")
+        if incident.incident_status == "CLOSE":
+            messages.error(request, _("Incident is closed"))
             return redirect("incidents")
         if not is_user_regulator(user):
             if not incident.is_fillable(workflow):
@@ -527,7 +536,14 @@ def download_incident_pdf(request, incident_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    filename = f"Incident_{incident_id}_{date.today()}.pdf"
+
+    latest_workflow = incident.get_latest_incident_workflow()
+    timestamp = (
+        latest_workflow.timestamp
+        if latest_workflow
+        else incident.incident_notification_date
+    )
+    filename = f"Incident_{incident.incident_id}_{timestamp:%Y-%m-%d}.pdf"
     response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
@@ -558,9 +574,11 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    filename = (
-        f"{incident.incident_id}_{incident_workflow.workflow.name}_{date.today()}.pdf"
-    )
+
+    timestamp = incident_workflow.timestamp
+    report_name = incident_workflow.workflow.name
+    filename = f"{incident.incident_id}_{report_name}_{timestamp:%Y-%m-%d}.pdf"
+
     response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
