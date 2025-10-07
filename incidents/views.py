@@ -567,9 +567,10 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         return HttpResponseRedirect("/incidents")
 
     response = HttpResponse(pdf_report, content_type="application/pdf")
-    filename = (
-        f"{incident.incident_id}_{incident_workflow.workflow.name}_{date.today()}.pdf"
-    )
+
+    filename_timestamp = incident_workflow.timestamp.strftime("%Y-%m-%d")
+    filename = f"{incident.incident_id}_{incident_workflow.workflow.name}_{filename_timestamp}.pdf"
+
     response["Content-Disposition"] = f"attachment;filename={filename}"
 
     return response
