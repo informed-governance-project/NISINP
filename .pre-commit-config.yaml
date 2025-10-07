@@ -2,29 +2,29 @@ ci:
   autoupdate_schedule: monthly
 repos:
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.15.0
+    rev: 1.29.0
     hooks:
       - id: django-upgrade
-        args: [--target-version, '4.2']
+        args: [--target-version, '5.2']
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.14.0
+    rev: v3.20.0
     hooks:
       - id: pyupgrade
         args: ["--py37-plus"]
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 6.1.0
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
-    rev: 23.9.1
+    rev: 25.9.0
     hooks:
       - id: black
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
+    rev: 1.20.0
     hooks:
       - id: blacken-docs
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -32,7 +32,7 @@ repos:
           - flake8-implicit-str-concat
         args: ["--max-line-length=140"]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: fix-byte-order-marker
       - id: trailing-whitespace
@@ -40,9 +40,10 @@ repos:
       - id: end-of-file-fixer
       - id: check-merge-conflict
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.7.2
+    rev: v2.9.0
     hooks:
       -   id: pip-audit
+          args: ["-r", "docs/requirements-app.txt"]
   - repo: https://github.com/python-poetry/poetry-plugin-export
     rev: 1.9.0
     hooks:
