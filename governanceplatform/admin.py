@@ -1636,7 +1636,7 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Regulator, site=admin_site)
 class RegulatorAdmin(CustomTranslatableAdmin):
-    list_display = ["name", "full_name", "description"]
+    list_display = ["name_display", "full_name_display", "description_display"]
     search_fields = [
         "translations__name",
         "translations__full_name",
@@ -1656,6 +1656,7 @@ class RegulatorAdmin(CustomTranslatableAdmin):
     filter_horizontal = [
         "functionalities",
     ]
+    translated_fields = ["name", "full_name", "description"]
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
@@ -1685,6 +1686,10 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         if user_in_group(user, "RegulatorAdmin") and obj != user.regulators.first():
             return False
         return super().has_delete_permission(request, obj)
+
+
+for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+    setattr(RegulatorAdmin, name, method)
 
 
 class ObserverResource(TranslationUpdateMixin, resources.ModelResource):
@@ -1880,7 +1885,7 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(CustomTranslatableAdmin):
-    list_display = ["label", "get_regulators"]
+    list_display = ["label_display", "get_regulators"]
     search_fields = ["translations__label", "regulators__translations__name"]
     resource_class = RegulationResource
     fields = (
@@ -1890,6 +1895,7 @@ class RegulationAdmin(CustomTranslatableAdmin):
     filter_horizontal = [
         "regulators",
     ]
+    translated_fields = ["label"]
 
     def has_add_permission(self, request, obj=None):
         user = request.user
@@ -1908,6 +1914,10 @@ class RegulationAdmin(CustomTranslatableAdmin):
         if user_in_group(user, "RegulatorAdmin"):
             return False
         return super().has_delete_permission(request, obj)
+
+
+for name, method in generate_display_methods(["label"]).items():
+    setattr(RegulationAdmin, name, method)
 
 
 @admin.register(ScriptLogEntry, site=admin_site)
