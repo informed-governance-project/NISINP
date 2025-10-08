@@ -92,7 +92,9 @@ class RestrictViewsMiddleware:
                 return redirect("two_factor:profile")
 
             if user_in_group(user, "PlatformAdmin"):
-                if request.path.startswith("/incidents/"):
+                if request.path == reverse("index") or request.path.startswith(
+                    "/incidents/"
+                ):
                     return redirect("admin:index")
 
             if user_in_group(user, "IncidentUser"):
