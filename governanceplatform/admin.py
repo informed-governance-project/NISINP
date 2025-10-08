@@ -592,6 +592,8 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "identifier",
+        "companyuser__sectors__translations__name",
+        "companyuser__sectors__parent__translations__name"
     ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
