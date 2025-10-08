@@ -215,7 +215,9 @@ def select_company(request):
 
         if form.is_valid() and request.user.is_authenticated:
             if not form.cleaned_data["select_company"]:
-                return render(request, "registration/select_company.html", {"form": form})
+                return render(
+                    request, "registration/select_company.html", {"form": form}
+                )
             user_company = Company.objects.get(
                 id=form.cleaned_data["select_company"].id
             )
@@ -284,7 +286,7 @@ def contact(request):
             )
             requestor_email = form.cleaned_data["email"].strip()
             email = EmailMessage(
-                subject=_("Contact page from %(name)s") % {"name": settings.SITE_NAME},
+                subject=_("%(name)s Contact page") % {"name": settings.SITE_NAME},
                 body=full_message,
                 from_email=settings.EMAIL_CONTACT_FROM,
                 to=[settings.EMAIL_FOR_CONTACT],
