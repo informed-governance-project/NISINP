@@ -5,8 +5,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.translation import gettext as _
 
-from incidents.globals import REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
-
+from incidents.globals import REPORT_STATUS_MAP
 from incidents.models import IncidentWorkflow
 
 register = template.Library()
@@ -48,13 +47,14 @@ def get_incident_workflow_by_workflow(incident, workflow):
         return None
 
     data = list(queryset.values("id", "timestamp", "review_status", "comment"))
-    css_class = REPORT_STATUS_MAP.get(data[0]["review_status"], REPORT_STATUS_MAP["UNDE"])
 
     for item in data:
+        review_status = REPORT_STATUS_MAP.get(
+            item["review_status"], REPORT_STATUS_MAP["UNDE"]
+        )
         item["timestamp"] = item["timestamp"].isoformat()
-        item["css_class"] = css_class['class']
-        match = next((label for code, label in WORKFLOW_REVIEW_STATUS if code == item["review_status"]), None)
-        item["review_status"] = match
+        item["css_class"] = review_status["class"]
+        item["review_status"] = review_status["label"]
 
     return json.dumps(data, cls=DjangoJSONEncoder)
 

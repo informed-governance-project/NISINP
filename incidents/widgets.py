@@ -17,7 +17,9 @@ class TempusDominusV6Widget(TextInput):
         if max_date:
             default_attrs["data-max-date"] = max_date
         else:
-            default_attrs["data-max-date"] = datetime.date.today().isoformat()
+            default_attrs["data-max-date"] = datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M"
+            )
         if min_date:
             default_attrs["data-min-date"] = min_date
 

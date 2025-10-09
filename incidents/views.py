@@ -39,7 +39,7 @@ from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
 from .forms import ContactForm, IncidentStatusForm, get_forms_list
-from .globals import REGIONAL_AREA, REPORT_STATUS_MAP
+from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
 from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
     Answer,
@@ -1242,6 +1242,17 @@ class WorkflowWizardView(SessionWizardView):
                     )
             if review_status is not None:
                 incident_workflow.review_status = review_status
+                review_status_txt = next(
+                    (
+                        label
+                        for code, label in WORKFLOW_REVIEW_STATUS
+                        if code == review_status
+                    ),
+                    None,
+                )
+                create_entry_log(
+                    user, self.incident, incident_workflow, "REVIEW STATUS: "+review_status_txt, self.request
+                )
             incident_workflow.save()
             create_entry_log(
                 user,
