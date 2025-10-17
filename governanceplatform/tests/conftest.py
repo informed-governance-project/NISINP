@@ -1,20 +1,34 @@
 import pytest
 from django.db import models
+from django.contrib.auth.models import Group
+from django.test import Client
 from django.utils.translation import activate
 from governanceplatform.models import (
     Company,
     Regulator,
     Observer,
     EntityCategory,
-    Functionality
+    Functionality,
+    Sector,
+    Regulation,
+    User
 )
 from governanceplatform.tests.data import (
     companies_data,
     regulators_data,
     functionalities_data,
     observers_data,
+    permission_groups,
+    sectors,
+    regulations,
+    users,
 )
 from parler.models import TranslatableModel
+
+
+@pytest.fixture
+def client():
+    return Client()
 
 
 @pytest.fixture
@@ -41,18 +55,37 @@ def populate_db(db):
     # Create an observer
     created_observers = import_from_json(Observer, observers_data)
 
+    # Create permission groups
+    created_permission_groups = import_from_json(Group, permission_groups)
+
+    # Create sectors
+    created_sectors = import_from_json(Sector, sectors)
+
+    # Create regulations
+    created_regulations = import_from_json(Regulation, regulations)
+
+    # Create regulations
+    created_users = import_from_json(User, users)
+
     return {
         "companies": created_companies,
         "functionnalities": created_functionalities,
         "regulators": created_regulators,
         "observers": created_observers,
         "entity_categories": [entity_category],
+        "permissions_groups": created_permission_groups,
+        "sectors": created_sectors,
+        "regulations": created_regulations,
+        "users": created_users,
     }
 
 
 def get_unique_lookup(model, data: dict):
-    # make lookup on unique constraint excluding relational field
-    unique_fields = []
+    unique_fields = [
+        f.name for f in model._meta.get_fields()
+        if getattr(f, "unique", False)
+    ]
+
     for constraint in model._meta.constraints:
         if isinstance(constraint, models.UniqueConstraint):
             unique_fields.extend(constraint.fields)
@@ -71,12 +104,20 @@ def get_or_create_related(related_model, val: dict):
         raise ValueError(f"Unexpected value {related_model.__name__}: {val}")
 
     lookup = get_unique_lookup(related_model, val)
+    object = None
     if not lookup:
-        raise ValueError(
-            f"Unexpected lookup for {related_model.__name__} with data={val}"
-        )
+        # bypass when there is no unique field in the model, only get, no create
+        object = related_model.objects.filter(**lookup).first()
+        if not object:
+            raise ValueError(
+                f"Unexpected lookup for {related_model.__name__} with data={val}"
+            )
 
-    obj, created = related_model.objects.get_or_create(**lookup)
+    if not object:
+        obj, created = related_model.objects.get_or_create(**lookup)
+    else:
+        created = False
+        obj = object
 
     if created:
         # update other field
@@ -101,7 +142,7 @@ def import_from_json(model, data):
         data = [data]
 
     created_objects = []
-
+    activate("en")
     for entry in data:
         # lookup via unique constraint
         lookup = get_unique_lookup(model, entry)
@@ -113,7 +154,7 @@ def import_from_json(model, data):
                 if f.name in entry and not (f.many_to_many or f.one_to_many or f.many_to_one)
             }
 
-        obj, created = model.objects.get_or_create(**lookup)
+        obj = model.objects.create(**lookup)
 
         # Traduction
         if isinstance(obj, TranslatableModel):
@@ -148,7 +189,11 @@ def import_from_json(model, data):
             value = entry[fname]
             related_model = field.related_model
             rel_objs = [get_or_create_related(related_model, v) for v in value]
+            obj.save()
             getattr(obj, fname).set(rel_objs)
+
+        obj.save()
+        obj.refresh_from_db()
 
         created_objects.append(obj)
 

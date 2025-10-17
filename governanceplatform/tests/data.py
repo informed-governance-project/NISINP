@@ -54,3 +54,193 @@ observers_data = [
         "is_receiving_all_incident": True
     }
 ]
+
+permission_groups = [
+    {
+        "name": "PlatformAdmin",
+    },
+    {
+        "name": "RegulatorAdmin",
+    },
+    {
+        "name": "RegulatorUser",
+    },
+    {
+        "name": "ObserverAdmin",
+    },
+    {
+        "name": "ObserverUser",
+    },
+    {
+        "name": "OperatorAdmin",
+    },
+    {
+        "name": "OperatorUser",
+    },
+    {
+        "name": "IncidentUser",
+    },
+]
+
+sectors = [
+    {
+        "acronym": "ENE",
+        "name": "Energy"
+    },
+    {
+        "acronym": "TRA",
+        "name": "Transport"
+    },
+    {
+        "acronym": "HEA",
+        "name": "Health"
+    },
+    {
+        "acronym": "GAS",
+        "name": "Gas",
+        "parent": {"acronym": "ENE", "translations__name": "Energy"}
+    },
+    {
+        "acronym": "ELEC",
+        "name": "Electricity",
+        "parent": {"acronym": "ENE", "translations__name": "Energy"}
+    },
+    {
+        "acronym": "ROAD",
+        "name": "Road transport",
+        "parent": {"acronym": "TRA", "translations__name": "Transport"}
+    },
+    {
+        "acronym": "BOAT",
+        "name": "Boat transport",
+        "parent": {"acronym": "TRA", "translations__name": "Transport"}
+    },
+]
+
+regulations = [
+    {
+        "label": "NIS",
+        "regulators": [{"translations__name": "REG1"}]
+    },
+    {
+        "label": "GDPR",
+        "regulators": [{"translations__name": "REG2"}]
+    }
+]
+
+users = [
+    # Regulator
+    {
+        "email": "regadmin@reg1.lu",
+        "first_name": "regadmin@reg1.lu",
+        "last_name": "regadmin@reg1.lu",
+        "password": "secret",
+        "is_staff": True,
+        "accepted_terms": True,
+        "is_superuser": True,
+        "regulators": [{"translations__name": "REG1"}],
+        "groups": [{"name": "RegulatorAdmin"}],
+    },
+    {
+        "email": "regadmin@reg2.lu",
+        "first_name": "regadmin@reg2.lu",
+        "last_name": "regadmin@reg2.lu",
+        "password": "secret",
+        "is_staff": True,
+        "accepted_terms": True,
+        "is_superuser": True,
+        "regulators": [{"translations__name": "REG2"}],
+        "groups": [{"name": "RegulatorAdmin"}],
+    },
+    {
+        "email": "reguser@reg2.lu",
+        "first_name": "reguser@reg2.lu",
+        "last_name": "reguser@reg2.lu",
+        "password": "secret",
+        "is_staff": True,
+        "regulators": [{"translations__name": "REG2"}],
+        "groups": [{"name": "RegulatorUser"}],
+    },
+    {
+        "email": "reguser@reg1.lu",
+        "first_name": "reguser@reg1.lu",
+        "last_name": "reguser@reg1.lu",
+        "password": "secret",
+        "is_staff": True,
+        "regulators": [{"translations__name": "REG1"}],
+        "groups": [{"name": "RegulatorUser"}],
+    },
+    # Operator
+    {
+        "email": "opadmin@com1.lu",
+        "first_name": "opadmin@com1.lu",
+        "last_name": "opadmin@com1.lu",
+        "password": "secret",
+        "is_staff": True,
+        "operators": [{"identifier": "COM1"}],
+        "groups": [{"name": "OperatorAdmin"}],
+    },
+    {
+        "email": "opuser@com1.lu",
+        "first_name": "opuser@com1.lu",
+        "last_name": "opuser@com1.lu",
+        "password": "secret",
+        "is_staff": False,
+        "operators": [{"identifier": "COM1"}],
+        "groups": [{"name": "OperatorUser"}],
+    },
+    {
+        "email": "opadmin@com2.lu",
+        "first_name": "opadmin@com2.lu",
+        "last_name": "opadmin@com2.lu",
+        "password": "secret",
+        "is_staff": True,
+        "operators": [{"identifier": "COM2"}],
+        "groups": [{"name": "OperatorAdmin"}],
+    },
+    {
+        "email": "opuser@com2.lu",
+        "first_name": "opuser@com2.lu",
+        "last_name": "opuser@com2.lu",
+        "password": "secret",
+        "is_staff": False,
+        "operators": [{"identifier": "COM2"}],
+        "groups": [{"name": "OperatorUser"}],
+    },
+    # Observer
+    {
+        "email": "obsadm@CERT1.lu",
+        "first_name": "obsadm@CERT1.lu",
+        "last_name": "obsadm@CERT1.lu",
+        "password": "secret",
+        "is_staff": True,
+        "operators": [{"translations__name": "CERT1"}],
+        "groups": [{"name": "ObserverAdmin"}],
+    },
+    # Incident User
+    {
+        "email": "iu1@iu.lu",
+        "first_name": "iu1@iu.lu",
+        "last_name": "iu1@iu.lu",
+        "password": "secret",
+        "is_staff": False,
+        "groups": [{"name": "IncidentUser"}],
+    },
+    {
+        "email": "iu2@iu.lu",
+        "first_name": "iu2@iu.lu",
+        "last_name": "iu2@iu.lu",
+        "password": "secret",
+        "is_staff": False,
+        "groups": [{"name": "IncidentUser"}],
+    },
+    # PlatformAdmin
+    {
+        "email": "pa@pa.lu",
+        "first_name": "pa@pa.lu",
+        "last_name": "pa@pa.lu",
+        "password": "secret",
+        "is_staff": True,
+        "groups": [{"name": "PlatformAdmin"}],
+    },
+]
