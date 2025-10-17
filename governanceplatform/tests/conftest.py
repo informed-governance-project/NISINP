@@ -2,6 +2,7 @@ import pytest
 from django.db import models
 from django.contrib.auth.models import Group
 from django.test import Client
+from django.utils.timezone import now
 from django.utils.translation import activate
 from governanceplatform.models import (
     Company,
@@ -66,6 +67,7 @@ def populate_db(db):
 
     # Create regulations
     created_users = import_from_json(User, users)
+    initialize_user(created_users)
 
     return {
         "companies": created_companies,
@@ -198,3 +200,9 @@ def import_from_json(model, data):
         created_objects.append(obj)
 
     return created_objects
+
+
+def initialize_user(users):
+    for user in users:
+        user.accepted_terms_date = now().date()
+        user.save()

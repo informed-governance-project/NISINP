@@ -1,7 +1,6 @@
 import pytest
 from django.urls import reverse
 from governanceplatform.helpers import user_in_group
-from django.utils.timezone import now
 
 # Restricted URL
 restricted_names = [
@@ -54,9 +53,6 @@ def test_user_access_admin(client, populate_db):
     users = populate_db["users"]
 
     for user in users:
-        user.refresh_from_db()
-        user.accepted_terms_date = now().date()
-        user.save()
         client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
         # print(user)
         # print(user.is_authenticated)
@@ -67,7 +63,6 @@ def test_user_access_admin(client, populate_db):
         # print(user.get_all_permissions())
 
         if user_in_group(user, "IncidentUser") or user_in_group(user, "OperatorUser"):
-            print("coucou")
             url = reverse("admin:index")
             response = client.get(url)
             assert response.status_code in (302, 403), (
