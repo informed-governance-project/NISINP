@@ -53,22 +53,25 @@ def test_user_access_admin(client, populate_db):
     users = populate_db["users"]
 
     for user in users:
-        client.force_login(user, backend='django.contrib.auth.backends.ModelBackend')
-        # print(user)
-        # print(user.is_authenticated)
-        # print(user.is_staff)
-        # print(user.is_active)
-        # print(user.groups.all())
-        # print(user.regulators.all())
-        # print(user.get_all_permissions())
+        client.force_login(user)
 
-        if user_in_group(user, "IncidentUser") or user_in_group(user, "OperatorUser"):
+        if (
+            user_in_group(user, "IncidentUser")
+            or user_in_group(user, "OperatorUser")
+            or user_in_group(user, "ObserverUser")
+        ):
             url = reverse("admin:index")
             response = client.get(url)
             assert response.status_code in (302, 403), (
                 f"User {user.email} should not access to the admin"
             )
-        if user_in_group(user, "RegulatorAdmin"):
+        if (
+            user_in_group(user, "RegulatorAdmin")
+            or user_in_group(user, "RegulatorUser")
+            or user_in_group(user, "OperatorAdmin")
+            or user_in_group(user, "ObserverAdmin")
+            or user_in_group(user, "PlatformAdmin")
+        ):
             url = reverse("admin:index")
             response = client.get(url)
             assert response.status_code == 200, (
