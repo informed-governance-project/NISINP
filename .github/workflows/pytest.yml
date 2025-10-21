@@ -37,6 +37,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout theme
+        uses: actions/checkout@v4
+        with:
+          repository: informed-governance-project/default-theme
+          ref: ${{ github.ref_name }}
+          path: default-theme
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -52,10 +59,13 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
 
+      - name: Copy default theme
+          cp -r default-theme/* theme/
+
       - name: Run migrations
         run: |
           poetry run python manage.py migrate
 
       - name: Run tests with pytest
         run: |
-          poetry run pytest --ds=governanceplatform.settings --disable-warnings -v
+          poetry run pytest --disable-warnings -v
