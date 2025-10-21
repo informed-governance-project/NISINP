@@ -12,9 +12,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_USER: "<user>"
+          POSTGRES_PASSWORD: "<password>"
+          POSTGRES_DB: "serima-governance"
         ports:
           - 5432:5432
         options: >-
@@ -25,8 +25,11 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: governanceplatform.settings
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-      PYTHONPATH: ${{ github.workspace }}
+      POSTGRES_USER: <user>
+      POSTGRES_PASSWORD: <password>
+      POSTGRES_DB: serima-governance
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
       SECRET_KEY: test_secret_key
       DEBUG: "False"
 
