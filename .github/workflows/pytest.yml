@@ -61,6 +61,7 @@ jobs:
 
       - name: Copy default theme
         run: |
+          mkdir -p theme
           cp -r default-theme/* theme/
 
 
