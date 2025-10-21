@@ -70,6 +70,7 @@ def populate_db(db):
     created_users = import_from_json(User, users)
     # special set for user and permissions
     initialize_user(created_users)
+    link_entity_user(users, created_users)
     update_all_group_permissions()
 
     return {
@@ -209,3 +210,15 @@ def initialize_user(users):
     for user in users:
         user.accepted_terms_date = timezone.now()
         user.save()
+
+
+def link_entity_user(raw_data, created_users):
+    for user in raw_data:
+        if "email" in user:
+            user_db = User.objects.filter(email=user["email"]).first()
+            if "companies" in user and user_db:
+                for c in user["companies"]:
+                    if "identifier" in c:
+                        company_db = Company.objects.get(identifier=c["identifier"])
+                        user_db.companies.add(company_db)
+                user_db.save()

@@ -183,7 +183,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "operators": [{"identifier": "COM1"}],
+        "companies": [{"identifier": "COM1"}],
         "groups": [{"name": "OperatorAdmin"}],
     },
     {
@@ -194,7 +194,7 @@ users = [
         "is_staff": False,
         "accepted_terms": True,
         "is_superuser": False,
-        "operators": [{"identifier": "COM1"}],
+        "companies": [{"identifier": "COM1"}],
         "groups": [{"name": "OperatorUser"}],
     },
     {
@@ -205,7 +205,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "operators": [{"identifier": "COM2"}],
+        "companies": [{"identifier": "COM2"}],
         "groups": [{"name": "OperatorAdmin"}],
     },
     {
@@ -216,7 +216,7 @@ users = [
         "is_staff": False,
         "accepted_terms": True,
         "is_superuser": False,
-        "operators": [{"identifier": "COM2"}],
+        "companies": [{"identifier": "COM2"}],
         "groups": [{"name": "OperatorUser"}],
     },
     # Observer
@@ -228,7 +228,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "operators": [{"translations__name": "CERT1"}],
+        "observers": [{"translations__name": "CERT1"}],
         "groups": [{"name": "ObserverAdmin"}],
     },
     # Incident User
