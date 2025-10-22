@@ -1,31 +1,32 @@
 import pytest
-from django.utils import timezone
-from django.db import models
 from django.contrib.auth.models import Group
+from django.db import models
 from django.test import Client
+from django.utils import timezone
 from django.utils.translation import activate
+from parler.models import TranslatableModel
+
 from governanceplatform.models import (
     Company,
-    Regulator,
-    Observer,
     EntityCategory,
     Functionality,
-    Sector,
+    Observer,
     Regulation,
-    User
+    Regulator,
+    Sector,
+    User,
 )
 from governanceplatform.permissions import update_all_group_permissions
 from governanceplatform.tests.data import (
     companies_data,
-    regulators_data,
     functionalities_data,
     observers_data,
     permission_groups,
-    sectors,
     regulations,
+    regulators_data,
+    sectors,
     users,
 )
-from parler.models import TranslatableModel
 
 
 @pytest.fixture
@@ -88,8 +89,7 @@ def populate_db(db):
 
 def get_unique_lookup(model, data: dict):
     unique_fields = [
-        f.name for f in model._meta.get_fields()
-        if getattr(f, "unique", False)
+        f.name for f in model._meta.get_fields() if getattr(f, "unique", False)
     ]
 
     for constraint in model._meta.constraints:
@@ -97,7 +97,8 @@ def get_unique_lookup(model, data: dict):
             unique_fields.extend(constraint.fields)
 
     simple_fields = [
-        f.name for f in model._meta.get_fields()
+        f.name
+        for f in model._meta.get_fields()
         if not (f.many_to_many or f.one_to_many or f.is_relation)
     ]
 
@@ -157,7 +158,8 @@ def import_from_json(model, data):
             lookup = {
                 f.name: entry[f.name]
                 for f in model._meta.get_fields()
-                if f.name in entry and not (f.many_to_many or f.one_to_many or f.many_to_one)
+                if f.name in entry
+                and not (f.many_to_many or f.one_to_many or f.many_to_one)
             }
 
         obj = model.objects.create(**lookup)
@@ -222,3 +224,31 @@ def link_entity_user(raw_data, created_users):
                         company_db = Company.objects.get(identifier=c["identifier"])
                         user_db.companies.add(company_db)
                 user_db.save()
+
+
+@pytest.fixture
+def otp_client(client):
+    """
+    Fixture to emulate 2FA connection
+    """
+    from django_otp import devices_for_user
+    from django_otp.middleware import OTPMiddleware
+    from django_otp.plugins.otp_static.models import StaticDevice
+
+    def _login(user):
+        client.force_login(user)
+        devices = list(devices_for_user(user))
+        # get or create the devices
+        if devices:
+            device = devices[0]
+        else:
+            device = StaticDevice.objects.create(user=user, name="test-device")
+        session = client.session
+        session["otp_device_id"] = device.persistent_id
+        session.save()
+        request = client.request().wsgi_request
+        OTPMiddleware(lambda r: r)(request)
+        request.user.otp_device = device
+        return client
+
+    return _login

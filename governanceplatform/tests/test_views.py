@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+
 from governanceplatform.helpers import user_in_group
 
 # Restricted URL
@@ -46,14 +47,32 @@ def test_accessible_urls_without_credential(client):
 
 
 @pytest.mark.django_db
-def test_user_access_admin(client, populate_db):
+def test_user_access_admin_without_2FA(client, populate_db):
+    """
+    Verify the admin access is unaccessible without 2FA
+    """
+    users = populate_db["users"]
+
+    for user in users:
+        client.force_login(user)
+
+        url = reverse("admin:index")
+        response = client.get(url)
+        assert response.status_code in (
+            302,
+            403,
+        ), f"User {user.email} should not access to the admin without 2FA"
+
+
+@pytest.mark.django_db
+def test_user_access_admin_with_2FA(otp_client, populate_db):
     """
     Verify that a user in the IncidentUser group or OperatorUser group cannot access the admin
     """
     users = populate_db["users"]
 
     for user in users:
-        client.force_login(user)
+        client = otp_client(user)
 
         if (
             user_in_group(user, "IncidentUser")
@@ -62,9 +81,10 @@ def test_user_access_admin(client, populate_db):
         ):
             url = reverse("admin:index")
             response = client.get(url)
-            assert response.status_code in (302, 403), (
-                f"User {user.email} should not access to the admin"
-            )
+            assert response.status_code in (
+                302,
+                403,
+            ), f"User {user.email} should not access to the admin"
         if (
             user_in_group(user, "RegulatorAdmin")
             or user_in_group(user, "RegulatorUser")
@@ -74,6 +94,6 @@ def test_user_access_admin(client, populate_db):
         ):
             url = reverse("admin:index")
             response = client.get(url)
-            assert response.status_code == 200, (
-                f"User {user.email} should access to the admin"
-            )
+            assert (
+                response.status_code == 200
+            ), f"User {user.email} should access to the admin"
