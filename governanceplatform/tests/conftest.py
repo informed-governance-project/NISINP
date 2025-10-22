@@ -252,3 +252,30 @@ def otp_client(client):
         return client
 
     return _login
+
+
+# customize output generated with
+# poetry run pytest --html=../report.html --self-contained-html
+def pytest_html_results_table_row(report, cells):
+    # fetch description
+    desc = getattr(report, "description", "")
+    # Limit size to don't break the array
+    if len(desc) > 120:
+        desc = desc[:117] + "..."
+    # Replace name of the test by the description
+    if desc:
+        cells[1] = desc
+
+
+def pytest_itemcollected(item):
+    # fetch the docstring
+    doc = item.function.__doc__
+    if doc:
+        item._obj.description = doc.strip()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    report.description = str(item.function.__doc__)
