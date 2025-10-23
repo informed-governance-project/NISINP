@@ -626,6 +626,10 @@ def export_ciras(request):
     data = []
     for incident in incidents:
         last_report = incident.get_latest_incident_workflow()
+
+        if last_report is None:
+            continue
+
         incident_data = {
             "Name of operator": (
                 incident.company.name if incident.company else incident.company_name
