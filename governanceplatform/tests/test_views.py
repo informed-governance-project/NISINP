@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 
 from governanceplatform.helpers import user_in_group
+from governanceplatform.tests.conftest import list_admin_add_urls
 
 # Restricted URL
 restricted_names = [
@@ -97,3 +98,49 @@ def test_user_access_admin_with_2FA(otp_client, populate_db):
             assert (
                 response.status_code == 200
             ), f"User {user.email} should access to the admin"
+
+
+@pytest.mark.django_db
+def test_roles_addition_rights(otp_client, populate_db):
+    """
+    Test the rights of each groups on the model of governanceplatform
+    """
+    users = populate_db["users"]
+    platform_admin_rights = [
+        "user",
+        "regulator",
+        "observer",
+        "regulation",
+        "functionality",
+        "entitycategory",
+    ]
+    regulator_admin_rights = ["user", "company", "sector"]
+    regulator_user_rights = ["user", "company"]
+    observer_operator_admin_rights = ["user"]
+    for user in users:
+        client = otp_client(user)
+        for u in list_admin_add_urls("governanceplatform"):
+            if user_in_group(user, "PlatformAdmin") and any(
+                model in u for model in platform_admin_rights
+            ):
+                response = client.get("/" + u)
+                assert response.status_code == 200
+            elif user_in_group(user, "RegulatorAdmin") and any(
+                model in u for model in regulator_admin_rights
+            ):
+                response = client.get("/" + u)
+                assert response.status_code == 200
+            elif user_in_group(user, "RegulatorUser") and any(
+                model in u for model in regulator_user_rights
+            ):
+                response = client.get("/" + u)
+                assert response.status_code == 200
+            elif (
+                user_in_group(user, "ObserverAdmin")
+                or user_in_group(user, "OperatorAdmin")
+            ) and any(model in u for model in observer_operator_admin_rights):
+                response = client.get("/" + u)
+                assert response.status_code == 200
+            else:
+                response = client.get("/" + u)
+                assert response.status_code in (302, 403, 404)
