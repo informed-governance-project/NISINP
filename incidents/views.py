@@ -622,7 +622,27 @@ def delete_incident(request, incident_id: int):
 @otp_required
 @check_user_is_correct
 def export_ciras(request):
-    incidents = Incident.objects.all()
+    user = request.user
+
+    incidents = Incident.objects.none()
+
+    if user_in_group(user, "RegulatorAdmin"):
+        incidents = Incident.objects.filter(
+            sector_regulation__isnull=False,
+            sector_regulation__regulator__in=user.regulators.all(),
+        ).order_by("-incident_notification_date")
+
+    if is_observer_user(user):
+        incidents = (
+            user.observers.first()
+            .get_incidents()
+            .order_by("-incident_notification_date")
+        )
+
+    if not incidents.exists():
+        messages.error(request, _("No incidents available for export."))
+        return redirect("incidents")
+
     data = []
     for incident in incidents:
         last_report = incident.get_latest_incident_workflow()
