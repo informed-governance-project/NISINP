@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django.db import models
 from django.test import Client
+from django.urls import get_resolver
 from django.utils import timezone
 from django.utils.translation import activate
 from parler.models import TranslatableModel
@@ -279,3 +280,29 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
     report.description = str(item.function.__doc__)
+
+
+def list_urls(lis, prefix=""):
+    """
+    Get the list of all the urls
+    """
+    urls = []
+    for entry in lis:
+        if hasattr(entry, "url_patterns"):
+            urls += list_urls(entry.url_patterns, prefix + str(entry.pattern))
+        else:
+            urls.append(prefix + str(entry.pattern))
+    return urls
+
+
+def list_admin_add_urls(module_name: str):
+    """
+    get the 'add/' road of the given module.
+    """
+    all_urls = list_urls(get_resolver().url_patterns)
+    filtered = [
+        url
+        for url in all_urls
+        if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")
+    ]
+    return filtered
