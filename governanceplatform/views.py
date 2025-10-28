@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.mail import EmailMessage
@@ -162,13 +163,24 @@ def registration_view(request, *args, **kwargs):
                 user.groups.add(new_group)
             else:
                 user.groups.add(created)
+
+            # Send password reset email
+            reset_form = PasswordResetForm({"email": user.email})
+            if reset_form.is_valid():
+                reset_form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    email_template_name="registration/password_reset_email.html",
+                    subject_template_name="registration/password_reset_subject.txt",
+                )
+
             messages.success(
                 request,
-                _(
-                    "To complete your registration, please reset your password in the login page."
-                ),
+                "Account created. A password reset email has been sent. "
+                "Please check your inbox to set your password.",
             )
-            return redirect("password_change")
+
+            return redirect("login")
         else:
             captcha_errors = form.errors.get("captcha")
             if captcha_errors:
