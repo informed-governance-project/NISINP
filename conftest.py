@@ -306,3 +306,11 @@ def list_admin_add_urls(module_name: str):
         if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")
     ]
     return filtered
+
+
+def list_url_freetext_filter(freetext="", exclude=""):
+    all_urls = list_urls(get_resolver().url_patterns)
+    filtered = [
+        url for url in all_urls if url.find(freetext) != -1 and url.find(exclude) == -1
+    ]
+    return filtered
