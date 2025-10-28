@@ -150,7 +150,7 @@ def registration_view(request, *args, **kwargs):
     if user.is_authenticated:
         return redirect("index")
     elif request.method == "POST":
-        form = RegistrationForm(request.POST)
+        form = RegistrationForm(request.POST, request=request)
         if form.is_valid():
             user = form.save()
             user.accepted_terms = True
@@ -176,8 +176,12 @@ def registration_view(request, *args, **kwargs):
             context["form"] = form
 
     else:
-        form = RegistrationForm()
-        context["form"] = form
+        form = RegistrationForm(request=request)
+        context = {
+            "form": form,
+            "honeypot_field_name": request.session.get("honeypot_field_name"),
+        }
+        print(context)
     return render(request, "registration/signup.html", context)
 
 

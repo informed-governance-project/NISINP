@@ -131,6 +131,20 @@ class RegistrationForm(forms.ModelForm):
         "captcha",
     )
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+        # Create a random honeypot field name
+        if self.request:
+            honeypot_name = f"field_{secrets.token_hex(4)}"
+            self.request.session["honeypot_field_name"] = honeypot_name
+
+            self.fields[honeypot_name] = forms.CharField(
+                required=False,
+                widget=forms.TextInput(),
+            )
+
     @staticmethod
     def generate_temporary_password(length=24):
         chars = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
@@ -144,6 +158,12 @@ class RegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+    def clean_nickname(self):
+        data = self.cleaned_data.get("nickname")
+        if data:
+            raise ValidationError(_("Invalid submission detected."))
+        return data
 
     def clean_email(self):
         email = self.cleaned_data.get("email").lower()
@@ -221,7 +241,6 @@ class ContactForm(forms.Form):
     phone = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(max_length=254, required=True, disabled=True)
     message = forms.CharField(widget=forms.Textarea, required=True)
-    captcha = CaptchaField()
     terms_accepted = forms.BooleanField(
         label=_(
             "I agree that my personal data may be used for communication purposes."
