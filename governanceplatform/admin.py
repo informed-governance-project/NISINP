@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Q, Max, Value
+from django.db.models import Count, Max, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
 from django.http import Http404
@@ -19,20 +19,20 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
-from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 
+from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .formset import CompanyUserInlineFormset
 from .helpers import (
+    generate_display_methods,
     get_active_company_from_session,
     instance_user_in_group,
     is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
-    generate_display_methods,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
@@ -120,7 +120,9 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
     translated_fields = []
 
     def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        queryset, use_distinct = super().get_search_results(
+            request, queryset, search_term
+        )
         lang = request.LANGUAGE_CODE
         queryset = queryset.active_translations(lang).distinct()
         return queryset.distinct(), use_distinct
@@ -130,17 +132,22 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
     Give sortable column via `_field`
     Manage fallback if translation is not here
     """
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        lang = getattr(request, "LANGUAGE_CODE")
+        lang = getattr(request, "LANGUAGE_CODE", "en")
         default_lang = PARLER_DEFAULT_LANGUAGE_CODE
 
         annotations = {}
 
         for f in self.translated_fields:
             # Annotate value with the request lang and default one
-            annotations[f"_{f}_lang"] = Max(f"translations__{f}", filter=Q(translations__language_code=lang))
-            annotations[f"_{f}_default"] = Max(f"translations__{f}", filter=Q(translations__language_code=default_lang))
+            annotations[f"_{f}_lang"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=lang)
+            )
+            annotations[f"_{f}_default"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=default_lang)
+            )
 
         qs = qs.annotate(**annotations)
 
@@ -593,7 +600,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "phone_number",
         "identifier",
         "companyuser__sectors__translations__name",
-        "companyuser__sectors__parent__translations__name"
+        "companyuser__sectors__parent__translations__name",
     ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
@@ -997,9 +1004,9 @@ class userRegulatorInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         if user_in_group(request.user, "PlatformAdmin"):
             if "is_regulator_administrator" in formset.form.base_fields:
-                formset.form.base_fields[
-                    "is_regulator_administrator"
-                ].widget = forms.HiddenInput()
+                formset.form.base_fields["is_regulator_administrator"].widget = (
+                    forms.HiddenInput()
+                )
                 formset.form.base_fields["is_regulator_administrator"].initial = True
             if "sectors" in formset.form.base_fields:
                 formset.form.base_fields.pop("sectors", None)
@@ -1198,6 +1205,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
+        "email_verified",
     ]
     search_fields = ["first_name", "last_name", "email", "phone_number"]
     list_filter = [
@@ -1690,7 +1698,9 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         return super().has_delete_permission(request, obj)
 
 
-for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+for name, method in generate_display_methods(
+    ["name", "full_name", "description"]
+).items():
     setattr(RegulatorAdmin, name, method)
 
 
@@ -1769,9 +1779,9 @@ class ObserverUserInline(admin.TabularInline):
             user_in_group(request.user, "PlatformAdmin")
             and "is_observer_administrator" in formset.form.base_fields
         ):
-            formset.form.base_fields[
-                "is_observer_administrator"
-            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_observer_administrator"].widget = (
+                forms.HiddenInput()
+            )
             formset.form.base_fields["is_observer_administrator"].initial = True
         formset.empty_permitted = False
         return formset
@@ -1780,7 +1790,12 @@ class ObserverUserInline(admin.TabularInline):
 @admin.register(Observer, site=admin_site)
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
-    list_display = ["name_display", "full_name_display", "is_receiving_all_incident", "description_display"]
+    list_display = [
+        "name_display",
+        "full_name_display",
+        "is_receiving_all_incident",
+        "description_display",
+    ]
     search_fields = [
         "translations__name",
         "translations__full_name",
@@ -1871,7 +1886,9 @@ class ObserverAdmin(CustomTranslatableAdmin):
         return readonly_fields
 
 
-for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+for name, method in generate_display_methods(
+    ["name", "full_name", "description"]
+).items():
     setattr(ObserverAdmin, name, method)
 
 
