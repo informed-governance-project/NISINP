@@ -8,7 +8,7 @@ companies_data = [
         "address": "123 Rue de Paris",
         "email": "contact1@testcompany.com",
         "phone_number": "+33123456789",
-        "categories": ["Critical"]
+        "categories": ["Critical"],
     },
     {
         "identifier": "COM2",
@@ -17,31 +17,36 @@ companies_data = [
         "address": "56 Boulevard de Bruxelles",
         "email": "contact2@testcompany.com",
         "phone_number": "+32212345678",
-        "categories": ["Public"]
-    }
+        "categories": ["Public"],
+    },
 ]
 
-functionalities_data = [{"name": "Reporting", "type": "Reporting"}, {"name": "so", "type": "securityobjectives"}]
+functionalities_data = [
+    {"name": "Reporting", "type": "Reporting"},
+    {"name": "so", "type": "securityobjectives"},
+]
 
 regulators_data = [
     {
+        "id": 1,
         "name": "REG1",
         "full_name": "Regulator1",
         "description": "Regulator responsible for NIS",
         "country": "LU",
         "address": "123 rue de Luxembourg",
         "email_for_notification": "regulator1@reg.lu",
-        "functionalities": [{"type": "securityobjectives"}]
+        "functionalities": [{"type": "securityobjectives"}],
     },
     {
+        "id": 2,
         "name": "REG2",
         "full_name": "Regulator2",
         "description": "Regulator responsible for NIS2",
         "country": "LU",
         "address": "123 rue de Luxembourg",
         "email_for_notification": "regulator2@reg2.lu",
-        "functionalities": []
-    }
+        "functionalities": [],
+    },
 ]
 
 observers_data = [
@@ -51,7 +56,7 @@ observers_data = [
         "country": "LU",
         "address": "123 rue de Luxembourg",
         "email_for_notification": "cert1@cert1.lu",
-        "is_receiving_all_incident": True
+        "is_receiving_all_incident": True,
     }
 ]
 
@@ -83,49 +88,34 @@ permission_groups = [
 ]
 
 sectors = [
-    {
-        "acronym": "ENE",
-        "name": "Energy"
-    },
-    {
-        "acronym": "TRA",
-        "name": "Transport"
-    },
-    {
-        "acronym": "HEA",
-        "name": "Health"
-    },
+    {"acronym": "ENE", "name": "Energy"},
+    {"acronym": "TRA", "name": "Transport"},
+    {"acronym": "HEA", "name": "Health"},
     {
         "acronym": "GAS",
         "name": "Gas",
-        "parent": {"acronym": "ENE", "translations__name": "Energy"}
+        "parent": {"acronym": "ENE", "translations__name": "Energy"},
     },
     {
         "acronym": "ELEC",
         "name": "Electricity",
-        "parent": {"acronym": "ENE", "translations__name": "Energy"}
+        "parent": {"acronym": "ENE", "translations__name": "Energy"},
     },
     {
         "acronym": "ROAD",
         "name": "Road transport",
-        "parent": {"acronym": "TRA", "translations__name": "Transport"}
+        "parent": {"acronym": "TRA", "translations__name": "Transport"},
     },
     {
         "acronym": "BOAT",
         "name": "Boat transport",
-        "parent": {"acronym": "TRA", "translations__name": "Transport"}
+        "parent": {"acronym": "TRA", "translations__name": "Transport"},
     },
 ]
 
 regulations = [
-    {
-        "label": "NIS",
-        "regulators": [{"translations__name": "REG1"}]
-    },
-    {
-        "label": "GDPR",
-        "regulators": [{"translations__name": "REG2"}]
-    }
+    {"id": 1, "label": "NIS", "regulators": [{"translations__name": "REG1"}]},
+    {"id": 2, "label": "GDPR", "regulators": [{"translations__name": "REG2"}]},
 ]
 
 users = [
