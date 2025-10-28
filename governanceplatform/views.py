@@ -176,8 +176,10 @@ def registration_view(request, *args, **kwargs):
 
             messages.success(
                 request,
-                "Account created. A password reset email has been sent. "
-                "Please check your inbox to set your password.",
+                _(
+                    "Account created. A password reset email has been sent. "
+                    "Please check your inbox to set your password.",
+                ),
             )
 
             return redirect("login")
