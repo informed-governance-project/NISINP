@@ -28,6 +28,30 @@ from governanceplatform.tests.data import (
     sectors,
     users,
 )
+from incidents.models import (
+    Email,
+    Impact,
+    PredefinedAnswer,
+    Question,
+    QuestionCategory,
+    QuestionCategoryOptions,
+    QuestionOptions,
+    SectorRegulation,
+    SectorRegulationWorkflow,
+    Workflow,
+)
+from incidents.tests.incidents_data import (
+    emails,
+    impacts,
+    predefined_answers,
+    question_category,
+    question_category_option,
+    question_options,
+    questions,
+    reports,
+    workflows,
+    workflows_reports,
+)
 
 
 @pytest.fixture
@@ -75,6 +99,32 @@ def populate_db(db):
     link_entity_user(users, created_users)
     update_all_group_permissions()
 
+    # Incidents
+
+    # Create emails
+    created_emails = import_from_json(Email, emails)
+
+    # Create questions
+    created_questions = import_from_json(Question, questions)
+    created_predefined_asnwers = import_from_json(PredefinedAnswer, predefined_answers)
+    created_questions_categories = import_from_json(QuestionCategory, question_category)
+
+    # Create reports
+    created_questions_categories_options = import_from_json(
+        QuestionCategoryOptions, question_category_option, True, False
+    )
+    created_reports = import_from_json(Workflow, reports)
+    created_question_options = import_from_json(
+        QuestionOptions, question_options, True, False
+    )
+
+    # Create Workflows
+    created_workflows = import_from_json(SectorRegulation, workflows, True, False)
+    import_from_json(SectorRegulationWorkflow, workflows_reports, True, False)
+
+    # Create impacts
+    created_impacts = import_from_json(Impact, impacts)
+
     return {
         "companies": created_companies,
         "functionnalities": created_functionalities,
@@ -85,10 +135,19 @@ def populate_db(db):
         "sectors": created_sectors,
         "regulations": created_regulations,
         "users": created_users,
+        "incidents_email": created_emails,
+        "incidents_questions": created_questions,
+        "incidents_predefined_answers": created_predefined_asnwers,
+        "incidents_question_category": created_questions_categories,
+        "incidents_reports": created_reports,
+        "incidents_question_category_options": created_questions_categories_options,
+        "incidents_question_options": created_question_options,
+        "incidents_workflows": created_workflows,
+        "incidents_impacts": created_impacts,
     }
 
 
-def get_unique_lookup(model, data: dict):
+def get_unique_lookup(model, data: dict, import_not_null, only_simple_field):
     unique_fields = [
         f.name for f in model._meta.get_fields() if getattr(f, "unique", False)
     ]
@@ -103,7 +162,25 @@ def get_unique_lookup(model, data: dict):
         if not (f.many_to_many or f.one_to_many or f.is_relation)
     ]
 
-    lookup = {f: data[f] for f in unique_fields if f in data and f in simple_fields}
+    not_null_fields = []
+    if import_not_null:
+        not_null_fields = [
+            f.name
+            for f in model._meta.get_fields()
+            if getattr(f, "null", True) is False  # null=False => NOT NULL
+            and not (f.many_to_many)
+        ]
+
+    # Combine unique and not null
+    relevant_fields = set(unique_fields + not_null_fields)
+
+    # manage final lookup
+    if only_simple_field:
+        lookup = {
+            f: data[f] for f in relevant_fields if f in data and f in simple_fields
+        }
+    else:
+        lookup = {f: data[f] for f in relevant_fields if f in data}
     return lookup
 
 
@@ -111,7 +188,7 @@ def get_or_create_related(related_model, val: dict):
     if not isinstance(val, dict):
         raise ValueError(f"Unexpected value {related_model.__name__}: {val}")
 
-    lookup = get_unique_lookup(related_model, val)
+    lookup = get_unique_lookup(related_model, val, False, True)
     object = None
     if not lookup:
         # bypass when there is no unique field in the model, only get, no create
@@ -145,7 +222,9 @@ def get_or_create_related(related_model, val: dict):
     return obj
 
 
-def import_from_json(model, data):
+# import_not_null=True, is used to import field which have NOT NULL Constraint
+# only_simple_field=False, is used to import FK which are mandatory
+def import_from_json(model, data, import_not_null=False, only_simple_field=True):
     if isinstance(data, dict):
         data = [data]
 
@@ -153,7 +232,7 @@ def import_from_json(model, data):
     activate("en")
     for entry in data:
         # lookup via unique constraint
-        lookup = get_unique_lookup(model, entry)
+        lookup = get_unique_lookup(model, entry, import_not_null, only_simple_field)
         if not lookup:
             # fallback sur les champs simples
             lookup = {
@@ -162,6 +241,14 @@ def import_from_json(model, data):
                 if f.name in entry
                 and not (f.many_to_many or f.one_to_many or f.many_to_one)
             }
+        if lookup and not only_simple_field:
+            for field in model._meta.get_fields():
+                fname = field.name
+                if fname in lookup:
+                    if isinstance(field, models.ForeignKey):
+                        related_model = field.related_model
+                        rel_obj = get_or_create_related(related_model, lookup[fname])
+                        lookup[fname] = rel_obj
 
         obj = model.objects.create(**lookup)
 
