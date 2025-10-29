@@ -1,11 +1,15 @@
 import pytest
 from django.db import connection, OperationalError
+from django.contrib.auth.models import Group
 from django.utils.translation import activate
 from governanceplatform.models import (
     Company,
     Functionality,
     Observer,
     Regulator,
+    Sector,
+    Regulation,
+    User,
 )
 
 
@@ -30,7 +34,11 @@ def test_elements_in_db(populate_db):
     Check if objects are present in DB
     """
     activate("en")
-    assert Company.objects.count() >= 1
-    assert Functionality.objects.count() >= 1
-    assert Regulator.objects.count() >= 1
-    assert Observer.objects.count() >= 1
+    assert Company.objects.count() == 2
+    assert Functionality.objects.count() == 2
+    assert Regulator.objects.count() == 2
+    assert Observer.objects.count() == 1
+    assert Group.objects.count() == 8
+    assert Sector.objects.count() == 7
+    assert Regulation.objects.count() == 2
+    assert User.objects.count() == 12

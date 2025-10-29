@@ -1,3 +1,6 @@
+import csv
+import re
+from collections import OrderedDict
 from datetime import date
 from urllib.parse import urlencode, urlparse
 
@@ -613,6 +616,181 @@ def delete_incident(request, incident_id: int):
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
+
+
+@login_required
+@otp_required
+@check_user_is_correct
+def export_ciras(request):
+    user = request.user
+
+    incidents = Incident.objects.none()
+
+    if user_in_group(user, "RegulatorAdmin"):
+        incidents = Incident.objects.filter(
+            sector_regulation__isnull=False,
+            sector_regulation__regulator__in=user.regulators.all(),
+        ).order_by("-incident_notification_date")
+
+    if is_observer_user(user):
+        incidents = (
+            user.observers.first()
+            .get_incidents()
+            .order_by("-incident_notification_date")
+        )
+
+    if not incidents.exists():
+        messages.error(request, _("No incidents available for export."))
+        return redirect("incidents")
+
+    data = []
+    for incident in incidents:
+        last_report = incident.get_latest_incident_workflow()
+
+        if last_report is None:
+            continue
+
+        incident_data = {
+            "Name of operator": (
+                incident.company.name if incident.company else incident.company_name
+            ),
+            "Reference": incident.incident_id,
+            "Incident notification creation date": (
+                incident.incident_notification_date.strftime("%d-%m-%Y %H:%M:%S")
+                if incident.incident_notification_date
+                else ""
+            ),
+            "Incident detection date": (
+                last_report.report_timeline.incident_detection_date.strftime(
+                    "%d-%m-%Y %H:%M:%S"
+                )
+                if last_report.report_timeline
+                and last_report.report_timeline.incident_detection_date
+                else ""
+            ),
+            "Incident start date": (
+                last_report.report_timeline.incident_starting_date.strftime(
+                    "%d-%m-%Y %H:%M:%S"
+                )
+                if last_report.report_timeline
+                and last_report.report_timeline.incident_starting_date
+                else ""
+            ),
+            "Incident resolution date": (
+                last_report.report_timeline.incident_resolution_date.strftime(
+                    "%d-%m-%Y %H:%M:%S"
+                )
+                if last_report.report_timeline
+                and last_report.report_timeline.incident_resolution_date
+                else ""
+            ),
+            "Legal basis": incident.sector_regulation,
+            "Significative impact": (
+                "yes" if incident.is_significative_impact else "no"
+            ),
+            "Incident Status": incident.get_incident_status_display(),
+            "Incident notification manager": ", ".join(
+                [
+                    f"{incident.contact_firstname} {incident.contact_lastname}",
+                    incident.contact_email,
+                    incident.contact_telephone,
+                ]
+            ),
+            "Incident technical contact": ", ".join(
+                [
+                    f"{incident.technical_firstname} {incident.technical_lastname}",
+                    incident.technical_email,
+                    incident.technical_telephone,
+                ]
+            ),
+            "Report": (last_report.workflow if last_report.workflow else ""),
+            "Report status": (
+                last_report.get_review_status_display()
+                if last_report.review_status
+                else ""
+            ),
+            "Report creation date": (
+                last_report.timestamp.strftime("%d-%m-%Y %H:%M:%S")
+                if last_report.timestamp
+                else ""
+            ),
+        }
+
+        length_fixed_values = len(incident_data)
+
+        for idx, sector in enumerate(incident.affected_sectors.all(), start=1):
+            incident_data[f"Impacted sectors {idx}"] = str(sector).replace(
+                " → ", " -> "
+            )
+
+        for answer in last_report.answer_set.all():
+            question = answer.question_options.question
+            str_answer = str(answer).replace(";", ",")
+            if answer.predefined_answers.exists():
+                for idx, pa in enumerate(answer.predefined_answers.all(), start=1):
+                    pa_answer = str(pa).replace(";", ",")
+                    if question.question_type == "SO":
+                        incident_data[f"{question}"] = pa_answer
+                    elif question.question_type == "ST":
+                        if str_answer != "":
+                            incident_data[f"{question}"] = (
+                                f"{pa_answer} Details: {str_answer}"
+                            )
+                        else:
+                            incident_data[f"{question}"] = pa_answer
+                    else:
+                        incident_data[f"{question} {idx}"] = pa_answer
+            elif question.question_type == "CL" or question.question_type == "RL":
+                for idx, item in enumerate(str_answer.split(","), start=1):
+                    incident_data[f"{question} {idx}"] = item.strip()
+            else:
+                incident_data[f"{question}"] = str_answer
+
+        data.append(incident_data)
+
+    keys = []
+    for entry in data:
+        for k in entry.keys():
+            if k not in keys:
+                keys.append(k)
+
+    def group_keys_by_index(keys):
+        fixed_keys = keys[:length_fixed_values]
+        dynamic_keys = keys[length_fixed_values:]
+        groups = OrderedDict()
+        for key in dynamic_keys:
+            match = re.match(r"^(.*\D)\s*:?\s*(\d+)$", key)
+            if match:
+                prefix = match.group(1).strip()
+                index = int(match.group(2))
+                if prefix not in groups:
+                    groups[prefix] = []
+                groups[prefix].append((index, key))
+            else:
+                if key not in groups:
+                    groups[key] = []
+                groups[key].append((0, key))
+
+        grouped_keys = []
+        for _prefix, items in groups.items():
+            items.sort(key=lambda x: x[0])
+            grouped_keys.extend([key for _, key in items])
+        return fixed_keys + grouped_keys
+
+    keys = group_keys_by_index(keys)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="export_ciras.csv"'
+
+    writer = csv.DictWriter(
+        response, fieldnames=keys, extrasaction="ignore", quoting=csv.QUOTE_ALL
+    )
+    writer.writeheader()
+    for entry in data:
+        row = {key: entry.get(key, "") for key in keys}
+        writer.writerow(row)
+
+    return response
 
 
 def is_incidents_report_limit_reached(request):
@@ -1251,7 +1429,11 @@ class WorkflowWizardView(SessionWizardView):
                     None,
                 )
                 create_entry_log(
-                    user, self.incident, incident_workflow, "REVIEW STATUS: "+review_status_txt, self.request
+                    user,
+                    self.incident,
+                    incident_workflow,
+                    "REVIEW STATUS: " + review_status_txt,
+                    self.request,
                 )
             incident_workflow.save()
             create_entry_log(

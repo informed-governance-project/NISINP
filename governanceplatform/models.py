@@ -471,9 +471,15 @@ class User(AbstractUser, PermissionsMixin):
             "Determines if the user can log in via the administration interface."
         ),
     )
+
+    email_verified = models.BooleanField(
+        verbose_name=_("Email verified"),
+        default=True,
+        help_text=_("Indicates whether the user has verified their email address."),
+    )
+
     accepted_terms = models.BooleanField(default=False)
     accepted_terms_date = models.DateTimeField(blank=True, null=True)
-    activation_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

@@ -1,56 +1,17 @@
-from datetime import timedelta
+import secrets
+import string
 
 from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import (
-    AuthenticationForm,
-    UserChangeForm,
-    UserCreationForm,
-)
+from django.contrib.auth.forms import UserChangeForm
 from django.core.exceptions import ValidationError
-from django.utils.timezone import now
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 
-from .helpers import send_activation_email
-
 User = get_user_model()
-
-
-class CustomAuthenticationForm(AuthenticationForm):
-    def confirm_login_allowed(self, user):
-        delta = now() - timedelta(seconds=settings.ACCOUNT_ACTIVATION_LINK_TIMEOUT)
-        is_expired = user.date_joined < delta
-        if not user.is_active:
-            if user.last_login:
-                raise ValidationError(
-                    _(
-                        "Your account has been deactivated. Please contact the administrator for assistance."
-                    ),
-                    code="account_deactivated",
-                )
-
-            if is_expired:
-                user.date_joined = now()
-                user.accepted_terms_date = None
-                send_activation_email(user)
-                user.save(update_fields=["date_joined", "accepted_terms_date"])
-                raise ValidationError(
-                    _(
-                        "Your activation link has expired. A new activation email has been sent to your registered email address."
-                    ),
-                    code="activation_expired",
-                )
-            else:
-                raise ValidationError(
-                    _(
-                        "Your account is not yet activated. Please check your email for the activation link to complete registration."
-                    ),
-                    code="activation_pending",
-                )
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -143,7 +104,8 @@ class SelectCompany(forms.Form):
         self.fields["select_company"].queryset = companies.order_by("name")
 
 
-class RegistrationForm(UserCreationForm):
+class RegistrationForm(forms.ModelForm):
+    captcha = CaptchaField()
     accept_terms = forms.BooleanField(
         label=_("I acknowledge and agree to the"),
         error_messages={
@@ -165,10 +127,43 @@ class RegistrationForm(UserCreationForm):
         "email",
         "last_name",
         "first_name",
-        "password1",
-        "password2",
         "accept_terms",
+        "captcha",
     )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+        # Create a random honeypot field name
+        if self.request:
+            honeypot_name = f"field_{secrets.token_hex(4)}"
+            self.request.session["honeypot_field_name"] = honeypot_name
+
+            self.fields[honeypot_name] = forms.CharField(
+                required=False,
+                widget=forms.TextInput(),
+            )
+
+    @staticmethod
+    def generate_temporary_password(length=24):
+        chars = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
+        return "".join(secrets.choice(chars) for _ in range(length))
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        temp_password = self.generate_temporary_password()
+        user.set_password(temp_password)
+        user.email_verified = False
+        if commit:
+            user.save()
+        return user
+
+    def clean_nickname(self):
+        data = self.cleaned_data.get("nickname")
+        if data:
+            raise ValidationError(_("Invalid submission detected."))
+        return data
 
     def clean_email(self):
         email = self.cleaned_data.get("email").lower()
@@ -246,7 +241,6 @@ class ContactForm(forms.Form):
     phone = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(max_length=254, required=True, disabled=True)
     message = forms.CharField(widget=forms.Textarea, required=True)
-    captcha = CaptchaField()
     terms_accepted = forms.BooleanField(
         label=_(
             "I agree that my personal data may be used for communication purposes."
