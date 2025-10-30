@@ -668,8 +668,8 @@ def export_incidents(request):
             .order_by("-incident_notification_date")
         )
 
-    regulation_qs = Regulation.objects.filter(id__in=regulation_ids)
-    workflow_qs = Workflow.objects.filter(id__in=workflows_ids)
+    regulation_qs = Regulation.objects.filter(id__in=regulation_ids).order_by("id")
+    workflow_qs = Workflow.objects.filter(id__in=workflows_ids).order_by("id")
 
     form = ExportIncidentsForm(regulation_qs=regulation_qs, workflow_qs=workflow_qs)
 
