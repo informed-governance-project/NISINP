@@ -32,7 +32,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import CompanyUser, RegulatorUser, Sector
+from governanceplatform.models import CompanyUser, Regulation, RegulatorUser, Sector
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -43,7 +43,7 @@ from governanceplatform.settings import (
 from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email
 from .filters import IncidentFilter
-from .forms import ContactForm, IncidentStatusForm, get_forms_list
+from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
 from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
@@ -634,17 +634,44 @@ def export_incidents(request):
     incidents = Incident.objects.none()
 
     if user_in_group(user, "RegulatorAdmin"):
+        regulation_ids = (
+            user.regulators.first()
+            .sectorregulation_set.values_list("regulation", flat=True)
+            .distinct()
+        )
+        workflows_ids = (
+            user.regulators.first()
+            .sectorregulation_set.values_list("workflows", flat=True)
+            .distinct()
+        )
+
         incidents = Incident.objects.filter(
             sector_regulation__isnull=False,
             sector_regulation__regulator__in=user.regulators.all(),
         ).order_by("-incident_notification_date")
 
     if is_observer_user(user):
+        regulation_ids = (
+            user.observers.first()
+            .observerregulation_set.values_list("regulation", flat=True)
+            .distinct()
+        )
+        workflows_ids = (
+            SectorRegulation.objects.filter(regulation__in=regulation_ids)
+            .values_list("workflows", flat=True)
+            .distinct()
+        )
+
         incidents = (
             user.observers.first()
             .get_incidents()
             .order_by("-incident_notification_date")
         )
+
+    regulation_qs = Regulation.objects.filter(id__in=regulation_ids)
+    workflow_qs = Workflow.objects.filter(id__in=workflows_ids)
+
+    form = ExportIncidentsForm(regulation_qs=regulation_qs, workflow_qs=workflow_qs)
 
     if not incidents.exists():
         messages.error(request, _("No incidents available for export."))
@@ -806,7 +833,9 @@ def export_incidents(request):
         change_message="EXPORT CSV",
     )
 
-    return response
+    # return response
+
+    return render(request, "modals/export_incidents.html", {"form": form})
 
 
 def is_incidents_report_limit_reached(request):

@@ -29,6 +29,7 @@ from .models import (
     QuestionOptionsHistory,
     ReportTimeline,
     SectorRegulation,
+    Workflow,
 )
 from .widgets import TempusDominusV6Widget
 
@@ -1033,9 +1034,9 @@ class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if "is_significative_impact" not in self.data:
-            cleaned_data[
-                "is_significative_impact"
-            ] = self.instance.is_significative_impact
+            cleaned_data["is_significative_impact"] = (
+                self.instance.is_significative_impact
+            )
 
         for field in ["incident_id", "incident_status", "is_significative_impact"]:
             if cleaned_data.get(field) in [None, ""]:
@@ -1107,6 +1108,27 @@ class QuestionOptionsInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields[
-            "question"
-        ].label_from_instance = lambda obj: obj.get_question_label_with_reference()
+        self.fields["question"].label_from_instance = (
+            lambda obj: obj.get_question_label_with_reference()
+        )
+
+
+class ExportIncidentsForm(forms.Form):
+    regulation = forms.ModelChoiceField(
+        queryset=Regulation.objects.none(),
+        label="Regulation",
+        required=True,
+    )
+    workflow = forms.ModelChoiceField(
+        queryset=Workflow.objects.none(),
+        label="Report",
+        required=True,
+    )
+
+    def __init__(self, *args, **kwargs):
+        regulation_qs = kwargs.pop("regulation_qs", Regulation.objects.none())
+        workflow_qs = kwargs.pop("workflow_qs", Workflow.objects.none())
+        super().__init__(*args, **kwargs)
+
+        self.fields["regulation"].queryset = regulation_qs
+        self.fields["workflow"].queryset = workflow_qs
