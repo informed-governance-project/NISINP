@@ -220,6 +220,7 @@ def get_incidents(request):
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
             ),
+            "can_export_incidents": can_export_incidents(user),
         },
     )
 
@@ -623,24 +624,8 @@ def delete_incident(request, incident_id: int):
 @check_user_is_correct
 def export_incidents(request):
     user = request.user
-    regulator = user.regulators.first()
-    observer = user.observers.first()
 
-    can_export_incidents = (
-        regulator
-        and user.regulatoruser_set.filter(
-            regulator=regulator,
-            is_regulator_administrator=True,
-            can_export_incidents=True,
-        ).exists()
-    ) or (
-        observer
-        and user.observeruser_set.filter(
-            observer=observer, can_export_incidents=True
-        ).exists()
-    )
-
-    if not can_export_incidents:
+    if not can_export_incidents(user):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
@@ -1578,3 +1563,21 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         entity_name=entity_name,
     )
     log.save()
+
+
+def can_export_incidents(user):
+    regulator = user.regulators.first()
+    observer = user.observers.first()
+    return (
+        regulator
+        and user.regulatoruser_set.filter(
+            regulator=regulator,
+            is_regulator_administrator=True,
+            can_export_incidents=True,
+        ).exists()
+    ) or (
+        observer
+        and user.observeruser_set.filter(
+            observer=observer, can_export_incidents=True
+        ).exists()
+    )
