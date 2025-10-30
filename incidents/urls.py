@@ -25,7 +25,7 @@ from .views import (
     download_incident_report_pdf,
     edit_incident,
     edit_workflow,
-    export_ciras,
+    export_incidents,
     get_form_list,
     get_incidents,
     review_workflow,
@@ -67,8 +67,8 @@ urlpatterns = [
         name="delete_incident",
     ),
     path(
-        "export_ciras",
-        export_ciras,
-        name="export_ciras",
+        "export_incidents",
+        export_incidents,
+        name="export_incidents",
     ),
 ]

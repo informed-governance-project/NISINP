@@ -621,7 +621,7 @@ def delete_incident(request, incident_id: int):
 @login_required
 @otp_required
 @check_user_is_correct
-def export_ciras(request):
+def export_incidents(request):
     user = request.user
 
     incidents = Incident.objects.none()
@@ -780,7 +780,7 @@ def export_ciras(request):
     keys = group_keys_by_index(keys)
 
     response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="export_ciras.csv"'
+    response["Content-Disposition"] = 'attachment; filename="export.csv"'
 
     writer = csv.DictWriter(
         response, fieldnames=keys, extrasaction="ignore", quoting=csv.QUOTE_ALL
