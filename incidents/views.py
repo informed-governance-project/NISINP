@@ -846,9 +846,16 @@ def export_incidents(request):
                 user_id=user.id,
                 content_type_id=ContentType.objects.get_for_model(Incident).id,
                 object_id="",
-                object_repr="Incidents Export",
+                object_repr=_("Incidents Export"),
                 action_flag=7,
-                change_message=f"Exported {len(data)} incidents from regulation {str(regulation)} [report: {str(workflow)}]",
+                change_message=_(
+                    "A total of %(count)d incidents were exported from regulation %(regulation)s [%(workflow)s]"
+                )
+                % {
+                    "count": len(data),
+                    "regulation": regulation,
+                    "workflow": workflow,
+                },
             )
 
             return response
