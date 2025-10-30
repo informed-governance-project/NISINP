@@ -848,7 +848,7 @@ def export_incidents(request):
                 object_id="",
                 object_repr="Incidents Export",
                 action_flag=7,
-                change_message="EXPORT CSV",
+                change_message=f"Exported {len(data)} incidents from regulation {str(regulation)} [report: {str(workflow)}]",
             )
 
             return response
