@@ -7,7 +7,9 @@ from urllib.parse import urlencode, urlparse
 import pytz
 from django import forms
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -794,6 +796,15 @@ def export_incidents(request):
     for entry in data:
         row = {key: entry.get(key, "") for key in keys}
         writer.writerow(row)
+
+    LogEntry.objects.log_action(
+        user_id=user.id,
+        content_type_id=ContentType.objects.get_for_model(Incident).id,
+        object_id="",
+        object_repr="Incidents Export",
+        action_flag=7,
+        change_message="EXPORT CSV",
+    )
 
     return response
 

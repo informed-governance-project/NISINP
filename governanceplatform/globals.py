@@ -7,6 +7,7 @@ DELETION = 3
 VIEW = 4
 CONNECTION = 5
 DECONNECTION = 6
+EXPORT = 7
 
 ACTION_FLAG_CHOICES = {
     ADDITION: _("Addition"),
@@ -15,6 +16,7 @@ ACTION_FLAG_CHOICES = {
     # VIEW: _('View'),
     CONNECTION: _("Login"),
     DECONNECTION: _("Logout"),
+    EXPORT: _("Export"),
 }
 
 # Functionalities list
