@@ -28,30 +28,6 @@ from governanceplatform.tests.data import (
     sectors,
     users,
 )
-from incidents.models import (
-    Email,
-    Impact,
-    PredefinedAnswer,
-    Question,
-    QuestionCategory,
-    QuestionCategoryOptions,
-    QuestionOptions,
-    SectorRegulation,
-    SectorRegulationWorkflow,
-    Workflow,
-)
-from incidents.tests.incidents_data import (
-    emails,
-    impacts,
-    predefined_answers,
-    question_category,
-    question_category_option,
-    question_options,
-    questions,
-    reports,
-    workflows,
-    workflows_reports,
-)
 
 
 @pytest.fixture
@@ -99,32 +75,6 @@ def populate_db(db):
     link_entity_user(users, created_users)
     update_all_group_permissions()
 
-    # Incidents
-
-    # Create emails
-    created_emails = import_from_json(Email, emails)
-
-    # Create questions
-    created_questions = import_from_json(Question, questions)
-    created_predefined_asnwers = import_from_json(PredefinedAnswer, predefined_answers)
-    created_questions_categories = import_from_json(QuestionCategory, question_category)
-
-    # Create reports
-    created_questions_categories_options = import_from_json(
-        QuestionCategoryOptions, question_category_option, True, False
-    )
-    created_reports = import_from_json(Workflow, reports)
-    created_question_options = import_from_json(
-        QuestionOptions, question_options, True, False
-    )
-
-    # Create Workflows
-    created_workflows = import_from_json(SectorRegulation, workflows, True, False)
-    import_from_json(SectorRegulationWorkflow, workflows_reports, True, False)
-
-    # Create impacts
-    created_impacts = import_from_json(Impact, impacts)
-
     return {
         "companies": created_companies,
         "functionnalities": created_functionalities,
@@ -135,15 +85,6 @@ def populate_db(db):
         "sectors": created_sectors,
         "regulations": created_regulations,
         "users": created_users,
-        "incidents_email": created_emails,
-        "incidents_questions": created_questions,
-        "incidents_predefined_answers": created_predefined_asnwers,
-        "incidents_question_category": created_questions_categories,
-        "incidents_reports": created_reports,
-        "incidents_question_category_options": created_questions_categories_options,
-        "incidents_question_options": created_question_options,
-        "incidents_workflows": created_workflows,
-        "incidents_impacts": created_impacts,
     }
 
 

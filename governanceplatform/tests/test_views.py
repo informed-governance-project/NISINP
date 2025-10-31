@@ -1,8 +1,8 @@
 import pytest
 from django.urls import reverse
 
-from conftest import list_admin_add_urls
 from governanceplatform.helpers import user_in_group
+from governanceplatform.tests.conftest import list_admin_add_urls
 
 # Restricted URL
 restricted_names = [
