@@ -874,16 +874,18 @@ def export_incidents(request):
                 user_id=user.id,
                 content_type_id=ContentType.objects.get_for_model(Incident).id,
                 object_id="",
-                object_repr=_("Incidents Export"),
+                object_repr=_(f"Incidents Export"),
                 action_flag=7,
                 change_message=_(
-                    "A total of %(count)d incidents were exported from regulation %(regulation)s [%(workflow)s]"
-                )
-                % {
-                    "count": len(data),
-                    "regulation": regulation,
-                    "workflow": workflow,
-                },
+                    "A total of {count} incidents were exported from regulation "
+                    "{regulation} [{workflow}] within date range ({from_date} - {to_date}.)"
+                ).format(
+                    count=len(data),
+                    regulation=regulation,
+                    workflow=workflow,
+                    from_date=from_date,
+                    to_date=to_date,
+                ),
             )
 
             return response
