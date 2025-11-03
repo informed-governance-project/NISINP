@@ -676,22 +676,40 @@ def export_incidents(request):
             incidents = Incident.objects.none()
             regulation = form.cleaned_data["regulation"]
             workflow = form.cleaned_data["workflow"]
+            from_date = form.cleaned_data["from_date"]
+            to_date = form.cleaned_data["to_date"]
+            are_incidents = False
 
             if user_in_group(user, "RegulatorAdmin"):
                 incidents = Incident.objects.filter(
                     sector_regulation__isnull=False,
                     sector_regulation__regulation=regulation,
                     sector_regulation__regulator__in=user.regulators.all(),
+                    incident_notification_date__date__gte=from_date,
+                    incident_notification_date__date__lte=to_date,
                 ).order_by("-incident_notification_date")
 
+                if incidents.exists():
+                    are_incidents = True
+
             if is_observer_user(user):
-                incidents = (
+                all_incidents = (
                     user.observers.first()
                     .get_incidents()
                     .order_by("-incident_notification_date")
                 )
 
-            if not incidents.exists():
+                incidents = [
+                    i
+                    for i in all_incidents
+                    if i.sector_regulation.regulation == regulation
+                    and from_date <= i.incident_notification_date.date() <= to_date
+                ]
+
+                if incidents:
+                    are_incidents = True
+
+            if not are_incidents:
                 messages.error(request, _("No incidents available for export."))
                 return redirect("incidents")
 

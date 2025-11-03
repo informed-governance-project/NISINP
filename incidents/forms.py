@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytz
@@ -1114,6 +1114,12 @@ class QuestionOptionsInlineForm(forms.ModelForm):
 
 
 class ExportIncidentsForm(forms.Form):
+    max_dt = datetime.today().date()
+    try:
+        min_dt = max_dt.replace(year=max_dt.year - 2)
+    except ValueError:
+        min_dt = max_dt - timedelta(days=730)
+
     regulation = forms.ModelChoiceField(
         queryset=Regulation.objects.none(),
         label="Regulation",
@@ -1123,6 +1129,24 @@ class ExportIncidentsForm(forms.Form):
         queryset=Workflow.objects.none(),
         label="Report",
         required=True,
+    )
+
+    from_date = forms.DateField(
+        required=True,
+        widget=TempusDominusV6Widget(
+            min_date=min_dt,
+            max_date=max_dt,
+        ),
+        label=_("From"),
+    )
+
+    to_date = forms.DateField(
+        required=True,
+        widget=TempusDominusV6Widget(
+            min_date=min_dt,
+            max_date=max_dt,
+        ),
+        label=_("To"),
     )
 
     def __init__(self, *args, **kwargs):
