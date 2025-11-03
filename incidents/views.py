@@ -11,7 +11,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import OuterRef, Q, Subquery
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -656,7 +656,17 @@ def export_incidents(request):
         )
 
     regulation_qs = Regulation.objects.filter(id__in=regulation_ids).order_by("id")
-    workflow_qs = Workflow.objects.filter(id__in=workflows_ids).order_by("id")
+    workflow_qs = (
+        Workflow.objects.filter(id__in=workflows_ids)
+        .annotate(
+            regulation_id=Subquery(
+                SectorRegulationWorkflow.objects.filter(workflow=OuterRef("pk")).values(
+                    "sector_regulation__regulation_id"
+                )[:1]
+            )
+        )
+        .order_by("id")
+    )
 
     if request.method == "POST":
         form = ExportIncidentsForm(
