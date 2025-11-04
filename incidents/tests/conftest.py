@@ -2,12 +2,13 @@ import pytest
 from django.utils import timezone
 from django.utils.translation import activate
 
+import governanceplatform.tests.conftest as gp_conftest
+from conftest import import_from_json
 from governanceplatform.helpers import (
     is_user_operator,
     is_user_regulator,
 )
 from governanceplatform.settings import TIME_ZONE
-from governanceplatform.tests.conftest import import_from_json
 from incidents.models import (
     Email,
     Impact,
@@ -34,6 +35,12 @@ from incidents.tests.incidents_data import (
     workflows,
     workflows_reports,
 )
+
+
+@pytest.fixture
+def populate_db(db):
+    # on rewrap fixture to expose localy and don't get flake error
+    return gp_conftest.populate_db.__wrapped__(db)
 
 
 @pytest.fixture

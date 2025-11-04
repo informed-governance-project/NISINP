@@ -1,5 +1,9 @@
 import pytest
 
+from conftest import (
+    list_admin_add_urls,
+    list_url_freetext_filter,
+)
 from governanceplatform.helpers import (
     can_access_incident,
     can_create_incident_report,
@@ -7,10 +11,6 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.models import RegulatorUser
-from governanceplatform.tests.conftest import (
-    list_admin_add_urls,
-    list_url_freetext_filter,
-)
 
 
 @pytest.mark.django_db
@@ -267,3 +267,55 @@ def test_can_edit_incident_report_function(populate_incident_db):
                 assert can_edit_incident_report(u, incident_regulator, -1) is True
             else:
                 assert can_edit_incident_report(u, incident_regulator, -1) is False
+
+
+@pytest.mark.django_db
+def test_access_to_incident_log(otp_client, populate_incident_db):
+    """
+    Test access to the log of the incident (user view)
+    """
+    users = populate_incident_db["users"]
+    incidents = populate_incident_db["incidents"]
+    # operator admin
+    authorized_users = [
+        u
+        for u in users
+        if u.email == "opadmin@com1.lu"
+        or u.email == "obsadm@cert1.lu"  # receive all incident
+        or u.email == "opuser@com1.lu"
+        or u.email == "regadmin@reg1.lu"
+    ]
+    # operator incident
+    incident = next(
+        (u for u in incidents if u.incident_id == "XXXX-SSS-SSS-0001-2005"), None
+    )
+
+    for u in users:
+        client = otp_client(u)
+        response = client.get("/incidents/access_log/" + str(incident.id))
+
+        if u in authorized_users:
+            assert response.status_code == 200
+        else:
+            assert response.status_code in (302, 403)
+
+    authorized_users = [
+        u
+        for u in users
+        if u.email == "obsadm@cert1.lu"  # receive all incident
+        or u.email == "reguser@reg1.lu"
+        or u.email == "regadmin@reg1.lu"
+    ]
+    # regulator incident
+    incident = next(
+        (u for u in incidents if u.incident_id == "RRR-SSS-SSS-0001-2005"), None
+    )
+
+    for u in users:
+        client = otp_client(u)
+        response = client.get("/incidents/access_log/" + str(incident.id))
+
+        if u in authorized_users:
+            assert response.status_code == 200
+        else:
+            assert response.status_code in (302, 403)

@@ -1,14 +1,15 @@
 import pytest
-from django.db import connection, OperationalError
 from django.contrib.auth.models import Group
+from django.db import OperationalError, connection
 from django.utils.translation import activate
+
 from governanceplatform.models import (
     Company,
     Functionality,
     Observer,
+    Regulation,
     Regulator,
     Sector,
-    Regulation,
     User,
 )
 
