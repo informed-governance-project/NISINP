@@ -98,9 +98,11 @@ class RestrictViewsMiddleware:
                     return redirect("admin:index")
 
             if user_in_group(user, "IncidentUser"):
-                if request.path.startswith(
-                    "/incidents/incident/"
-                ) or request.path == reverse("regulator_incidents"):
+                if (
+                    request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                    or request.path == reverse("export_incidents")
+                ):
                     raise Http404()
 
             if is_user_regulator(user) and not request.session.get(
@@ -125,9 +127,11 @@ class RestrictViewsMiddleware:
                     raise Http404()
 
             if is_user_operator(user):
-                if request.path.startswith(
-                    "/incidents/incident/"
-                ) or request.path == reverse("regulator_incidents"):
+                if (
+                    request.path.startswith("/incidents/incident/")
+                    or request.path == reverse("regulator_incidents")
+                    or request.path == reverse("export_incidents")
+                ):
                     raise Http404()
 
         return self.get_response(request)
