@@ -508,6 +508,7 @@ class ContactForm(forms.Form):
     incident_reference = forms.CharField(
         max_length=255,
         required=False,
+        label=_("Incident reference"),
         widget=forms.TextInput(
             attrs={
                 "title": _(
@@ -522,6 +523,7 @@ class ContactForm(forms.Form):
     complaint_reference = forms.CharField(
         max_length=255,
         required=False,
+        label=_("Complaint reference"),
         widget=forms.TextInput(
             attrs={
                 "title": _(
