@@ -14,6 +14,7 @@ from django.core.paginator import Paginator
 from django.db.models import OuterRef, Q, Subquery
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -711,7 +712,8 @@ def export_incidents(request):
 
             if not are_incidents:
                 messages.error(request, _("No incidents available for export."))
-                return redirect("incidents")
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
 
             data = []
             for incident in incidents:
@@ -1677,4 +1679,12 @@ def can_export_incidents(user):
         and user.observeruser_set.filter(
             observer=observer, can_export_incidents=True
         ).exists()
+    )
+
+
+def render_error_messages(request):
+    return render_to_string(
+        "django_bootstrap5/messages.html",
+        {"messages": messages.get_messages(request)},
+        request=request,
     )
