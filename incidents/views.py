@@ -9,6 +9,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db.models import OuterRef, Q, Subquery
@@ -33,7 +34,13 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import CompanyUser, Regulation, RegulatorUser, Sector
+from governanceplatform.models import (
+    CompanyUser,
+    Regulation,
+    RegulatorUser,
+    Sector,
+    User,
+)
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -42,7 +49,7 @@ from governanceplatform.settings import (
 )
 
 from .decorators import check_user_is_correct, regulator_role_required
-from .email import send_email
+from .email import send_email, send_html_email
 from .filters import IncidentFilter
 from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
@@ -889,6 +896,27 @@ def export_incidents(request):
                     to_date=to_date,
                 ),
             )
+
+            try:
+                platformAdmin_group = Group.objects.get(name="PlatformAdmin")
+            except Group.DoesNotExist:
+                platformAdmin_group = None
+
+            if platformAdmin_group:
+                email_list = User.objects.filter(
+                    groups=platformAdmin_group
+                ).values_list("email", flat=True)
+                html_message = render_to_string(
+                    "emails/incident_mass_export.html",
+                    {"regulation": str(regulation), "site_name": SITE_NAME},
+                )
+                subject = _("[{site}] New incident mass export").format(site=SITE_NAME)
+
+                send_html_email(
+                    subject,
+                    html_message,
+                    email_list,
+                )
 
             return response
 
