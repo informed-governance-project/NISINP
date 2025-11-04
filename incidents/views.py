@@ -639,37 +639,55 @@ def export_incidents(request):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
 
-    if user_in_group(user, "RegulatorAdmin"):
-        regulation_ids = (
-            user.regulators.first()
-            .sectorregulation_set.values_list("regulation", flat=True)
-            .distinct()
-        )
-        workflows_ids = (
-            user.regulators.first()
-            .sectorregulation_set.values_list("workflows", flat=True)
-            .distinct()
-        )
+    regulation_ids = []
+    sectorregulation_ids = []
+    workflows_ids = []
+    regulator = None
+    observer = None
 
-    if is_observer_user(user):
-        regulation_ids = (
-            user.observers.first()
-            .observerregulation_set.values_list("regulation", flat=True)
-            .distinct()
-        )
-        workflows_ids = (
-            SectorRegulation.objects.filter(regulation__in=regulation_ids)
-            .values_list("workflows", flat=True)
-            .distinct()
-        )
+    if user_in_group(user, "RegulatorAdmin"):
+        regulator = user.regulators.first()
+        if regulator:
+            sectorregulations = regulator.sectorregulation_set.all()
+            regulation_ids = sectorregulations.values_list(
+                "regulation", flat=True
+            ).distinct()
+            sectorregulation_ids = sectorregulations.values_list(
+                "id", flat=True
+            ).distinct()
+            workflows_ids = sectorregulations.values_list(
+                "workflows", flat=True
+            ).distinct()
+
+    elif is_observer_user(user):
+        observer = user.observers.first()
+        if observer:
+            observer_regulations = observer.observerregulation_set.values_list(
+                "regulation", flat=True
+            ).distinct()
+            regulation_ids = observer_regulations
+            sectorregulations = SectorRegulation.objects.filter(
+                regulation__in=observer_regulations
+            )
+            sectorregulation_ids = sectorregulations.values_list(
+                "id", flat=True
+            ).distinct()
+            workflows_ids = sectorregulations.values_list(
+                "workflows", flat=True
+            ).distinct()
 
     regulation_qs = Regulation.objects.filter(id__in=regulation_ids).order_by("id")
+
+    sectorregulation_qs = SectorRegulation.objects.filter(
+        id__in=sectorregulation_ids
+    ).order_by("id")
+
     workflow_qs = (
         Workflow.objects.filter(id__in=workflows_ids)
         .annotate(
-            regulation_id=Subquery(
+            sectorregulation_id=Subquery(
                 SectorRegulationWorkflow.objects.filter(workflow=OuterRef("pk")).values(
-                    "sector_regulation__regulation_id"
+                    "sector_regulation__id"
                 )[:1]
             )
         )
@@ -678,11 +696,15 @@ def export_incidents(request):
 
     if request.method == "POST":
         form = ExportIncidentsForm(
-            request.POST, regulation_qs=regulation_qs, workflow_qs=workflow_qs
+            request.POST,
+            regulation_qs=regulation_qs,
+            sectorregulation_qs=sectorregulation_qs,
+            workflow_qs=workflow_qs,
         )
         if form.is_valid():
             incidents = Incident.objects.none()
             regulation = form.cleaned_data["regulation"]
+            sectorregulation = form.cleaned_data["sectorregulation"]
             workflow = form.cleaned_data["workflow"]
             from_date = form.cleaned_data["from_date"]
             to_date = form.cleaned_data["to_date"]
@@ -690,7 +712,7 @@ def export_incidents(request):
 
             if user_in_group(user, "RegulatorAdmin"):
                 incidents = Incident.objects.filter(
-                    sector_regulation__isnull=False,
+                    sector_regulation=sectorregulation,
                     sector_regulation__regulation=regulation,
                     sector_regulation__regulator__in=user.regulators.all(),
                     incident_notification_date__date__gte=from_date,
@@ -711,6 +733,7 @@ def export_incidents(request):
                     i
                     for i in all_incidents
                     if i.sector_regulation.regulation == regulation
+                    and i.sector_regulation == sectorregulation
                     and from_date <= i.incident_notification_date.date() <= to_date
                 ]
 
@@ -769,7 +792,7 @@ def export_incidents(request):
                         and last_report.report_timeline.incident_resolution_date
                         else ""
                     ),
-                    "Legal basis": incident.sector_regulation,
+                    "Legal basis": incident.sector_regulation.regulation,
                     "Significative impact": (
                         "yes" if incident.is_significative_impact else "no"
                     ),
@@ -887,10 +910,11 @@ def export_incidents(request):
                 action_flag=7,
                 change_message=_(
                     "A total of {count} incidents were exported from regulation "
-                    "{regulation} [{workflow}] within date range ({from_date} - {to_date}.)"
+                    "{regulation} [{sectorregulation} - ({workflow})] within date range ({from_date} - {to_date}.)"
                 ).format(
                     count=len(data),
                     regulation=regulation,
+                    sectorregulation=sectorregulation,
                     workflow=workflow,
                     from_date=from_date,
                     to_date=to_date,
@@ -921,7 +945,11 @@ def export_incidents(request):
             return response
 
     else:
-        form = ExportIncidentsForm(regulation_qs=regulation_qs, workflow_qs=workflow_qs)
+        form = ExportIncidentsForm(
+            regulation_qs=regulation_qs,
+            sectorregulation_qs=sectorregulation_qs,
+            workflow_qs=workflow_qs,
+        )
         return render(request, "modals/export_incidents.html", {"form": form})
 
 

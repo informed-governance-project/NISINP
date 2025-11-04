@@ -1122,12 +1122,18 @@ class ExportIncidentsForm(forms.Form):
 
     regulation = forms.ModelChoiceField(
         queryset=Regulation.objects.none(),
-        label="Regulation",
+        label=_("Regulation"),
         required=True,
     )
+    sectorregulation = forms.ModelChoiceField(
+        queryset=SectorRegulation.objects.none(),
+        label=_("Workflow"),
+        required=True,
+    )
+
     workflow = forms.ModelChoiceField(
         queryset=Workflow.objects.none(),
-        label="Report",
+        label=_("Report"),
         required=True,
     )
 
@@ -1151,8 +1157,12 @@ class ExportIncidentsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         regulation_qs = kwargs.pop("regulation_qs", Regulation.objects.none())
+        sectorregulation_qs = kwargs.pop(
+            "sectorregulation_qs", Regulation.objects.none()
+        )
         workflow_qs = kwargs.pop("workflow_qs", Workflow.objects.none())
         super().__init__(*args, **kwargs)
 
         self.fields["regulation"].queryset = regulation_qs
+        self.fields["sectorregulation"].queryset = sectorregulation_qs
         self.fields["workflow"].queryset = workflow_qs
