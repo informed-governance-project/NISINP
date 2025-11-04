@@ -874,7 +874,7 @@ def export_incidents(request):
                 user_id=user.id,
                 content_type_id=ContentType.objects.get_for_model(Incident).id,
                 object_id="",
-                object_repr=_(f"Incidents Export"),
+                object_repr=_("Incidents Export"),
                 action_flag=7,
                 change_message=_(
                     "A total of {count} incidents were exported from regulation "
