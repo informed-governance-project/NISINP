@@ -14,7 +14,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 import governanceplatform
 from incidents.models import Incident
 
-from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
+from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
 
@@ -95,7 +95,6 @@ class Service(TranslatableModel):
         verbose_name_plural = _("Services")
 
 
-# functionality (e.g, risk analysis, SO)
 class Functionality(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(verbose_name=_("Name"), max_length=100)
@@ -104,7 +103,7 @@ class Functionality(TranslatableModel):
     type = models.CharField(
         verbose_name=_("Type"),
         max_length=100,
-        choices=FUNCTIONALITIES,
+        choices=get_functionality_choices,
         null=False,
         unique=True,
     )
@@ -202,6 +201,54 @@ class Company(models.Model):
                 sectors.append(sector.name)
 
         return sectors
+
+    # TO DO : exclude company which are not self
+    def get_queryset_sectors(self):
+        return Sector.objects.filter(
+            id__in=self.companyuser_set.all()
+            .distinct()
+            .values_list("sectors", flat=True)
+        )
+
+    def security_objective_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
+
+        return self.standardanswer_set.filter(
+            year_of_submission=year, sectors__in=[sector.id], status="PASS"
+        ).exists()
+
+    def risk_analysis_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
+
+        return self.companyreporting_set.filter(
+            year=year, sector=sector, servicestat__isnull=False
+        ).exists()
+
+    def get_report_recommandations(self, year=None, sector=None):
+        if not (year and sector):
+            return self.companyreporting_set.none()
+
+        companyreporting = self.companyreporting_set.filter(
+            year=year, sector=sector, observation__isnull=False
+        ).first()
+
+        if not companyreporting:
+            return self.companyreporting_set.none()
+
+        observation = companyreporting.observation_set.first()
+
+        if not observation:
+            return ObservationRecommendationThrough.objects.none()
+
+        observation_recommendations_qs = (
+            ObservationRecommendationThrough.objects.filter(
+                observation=observation
+            ).order_by("order")
+        )
+
+        return observation_recommendations_qs
 
     class Meta:
         verbose_name = _("Operator")
@@ -482,6 +529,8 @@ class User(AbstractUser, PermissionsMixin):
             self, "OperatorAdmin"
         ) or governanceplatform.helpers.user_in_group(self, "OperatorUser"):
             return self.companyuser_set.all().values_list("sectors")
+        elif governanceplatform.helpers.user_in_group(self, "RegulatorAdmin"):
+            return Sector.objects
 
     def get_module_permissions(self):
         user_entity = None
