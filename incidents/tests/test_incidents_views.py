@@ -3,6 +3,7 @@ import pytest
 from conftest import (
     list_admin_add_urls,
     list_url_freetext_filter,
+    test_get_with_otp,
 )
 from governanceplatform.helpers import (
     can_access_incident,
@@ -46,17 +47,11 @@ def test_incidents_admin_roles_addition_rights(otp_client, populate_incident_db)
         "sectorregulationworkflowemail",
         "predefinedanswer",
     ]
-    for user in users:
-        client = otp_client(user)
-        for u in list_admin_add_urls("incidents"):
-            if user_in_group(user, "RegulatorAdmin") and any(
-                model in u for model in regulator_admin_rights
-            ):
-                response = client.get("/" + u)
-                assert response.status_code == 200
-            else:
-                response = client.get("/" + u)
-                assert response.status_code in (302, 403, 404)
+    authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]
+    for u in list_admin_add_urls("incidents"):
+        if any(model in u for model in regulator_admin_rights):
+            url = "/" + u
+            test_get_with_otp(otp_client, users, authorized_users, url)
 
 
 @pytest.mark.django_db
@@ -79,15 +74,8 @@ def test_pdf_download_of_operator_incident(otp_client, populate_incident_db):
     incident = next(
         (u for u in incidents if u.incident_id == "XXXX-SSS-SSS-0001-2005"), None
     )
-
-    for u in users:
-        client = otp_client(u)
-        response = client.get("/incidents/download-pdf/" + str(incident.id))
-
-        if u in authorized_users:
-            assert response.status_code == 200
-        else:
-            assert response.status_code in (302, 403)
+    url = "/incidents/download-pdf/" + str(incident.id)
+    test_get_with_otp(otp_client, users, authorized_users, url)
 
     # Add a sector to test RegUser see the incident
     sectors = populate_incident_db["sectors"]
@@ -100,16 +88,10 @@ def test_pdf_download_of_operator_incident(otp_client, populate_incident_db):
             user=regulator_user, regulator=regulator_user.regulators.first()
         )
         if ru:
+            url = "/incidents/download-pdf/" + str(incident.id)
             authorized_users.append(regulator_user)
             ru.sectors.add(sector)
-            for u in users:
-                client = otp_client(u)
-                response = client.get("/incidents/download-pdf/" + str(incident.id))
-
-                if u in authorized_users:
-                    assert response.status_code == 200
-                else:
-                    assert response.status_code in (302, 403)
+            test_get_with_otp(otp_client, users, authorized_users, url)
 
 
 @pytest.mark.django_db
@@ -289,15 +271,8 @@ def test_access_to_incident_log(otp_client, populate_incident_db):
     incident = next(
         (u for u in incidents if u.incident_id == "XXXX-SSS-SSS-0001-2005"), None
     )
-
-    for u in users:
-        client = otp_client(u)
-        response = client.get("/incidents/access_log/" + str(incident.id))
-
-        if u in authorized_users:
-            assert response.status_code == 200
-        else:
-            assert response.status_code in (302, 403)
+    url = "/incidents/access_log/" + str(incident.id)
+    test_get_with_otp(otp_client, users, authorized_users, url)
 
     authorized_users = [
         u
@@ -310,12 +285,5 @@ def test_access_to_incident_log(otp_client, populate_incident_db):
     incident = next(
         (u for u in incidents if u.incident_id == "RRR-SSS-SSS-0001-2005"), None
     )
-
-    for u in users:
-        client = otp_client(u)
-        response = client.get("/incidents/access_log/" + str(incident.id))
-
-        if u in authorized_users:
-            assert response.status_code == 200
-        else:
-            assert response.status_code in (302, 403)
+    url = "/incidents/access_log/" + str(incident.id)
+    test_get_with_otp(otp_client, users, authorized_users, url)
