@@ -1,57 +1,9 @@
 import pytest
-from django.contrib.auth.models import Group
 from django.db import models
 from django.test import Client
 from django.urls import get_resolver
-from django.utils import timezone
 from django.utils.translation import activate
 from parler.models import TranslatableModel
-
-from governanceplatform.models import (
-    Company,
-    EntityCategory,
-    Functionality,
-    Observer,
-    Regulation,
-    Regulator,
-    Sector,
-    User,
-)
-from governanceplatform.permissions import update_all_group_permissions
-from governanceplatform.tests.data import (
-    companies_data,
-    functionalities_data,
-    observers_data,
-    permission_groups,
-    regulations,
-    regulators_data,
-    sectors,
-    users,
-)
-from incidents.models import (
-    Email,
-    Impact,
-    PredefinedAnswer,
-    Question,
-    QuestionCategory,
-    QuestionCategoryOptions,
-    QuestionOptions,
-    SectorRegulation,
-    SectorRegulationWorkflow,
-    Workflow,
-)
-from incidents.tests.incidents_data import (
-    emails,
-    impacts,
-    predefined_answers,
-    question_category,
-    question_category_option,
-    question_options,
-    questions,
-    reports,
-    workflows,
-    workflows_reports,
-)
 
 
 @pytest.fixture
@@ -60,91 +12,107 @@ def client():
 
 
 @pytest.fixture
-def populate_db(db):
+def otp_client(client):
     """
-    Populate the DB
+    Fixture to emulate 2FA connection
     """
+    from django_otp import devices_for_user
+    from django_otp.middleware import OTPMiddleware
+    from django_otp.plugins.otp_static.models import StaticDevice
 
-    # Force default language for translatable
-    activate("en")
+    def _login(user):
+        client.force_login(user)
+        devices = list(devices_for_user(user))
+        # get or create the devices
+        if devices:
+            device = devices[0]
+        else:
+            device = StaticDevice.objects.create(user=user, name="test-device")
+        session = client.session
+        session["otp_device_id"] = device.persistent_id
+        session.save()
+        request = client.request().wsgi_request
+        OTPMiddleware(lambda r: r)(request)
+        request.user.otp_device = device
+        return client
 
-    # Dependencies M2M
-    entity_category = EntityCategory.objects.create(label="Critical")
+    return _login
 
-    # Create companies
-    created_companies = import_from_json(Company, companies_data)
 
-    # Create functionnality
-    created_functionalities = import_from_json(Functionality, functionalities_data)
+# customize output generated with
+# poetry run pytest --html=../report.html --self-contained-html
+def pytest_html_results_table_row(report, cells):
+    # fetch description
+    desc = getattr(report, "description", "")
+    # Limit size to don't break the array
+    if len(desc) > 120:
+        desc = desc[:117] + "..."
+    # Replace name of the test by the description
+    if desc:
+        cells[1] = desc
 
-    # Create regulators
-    created_regulators = import_from_json(Regulator, regulators_data)
 
-    # Create an observer
-    created_observers = import_from_json(Observer, observers_data)
+def pytest_itemcollected(item):
+    # fetch the docstring
+    doc = item.function.__doc__
+    if doc:
+        item._obj.description = doc.strip()
 
-    # Create permission groups
-    created_permission_groups = import_from_json(Group, permission_groups)
 
-    # Create sectors
-    created_sectors = import_from_json(Sector, sectors)
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    report.description = str(item.function.__doc__)
 
-    # Create regulations
-    created_regulations = import_from_json(Regulation, regulations)
 
-    # Create users
-    created_users = import_from_json(User, users)
-    # special set for user and permissions
-    initialize_user(created_users)
-    link_entity_user(users, created_users)
-    update_all_group_permissions()
+def list_urls(lis, prefix=""):
+    """
+    Get the list of all the urls
+    """
+    urls = []
+    for entry in lis:
+        if hasattr(entry, "url_patterns"):
+            urls += list_urls(entry.url_patterns, prefix + str(entry.pattern))
+        else:
+            urls.append(prefix + str(entry.pattern))
+    return urls
 
-    # Incidents
 
-    # Create emails
-    created_emails = import_from_json(Email, emails)
+def list_admin_add_urls(module_name: str):
+    """
+    get the 'add/' road of the given module.
+    """
+    all_urls = list_urls(get_resolver().url_patterns)
+    filtered = [
+        url
+        for url in all_urls
+        if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")
+    ]
+    return filtered
 
-    # Create questions
-    created_questions = import_from_json(Question, questions)
-    created_predefined_asnwers = import_from_json(PredefinedAnswer, predefined_answers)
-    created_questions_categories = import_from_json(QuestionCategory, question_category)
 
-    # Create reports
-    created_questions_categories_options = import_from_json(
-        QuestionCategoryOptions, question_category_option, True, False
-    )
-    created_reports = import_from_json(Workflow, reports)
-    created_question_options = import_from_json(
-        QuestionOptions, question_options, True, False
-    )
+def list_url_freetext_filter(freetext="", exclude=""):
+    all_urls = list_urls(get_resolver().url_patterns)
+    filtered = [
+        url for url in all_urls if url.find(freetext) != -1 and url.find(exclude) == -1
+    ]
+    return filtered
 
-    # Create Workflows
-    created_workflows = import_from_json(SectorRegulation, workflows, True, False)
-    import_from_json(SectorRegulationWorkflow, workflows_reports, True, False)
 
-    # Create impacts
-    created_impacts = import_from_json(Impact, impacts)
-
-    return {
-        "companies": created_companies,
-        "functionnalities": created_functionalities,
-        "regulators": created_regulators,
-        "observers": created_observers,
-        "entity_categories": [entity_category],
-        "permissions_groups": created_permission_groups,
-        "sectors": created_sectors,
-        "regulations": created_regulations,
-        "users": created_users,
-        "incidents_email": created_emails,
-        "incidents_questions": created_questions,
-        "incidents_predefined_answers": created_predefined_asnwers,
-        "incidents_question_category": created_questions_categories,
-        "incidents_reports": created_reports,
-        "incidents_question_category_options": created_questions_categories_options,
-        "incidents_question_options": created_question_options,
-        "incidents_workflows": created_workflows,
-        "incidents_impacts": created_impacts,
-    }
+def test_get_with_otp(otp_client, users=None, authorized_users=None, url=""):
+    """
+    Function to test the get with a connected user via 2FA
+    """
+    users = users or []
+    authorized_users = authorized_users or []
+    for u in users:
+        client = otp_client(u)
+        response = client.get(url)
+        if u in authorized_users:
+            assert response.status_code == 200
+        else:
+            assert response.status_code in (302, 403)
 
 
 def get_unique_lookup(model, data: dict, import_not_null, only_simple_field):
@@ -294,110 +262,3 @@ def import_from_json(model, data, import_not_null=False, only_simple_field=True)
         created_objects.append(obj)
 
     return created_objects
-
-
-def initialize_user(users):
-    for user in users:
-        user.accepted_terms_date = timezone.now()
-        user.save()
-
-
-def link_entity_user(raw_data, created_users):
-    for user in raw_data:
-        if "email" in user:
-            user_db = User.objects.filter(email=user["email"]).first()
-            if "companies" in user and user_db:
-                for c in user["companies"]:
-                    if "identifier" in c:
-                        company_db = Company.objects.get(identifier=c["identifier"])
-                        user_db.companies.add(company_db)
-                user_db.save()
-
-
-@pytest.fixture
-def otp_client(client):
-    """
-    Fixture to emulate 2FA connection
-    """
-    from django_otp import devices_for_user
-    from django_otp.middleware import OTPMiddleware
-    from django_otp.plugins.otp_static.models import StaticDevice
-
-    def _login(user):
-        client.force_login(user)
-        devices = list(devices_for_user(user))
-        # get or create the devices
-        if devices:
-            device = devices[0]
-        else:
-            device = StaticDevice.objects.create(user=user, name="test-device")
-        session = client.session
-        session["otp_device_id"] = device.persistent_id
-        session.save()
-        request = client.request().wsgi_request
-        OTPMiddleware(lambda r: r)(request)
-        request.user.otp_device = device
-        return client
-
-    return _login
-
-
-# customize output generated with
-# poetry run pytest --html=../report.html --self-contained-html
-def pytest_html_results_table_row(report, cells):
-    # fetch description
-    desc = getattr(report, "description", "")
-    # Limit size to don't break the array
-    if len(desc) > 120:
-        desc = desc[:117] + "..."
-    # Replace name of the test by the description
-    if desc:
-        cells[1] = desc
-
-
-def pytest_itemcollected(item):
-    # fetch the docstring
-    doc = item.function.__doc__
-    if doc:
-        item._obj.description = doc.strip()
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    outcome = yield
-    report = outcome.get_result()
-    report.description = str(item.function.__doc__)
-
-
-def list_urls(lis, prefix=""):
-    """
-    Get the list of all the urls
-    """
-    urls = []
-    for entry in lis:
-        if hasattr(entry, "url_patterns"):
-            urls += list_urls(entry.url_patterns, prefix + str(entry.pattern))
-        else:
-            urls.append(prefix + str(entry.pattern))
-    return urls
-
-
-def list_admin_add_urls(module_name: str):
-    """
-    get the 'add/' road of the given module.
-    """
-    all_urls = list_urls(get_resolver().url_patterns)
-    filtered = [
-        url
-        for url in all_urls
-        if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")
-    ]
-    return filtered
-
-
-def list_url_freetext_filter(freetext="", exclude=""):
-    all_urls = list_urls(get_resolver().url_patterns)
-    filtered = [
-        url for url in all_urls if url.find(freetext) != -1 and url.find(exclude) == -1
-    ]
-    return filtered

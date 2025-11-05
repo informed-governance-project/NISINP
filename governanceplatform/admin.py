@@ -1011,8 +1011,23 @@ class userRegulatorInline(admin.TabularInline):
             if "sectors" in formset.form.base_fields:
                 formset.form.base_fields.pop("sectors", None)
 
+        if not user_in_group(request.user, "PlatformAdmin"):
+            if "can_export_incidents" in formset.form.base_fields:
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
+
         formset.empty_permitted = False
         return formset
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the can_export_incidents
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("can_export_incidents",)
+
+        return readonly_fields
 
 
 class userRegulatorMultipleInline(userRegulatorInline):
@@ -1783,8 +1798,24 @@ class ObserverUserInline(admin.TabularInline):
                 forms.HiddenInput()
             )
             formset.form.base_fields["is_observer_administrator"].initial = True
+
+        if not user_in_group(request.user, "PlatformAdmin"):
+            if "can_export_incidents" in formset.form.base_fields:
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
+
         formset.empty_permitted = False
         return formset
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the can_export_incidents
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("can_export_incidents",)
+
+        return readonly_fields
 
 
 @admin.register(Observer, site=admin_site)

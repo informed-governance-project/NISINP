@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pytz
@@ -29,6 +29,7 @@ from .models import (
     QuestionOptionsHistory,
     ReportTimeline,
     SectorRegulation,
+    Workflow,
 )
 from .widgets import TempusDominusV6Widget
 
@@ -507,6 +508,7 @@ class ContactForm(forms.Form):
     incident_reference = forms.CharField(
         max_length=255,
         required=False,
+        label=_("Incident reference"),
         widget=forms.TextInput(
             attrs={
                 "title": _(
@@ -521,6 +523,7 @@ class ContactForm(forms.Form):
     complaint_reference = forms.CharField(
         max_length=255,
         required=False,
+        label=_("Complaint reference"),
         widget=forms.TextInput(
             attrs={
                 "title": _(
@@ -1033,9 +1036,9 @@ class IncidentStatusForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if "is_significative_impact" not in self.data:
-            cleaned_data[
-                "is_significative_impact"
-            ] = self.instance.is_significative_impact
+            cleaned_data["is_significative_impact"] = (
+                self.instance.is_significative_impact
+            )
 
         for field in ["incident_id", "incident_status", "is_significative_impact"]:
             if cleaned_data.get(field) in [None, ""]:
@@ -1107,6 +1110,68 @@ class QuestionOptionsInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields[
-            "question"
-        ].label_from_instance = lambda obj: obj.get_question_label_with_reference()
+        self.fields["question"].label_from_instance = (
+            lambda obj: obj.get_question_label_with_reference()
+        )
+
+
+class ExportIncidentsForm(forms.Form):
+    max_dt = datetime.today().date()
+    try:
+        min_dt = max_dt.replace(year=max_dt.year - 2)
+    except ValueError:
+        min_dt = max_dt - timedelta(days=730)
+
+    regulation = forms.ModelChoiceField(
+        queryset=Regulation.objects.none(),
+        label=_("Regulation"),
+        required=True,
+    )
+    sectorregulation = forms.ModelChoiceField(
+        queryset=SectorRegulation.objects.none(),
+        label=_("Workflow"),
+        required=True,
+    )
+
+    workflow = forms.ModelChoiceField(
+        queryset=Workflow.objects.none(),
+        label=_("Report"),
+        required=True,
+    )
+
+    from_date = forms.DateField(
+        required=True,
+        widget=TempusDominusV6Widget(
+            min_date=min_dt,
+            max_date=max_dt,
+        ),
+        label=_("From"),
+    )
+
+    to_date = forms.DateField(
+        required=True,
+        widget=TempusDominusV6Widget(
+            min_date=min_dt,
+            max_date=max_dt,
+        ),
+        label=_("To"),
+    )
+
+    file_format = forms.ChoiceField(
+        choices=[("xlsx", "Excel (.xlsx)"), ("csv", "CSV (.csv)")],
+        required=True,
+        label=_("File format"),
+        initial="xlsx",
+    )
+
+    def __init__(self, *args, **kwargs):
+        regulation_qs = kwargs.pop("regulation_qs", Regulation.objects.none())
+        sectorregulation_qs = kwargs.pop(
+            "sectorregulation_qs", Regulation.objects.none()
+        )
+        workflow_qs = kwargs.pop("workflow_qs", Workflow.objects.none())
+        super().__init__(*args, **kwargs)
+
+        self.fields["regulation"].queryset = regulation_qs
+        self.fields["sectorregulation"].queryset = sectorregulation_qs
+        self.fields["workflow"].queryset = workflow_qs

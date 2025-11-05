@@ -51,6 +51,7 @@ regulators_data = [
 
 observers_data = [
     {
+        "id": 1,
         "name": "CERT1",
         "full_name": "CERT1",
         "country": "LU",
@@ -128,7 +129,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": True,
-        "regulators": [{"translations__name": "REG1"}],
+        "regulators": [{"id": 1}],
         "groups": [{"name": "RegulatorAdmin"}],
     },
     {
@@ -139,7 +140,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": True,
-        "regulators": [{"translations__name": "REG2"}],
+        "regulators": [{"id": 2}],
         "groups": [{"name": "RegulatorAdmin"}],
     },
     {
@@ -150,7 +151,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "regulators": [{"translations__name": "REG2"}],
+        "regulators": [{"id": 2}],
         "groups": [{"name": "RegulatorUser"}],
     },
     {
@@ -161,7 +162,7 @@ users = [
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "regulators": [{"translations__name": "REG1"}],
+        "regulators": [{"id": 1}],
         "groups": [{"name": "RegulatorUser"}],
     },
     # Operator
@@ -211,14 +212,14 @@ users = [
     },
     # Observer
     {
-        "email": "obsadm@CERT1.lu",
-        "first_name": "obsadm@CERT1.lu",
-        "last_name": "obsadm@CERT1.lu",
+        "email": "obsadm@cert1.lu",
+        "first_name": "obsadm@cert1.lu",
+        "last_name": "obsadm@cert1.lu",
         "password": "secret",
         "is_staff": True,
         "accepted_terms": True,
         "is_superuser": False,
-        "observers": [{"translations__name": "CERT1"}],
+        "observers": [{"id": 1}],
         "groups": [{"name": "ObserverAdmin"}],
     },
     # Incident User

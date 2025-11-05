@@ -16,7 +16,7 @@ from incidents.models import (
 
 
 @pytest.mark.django_db
-def test_incidents_elements_in_db(populate_db):
+def test_incidents_elements_in_db(populate_incident_db):
     """
     Check if objects are present in DB
     """

@@ -106,6 +106,7 @@ class RestrictViewsMiddleware:
                     or request.path.startswith("/reporting/")
                     or request.path.startswith("/incidents/incident/")
                     or request.path == reverse("regulator_incidents")
+                    or request.path == reverse("export_incidents")
                 ):
                     raise Http404()
 
@@ -140,6 +141,7 @@ class RestrictViewsMiddleware:
                     or request.path == reverse("regulator_incidents")
                     or request.path.startswith("/reporting/")
                     or request.path == reverse("import_so_declaration")
+                    or request.path == reverse("export_incidents")
                 ):
                     raise Http404()
 

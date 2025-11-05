@@ -633,6 +633,9 @@ class RegulatorUser(models.Model):
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
     )
+    can_export_incidents = models.BooleanField(
+        default=False, verbose_name=_("Can export incidents")
+    )
     sectors = models.ManyToManyField(Sector, blank=True)
 
     class Meta:
@@ -662,6 +665,9 @@ class ObserverUser(models.Model):
     )
     is_observer_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
+    )
+    can_export_incidents = models.BooleanField(
+        default=False, verbose_name=_("Can export incidents")
     )
 
     class Meta:
