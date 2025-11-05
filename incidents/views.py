@@ -23,6 +23,7 @@ from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
+from openpyxl import Workbook
 
 from governanceplatform.helpers import (
     can_access_incident,
@@ -708,6 +709,7 @@ def export_incidents(request):
             workflow = form.cleaned_data["workflow"]
             from_date = form.cleaned_data["from_date"]
             to_date = form.cleaned_data["to_date"]
+            file_format = form.cleaned_data["file_format"]
             are_incidents = False
 
             if user_in_group(user, "RegulatorAdmin"):
@@ -746,6 +748,7 @@ def export_incidents(request):
                 return JsonResponse({"messages": rendered_messages}, status=400)
 
             data = []
+
             for incident in incidents:
                 last_report = incident.get_latest_incident_workflow_by_workflow(
                     workflow
@@ -792,7 +795,7 @@ def export_incidents(request):
                         and last_report.report_timeline.incident_resolution_date
                         else ""
                     ),
-                    "Legal basis": incident.sector_regulation.regulation,
+                    "Legal basis": str(incident.sector_regulation.regulation),
                     "Significative impact": (
                         "yes" if incident.is_significative_impact else "no"
                     ),
@@ -811,7 +814,9 @@ def export_incidents(request):
                             incident.technical_telephone,
                         ]
                     ),
-                    "Report": (last_report.workflow if last_report.workflow else ""),
+                    "Report": (
+                        str(last_report.workflow) if last_report.workflow else ""
+                    ),
                     "Report status": (
                         last_report.get_review_status_display()
                         if last_report.review_status
@@ -860,6 +865,11 @@ def export_incidents(request):
 
                 data.append(incident_data)
 
+            if not data:
+                messages.error(request, _("No incidents available for export."))
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
             keys = []
             for entry in data:
                 for k in entry.keys():
@@ -891,16 +901,46 @@ def export_incidents(request):
 
             keys = group_keys_by_index(keys)
 
-            response = HttpResponse(content_type="text/csv")
-            response["Content-Disposition"] = 'attachment; filename="export.csv"'
+            if file_format == "xlsx":
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Incidents"
 
-            writer = csv.DictWriter(
-                response, fieldnames=keys, extrasaction="ignore", quoting=csv.QUOTE_ALL
-            )
-            writer.writeheader()
-            for entry in data:
-                row = {key: entry.get(key, "") for key in keys}
-                writer.writerow(row)
+                headers = keys
+                ws.append(headers)
+                for entry in data:
+                    row = [entry.get(key, "") for key in headers]
+                    ws.append(row)
+
+                for column_cells in ws.columns:
+                    length = max(
+                        len(str(cell.value)) if cell.value else 0
+                        for cell in column_cells
+                    )
+                    ws.column_dimensions[column_cells[0].column_letter].width = min(
+                        length + 2, 60
+                    )
+
+                response = HttpResponse(
+                    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                response["Content-Disposition"] = 'attachment; filename="export.xlsx"'
+                wb.save(response)
+
+            else:
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = 'attachment; filename="export.csv"'
+
+                writer = csv.DictWriter(
+                    response,
+                    fieldnames=keys,
+                    extrasaction="ignore",
+                    quoting=csv.QUOTE_ALL,
+                )
+                writer.writeheader()
+                for entry in data:
+                    row = {key: entry.get(key, "") for key in keys}
+                    writer.writerow(row)
 
             LogEntry.objects.log_action(
                 user_id=user.id,
