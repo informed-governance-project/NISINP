@@ -15,7 +15,7 @@ import governanceplatform
 from incidents.models import Incident
 from reporting.models import ObservationRecommendationThrough
 
-from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
+from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
 
@@ -96,7 +96,6 @@ class Service(TranslatableModel):
         verbose_name_plural = _("Services")
 
 
-# functionality (e.g, risk analysis, SO)
 class Functionality(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(verbose_name=_("Name"), max_length=100)
@@ -105,7 +104,7 @@ class Functionality(TranslatableModel):
     type = models.CharField(
         verbose_name=_("Type"),
         max_length=100,
-        choices=FUNCTIONALITIES,
+        choices=get_functionality_choices,
         null=False,
         unique=True,
     )
