@@ -1157,6 +1157,13 @@ class ExportIncidentsForm(forms.Form):
         label=_("To"),
     )
 
+    file_format = forms.ChoiceField(
+        choices=[("xlsx", "Excel (.xlsx)"), ("csv", "CSV (.csv)")],
+        required=True,
+        label=_("File format"),
+        initial="xlsx",
+    )
+
     def __init__(self, *args, **kwargs):
         regulation_qs = kwargs.pop("regulation_qs", Regulation.objects.none())
         sectorregulation_qs = kwargs.pop(
