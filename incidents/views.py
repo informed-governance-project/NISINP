@@ -876,30 +876,7 @@ def export_incidents(request):
                     if k not in keys:
                         keys.append(k)
 
-            def group_keys_by_index(keys):
-                fixed_keys = keys[:length_fixed_values]
-                dynamic_keys = keys[length_fixed_values:]
-                groups = OrderedDict()
-                for key in dynamic_keys:
-                    match = re.match(r"^(.*\D)\s*:?\s*(\d+)$", key)
-                    if match:
-                        prefix = match.group(1).strip()
-                        index = int(match.group(2))
-                        if prefix not in groups:
-                            groups[prefix] = []
-                        groups[prefix].append((index, key))
-                    else:
-                        if key not in groups:
-                            groups[key] = []
-                        groups[key].append((0, key))
-
-                grouped_keys = []
-                for _prefix, items in groups.items():
-                    items.sort(key=lambda x: x[0])
-                    grouped_keys.extend([key for _, key in items])
-                return fixed_keys + grouped_keys
-
-            keys = group_keys_by_index(keys)
+            keys = group_keys_by_index(keys, length_fixed_values)
 
             if file_format == "xlsx":
                 wb = Workbook()
@@ -991,6 +968,30 @@ def export_incidents(request):
             workflow_qs=workflow_qs,
         )
         return render(request, "modals/export_incidents.html", {"form": form})
+
+
+def group_keys_by_index(keys, length_fixed_values):
+    fixed_keys = keys[:length_fixed_values]
+    dynamic_keys = keys[length_fixed_values:]
+    groups = OrderedDict()
+    for key in dynamic_keys:
+        match = re.match(r"^(.*\D)\s*:?\s*(\d+)$", key)
+        if match:
+            prefix = match.group(1).strip()
+            index = int(match.group(2))
+            if prefix not in groups:
+                groups[prefix] = []
+            groups[prefix].append((index, key))
+        else:
+            if key not in groups:
+                groups[key] = []
+            groups[key].append((0, key))
+
+    grouped_keys = []
+    for _prefix, items in groups.items():
+        items.sort(key=lambda x: x[0])
+        grouped_keys.extend([key for _, key in items])
+    return fixed_keys + grouped_keys
 
 
 def is_incidents_report_limit_reached(request):
