@@ -380,17 +380,9 @@ class CompanyUserInline(admin.TabularInline):
     ]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "sectors":
-            user = request.user
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.get_sectors().distinct()
-
-            if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = Sector.objects.filter(
-                    id__in=user.companyuser_set.all()
-                    .distinct()
-                    .values_list("sectors", flat=True)
-                )
+        user = request.user
+        if db_field.name == "sectors" and user_in_group(user, "RegulatorUser"):
+            kwargs["queryset"] = user.get_sectors().distinct()
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -588,7 +580,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "country",
         "email",
         "phone_number",
-        "get_sectors",
     ]
     list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
@@ -644,15 +635,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             inline_instances = []
 
         return inline_instances
-
-    def get_list_display(self, request):
-        list_display = super().get_list_display(request)
-
-        # Exclude "get_sectors" for PlatformAdmin Group
-        if user_in_group(request.user, "PlatformAdmin"):
-            list_display = [field for field in list_display if field != "get_sectors"]
-
-        return list_display
 
     def get_readonly_fields(self, request, obj=None):
         # Platform Admin, Regulator Admin and Regulator User
@@ -1217,7 +1199,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_companies",
         "get_companies_for_operator_admin",
         "get_observers",
-        # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
         "email_verified",
@@ -1379,10 +1360,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
 
-        # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
             fields_to_exclude = [
-                "get_sectors",
                 "get_companies",
                 "get_companies_for_operator_admin",
             ]
@@ -1392,7 +1371,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         if user_in_group(request.user, "ObserverAdmin"):
             fields_to_exclude = [
-                "get_sectors",
                 "get_companies",
                 "get_companies_for_operator_admin",
                 "get_regulators",
