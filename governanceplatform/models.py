@@ -518,11 +518,6 @@ class CompanyUser(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("User"),
     )
-    sectors = models.ManyToManyField(
-        Sector,
-        verbose_name=_("Sectors"),
-        blank=True,
-    )
     is_company_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
     )
