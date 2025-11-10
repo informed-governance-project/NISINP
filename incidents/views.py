@@ -124,12 +124,12 @@ def get_incidents(request):
             .order_by("-incident_notification_date")
         )
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
-    elif user_in_group(user, "OperatorAdmin") or user_in_group(user, "OperatorUser"):
-        # OperatorAdmin can see all the reports of the selected company.
+    elif is_user_operator(user):
+        # OperatorAdmin/User can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
-        # OperatorUser and IncidentUser can see only their reports.
+        # IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
