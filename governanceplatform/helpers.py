@@ -108,22 +108,15 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         ).exists()
     ):
         return True
-    # OperatorAdmin can access only incidents related to selected company.
+    # OperatorAdmin/User can access only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorAdmin")
+        is_user_operator(user)
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # OperatorUser can access incidents related to selected company and sectors
+    # IncidentUser can access their reports.
     if (
-        user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
-    # OperatorStaff and IncidentUser can access their reports.
-    if (
-        not is_user_regulator(user)
-        and (user_in_group(user, "OperatorUser") or user_in_group(user, "IncidentUser"))
+        user_in_group(user, "IncidentUser")
         and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
     ):
         return True
