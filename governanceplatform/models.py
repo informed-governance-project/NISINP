@@ -203,30 +203,6 @@ class Company(models.Model):
             year=year, sector=sector, servicestat__isnull=False
         ).exists()
 
-    # def get_report_recommandations(self, year=None, sector=None):
-    #     if not (year and sector):
-    #         return self.companyreporting_set.none()
-
-    #     companyreporting = self.companyreporting_set.filter(
-    #         year=year, sector=sector, observation__isnull=False
-    #     ).first()
-
-    #     if not companyreporting:
-    #         return self.companyreporting_set.none()
-
-    #     observation = companyreporting.observation_set.first()
-
-    #     if not observation:
-    #         return ObservationRecommendationThrough.objects.none()
-
-    #     observation_recommendations_qs = (
-    #         ObservationRecommendationThrough.objects.filter(
-    #             observation=observation
-    #         ).order_by("order")
-    #     )
-
-    #     return observation_recommendations_qs
-
     class Meta:
         verbose_name = _("Operator")
         verbose_name_plural = _("Operators")
