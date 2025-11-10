@@ -187,29 +187,6 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
-    @admin.display(description="sectors")
-    def get_sectors(self):
-        sectors = []
-        for sector in Sector.objects.filter(
-            id__in=self.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True)
-        ):
-            if sector.name is not None and sector.parent is not None:
-                sectors.append(sector.parent.name + " --> " + sector.name)
-            elif sector.name is not None and sector.parent is None:
-                sectors.append(sector.name)
-
-        return sectors
-
-    # TO DO : exclude company which are not self
-    def get_queryset_sectors(self):
-        return Sector.objects.filter(
-            id__in=self.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True)
-        )
-
     def security_objective_exists(self, year=None, sector=None):
         if not (year and sector):
             return False
@@ -226,29 +203,29 @@ class Company(models.Model):
             year=year, sector=sector, servicestat__isnull=False
         ).exists()
 
-    def get_report_recommandations(self, year=None, sector=None):
-        if not (year and sector):
-            return self.companyreporting_set.none()
+    # def get_report_recommandations(self, year=None, sector=None):
+    #     if not (year and sector):
+    #         return self.companyreporting_set.none()
 
-        companyreporting = self.companyreporting_set.filter(
-            year=year, sector=sector, observation__isnull=False
-        ).first()
+    #     companyreporting = self.companyreporting_set.filter(
+    #         year=year, sector=sector, observation__isnull=False
+    #     ).first()
 
-        if not companyreporting:
-            return self.companyreporting_set.none()
+    #     if not companyreporting:
+    #         return self.companyreporting_set.none()
 
-        observation = companyreporting.observation_set.first()
+    #     observation = companyreporting.observation_set.first()
 
-        if not observation:
-            return ObservationRecommendationThrough.objects.none()
+    #     if not observation:
+    #         return ObservationRecommendationThrough.objects.none()
 
-        observation_recommendations_qs = (
-            ObservationRecommendationThrough.objects.filter(
-                observation=observation
-            ).order_by("order")
-        )
+    #     observation_recommendations_qs = (
+    #         ObservationRecommendationThrough.objects.filter(
+    #             observation=observation
+    #         ).order_by("order")
+    #     )
 
-        return observation_recommendations_qs
+    #     return observation_recommendations_qs
 
     class Meta:
         verbose_name = _("Operator")
@@ -484,10 +461,6 @@ class User(AbstractUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    # @admin.display(description="sectors")
-    # def get_sectors(self):
-    #     return [sector.name for sector in self.sectors.all()]
-
     @admin.display(description="companies")
     def get_companies(self):
         return [company.name for company in self.companies.all().distinct()]
@@ -522,15 +495,13 @@ class User(AbstractUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     def get_sectors(self):
+        sectors = Sector.objects.none()
         if governanceplatform.helpers.user_in_group(self, "RegulatorUser"):
             ru = RegulatorUser.objects.filter(user=self).first()
-            return ru.sectors
-        elif governanceplatform.helpers.user_in_group(
-            self, "OperatorAdmin"
-        ) or governanceplatform.helpers.user_in_group(self, "OperatorUser"):
-            return self.companyuser_set.all().values_list("sectors")
+            sectors = ru.sectors
         elif governanceplatform.helpers.user_in_group(self, "RegulatorAdmin"):
-            return Sector.objects
+            sectors = Sector.objects.all()
+        return sectors
 
     def get_module_permissions(self):
         user_entity = None
