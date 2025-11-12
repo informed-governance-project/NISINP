@@ -1,12 +1,12 @@
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
-from governanceplatform.config import EMAIL_SENDER, PUBLIC_URL
 from governanceplatform.models import RegulatorUser
 
 
 def send_html_email(subject, content, recipient_list):
-    email = EmailMessage(subject, content, EMAIL_SENDER, bcc=recipient_list)
+    email = EmailMessage(subject, content, settings.EMAIL_SENDER, bcc=recipient_list)
     email.content_subtype = "html"
     email.send(fail_silently=True)
 
@@ -18,7 +18,7 @@ def send_email(email, standard_answer):
             "security_objectives/email.html",
             {
                 "content": email.content,
-                "url_site": PUBLIC_URL,
+                "url_site": settings.PUBLIC_URL,
             },
         )
         if standard_answer.submitter_user is not None:
