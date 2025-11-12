@@ -5,7 +5,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -331,6 +331,7 @@ def duplicate_objects(modeladmin, request, queryset):
         "Question": {
             "related_objects": ["predefinedanswer_set"],
             "label_field": "label",
+            "unique_fields": ["reference"],
         },
     }
 
@@ -345,10 +346,21 @@ def duplicate_objects(modeladmin, request, queryset):
 
         config = config_by_model[model_name]
         related_objects_to_copy = config.get("related_objects", [])
+        unique_fields_to_copy = config.get("unique_fields", [])
         label_field = config.get("label_field")
 
         try:
             with transaction.atomic():
+                for field_name in unique_fields_to_copy:
+                    try:
+                        value = getattr(obj, field_name, None)
+                        if isinstance(value, str) and value:
+                            setattr(obj, field_name, f"{value} (copy)")
+                        else:
+                            setattr(obj, field_name, None)
+                    except FieldDoesNotExist:
+                        continue
+
                 if isinstance(obj, TranslatableModel):
                     obj_translations = list(obj.translations.all())
 
