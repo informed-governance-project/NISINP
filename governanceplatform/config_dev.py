@@ -193,8 +193,6 @@ SECURE_PROXY_SSL_HEADER = (
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
-# account activation link timeout
-ACCOUNT_ACTIVATION_LINK_TIMEOUT = 3600
 
 # CELERY config
 CELERY_BROKER_URL = "redis://localhost:6379/0"

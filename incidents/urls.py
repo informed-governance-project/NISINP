@@ -25,6 +25,7 @@ from .views import (
     download_incident_report_pdf,
     edit_incident,
     edit_workflow,
+    export_incidents,
     get_form_list,
     get_incidents,
     review_workflow,
@@ -64,5 +65,10 @@ urlpatterns = [
         "delete/<int:incident_id>",
         delete_incident,
         name="delete_incident",
+    ),
+    path(
+        "export_incidents",
+        export_incidents,
+        name="export_incidents",
     ),
 ]

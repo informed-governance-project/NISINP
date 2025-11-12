@@ -6,7 +6,7 @@ from django.db import DatabaseError
 from django.db.models.functions import Now
 
 from governanceplatform.models import ScriptLogEntry, User
-from governanceplatform.settings import ACCOUNT_ACTIVATION_LINK_TIMEOUT
+from governanceplatform.settings import PASSWORD_RESET_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ def run(logger=logger):
     try:
         user_to_delete_qs = User.objects.filter(
             last_login__isnull=True,
-            is_active=False,
-            date_joined__lte=Now() - timedelta(seconds=ACCOUNT_ACTIVATION_LINK_TIMEOUT),
+            email_verified=False,
+            date_joined__lte=Now() - timedelta(seconds=PASSWORD_RESET_TIMEOUT),
         )
     except DatabaseError as e:
         logger.error("Failed to fetch users to delete: %s", e, exc_info=True)

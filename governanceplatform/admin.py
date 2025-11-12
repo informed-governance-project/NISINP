@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Q, Max, Value
+from django.db.models import Count, Max, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
 from django.http import Http404
@@ -19,20 +19,20 @@ from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
-from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 
+from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .formset import CompanyUserInlineFormset
 from .helpers import (
+    generate_display_methods,
     get_active_company_from_session,
     instance_user_in_group,
     is_observer_user,
     is_user_operator,
     is_user_regulator,
     user_in_group,
-    generate_display_methods,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
 from .models import (  # OperatorType,; Service,
@@ -120,7 +120,9 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
     translated_fields = []
 
     def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        queryset, use_distinct = super().get_search_results(
+            request, queryset, search_term
+        )
         lang = request.LANGUAGE_CODE
         queryset = queryset.active_translations(lang).distinct()
         return queryset.distinct(), use_distinct
@@ -130,17 +132,22 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
     Give sortable column via `_field`
     Manage fallback if translation is not here
     """
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        lang = getattr(request, "LANGUAGE_CODE")
+        lang = getattr(request, "LANGUAGE_CODE", "en")
         default_lang = PARLER_DEFAULT_LANGUAGE_CODE
 
         annotations = {}
 
         for f in self.translated_fields:
             # Annotate value with the request lang and default one
-            annotations[f"_{f}_lang"] = Max(f"translations__{f}", filter=Q(translations__language_code=lang))
-            annotations[f"_{f}_default"] = Max(f"translations__{f}", filter=Q(translations__language_code=default_lang))
+            annotations[f"_{f}_lang"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=lang)
+            )
+            annotations[f"_{f}_default"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=default_lang)
+            )
 
         qs = qs.annotate(**annotations)
 
@@ -368,25 +375,6 @@ class CompanyUserInline(admin.TabularInline):
     extra = 0
     formset = CompanyUserInlineFormset  # define formset for the clean function
 
-    filter_horizontal = [
-        "sectors",
-    ]
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "sectors":
-            user = request.user
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = user.get_sectors().distinct()
-
-            if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = Sector.objects.filter(
-                    id__in=user.companyuser_set.all()
-                    .distinct()
-                    .values_list("sectors", flat=True)
-                )
-
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
-
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         platformAdminGroupId = get_group_id("PlatformAdmin")
         observerAdminGroupId = get_group_id("ObserverAdmin")
@@ -428,33 +416,6 @@ class CompanyUserInline(admin.TabularInline):
                     .exclude(id=user.id)
                     .distinct()
                     .order_by("email")
-                )
-
-            return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-        if db_field.name == "company":
-            user = request.user
-            # Regulator User
-            if user_in_group(user, "RegulatorUser"):
-                kwargs["queryset"] = (
-                    Company.objects.all()
-                    .filter(
-                        id__in=user.companyuser_set.filter(
-                            sectors__in=user.get_sectors().all()
-                        ).values_list("company", flat=True)
-                    )
-                    .order_by("name")
-                )
-            # Operator Admin
-            if user_in_group(user, "OperatorAdmin"):
-                kwargs["queryset"] = (
-                    Company.objects.all()
-                    .filter(
-                        id__in=user.companyuser_set.filter(
-                            is_company_administrator=True
-                        ).values_list("company", flat=True),
-                    )
-                    .order_by("name")
                 )
 
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -537,40 +498,6 @@ class CompanyUserMultipleInline(CompanyUserInline):
     max_num = None
 
 
-class CompanySectorListFilter(SimpleListFilter):
-    title = _("Sectors")
-    parameter_name = "companyuser_set__sectors"
-
-    def lookups(self, request, model_admin):
-        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
-            parent=None, child_count__gt=0
-        )
-        sectors_list = []
-        user = request.user
-        # Operator Admin
-        if user_in_group(user, "OperatorAdmin"):
-            sectors = Sector.objects.filter(
-                id__in=user.companyuser_set.all()
-                .distinct()
-                .values_list("sectors", flat=True)
-            )
-
-        sectors_list = []
-        for sector in sectors:
-            sectors_list.append((sector.id, sector))
-        return sorted(sectors_list, key=lambda item: str(item[1]))
-
-    def queryset(self, request, queryset):
-        value = self.value()
-        if value:
-            return queryset.filter(
-                id__in=CompanyUser.objects.filter(sectors=value).values_list(
-                    "company", flat=True
-                )
-            ).distinct()
-        return queryset
-
-
 @admin.register(Company, site=admin_site)
 class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     resource_class = CompanyResource
@@ -581,9 +508,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "country",
         "email",
         "phone_number",
-        "get_sectors",
     ]
-    list_filter = [CompanySectorListFilter]
     filter_horizontal = ["entity_categories"]
     search_fields = [
         "name",
@@ -593,7 +518,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "phone_number",
         "identifier",
         "companyuser__sectors__translations__name",
-        "companyuser__sectors__parent__translations__name"
+        "companyuser__sectors__parent__translations__name",
     ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
@@ -637,15 +562,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             inline_instances = []
 
         return inline_instances
-
-    def get_list_display(self, request):
-        list_display = super().get_list_display(request)
-
-        # Exclude "get_sectors" for PlatformAdmin Group
-        if user_in_group(request.user, "PlatformAdmin"):
-            list_display = [field for field in list_display if field != "get_sectors"]
-
-        return list_display
 
     def get_readonly_fields(self, request, obj=None):
         # Platform Admin, Regulator Admin and Regulator User
@@ -997,15 +913,30 @@ class userRegulatorInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         if user_in_group(request.user, "PlatformAdmin"):
             if "is_regulator_administrator" in formset.form.base_fields:
-                formset.form.base_fields[
-                    "is_regulator_administrator"
-                ].widget = forms.HiddenInput()
+                formset.form.base_fields["is_regulator_administrator"].widget = (
+                    forms.HiddenInput()
+                )
                 formset.form.base_fields["is_regulator_administrator"].initial = True
             if "sectors" in formset.form.base_fields:
                 formset.form.base_fields.pop("sectors", None)
 
+        if not user_in_group(request.user, "PlatformAdmin"):
+            if "can_export_incidents" in formset.form.base_fields:
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
+
         formset.empty_permitted = False
         return formset
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the can_export_incidents
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("can_export_incidents",)
+
+        return readonly_fields
 
 
 class userRegulatorMultipleInline(userRegulatorInline):
@@ -1084,44 +1015,6 @@ class UserCompaniesListFilter(SimpleListFilter):
         return queryset
 
 
-class UserSectorListFilter(SimpleListFilter):
-    title = _("Sectors")
-    parameter_name = "sectors"
-
-    def lookups(self, request, model_admin):
-        sectors = Sector.objects.annotate(child_count=Count("children")).exclude(
-            parent=None, child_count__gt=0
-        )
-        sectors_list = []
-        user = request.user
-        # Platform Admin
-        if user_in_group(user, "PlatformAdmin") or user_in_group(user, "ObserverAdmin"):
-            sectors = Sector.objects.none()
-        # Operator Admin
-        if user_in_group(user, "OperatorAdmin"):
-            sectors = Sector.objects.filter(
-                id__in=user.companyuser_set.all()
-                .distinct()
-                .values_list("sectors", flat=True)
-            )
-
-        sectors_list = []
-
-        for sector in sectors:
-            sectors_list.append((sector.id, sector))
-        return sorted(sectors_list, key=lambda item: str(item[1]))
-
-    def queryset(self, request, queryset):
-        value = self.value()
-        if value:
-            return queryset.filter(
-                id__in=CompanyUser.objects.filter(sectors=value).values_list(
-                    "user", flat=True
-                )
-            )
-        return queryset
-
-
 class UserPermissionsGroupListFilter(SimpleListFilter):
     title = _("Roles")
     parameter_name = "roles"
@@ -1195,16 +1088,15 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_companies",
         "get_companies_for_operator_admin",
         "get_observers",
-        # "get_sectors",
         "get_permissions_groups",
         "get_2FA_activation",
+        "email_verified",
     ]
     search_fields = ["first_name", "last_name", "email", "phone_number"]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
         UserCompaniesListFilter,
-        UserSectorListFilter,
         UserPermissionsGroupListFilter,
     ]
     list_display_links = ("email", "first_name", "last_name")
@@ -1356,10 +1248,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
 
-        # Exclude "get_sectors" for PlatformAdmin Group
         if user_in_group(request.user, "PlatformAdmin"):
             fields_to_exclude = [
-                "get_sectors",
                 "get_companies",
                 "get_companies_for_operator_admin",
             ]
@@ -1369,7 +1259,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         if user_in_group(request.user, "ObserverAdmin"):
             fields_to_exclude = [
-                "get_sectors",
                 "get_companies",
                 "get_companies_for_operator_admin",
                 "get_regulators",
@@ -1690,7 +1579,9 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         return super().has_delete_permission(request, obj)
 
 
-for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+for name, method in generate_display_methods(
+    ["name", "full_name", "description"]
+).items():
     setattr(RegulatorAdmin, name, method)
 
 
@@ -1769,18 +1660,39 @@ class ObserverUserInline(admin.TabularInline):
             user_in_group(request.user, "PlatformAdmin")
             and "is_observer_administrator" in formset.form.base_fields
         ):
-            formset.form.base_fields[
-                "is_observer_administrator"
-            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_observer_administrator"].widget = (
+                forms.HiddenInput()
+            )
             formset.form.base_fields["is_observer_administrator"].initial = True
+
+        if not user_in_group(request.user, "PlatformAdmin"):
+            if "can_export_incidents" in formset.form.base_fields:
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
+
         formset.empty_permitted = False
         return formset
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        user = request.user
+        # only the platform admin can change the can_export_incidents
+        if not user_in_group(user, "PlatformAdmin"):
+            readonly_fields += ("can_export_incidents",)
+
+        return readonly_fields
 
 
 @admin.register(Observer, site=admin_site)
 class ObserverAdmin(CustomTranslatableAdmin):
     form = CustomObserverAdminForm
-    list_display = ["name_display", "full_name_display", "is_receiving_all_incident", "description_display"]
+    list_display = [
+        "name_display",
+        "full_name_display",
+        "is_receiving_all_incident",
+        "description_display",
+    ]
     search_fields = [
         "translations__name",
         "translations__full_name",
@@ -1871,7 +1783,9 @@ class ObserverAdmin(CustomTranslatableAdmin):
         return readonly_fields
 
 
-for name, method in generate_display_methods(["name", "full_name", "description"]).items():
+for name, method in generate_display_methods(
+    ["name", "full_name", "description"]
+).items():
     setattr(ObserverAdmin, name, method)
 
 

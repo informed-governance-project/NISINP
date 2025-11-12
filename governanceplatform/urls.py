@@ -25,14 +25,8 @@ from governanceplatform import views
 from governanceplatform.admin import admin_site
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
-from .forms import CustomAuthenticationForm
-
 handler404 = "governanceplatform.views.custom_404_view"
 handler500 = "governanceplatform.views.custom_500_view"
-
-custom_form_list = dict(LoginView.form_list)
-custom_form_list[LoginView.AUTH_STEP] = CustomAuthenticationForm
-custom_form_list = tuple(custom_form_list.items())
 
 urlpatterns = [
     # Root
@@ -40,12 +34,16 @@ urlpatterns = [
     # Admin
     path("admin/", admin_site.urls),
     # Accounts
+    path(
+        "account/reset/<uidb64>/<token>/",
+        views.CustomPasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
     path("account/", include("django.contrib.auth.urls")),
     path("", include(tf_urls)),
     path(
         "account/login",
         LoginView.as_view(
-            form_list=custom_form_list,
             extra_context={"site_name": SITE_NAME, "regulator": REGULATOR_CONTACT},
             template_name="registration/login.html",
             redirect_field_name="next",
@@ -57,7 +55,6 @@ urlpatterns = [
         views.registration_view,
         name="registration",
     ),
-    path("activate/<str:token>/", views.activate_account, name="activate"),
     path(
         "account/edit/",
         views.edit_account,

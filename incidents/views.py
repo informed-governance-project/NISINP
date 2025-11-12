@@ -1,14 +1,21 @@
+import csv
+import re
+from collections import OrderedDict
 from datetime import date
 from urllib.parse import urlencode, urlparse
 
 import pytz
 from django import forms
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import OuterRef, Q, Subquery
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -16,6 +23,7 @@ from django.views.decorators.http import require_http_methods
 from django_countries import countries
 from django_otp.decorators import otp_required
 from formtools.wizard.views import SessionWizardView
+from openpyxl import Workbook
 
 from governanceplatform.helpers import (
     can_access_incident,
@@ -27,7 +35,13 @@ from governanceplatform.helpers import (
     is_user_regulator,
     user_in_group,
 )
-from governanceplatform.models import CompanyUser, RegulatorUser, Sector
+from governanceplatform.models import (
+    CompanyUser,
+    Regulation,
+    RegulatorUser,
+    Sector,
+    User,
+)
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
     PUBLIC_URL,
@@ -36,9 +50,9 @@ from governanceplatform.settings import (
 )
 
 from .decorators import check_user_is_correct, regulator_role_required
-from .email import send_email
+from .email import send_email, send_html_email
 from .filters import IncidentFilter
-from .forms import ContactForm, IncidentStatusForm, get_forms_list
+from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
 from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
@@ -110,12 +124,12 @@ def get_incidents(request):
             .order_by("-incident_notification_date")
         )
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
-    elif user_in_group(user, "OperatorAdmin") or user_in_group(user, "OperatorUser"):
-        # OperatorAdmin can see all the reports of the selected company.
+    elif is_user_operator(user):
+        # OperatorAdmin/User can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
         f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
-        # OperatorUser and IncidentUser can see only their reports.
+        # IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
@@ -217,6 +231,7 @@ def get_incidents(request):
             "is_regulator_incidents": request.session.get(
                 "is_regulator_incidents", False
             ),
+            "can_export_incidents": can_export_incidents(user),
         },
     )
 
@@ -613,6 +628,370 @@ def delete_incident(request, incident_id: int):
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
+
+
+@login_required
+@otp_required
+@check_user_is_correct
+def export_incidents(request):
+    user = request.user
+
+    if not can_export_incidents(user):
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
+
+    regulation_ids = []
+    sectorregulation_ids = []
+    workflows_ids = []
+    regulator = None
+    observer = None
+
+    if user_in_group(user, "RegulatorAdmin"):
+        regulator = user.regulators.first()
+        if regulator:
+            sectorregulations = regulator.sectorregulation_set.all()
+            regulation_ids = sectorregulations.values_list(
+                "regulation", flat=True
+            ).distinct()
+            sectorregulation_ids = sectorregulations.values_list(
+                "id", flat=True
+            ).distinct()
+            workflows_ids = sectorregulations.values_list(
+                "workflows", flat=True
+            ).distinct()
+
+    elif is_observer_user(user):
+        observer = user.observers.first()
+        if observer:
+            observer_regulations = observer.observerregulation_set.values_list(
+                "regulation", flat=True
+            ).distinct()
+            regulation_ids = observer_regulations
+            sectorregulations = SectorRegulation.objects.filter(
+                regulation__in=observer_regulations
+            )
+            sectorregulation_ids = sectorregulations.values_list(
+                "id", flat=True
+            ).distinct()
+            workflows_ids = sectorregulations.values_list(
+                "workflows", flat=True
+            ).distinct()
+
+    regulation_qs = Regulation.objects.filter(id__in=regulation_ids).order_by("id")
+
+    sectorregulation_qs = SectorRegulation.objects.filter(
+        id__in=sectorregulation_ids
+    ).order_by("id")
+
+    workflow_qs = (
+        Workflow.objects.filter(id__in=workflows_ids)
+        .annotate(
+            sectorregulation_id=Subquery(
+                SectorRegulationWorkflow.objects.filter(workflow=OuterRef("pk")).values(
+                    "sector_regulation__id"
+                )[:1]
+            )
+        )
+        .order_by("id")
+    )
+
+    if request.method == "POST":
+        form = ExportIncidentsForm(
+            request.POST,
+            regulation_qs=regulation_qs,
+            sectorregulation_qs=sectorregulation_qs,
+            workflow_qs=workflow_qs,
+        )
+        if form.is_valid():
+            incidents = Incident.objects.none()
+            regulation = form.cleaned_data["regulation"]
+            sectorregulation = form.cleaned_data["sectorregulation"]
+            workflow = form.cleaned_data["workflow"]
+            from_date = form.cleaned_data["from_date"]
+            to_date = form.cleaned_data["to_date"]
+            file_format = form.cleaned_data["file_format"]
+            are_incidents = False
+
+            if user_in_group(user, "RegulatorAdmin"):
+                incidents = Incident.objects.filter(
+                    sector_regulation=sectorregulation,
+                    sector_regulation__regulation=regulation,
+                    sector_regulation__regulator__in=user.regulators.all(),
+                    incident_notification_date__date__gte=from_date,
+                    incident_notification_date__date__lte=to_date,
+                ).order_by("-incident_notification_date")
+
+                if incidents.exists():
+                    are_incidents = True
+
+            if is_observer_user(user):
+                all_incidents = (
+                    user.observers.first()
+                    .get_incidents()
+                    .order_by("-incident_notification_date")
+                )
+
+                incidents = [
+                    i
+                    for i in all_incidents
+                    if i.sector_regulation.regulation == regulation
+                    and i.sector_regulation == sectorregulation
+                    and from_date <= i.incident_notification_date.date() <= to_date
+                ]
+
+                if incidents:
+                    are_incidents = True
+
+            if not are_incidents:
+                messages.error(request, _("No incidents available for export."))
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
+            data = []
+
+            for incident in incidents:
+                last_report = incident.get_latest_incident_workflow_by_workflow(
+                    workflow
+                )
+
+                if last_report is None:
+                    continue
+
+                incident_data = {
+                    "Name of operator": (
+                        incident.company.name
+                        if incident.company
+                        else incident.company_name
+                    ),
+                    "Reference": incident.incident_id,
+                    "Incident notification creation date": (
+                        incident.incident_notification_date.strftime(
+                            "%d-%m-%Y %H:%M:%S"
+                        )
+                        if incident.incident_notification_date
+                        else ""
+                    ),
+                    "Incident detection date": (
+                        last_report.report_timeline.incident_detection_date.strftime(
+                            "%d-%m-%Y %H:%M:%S"
+                        )
+                        if last_report.report_timeline
+                        and last_report.report_timeline.incident_detection_date
+                        else ""
+                    ),
+                    "Incident start date": (
+                        last_report.report_timeline.incident_starting_date.strftime(
+                            "%d-%m-%Y %H:%M:%S"
+                        )
+                        if last_report.report_timeline
+                        and last_report.report_timeline.incident_starting_date
+                        else ""
+                    ),
+                    "Incident resolution date": (
+                        last_report.report_timeline.incident_resolution_date.strftime(
+                            "%d-%m-%Y %H:%M:%S"
+                        )
+                        if last_report.report_timeline
+                        and last_report.report_timeline.incident_resolution_date
+                        else ""
+                    ),
+                    "Legal basis": str(incident.sector_regulation.regulation),
+                    "Significative impact": (
+                        "yes" if incident.is_significative_impact else "no"
+                    ),
+                    "Incident Status": incident.get_incident_status_display(),
+                    "Incident notification manager": ", ".join(
+                        [
+                            f"{incident.contact_firstname} {incident.contact_lastname}",
+                            incident.contact_email,
+                            incident.contact_telephone,
+                        ]
+                    ),
+                    "Incident technical contact": ", ".join(
+                        [
+                            f"{incident.technical_firstname} {incident.technical_lastname}",
+                            incident.technical_email,
+                            incident.technical_telephone,
+                        ]
+                    ),
+                    "Report": (
+                        str(last_report.workflow) if last_report.workflow else ""
+                    ),
+                    "Report status": (
+                        last_report.get_review_status_display()
+                        if last_report.review_status
+                        else ""
+                    ),
+                    "Report creation date": (
+                        last_report.timestamp.strftime("%d-%m-%Y %H:%M:%S")
+                        if last_report.timestamp
+                        else ""
+                    ),
+                }
+
+                length_fixed_values = len(incident_data)
+
+                for idx, sector in enumerate(incident.affected_sectors.all(), start=1):
+                    incident_data[f"Impacted sectors {idx}"] = str(sector).replace(
+                        " → ", " -> "
+                    )
+
+                for answer in last_report.answer_set.all():
+                    question = answer.question_options.question
+                    str_answer = str(answer).replace(";", ",")
+                    if answer.predefined_answers.exists():
+                        for idx, pa in enumerate(
+                            answer.predefined_answers.all(), start=1
+                        ):
+                            pa_answer = str(pa).replace(";", ",")
+                            if question.question_type == "SO":
+                                incident_data[f"{question}"] = pa_answer
+                            elif question.question_type == "ST":
+                                if str_answer != "":
+                                    incident_data[f"{question}"] = (
+                                        f"{pa_answer} Details: {str_answer}"
+                                    )
+                                else:
+                                    incident_data[f"{question}"] = pa_answer
+                            else:
+                                incident_data[f"{question} {idx}"] = pa_answer
+                    elif (
+                        question.question_type == "CL" or question.question_type == "RL"
+                    ):
+                        for idx, item in enumerate(str_answer.split(","), start=1):
+                            incident_data[f"{question} {idx}"] = item.strip()
+                    else:
+                        incident_data[f"{question}"] = str_answer
+
+                data.append(incident_data)
+
+            if not data:
+                messages.error(request, _("No incidents available for export."))
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
+            keys = []
+            for entry in data:
+                for k in entry.keys():
+                    if k not in keys:
+                        keys.append(k)
+
+            keys = group_keys_by_index(keys, length_fixed_values)
+
+            if file_format == "xlsx":
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Incidents"
+
+                headers = keys
+                ws.append(headers)
+                for entry in data:
+                    row = [entry.get(key, "") for key in headers]
+                    ws.append(row)
+
+                for column_cells in ws.columns:
+                    length = max(
+                        len(str(cell.value)) if cell.value else 0
+                        for cell in column_cells
+                    )
+                    ws.column_dimensions[column_cells[0].column_letter].width = min(
+                        length + 2, 60
+                    )
+
+                response = HttpResponse(
+                    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                response["Content-Disposition"] = 'attachment; filename="export.xlsx"'
+                wb.save(response)
+
+            else:
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = 'attachment; filename="export.csv"'
+
+                writer = csv.DictWriter(
+                    response,
+                    fieldnames=keys,
+                    extrasaction="ignore",
+                    quoting=csv.QUOTE_ALL,
+                )
+                writer.writeheader()
+                for entry in data:
+                    row = {key: entry.get(key, "") for key in keys}
+                    writer.writerow(row)
+
+            LogEntry.objects.log_action(
+                user_id=user.id,
+                content_type_id=ContentType.objects.get_for_model(Incident).id,
+                object_id="",
+                object_repr=_("Incidents Export"),
+                action_flag=7,
+                change_message=_(
+                    "A total of {count} incidents were exported from regulation "
+                    "{regulation} [{sectorregulation} - ({workflow})] within date range ({from_date} - {to_date}.)"
+                ).format(
+                    count=len(data),
+                    regulation=regulation,
+                    sectorregulation=sectorregulation,
+                    workflow=workflow,
+                    from_date=from_date,
+                    to_date=to_date,
+                ),
+            )
+
+            try:
+                platformAdmin_group = Group.objects.get(name="PlatformAdmin")
+            except Group.DoesNotExist:
+                platformAdmin_group = None
+
+            if platformAdmin_group:
+                email_list = User.objects.filter(
+                    groups=platformAdmin_group
+                ).values_list("email", flat=True)
+                html_message = render_to_string(
+                    "emails/incident_mass_export.html",
+                    {"regulation": str(regulation), "site_name": SITE_NAME},
+                )
+                subject = _("[{site}] New incident mass export").format(site=SITE_NAME)
+
+                send_html_email(
+                    subject,
+                    html_message,
+                    email_list,
+                )
+
+            return response
+
+    else:
+        form = ExportIncidentsForm(
+            regulation_qs=regulation_qs,
+            sectorregulation_qs=sectorregulation_qs,
+            workflow_qs=workflow_qs,
+        )
+        return render(request, "modals/export_incidents.html", {"form": form})
+
+
+def group_keys_by_index(keys, length_fixed_values):
+    fixed_keys = keys[:length_fixed_values]
+    dynamic_keys = keys[length_fixed_values:]
+    groups = OrderedDict()
+    for key in dynamic_keys:
+        match = re.match(r"^(.*\D)\s*:?\s*(\d+)$", key)
+        if match:
+            prefix = match.group(1).strip()
+            index = int(match.group(2))
+            if prefix not in groups:
+                groups[prefix] = []
+            groups[prefix].append((index, key))
+        else:
+            if key not in groups:
+                groups[key] = []
+            groups[key].append((0, key))
+
+    grouped_keys = []
+    for _prefix, items in groups.items():
+        items.sort(key=lambda x: x[0])
+        grouped_keys.extend([key for _, key in items])
+    return fixed_keys + grouped_keys
 
 
 def is_incidents_report_limit_reached(request):
@@ -1251,7 +1630,11 @@ class WorkflowWizardView(SessionWizardView):
                     None,
                 )
                 create_entry_log(
-                    user, self.incident, incident_workflow, "REVIEW STATUS: "+review_status_txt, self.request
+                    user,
+                    self.incident,
+                    incident_workflow,
+                    "REVIEW STATUS: " + review_status_txt,
+                    self.request,
                 )
             incident_workflow.save()
             create_entry_log(
@@ -1376,3 +1759,29 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         entity_name=entity_name,
     )
     log.save()
+
+
+def can_export_incidents(user):
+    regulator = user.regulators.first()
+    observer = user.observers.first()
+    return (
+        regulator
+        and user.regulatoruser_set.filter(
+            regulator=regulator,
+            is_regulator_administrator=True,
+            can_export_incidents=True,
+        ).exists()
+    ) or (
+        observer
+        and user.observeruser_set.filter(
+            observer=observer, can_export_incidents=True
+        ).exists()
+    )
+
+
+def render_error_messages(request):
+    return render_to_string(
+        "django_bootstrap5/messages.html",
+        {"messages": messages.get_messages(request)},
+        request=request,
+    )

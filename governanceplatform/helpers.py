@@ -1,16 +1,12 @@
 import secrets
 from typing import Any, Optional
 
-from django.conf import settings
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.core.signing import TimestampSigner
 from django.db import connection
+from django.db.models import F, Max, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce, Lower
-from django.db.models import Q, Max, Value, F
 from django.http import HttpRequest
-from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -37,23 +33,6 @@ def table_exists(table_name: str) -> bool:
 def generate_token():
     """Generates a random token-safe text string."""
     return secrets.token_urlsafe(32)[:32]
-
-
-# send an email with the token to activate the account
-def send_activation_email(user):
-    signer = TimestampSigner()
-    token = signer.sign(user.activation_token)
-
-    activation_link = (
-        f"{settings.PUBLIC_URL}{reverse('activate', kwargs={'token': token})}"
-    )
-
-    subject = _("Activate your account")
-    message = _(
-        "Hello {username}! Please click here to activate your account : {activation_link}"
-    ).format(username=user.first_name, activation_link=activation_link)
-
-    send_mail(subject, message, settings.EMAIL_SENDER, [user.email])
 
 
 def user_in_group(user, group_name) -> bool:
@@ -129,22 +108,15 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
         ).exists()
     ):
         return True
-    # OperatorAdmin can access only incidents related to selected company.
+    # OperatorAdmin/User can access only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorAdmin")
+        is_user_operator(user)
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # OperatorUser can access incidents related to selected company and sectors
+    # IncidentUser can access their reports.
     if (
-        user_in_group(user, "OperatorUser")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
-    # OperatorStaff and IncidentUser can access their reports.
-    if (
-        not is_user_regulator(user)
-        and (user_in_group(user, "OperatorUser") or user_in_group(user, "IncidentUser"))
+        user_in_group(user, "IncidentUser")
         and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
     ):
         return True
@@ -347,16 +319,23 @@ def filter_languages_not_translated(form):
 # These *_sort fields are case-insensitive (they ignore uppercase/lowercase when sorting).
 # If it is important to sort with case sensitivity, set orderable = False
 # and order directly by the translated field, e.g. .order_by("_label").
-def translated_queryset(qs, language, default_language, translated_fields=[], orderable=False):
+def translated_queryset(
+    qs, language, default_language, translated_fields=None, orderable=False
+):
     default_lang = default_language
     lang = language
-
     annotations = {}
+    if translated_fields is None:
+        translated_fields = []
 
     for f in translated_fields:
         # Annotate value with the requested lang and default one
-        annotations[f"_{f}_lang"] = Max(f"translations__{f}", filter=Q(translations__language_code=lang))
-        annotations[f"_{f}_default"] = Max(f"translations__{f}", filter=Q(translations__language_code=default_lang))
+        annotations[f"_{f}_lang"] = Max(
+            f"translations__{f}", filter=Q(translations__language_code=lang)
+        )
+        annotations[f"_{f}_default"] = Max(
+            f"translations__{f}", filter=Q(translations__language_code=default_lang)
+        )
 
     qs = qs.annotate(**annotations)
 
@@ -382,7 +361,7 @@ def translated_queryset(qs, language, default_language, translated_fields=[], or
 
 
 def generate_display_methods(translated_fields):
-    """"
+    """ "
     Dynamically generates display methods for translated fields.
     Example: for “label” → creates label_display() with
     - admin_order_field = “_label”
@@ -392,9 +371,11 @@ def generate_display_methods(translated_fields):
     methods = {}
 
     for field in translated_fields:
+
         def make_method(f):
             def _method(self, obj):
                 return getattr(obj, f"_{f}")
+
             _method.admin_order_field = f"_{f}"
             _method.short_description = _(f.replace("_", " ").capitalize())
             return _method

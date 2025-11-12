@@ -5,7 +5,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -25,12 +25,15 @@ from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
     set_creator,
-    user_in_group,
     translated_queryset,
+    user_in_group,
 )
 from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
-from governanceplatform.settings import LOG_RETENTION_TIME_IN_DAY, PARLER_DEFAULT_LANGUAGE_CODE
+from governanceplatform.settings import (
+    LOG_RETENTION_TIME_IN_DAY,
+    PARLER_DEFAULT_LANGUAGE_CODE,
+)
 from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.forms import QuestionOptionsInlineForm
 from incidents.models import (
@@ -43,10 +46,11 @@ from incidents.models import (
     QuestionCategoryOptions,
     QuestionOptions,
     SectorRegulation,
-    SectorRegulationWorkflowEmail,
     SectorRegulationWorkflow,
+    SectorRegulationWorkflowEmail,
     Workflow,
 )
+
 from .globals import QUESTION_TYPES
 
 logger = logging.getLogger(__name__)
@@ -161,7 +165,9 @@ class LogEntryAdmin(admin.ModelAdmin):
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
-            return queryset.filter(user__groups__in=[PlatformAdminGroupId])
+            return queryset.filter(
+                Q(action_flag=7) | Q(user__groups__in=[PlatformAdminGroupId])
+            ).distinct()
 
         # Regulator Admin
         if user_in_group(user, "RegulatorAdmin"):
@@ -301,11 +307,11 @@ class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
             )
 
         if db_field.name == "question" and not request.POST:
-            lang = getattr(request, "LANGUAGE_CODE")
-            queryset = (
-                Question.objects.all()
+            lang = getattr(request, "LANGUAGE_CODE", "en")
+            queryset = Question.objects.all()
+            qs = translated_queryset(
+                queryset, lang, PARLER_DEFAULT_LANGUAGE_CODE, ["label", "tooltip"], True
             )
-            qs = translated_queryset(queryset, lang, PARLER_DEFAULT_LANGUAGE_CODE, ["label", "tooltip"], True)
             kwargs["queryset"] = qs.order_by("_label_sort")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -325,6 +331,7 @@ def duplicate_objects(modeladmin, request, queryset):
         "Question": {
             "related_objects": ["predefinedanswer_set"],
             "label_field": "label",
+            "unique_fields": ["reference"],
         },
     }
 
@@ -339,10 +346,21 @@ def duplicate_objects(modeladmin, request, queryset):
 
         config = config_by_model[model_name]
         related_objects_to_copy = config.get("related_objects", [])
+        unique_fields_to_copy = config.get("unique_fields", [])
         label_field = config.get("label_field")
 
         try:
             with transaction.atomic():
+                for field_name in unique_fields_to_copy:
+                    try:
+                        value = getattr(obj, field_name, None)
+                        if isinstance(value, str) and value:
+                            setattr(obj, field_name, f"{value} (copy)")
+                        else:
+                            setattr(obj, field_name, None)
+                    except FieldDoesNotExist:
+                        continue
+
                 if isinstance(obj, TranslatableModel):
                     obj_translations = list(obj.translations.all())
 
@@ -809,9 +827,7 @@ class SectorRegulationInline(admin.TabularInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "workflow":
-            kwargs["queryset"] = Workflow.objects.order_by(
-                "name"
-            )
+            kwargs["queryset"] = Workflow.objects.order_by("name")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -949,7 +965,7 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     search_fields = [
         "sector_regulation_workflow__sector_regulation__regulation__translations__label",
         "translations__headline",
-        "sector_regulation_workflow__workflow__name"
+        "sector_regulation_workflow__workflow__name",
     ]
     resource_class = SectorRegulationWorkflowEmailResource
     fields = (

@@ -1,0 +1,74 @@
+name: Django Pytest
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: "<user>"
+          POSTGRES_PASSWORD: "<password>"
+          POSTGRES_DB: "serima-governance"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DJANGO_SETTINGS_MODULE: governanceplatform.settings
+      POSTGRES_USER: <user>
+      POSTGRES_PASSWORD: <password>
+      POSTGRES_DB: serima-governance
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      SECRET_KEY: test_secret_key
+      DEBUG: "False"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout theme
+        uses: actions/checkout@v4
+        with:
+          repository: informed-governance-project/default-theme
+          ref: dev
+          path: default-theme
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-interaction --no-root
+
+      - name: Copy default theme
+        run: |
+          mkdir -p theme
+          cp -r default-theme/* theme/
+
+
+      - name: Run migrations
+        run: |
+          poetry run python manage.py migrate
+
+      - name: Run tests with pytest
+        run: |
+          poetry run pytest --disable-warnings -v

@@ -841,9 +841,7 @@ class Incident(models.Model):
                     deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
                 elif next_srw.trigger_event_before_deadline == "PREV_WORK":
                     previous_workflow = self.get_previous_workflow(next_srw.workflow)
-                    print("previous")
                     if previous_workflow:
-                        print("troptrop")
                         previous_incident_workflow = (
                             IncidentWorkflow.objects.all()
                             .filter(incident=self, workflow=previous_workflow.workflow)

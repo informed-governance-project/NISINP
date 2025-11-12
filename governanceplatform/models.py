@@ -14,7 +14,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 import governanceplatform
 from incidents.models import Incident
 
-from .globals import ACTION_FLAG_CHOICES, FUNCTIONALITIES
+from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
 
@@ -95,7 +95,6 @@ class Service(TranslatableModel):
         verbose_name_plural = _("Services")
 
 
-# functionality (e.g, risk analysis, SO)
 class Functionality(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(verbose_name=_("Name"), max_length=100)
@@ -104,7 +103,7 @@ class Functionality(TranslatableModel):
     type = models.CharField(
         verbose_name=_("Type"),
         max_length=100,
-        choices=FUNCTIONALITIES,
+        choices=get_functionality_choices,
         null=False,
         unique=True,
     )
@@ -188,20 +187,21 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
-    @admin.display(description="sectors")
-    def get_sectors(self):
-        sectors = []
-        for sector in Sector.objects.filter(
-            id__in=self.companyuser_set.all()
-            .distinct()
-            .values_list("sectors", flat=True)
-        ):
-            if sector.name is not None and sector.parent is not None:
-                sectors.append(sector.parent.name + " --> " + sector.name)
-            elif sector.name is not None and sector.parent is None:
-                sectors.append(sector.name)
+    def security_objective_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
 
-        return sectors
+        return self.standardanswer_set.filter(
+            year_of_submission=year, sectors__in=[sector.id], status="PASS"
+        ).exists()
+
+    def risk_analysis_exists(self, year=None, sector=None):
+        if not (year and sector):
+            return False
+
+        return self.companyreporting_set.filter(
+            year=year, sector=sector, servicestat__isnull=False
+        ).exists()
 
     class Meta:
         verbose_name = _("Operator")
@@ -422,18 +422,20 @@ class User(AbstractUser, PermissionsMixin):
             "Determines if the user can log in via the administration interface."
         ),
     )
+
+    email_verified = models.BooleanField(
+        verbose_name=_("Email verified"),
+        default=True,
+        help_text=_("Indicates whether the user has verified their email address."),
+    )
+
     accepted_terms = models.BooleanField(default=False)
     accepted_terms_date = models.DateTimeField(blank=True, null=True)
-    activation_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     objects = CustomUserManager()
-
-    # @admin.display(description="sectors")
-    # def get_sectors(self):
-    #     return [sector.name for sector in self.sectors.all()]
 
     @admin.display(description="companies")
     def get_companies(self):
@@ -469,13 +471,13 @@ class User(AbstractUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     def get_sectors(self):
+        sectors = Sector.objects.none()
         if governanceplatform.helpers.user_in_group(self, "RegulatorUser"):
             ru = RegulatorUser.objects.filter(user=self).first()
-            return ru.sectors
-        elif governanceplatform.helpers.user_in_group(
-            self, "OperatorAdmin"
-        ) or governanceplatform.helpers.user_in_group(self, "OperatorUser"):
-            return self.companyuser_set.all().values_list("sectors")
+            sectors = ru.sectors
+        elif governanceplatform.helpers.user_in_group(self, "RegulatorAdmin"):
+            sectors = Sector.objects.all()
+        return sectors
 
     def get_module_permissions(self):
         user_entity = None
@@ -515,11 +517,6 @@ class CompanyUser(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name=_("User"),
-    )
-    sectors = models.ManyToManyField(
-        Sector,
-        verbose_name=_("Sectors"),
-        blank=True,
     )
     is_company_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
@@ -576,6 +573,9 @@ class RegulatorUser(models.Model):
     is_regulator_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
     )
+    can_export_incidents = models.BooleanField(
+        default=False, verbose_name=_("Can export incidents")
+    )
     sectors = models.ManyToManyField(Sector, blank=True)
 
     class Meta:
@@ -605,6 +605,9 @@ class ObserverUser(models.Model):
     )
     is_observer_administrator = models.BooleanField(
         default=False, verbose_name=_("Is administrator")
+    )
+    can_export_incidents = models.BooleanField(
+        default=False, verbose_name=_("Can export incidents")
     )
 
     class Meta:

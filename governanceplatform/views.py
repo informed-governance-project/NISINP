@@ -1,16 +1,16 @@
-import uuid
 from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
+from django.contrib.auth.views import PasswordResetConfirmView
 from django.core.mail import EmailMessage
-from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models.functions import Now
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.shortcuts import redirect, render
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.models import Company
@@ -24,8 +24,7 @@ from .forms import (
     SelectCompany,
     TermsAcceptanceForm,
 )
-from .helpers import is_user_regulator, send_activation_email
-from .models import User
+from .helpers import is_user_regulator
 from .permissions import set_operator_admin_permissions, set_operator_user_permissions
 
 
@@ -152,13 +151,11 @@ def registration_view(request, *args, **kwargs):
     if user.is_authenticated:
         return redirect("index")
     elif request.method == "POST":
-        form = RegistrationForm(request.POST)
+        form = RegistrationForm(request.POST, request=request)
         if form.is_valid():
             user = form.save()
             user.accepted_terms = True
             user.accepted_terms_date = Now()
-            user.is_active = False
-            user.activation_token = uuid.uuid4()
             user.save()
             # default give the role IncidentUser
             new_group, created = Group.objects.get_or_create(name="IncidentUser")
@@ -166,42 +163,40 @@ def registration_view(request, *args, **kwargs):
                 user.groups.add(new_group)
             else:
                 user.groups.add(created)
-            send_activation_email(user)
-            messages.info(request, _("An activation email has been sent."))
+
+            # Send password reset email
+            reset_form = PasswordResetForm({"email": user.email})
+            if reset_form.is_valid():
+                reset_form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    email_template_name="registration/password_reset_email.html",
+                    subject_template_name="registration/password_reset_subject.txt",
+                )
+
+            messages.success(
+                request,
+                _(
+                    "Account created. A password reset email has been sent. "
+                    "Please check your inbox to set your password.",
+                ),
+            )
+
             return redirect("login")
         else:
+            captcha_errors = form.errors.get("captcha")
+            if captcha_errors:
+                messages.error(request, _("Invalid captcha"))
             context["form"] = form
 
     else:
-        form = RegistrationForm()
-        context["form"] = form
+        form = RegistrationForm(request=request)
+        context = {
+            "form": form,
+            "honeypot_field_name": request.session.get("honeypot_field_name"),
+        }
+        print(context)
     return render(request, "registration/signup.html", context)
-
-
-# when we click on the link in the activation email
-def activate_account(request, token):
-    signer = TimestampSigner()
-    try:
-        user_activation_token = signer.unsign(
-            token, max_age=settings.ACCOUNT_ACTIVATION_LINK_TIMEOUT
-        )  # we check the token
-        user = get_object_or_404(User, activation_token=user_activation_token)
-
-        if not user.is_active:
-            user.is_active = True
-            user.activation_token = uuid.uuid4()  # deactivate previous link
-            user.save()
-            messages.success(
-                request, _("Your account has been activated. You may log in now.")
-            )
-        else:
-            messages.info(request, _("Your account is already active."))
-    except SignatureExpired:
-        messages.error(request, _("The link is expired."))
-    except BadSignature:
-        messages.error(request, _("Error"))  # invalid or expired link
-
-    return redirect("login")
 
 
 def select_company(request):
@@ -315,3 +310,16 @@ def custom_404_view(request, exception):
 
 def custom_500_view(request):
     return render(request, "parts/500.html", status=500)
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    success_url = reverse_lazy("password_reset_complete")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.user
+        if user and not user.email_verified:
+            user.email_verified = True
+            user.save(update_fields=["email_verified"])
+
+        return response

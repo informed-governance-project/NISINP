@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "governanceplatform"
-version = "0.5.8"
+version = "0.5.9"
 description = "Governance Platform - NISINP"
 authors = [
     "Cédric Bonhomme <cedric.bonhomme@nc3.lu>",
@@ -66,6 +66,7 @@ django-debug-toolbar = "^5.2.0"
 pyparsing = "^3.2.3"
 pytest = "^8.4.2"
 pytest-django = "^4.11.1"
+pytest-html = "^4.1.1"
 
 [tool.poetry.group.docs]
 optional = true
