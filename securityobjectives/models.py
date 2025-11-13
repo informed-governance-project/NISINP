@@ -242,6 +242,20 @@ class SecurityMeasure(TranslatableModel):
         return self.description if self.description is not None else ""
 
 
+# A group of StandardAnswer to have the versionning functionnality
+class StandardAnswerGroup(models.Model):
+    notification_date = models.DateTimeField(default=timezone.now)
+    # we allo to store user in case he is registered
+    contact_user = models.ForeignKey(
+        "governanceplatform.User",
+        verbose_name=_("Contact user"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+
 # The answers of the operator
 class StandardAnswer(models.Model):
     standard = models.ForeignKey(
@@ -282,6 +296,9 @@ class StandardAnswer(models.Model):
     )
     deadline = models.DateTimeField(
         blank=True, default=None, null=True, verbose_name=_("Deadline")
+    )
+    group = models.ForeignKey(
+        StandardAnswerGroup, on_delete=models.CASCADE, verbose_name=_("Group")
     )
 
     def get_root_sectors(self):
