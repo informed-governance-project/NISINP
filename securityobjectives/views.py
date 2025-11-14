@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from collections import defaultdict
+from datetime import date
 
 import openpyxl
 from django.conf import settings
@@ -159,7 +160,31 @@ def create_so_declaration(request):
                 standard = Standard.objects.get(pk=so_standard_id)
                 user = request.user
                 company = get_active_company_from_session(request)
-                sag = StandardAnswerGroup.objects.create(contact_user=user)
+                company_for_ref = company.identifier if company else ""
+                framework_for_ref = (
+                    standard.label[:10] if standard and standard.label else ""
+                )
+                sector_id = sectors[0] if sectors[0] else None
+                sector = Sector.objects.get(id=sector_id) if sector_id else None
+                sector_for_ref = (
+                    sector.parent.acronym[:3] if sector and sector.parent else ""
+                )
+                subsector_for_ref = sector.acronym[:3] if sector else ""
+                group_by_company = (
+                    company.standardanswer_set.filter(
+                        year_of_submission=date.today().year
+                    ).count()
+                    if company
+                    else 0
+                )
+                number_of_group = f"{group_by_company:04}"
+                sag = StandardAnswerGroup.objects.create(
+                    contact_user=user,
+                    group_id=(
+                        f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
+                        f"{number_of_group}_{date.today().year}"
+                    ),
+                )
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     submitter_user=user,
