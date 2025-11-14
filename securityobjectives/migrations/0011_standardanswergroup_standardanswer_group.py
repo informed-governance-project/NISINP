@@ -12,6 +12,7 @@ def populate_standard_group(apps, schema_editor):
 
     for sa in StandardAnswer.objects.all():
         sag = StandardAnswerGroup.objects.create()
+        sag.contact_user = sa.submitter_user
         sag.save()
         sa.group = sag
         sa.save()
