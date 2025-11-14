@@ -254,6 +254,13 @@ class StandardAnswerGroup(models.Model):
         blank=True,
         default=None,
     )
+    # XXXX-FFFFFFFFFF-SSS-SSS-NNNN-YYYY
+    # XXXX = operator
+    # SSS-SSS = sector and subsector
+    # FFFFFFFFFF = framework limited to 10 chars
+    # YYYY = Year
+    # NNNN = Number
+    group_id = models.CharField(max_length=33, verbose_name=_("Group ID"))
 
 
 # The answers of the operator

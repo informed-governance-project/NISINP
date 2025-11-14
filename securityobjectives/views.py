@@ -60,6 +60,7 @@ from .models import (
     SecurityObjectiveStatus,
     Standard,
     StandardAnswer,
+    StandardAnswerGroup,
 )
 
 # Increasing weasyprint log level
@@ -158,6 +159,7 @@ def create_so_declaration(request):
                 standard = Standard.objects.get(pk=so_standard_id)
                 user = request.user
                 company = get_active_company_from_session(request)
+                sag = StandardAnswerGroup.objects.create(contact_user=user)
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     submitter_user=user,
@@ -165,6 +167,7 @@ def create_so_declaration(request):
                     creator_name=user.get_full_name(),
                     creator_company_name=str(company),
                     year_of_submission=year,
+                    group=sag,
                 )
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(sectors)
@@ -351,7 +354,7 @@ def declaration(request):
                         status=404,
                     )
 
-    security_objectives = defaultdict(lambda: defaultdict(lambda: []))
+    security_objectives = defaultdict(lambda: defaultdict(list))
 
     for so_in_standard in security_objectives_queryset:
         security_objective = so_in_standard.security_objective
@@ -670,7 +673,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
         security_objectives_queryset = (
             standard.securityobjectivesinstandard_set.all().order_by("position")
         )
-        security_objectives = defaultdict(lambda: defaultdict(lambda: []))
+        security_objectives = defaultdict(lambda: defaultdict(list))
 
         for so_in_standard in security_objectives_queryset:
             security_objective = so_in_standard.security_objective
@@ -726,9 +729,9 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
         pdf_report = htmldoc.write_pdf(stylesheets=stylesheets)
         response = HttpResponse(pdf_report, content_type="application/pdf")
-        response[
-            "Content-Disposition"
-        ] = f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
+        response["Content-Disposition"] = (
+            f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
+        )
         create_entry_log(user, standard_answer, "DOWNLOAD", request)
         return response
     except Exception:

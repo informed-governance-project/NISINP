@@ -73,7 +73,6 @@ class Migration(migrations.Migration):
             model_name="standardanswer",
             name="group",
             field=models.ForeignKey(
-                default=1,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="securityobjectives.standardanswergroup",
                 verbose_name="Group",
