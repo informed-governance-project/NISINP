@@ -842,7 +842,6 @@ def import_so_declaration(request):
             company_id = form.cleaned_data["company"]
             year = form.cleaned_data["year"]
             sectors = form.cleaned_data["sectors"]
-            valid_sectors = []
 
             try:
                 standard = Standard.objects.get(pk=standard_id)
@@ -857,15 +856,9 @@ def import_so_declaration(request):
                     )
                     return HttpResponseRedirect(request.headers.get("referer"))
 
-                company_sectors = company.get_queryset_sectors()
-                for sector in Sector.objects.filter(id__in=sectors):
-                    if sector not in company_sectors:
-                        messages.error(
-                            request,
-                            f"Sector error: {str(sector)} is not linked to the {str(company)}",
-                        )
-                    else:
-                        valid_sectors.append(sector)
+                valid_sectors = [
+                    sector for sector in Sector.objects.filter(id__in=sectors)
+                ]
 
                 if not valid_sectors:
                     return HttpResponseRedirect(request.headers.get("referer"))
