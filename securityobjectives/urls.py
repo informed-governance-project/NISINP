@@ -39,7 +39,7 @@ urlpatterns = [
     path("declaration", declaration, name="so_declaration"),
     # Copy SO declaration
     path(
-        "copy/<int:standard_answer_id>",
+        "copy/<int:group_id>",
         copy_declaration,
         name="copy_so_declaration",
     ),
