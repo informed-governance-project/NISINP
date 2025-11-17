@@ -459,14 +459,19 @@ def declaration(request):
 
 @login_required
 @otp_required
-def copy_declaration(request, standard_answer_id: int):
+def copy_declaration(request, group_id: int):
     user = request.user
     sector_list = get_sectors_grouped(Sector.objects.all())
     initial = {"sectors": sector_list}
     if not sector_list:
         messages.error(request, _("No sectors data available"))
     try:
-        original_standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
+        # get the last standard from the group
+        original_standard_answer = (
+            StandardAnswer.objects.filter(group__pk=group_id)
+            .order_by("-last_update")
+            .first()
+        )
         if not has_change_permission(request, original_standard_answer, "copy"):
             return redirect("securityobjectives")
     except StandardAnswer.DoesNotExist:
@@ -482,12 +487,40 @@ def copy_declaration(request, standard_answer_id: int):
                 "submitter_company": original_standard_answer.submitter_company,
                 "creator_company_name": original_standard_answer.creator_company_name,
             }
+            company = original_standard_answer_dict["submitter_company"]
+            company_for_ref = company.identifier if company else ""
+            standard = original_standard_answer_dict["standard"]
+            framework_for_ref = (
+                standard.label[:10] if standard and standard.label else ""
+            )
+            sector_id = sectors[0] if sectors[0] else None
+            sector = Sector.objects.get(id=sector_id) if sector_id else None
+            sector_for_ref = (
+                sector.parent.acronym[:3] if sector and sector.parent else ""
+            )
+            subsector_for_ref = sector.acronym[:3] if sector else ""
+            group_by_company = (
+                company.standardanswer_set.filter(
+                    year_of_submission=date.today().year
+                ).count()
+                if company
+                else 0
+            )
+            number_of_group = f"{group_by_company:04}"
+            sag = StandardAnswerGroup.objects.create(
+                contact_user=user,
+                group_id=(
+                    f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
+                    f"{number_of_group}_{date.today().year}"
+                ),
+            )
 
             new_standard_answer = StandardAnswer(
                 **original_standard_answer_dict,
                 submitter_user=user,
                 creator_name=user.get_full_name(),
                 year_of_submission=year,
+                group=sag,
             )
             new_standard_answer.save()
             new_standard_answer.sectors.set(sectors)
@@ -548,7 +581,7 @@ def copy_declaration(request, standard_answer_id: int):
         return redirect("securityobjectives")
 
     form = CopySOForm(initial=initial)
-    context = {"form": form, "standard_answer_id": standard_answer_id}
+    context = {"form": form, "group_id": group_id}
     return render(request, "modals/copy_so_declaration.html", context=context)
 
 
