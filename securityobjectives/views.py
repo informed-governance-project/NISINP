@@ -635,6 +635,7 @@ def delete_declaration(request, group_id: int):
 @otp_required
 def review_comment_declaration(request, standard_answer_id: int):
     user = request.user
+    is_only_review_comment = request.GET.get("only_review_comment", "false") == "true"
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
         if not has_change_permission(request, standard_answer, "review_comment"):
@@ -650,13 +651,25 @@ def review_comment_declaration(request, standard_answer_id: int):
         create_entry_log(user, standard_answer, "READ", request)
         initial["is_readonly"] = is_user_operator(user)
     else:
-        initial["is_readonly"] = not is_user_regulator(user)
+        initial["is_readonly"] = not is_user_regulator(
+            user
+        ) or standard_answer.status in ["PASSM", "FAILM"]
         if standard_answer.status == "DELIV":
             initial["status"] = get_standard_answer_status(standard_answer)
 
     if request.method == "POST":
-        form = ReviewForm(request.POST, instance=standard_answer, initial=initial)
+        form = ReviewForm(
+            request.POST,
+            instance=standard_answer,
+            initial=initial,
+            is_only_review_comment=is_only_review_comment,
+        )
         if is_user_regulator(user) and form.is_valid():
+            if is_only_review_comment:
+                standard_answer.review_comment = form.cleaned_data["review_comment"]
+                standard_answer.save()
+                return JsonResponse({"success": True})
+
             standard_answer.review_comment = form.cleaned_data["review_comment"]
             standard_answer.deadline = form.cleaned_data["deadline"]
             standard_answer.status = form.cleaned_data["status"]
@@ -685,7 +698,11 @@ def review_comment_declaration(request, standard_answer_id: int):
 
         return redirect("securityobjectives")
 
-    form = ReviewForm(instance=standard_answer, initial=initial)
+    form = ReviewForm(
+        instance=standard_answer,
+        initial=initial,
+        is_only_review_comment=is_only_review_comment,
+    )
     context = {"form": form, "standard_answer_id": standard_answer_id}
     return render(request, "modals/review_comment_so_declaration.html", context=context)
 

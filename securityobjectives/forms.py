@@ -255,15 +255,19 @@ class ReviewForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial", None)
+        is_only_review_comment = kwargs.pop("is_only_review_comment", False)
         super().__init__(*args, **kwargs)
         self.fields["review_comment"].required = True
         self.fields["deadline"].required = False
         self.fields["status"].required = False
         self.fields["status"].disabled = True
+        self.is_only_review_comment = False
+        self.is_read_only = False
 
         if initial:
             current_classes = self.fields["status"].widget.attrs.get("class", "")
             is_read_only = initial.get("is_readonly", True)
+            self.is_read_only = is_read_only
             self.fields["review_comment"].disabled = is_read_only
             self.fields["deadline"].disabled = is_read_only
             new_classes = f"{current_classes} fw-bolder text-white"
@@ -286,8 +290,13 @@ class ReviewForm(forms.ModelForm):
                 {"class": new_classes},
             )
 
+        if is_only_review_comment and not is_read_only:
+            self.is_only_review_comment = True
+            self.fields["status"].widget = forms.HiddenInput()
+            self.fields["deadline"].widget = forms.HiddenInput()
+
     def clean_status(self):
         status = self.cleaned_data.get("status")
-        if status not in ["PASS", "FAIL"]:
+        if status not in ["PASS", "FAIL"] and not self.is_only_review_comment:
             raise forms.ValidationError("Status must be either PASS or FAIL.")
         return status
