@@ -613,12 +613,16 @@ def submit_declaration(request, standard_answer_id: int):
 
 @login_required
 @otp_required
-def delete_declaration(request, standard_answer_id: int):
+def delete_declaration(request, group_id: int):
     try:
-        standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
-        if not has_change_permission(request, standard_answer, "delete"):
+        standard_answer_group = StandardAnswerGroup.objects.get(pk=group_id)
+        # get the last standard submitted to see if we can delete
+        last_so = standard_answer_group.standardanswer_set.order_by(
+            "-last_update"
+        ).first()
+        if not has_change_permission(request, last_so, "delete"):
             return redirect("securityobjectives")
-        standard_answer.delete()
+        standard_answer_group.delete()
         messages.success(
             request, _("The security objectives declaration has been deleted.")
         )
