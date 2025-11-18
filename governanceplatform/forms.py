@@ -130,17 +130,24 @@ class RegistrationForm(forms.ModelForm):
         "accept_terms",
         "captcha",
     )
+    honeypot_name = ""
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
-        # Create a random honeypot field name
         if self.request:
-            honeypot_name = f"field_{secrets.token_hex(4)}"
-            self.request.session["honeypot_field_name"] = honeypot_name
+            # get the name of the field
+            name = self.request.session.get("honeypot_field_name")
 
-            self.fields[honeypot_name] = forms.CharField(
+            # if there is no name create a new one
+            if not name:
+                name = f"field_{secrets.token_hex(4)}"
+                self.request.session["honeypot_field_name"] = name
+
+            self.honeypot_name = name
+
+            self.fields[name] = forms.CharField(
                 required=False,
                 widget=forms.TextInput(),
             )
@@ -159,11 +166,15 @@ class RegistrationForm(forms.ModelForm):
             user.save()
         return user
 
-    def clean_nickname(self):
-        data = self.cleaned_data.get("nickname")
-        if data:
-            raise ValidationError(_("Invalid submission detected."))
-        return data
+    def clean(self):
+        cleaned_data = super().clean()
+
+        value = cleaned_data.get(self.honeypot_name)
+
+        if value:
+            raise forms.ValidationError("Invalid submission.")
+
+        return cleaned_data
 
     def clean_email(self):
         email = self.cleaned_data.get("email").lower()
