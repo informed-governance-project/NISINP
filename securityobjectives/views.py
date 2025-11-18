@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -599,6 +600,8 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer = standard_answer.first()
     if not has_change_permission(request, standard_answer, "submit"):
         return redirect("securityobjectives")
+    # create a new version by duplicating the standard answer
+    duplicate_standard_answer(standard_answer)
     standard_answer.status = "DELIV"
     standard_answer.submit_date = timezone.now()
     standard_answer.save()
@@ -1312,3 +1315,39 @@ def declaration_is_ready_to(standard_answer):
         send = False
 
     return {"submit": submit, "send": send}
+
+
+# duplicate a standard answer to keep the versioning
+def duplicate_standard_answer(original):
+    # Copy object
+    new_obj = copy.copy(original)
+    new_obj.pk = None
+    new_obj.id = None
+    new_obj.submit_date = None
+    new_obj.last_update = timezone.now()
+    new_obj.save()
+
+    # Copy M2M (sectors)
+    for field in original._meta.many_to_many:
+        source_m2m = getattr(original, field.name).all()
+        getattr(new_obj, field.name).set(source_m2m)
+    new_obj.save()
+
+    # Copy SecurityMeasureAmswer
+    smas = SecurityMeasureAnswer.objects.filter(standard_answer=original).distinct()
+    for sma in smas:
+        new_sma = copy.copy(sma)
+        new_sma.pk = None
+        new_sma.standard_answer = new_obj
+        new_sma.save()
+    new_obj.save()
+
+    # Copy SecurityObjectiveStatus
+    soss = SecurityObjectiveStatus.objects.filter(standard_answer=original).distinct()
+    for sos in soss:
+        new_sos = copy.copy(sos)
+        new_sos.pk = None
+        new_sos.standard_answer = new_obj
+        new_sos.save()
+    new_obj.save()
+    return new_obj
