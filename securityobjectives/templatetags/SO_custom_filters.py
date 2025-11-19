@@ -1,7 +1,11 @@
+import json
+
 from django import template
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 from securityobjectives.globals import STANDARD_ANSWER_REVIEW_STATUS
+from securityobjectives.models import StandardAnswer
 
 register = template.Library()
 
@@ -18,6 +22,26 @@ def url_replace(request, field, value):
 @register.simple_tag
 def settings_value(name):
     return getattr(settings, name, "")
+
+
+@register.simple_tag(takes_context=True)
+def get_all_versions(context, standard):
+    data = list(
+        StandardAnswer.objects.filter(group__group_id=standard.group.group_id)
+        .exclude(pk=standard.pk)
+        .values("id", "submit_date", "status", "review_comment", "deadline")
+        .order_by("-last_update")
+    )
+    if not data:
+        return None
+
+    for item in data:
+        item["status_class"] = status_class(context, item["status"])
+        item["status_icon"] = status_icon(context, item["status"])
+        item["status_tooltip"] = status_tooltip(context, item["status"])
+        item["status_color"] = status_color(item["status"])
+
+    return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 @register.simple_tag(takes_context=True)
@@ -38,6 +62,18 @@ def status_class(context, value):
         return "bg-under-review"
     else:
         return "bg-unsubmitted"
+
+
+@register.simple_tag()
+def status_color(value):
+    if value == "PASS" or value == "PASSM":
+        return "text-passed"
+    elif value == "FAIL" or value == "FAILM":
+        return "text-failed "
+    elif value == "DELIV":
+        return "text-under-review"
+    else:
+        return "text-unsubmitted"
 
 
 @register.simple_tag(takes_context=True)
