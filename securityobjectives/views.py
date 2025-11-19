@@ -19,7 +19,9 @@ from django.db.models import (
     FloatField,
     Max,
     Min,
+    OuterRef,
     Q,
+    Subquery,
     Value,
     When,
 )
@@ -97,6 +99,16 @@ def get_security_objectives(request):
         standard_answer_queryset = StandardAnswer.objects.filter(
             submitter_company=company
         )
+
+    latest_so_id = (
+        standard_answer_queryset.filter(group__group_id=OuterRef("group__group_id"))
+        .order_by("-last_update")
+        .values("id")[:1]
+    )
+
+    standard_answer_queryset = standard_answer_queryset.filter(
+        id__in=Subquery(latest_so_id)
+    )
 
     # Filter
     search_value = request.GET.get("search", None)
