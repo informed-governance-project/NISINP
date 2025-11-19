@@ -502,7 +502,8 @@ def copy_declaration(request, group_id: int):
             subsector_for_ref = sector.acronym[:3] if sector else ""
             group_by_company = (
                 company.standardanswer_set.filter(
-                    year_of_submission=date.today().year
+                    year_of_submission=year,
+                    sectors=sector,
                 ).count()
                 if company
                 else 0
@@ -512,7 +513,7 @@ def copy_declaration(request, group_id: int):
                 contact_user=user,
                 group_id=(
                     f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
-                    f"{number_of_group}_{date.today().year}"
+                    f"{number_of_group}_{year}"
                 ),
             )
 
