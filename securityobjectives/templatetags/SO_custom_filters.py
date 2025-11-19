@@ -26,12 +26,22 @@ def settings_value(name):
 
 @register.simple_tag(takes_context=True)
 def get_all_versions(context, standard):
-    data = list(
-        StandardAnswer.objects.filter(group__group_id=standard.group.group_id)
+    is_regulator = context.get("is_regulator", False)
+
+    queryset = (
+        StandardAnswer.objects.filter(
+            submit_date__isnull=False, group__group_id=standard.group.group_id
+        )
         .exclude(pk=standard.pk)
-        .values("id", "submit_date", "status", "review_comment", "deadline")
+        .only("id", "submit_date", "status", "review_comment")
         .order_by("-last_update")
     )
+
+    if is_regulator:
+        queryset = queryset.exclude(status="UNDE")
+
+    data = list(queryset.values("id", "submit_date", "status", "review_comment"))
+
     if not data:
         return None
 
