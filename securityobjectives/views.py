@@ -651,6 +651,7 @@ def delete_declaration(request, group_id: int):
 def review_comment_declaration(request, standard_answer_id: int):
     user = request.user
     is_only_review_comment = request.GET.get("only_review_comment", "false") == "true"
+    is_from_versions = request.GET.get("from", "false") == "versions"
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
         if not has_change_permission(request, standard_answer, "review_comment"):
@@ -719,6 +720,14 @@ def review_comment_declaration(request, standard_answer_id: int):
         is_only_review_comment=is_only_review_comment,
     )
     context = {"form": form, "standard_answer_id": standard_answer_id}
+
+    if is_from_versions:
+        return render(
+            request,
+            "modals/so_versions_review_comment_so_declaration.html",
+            context=context,
+        )
+
     return render(request, "modals/review_comment_so_declaration.html", context=context)
 
 
