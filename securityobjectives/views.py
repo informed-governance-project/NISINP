@@ -613,8 +613,6 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer = standard_answer.first()
     if not has_change_permission(request, standard_answer, "submit"):
         return redirect("securityobjectives")
-    # create a new version by duplicating the standard answer
-    duplicate_standard_answer(standard_answer)
     standard_answer.status = "DELIV"
     standard_answer.submit_date = timezone.now()
     standard_answer.save()
