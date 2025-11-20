@@ -29,9 +29,7 @@ def get_all_versions(context, standard):
     is_regulator = context.get("is_regulator", False)
 
     queryset = (
-        StandardAnswer.objects.filter(
-            submit_date__isnull=False, group__group_id=standard.group.group_id
-        )
+        StandardAnswer.objects.filter(submit_date__isnull=False, group=standard.group)
         .exclude(pk=standard.pk)
         .only("id", "submit_date", "status", "review_comment")
         .order_by("-last_update")

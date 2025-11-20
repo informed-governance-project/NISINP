@@ -101,7 +101,7 @@ def get_security_objectives(request):
         )
 
     latest_so_id = (
-        standard_answer_queryset.filter(group__group_id=OuterRef("group__group_id"))
+        standard_answer_queryset.filter(group__id=OuterRef("group__id"))
         .order_by("-last_update")
         .values("id")[:1]
     )
@@ -225,12 +225,16 @@ def declaration(request):
     """Initialize data for the security objectives declaration."""
     user = request.user
     standard_id = request.GET.get("id", None)
+    is_update = request.GET.get("update", "false") == "true"
     if standard_id:
         try:
             standard_answer = StandardAnswer.objects.get(pk=standard_id)
         except StandardAnswer.DoesNotExist:
             messages.error(request, _("Declaration not found"))
             return redirect("securityobjectives")
+
+        if is_update and standard_answer.status != "UNDE":
+            standard_answer = duplicate_standard_answer(standard_answer)
     else:
         standard_answer = (
             StandardAnswer.objects.filter(submitter_user=user)
