@@ -30,6 +30,7 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_otp.decorators import otp_required
@@ -232,9 +233,6 @@ def declaration(request):
         except StandardAnswer.DoesNotExist:
             messages.error(request, _("Declaration not found"))
             return redirect("securityobjectives")
-
-        if is_update and standard_answer.status != "UNDE":
-            standard_answer = duplicate_standard_answer(standard_answer)
     else:
         standard_answer = (
             StandardAnswer.objects.filter(submitter_user=user)
@@ -247,6 +245,10 @@ def declaration(request):
 
     if not has_change_permission(request, standard_answer, "edit"):
         return redirect("securityobjectives")
+
+    if is_update and standard_answer.status != "UNDE":
+        standard_answer = duplicate_standard_answer(standard_answer)
+        return redirect(f"{reverse('so_declaration')}?id={standard_answer.id}")
 
     standard = standard_answer.standard
 
@@ -1364,6 +1366,7 @@ def duplicate_standard_answer(original):
     new_obj = copy.copy(original)
     new_obj.pk = None
     new_obj.id = None
+    new_obj.status = "UNDE"
     new_obj.submit_date = None
     new_obj.last_update = timezone.now()
     new_obj.save()
