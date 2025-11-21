@@ -234,11 +234,7 @@ def declaration(request):
             messages.error(request, _("Declaration not found"))
             return redirect("securityobjectives")
     else:
-        standard_answer = (
-            StandardAnswer.objects.filter(submitter_user=user)
-            .order_by("last_update")
-            .last()
-        )
+        return redirect("securityobjectives")
     if not standard_answer:
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
