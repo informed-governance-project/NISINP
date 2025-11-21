@@ -351,7 +351,11 @@ class Observer(TranslatableModel):
 
     def get_incidents(self):
         if self.is_receiving_all_incident:
-            return Incident.objects.all().order_by("-incident_notification_date")
+            return (
+                Incident.objects.all()
+                .order_by("-incident_notification_date")
+                .exclude(sector_regulation__isnull=True)
+            )
 
         observer_regulations = self.observerregulation_set.all()
 
@@ -391,7 +395,7 @@ class Observer(TranslatableModel):
         else:
             combined_queryset = Incident.objects.none()
 
-        return combined_queryset
+        return combined_queryset.exclude(sector_regulation__isnull=True)
 
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
