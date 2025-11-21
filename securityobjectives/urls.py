@@ -51,7 +51,7 @@ urlpatterns = [
     ),
     # Delete SO declaration
     path(
-        "delete/<int:group_id>",
+        "delete/<int:standard_answer_id>",
         delete_declaration,
         name="delete_so_declaration",
     ),
