@@ -227,14 +227,16 @@ def declaration(request):
     user = request.user
     standard_id = request.GET.get("id", None)
     is_update = request.GET.get("update", "false") == "true"
-    if standard_id:
-        try:
-            standard_answer = StandardAnswer.objects.get(pk=standard_id)
-        except StandardAnswer.DoesNotExist:
-            messages.error(request, _("Declaration not found"))
-            return redirect("securityobjectives")
-    else:
+
+    if not standard_id:
         return redirect("securityobjectives")
+
+    try:
+        standard_answer = StandardAnswer.objects.get(pk=standard_id)
+    except StandardAnswer.DoesNotExist:
+        messages.error(request, _("Declaration not found"))
+        return redirect("securityobjectives")
+
     if not standard_answer:
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
