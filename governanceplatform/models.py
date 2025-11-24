@@ -456,7 +456,7 @@ class User(AbstractUser, PermissionsMixin):
 
     email_verified = models.BooleanField(
         verbose_name=_("Email verified"),
-        default=True,
+        default=False,
         help_text=_("Indicates whether the user has verified their email address."),
     )
 
