@@ -211,7 +211,9 @@ def create_so_declaration(request):
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(sectors)
                 create_entry_log(user, new_standard_answer, "CREATE", request)
-                return redirect("so_declaration")
+                return redirect(
+                    f"{reverse('so_declaration')}?id={new_standard_answer.id}"
+                )
             except Standard.DoesNotExist:
                 messages.error(request, _("Standard does not exist"))
 
@@ -287,14 +289,16 @@ def declaration(request):
                 try:
                     security_objective = SecurityObjective.objects.get(pk=id_object)
                     field_to_update = {field_name: form.cleaned_data[field_name]}
-                    obj, created = SecurityObjectiveStatus.objects.update_or_create(
-                        standard_answer=standard_answer,
-                        security_objective=security_objective,
-                        defaults={
-                            **field_to_update,
-                            "standard_answer": standard_answer,
-                            "security_objective": security_objective,
-                        },
+                    so_status_obj, created = (
+                        SecurityObjectiveStatus.objects.update_or_create(
+                            standard_answer=standard_answer,
+                            security_objective=security_objective,
+                            defaults={
+                                **field_to_update,
+                                "standard_answer": standard_answer,
+                                "security_objective": security_objective,
+                            },
+                        )
                     )
 
                     standard_answer.last_update = timezone.now()
@@ -308,6 +312,14 @@ def declaration(request):
                         security_objective, standard_answer
                     )
                     objective_state["id"] = security_objective.pk
+
+                    if (
+                        field_name != "status"
+                        and so_status_obj
+                        and so_status_obj.status != "NOT_REVIEWED"
+                    ):
+                        so_status_obj.status = "NOT_REVIEWED"
+                        so_status_obj.save()
 
                     return JsonResponse(
                         {
@@ -351,16 +363,19 @@ def declaration(request):
                     )
 
                     so_score = calculate_so_score(security_measure, standard_answer)
+                    so_status_obj = SecurityObjectiveStatus.objects.none()
 
                     if so_score is not None:
-                        SecurityObjectiveStatus.objects.update_or_create(
-                            standard_answer=standard_answer,
-                            security_objective=security_measure.security_objective,
-                            defaults={
-                                "score": so_score,
-                                "standard_answer": standard_answer,
-                                "security_objective": security_measure.security_objective,
-                            },
+                        so_status_obj, __so_status_created = (
+                            SecurityObjectiveStatus.objects.update_or_create(
+                                standard_answer=standard_answer,
+                                security_objective=security_measure.security_objective,
+                                defaults={
+                                    "score": so_score,
+                                    "standard_answer": standard_answer,
+                                    "security_objective": security_measure.security_objective,
+                                },
+                            )
                         )
 
                     if (
@@ -377,6 +392,14 @@ def declaration(request):
                     )
                     objective_state["id"] = security_measure.security_objective.pk
 
+                    if (
+                        field_name != "review_comment"
+                        and so_status_obj
+                        and so_status_obj.status != "NOT_REVIEWED"
+                    ):
+                        so_status_obj.status = "NOT_REVIEWED"
+                        so_status_obj.save()
+
                     return JsonResponse(
                         {
                             "success": True,
@@ -386,6 +409,9 @@ def declaration(request):
                             "so_score": f"{float(so_score):.1f}",
                             "ready_to_submit": declaration_is_ready_to(standard_answer)[
                                 "submit"
+                            ],
+                            "ready_to_send": declaration_is_ready_to(standard_answer)[
+                                "send"
                             ],
                         },
                         status=201 if sma_created else 200,
@@ -1242,6 +1268,11 @@ def get_completion_objective(security_objective, standard_answer):
                         justification__gt="",
                     )
                     | Q(
+                        is_implemented=False,
+                        justification="",
+                        review_comment__gt="",
+                    )
+                    | Q(
                         security_measure__maturity_level__level=first_maturity_level,
                     ),
                     then=True,
@@ -1348,7 +1379,10 @@ def declaration_is_ready_to(standard_answer):
         declaration = get_standard_answers_with_progress(
             StandardAnswer.objects.filter(pk=standard_answer.pk)
         ).first()
-        submit = declaration.answered_percentage == 100
+        has_failed_so = declaration.securityobjectivestatus_set.filter(
+            status="FAIL"
+        ).exists()
+        submit = declaration.answered_percentage == 100 and not has_failed_so
         send = declaration.reviewed_percentage == 100
     except Exception:
         submit = False
