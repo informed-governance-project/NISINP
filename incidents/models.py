@@ -1,5 +1,4 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytz
 from django.contrib import admin
@@ -508,8 +507,8 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
 
 # incident
 class Incident(models.Model):
-    # XXXX-SSS-SSS-NNNN-YYYY
-    incident_id = models.CharField(max_length=22, verbose_name=_("Incident ID"))
+    # XXXXXXXXXX-SSS-SSS-NNNN-YYYY
+    incident_id = models.CharField(max_length=28, verbose_name=_("Incident ID"))
     incident_timezone = models.CharField(
         max_length=50,
         choices=[(tz, tz) for tz in pytz.all_timezones],
@@ -833,12 +832,19 @@ class Incident(models.Model):
             return None
         else:
             deadline = None
-            if next_srw.trigger_event_before_deadline is not None and next_srw.delay_in_hours_before_deadline is not None:
+            if (
+                next_srw.trigger_event_before_deadline is not None
+                and next_srw.delay_in_hours_before_deadline is not None
+            ):
                 if next_srw.trigger_event_before_deadline == "DETECT_DATE":
                     if self.incident_detection_date is not None:
-                        deadline = self.incident_detection_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+                        deadline = self.incident_detection_date + timedelta(
+                            hours=next_srw.delay_in_hours_before_deadline
+                        )
                 elif next_srw.trigger_event_before_deadline == "NOTIF_DATE":
-                    deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+                    deadline = self.incident_notification_date + timedelta(
+                        hours=next_srw.delay_in_hours_before_deadline
+                    )
                 elif next_srw.trigger_event_before_deadline == "PREV_WORK":
                     previous_workflow = self.get_previous_workflow(next_srw.workflow)
                     if previous_workflow:
@@ -849,7 +855,9 @@ class Incident(models.Model):
                             .first()
                         )
                         if previous_incident_workflow is not None:
-                            deadline = previous_incident_workflow.timestamp + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+                            deadline = previous_incident_workflow.timestamp + timedelta(
+                                hours=next_srw.delay_in_hours_before_deadline
+                            )
             return deadline
 
     class meta:
@@ -871,7 +879,7 @@ class ReportTimeline(models.Model):
         max_length=50,
         choices=[(tz, tz) for tz in pytz.all_timezones],
         default=TIME_ZONE,
-        verbose_name=_("Report timeline timezone")
+        verbose_name=_("Report timeline timezone"),
     )
 
 

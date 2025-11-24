@@ -1208,7 +1208,7 @@ class FormWizardView(SessionWizardView):
                 # incident reference
 
                 company_for_ref = (
-                    company.identifier if company else data.get("company_name", "")[:4]
+                    company.identifier if company else data.get("company_name", "")[:10]
                 )
                 sector_for_ref = ""
                 subsector_for_ref = ""

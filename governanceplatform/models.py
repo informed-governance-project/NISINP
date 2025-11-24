@@ -142,7 +142,7 @@ class OperatorType(TranslatableModel):
 # operator are companies
 class Company(models.Model):
     identifier = models.CharField(
-        max_length=4,
+        max_length=10,
         verbose_name=_("Acronym"),
         unique=True,
     )  # requirement from business concat(name_country_regulator)
@@ -341,7 +341,9 @@ class Observer(TranslatableModel):
         for observer_regulation in observer_regulations:
             filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
-            query = Incident.objects.filter(sector_regulation__regulation=regulation)
+            query = Incident.objects.filter(
+                sector_regulation__regulation=regulation
+            ).exclude(sector_regulation__isnull=True)
             conditions = filter_conditions.get("conditions", [])
             if conditions:
                 for condition in conditions:
@@ -370,7 +372,7 @@ class Observer(TranslatableModel):
         else:
             combined_queryset = Incident.objects.none()
 
-        return combined_queryset.exclude(sector_regulation__isnull=True)
+        return combined_queryset
 
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
