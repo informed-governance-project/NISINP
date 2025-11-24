@@ -283,10 +283,16 @@ class StandardAnswer(models.Model):
         verbose_name=_("Status"),
     )
     submitter_user = models.ForeignKey(
-        "governanceplatform.user", on_delete=models.SET_NULL, null=True
+        "governanceplatform.user",
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Submitter"),
     )
     submitter_company = models.ForeignKey(
-        "governanceplatform.company", on_delete=models.SET_NULL, null=True
+        "governanceplatform.company",
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Submitter"),
     )
     # to display in case we delete the user or the company
     creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
@@ -294,7 +300,9 @@ class StandardAnswer(models.Model):
         max_length=255, blank=True, default=None, null=True
     )
     # the year for the one
-    year_of_submission = models.PositiveIntegerField()
+    year_of_submission = models.PositiveIntegerField(
+        verbose_name=_("Year of submission")
+    )
     sectors = models.ManyToManyField(
         "governanceplatform.sector", verbose_name=_("Sectors")
     )
