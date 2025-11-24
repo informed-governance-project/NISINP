@@ -23,7 +23,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                "onblur": "update_so_declaration(this)",
+                "onchange": "update_so_declaration(this)",
             }
         ),
     )
@@ -33,7 +33,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                "onblur": "update_so_declaration(this)",
+                "onchange": "update_so_declaration(this)",
             }
         ),
     )
