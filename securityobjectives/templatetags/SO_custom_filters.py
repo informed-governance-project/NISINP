@@ -30,7 +30,6 @@ def get_all_versions(context, standard):
 
     queryset = (
         StandardAnswer.objects.filter(submit_date__isnull=False, group=standard.group)
-        .exclude(pk=standard.pk)
         .only("id", "submit_date", "status", "review_comment")
         .order_by("-last_update")
     )
