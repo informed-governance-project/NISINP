@@ -584,6 +584,7 @@ def copy_declaration(request, group_id: int):
                         is_implemented=sma.is_implemented,
                     )
                     for sma in security_measure_answers
+                    if sma.is_implemented
                 ]
 
                 SecurityMeasureAnswer.objects.bulk_create(security_measure_answers_copy)
