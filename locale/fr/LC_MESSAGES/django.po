@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 13:15+0100\n"
-"PO-Revision-Date: 2025-11-25 12:22+0000\n"
+"PO-Revision-Date: 2025-11-25 13:01+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
@@ -193,7 +193,7 @@ msgstr "Paramètres du thème sombre/lumineux"
 #: governanceplatform/context_processors.py:58 governanceplatform/views.py:123
 #: incidents/apps.py:7
 msgid "Incident notification"
-msgstr "Notification d’incident"
+msgstr "Notification d'incident"
 
 #: governanceplatform/context_processors.py:90
 msgid "Modules"
@@ -295,7 +295,7 @@ msgstr ""
 #: governanceplatform/globals.py:30 governanceplatform/views.py:142
 #: reporting/apps.py:8
 msgid "Reporting"
-msgstr ""
+msgstr "Reporting"
 
 #: governanceplatform/helpers.py:318
 #, python-brace-format
@@ -532,11 +532,11 @@ msgstr "Utilisateurs du régulateur"
 #: incidents/models.py:28 incidents/models.py:81 incidents/models.py:124
 #: incidents/models.py:262
 msgid "Label"
-msgstr "Label"
+msgstr "Intitulé"
 
 #: governanceplatform/models.py:694
 msgid "Code"
-msgstr "Code"
+msgstr "Référence"
 
 #: governanceplatform/models.py:706
 msgid "Entity category"
@@ -603,7 +603,7 @@ msgstr ""
 
 #: governanceplatform/views.py:84
 msgid "Terms of service"
-msgstr ""
+msgstr "Conditions générales d'utilisation"
 
 #: governanceplatform/views.py:85
 msgid "Cookies policy"
@@ -615,11 +615,11 @@ msgstr ""
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
-msgstr ""
+msgstr "Compte"
 
 #: governanceplatform/views.py:90
 msgid "Create account"
-msgstr ""
+msgstr "Créer un compte"
 
 #: governanceplatform/views.py:96 incidents/views.py:1049
 msgid "Contact"
@@ -627,11 +627,11 @@ msgstr "Contact"
 
 #: governanceplatform/views.py:103
 msgid "Account management"
-msgstr ""
+msgstr "Gestion du compte"
 
 #: governanceplatform/views.py:104
 msgid "Account security"
-msgstr ""
+msgstr "Sécurité du compte"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
@@ -639,23 +639,23 @@ msgstr ""
 
 #: governanceplatform/views.py:106
 msgid "Log out"
-msgstr ""
+msgstr "Déconnexion"
 
 #: governanceplatform/views.py:113
 msgid "Overview"
-msgstr ""
+msgstr "Aperçu"
 
 #: governanceplatform/views.py:114
 msgid "Report an incident"
-msgstr ""
+msgstr "Signaler un incident"
 
 #: governanceplatform/views.py:119
 msgid "My reported incidents"
-msgstr ""
+msgstr "Mes incidents signalés"
 
 #: governanceplatform/views.py:127 governanceplatform/views.py:134
 msgid "Dashboard"
-msgstr ""
+msgstr "Tableau de bord"
 
 #: governanceplatform/views.py:130 securityobjectives/apps.py:7
 msgid "Security objectives"
@@ -667,7 +667,7 @@ msgstr ""
 
 #: governanceplatform/views.py:137 reporting/models.py:324
 msgid "Configuration"
-msgstr ""
+msgstr "Configuration"
 
 #: governanceplatform/views.py:180
 msgid ""
@@ -764,7 +764,7 @@ msgstr ""
 
 #: incidents/filters.py:33 securityobjectives/filters.py:33
 msgid "Search"
-msgstr ""
+msgstr "Rechercher"
 
 #: incidents/forms.py:266
 msgid "Add details"
@@ -822,7 +822,7 @@ msgstr "Réussi"
 #: incidents/forms.py:788 incidents/globals.py:46 incidents/globals.py:54
 #: incidents/globals.py:79 securityobjectives/globals.py:8
 msgid "Revision required"
-msgstr ""
+msgstr "Améliorations requises"
 
 #: incidents/forms.py:883
 msgid "Incident notification date"
@@ -838,7 +838,7 @@ msgstr "Date de début de l’incident"
 
 #: incidents/forms.py:904 incidents/models.py:876
 msgid "Incident resolution date"
-msgstr ""
+msgstr "Date de résolution de l'incident"
 
 #: incidents/forms.py:1012
 msgid "Starting date cannot be after detection date."
@@ -850,7 +850,7 @@ msgstr ""
 
 #: incidents/forms.py:1127
 msgid "Regulation"
-msgstr ""
+msgstr "Régulation"
 
 #: incidents/forms.py:1132 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
@@ -1293,7 +1293,7 @@ msgstr "Chronologie de l’incident"
 #: securityobjectives/forms.py:139 securityobjectives/forms.py:186
 #: securityobjectives/forms.py:223
 msgid "Year"
-msgstr ""
+msgstr "Année"
 
 #: reporting/forms.py:22
 msgid "JSON File"
@@ -1301,7 +1301,7 @@ msgstr ""
 
 #: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:175
 msgid "Company"
-msgstr ""
+msgstr "Entité"
 
 #: reporting/globals.py:4
 msgid "Reduction"
@@ -1333,11 +1333,11 @@ msgstr ""
 
 #: reporting/helpers.py:692
 msgid "Postponed"
-msgstr ""
+msgstr "Repoussé"
 
 #: reporting/helpers.py:697
 msgid "To check"
-msgstr ""
+msgstr "A vérifier"
 
 #: reporting/helpers.py:699
 msgid "Open"
@@ -1358,7 +1358,7 @@ msgstr ""
 
 #: reporting/models.py:58 reporting/models.py:123 reporting/models.py:185
 msgid "Asset"
-msgstr ""
+msgstr "Actif"
 
 #: reporting/models.py:59
 msgid "Assets"
@@ -1370,7 +1370,7 @@ msgstr ""
 
 #: reporting/models.py:85 reporting/models.py:198
 msgid "Vulnerability"
-msgstr ""
+msgstr "Vulnérabilité"
 
 #: reporting/models.py:110
 msgid "Threats"
@@ -1378,7 +1378,7 @@ msgstr ""
 
 #: reporting/models.py:111 reporting/models.py:190
 msgid "Threat"
-msgstr ""
+msgstr "Menace"
 
 #: reporting/models.py:129 reporting/models.py:363
 msgid "Risk Analysis"
@@ -1478,7 +1478,7 @@ msgstr ""
 
 #: reporting/models.py:247
 msgid "Risks"
-msgstr ""
+msgstr "Risques"
 
 #: reporting/models.py:248
 msgid "Risk"
@@ -1502,7 +1502,7 @@ msgstr ""
 
 #: reporting/models.py:270
 msgid "Recommendations"
-msgstr ""
+msgstr "Recommandations"
 
 #: reporting/models.py:271
 msgid "Recommendation"
@@ -1546,7 +1546,7 @@ msgstr ""
 
 #: reporting/models.py:347
 msgid "Creation date"
-msgstr ""
+msgstr "Date de création"
 
 #: reporting/models.py:354
 msgid "Recommendations for observation"
@@ -1689,7 +1689,7 @@ msgstr ""
 
 #: securityobjectives/forms.py:128 securityobjectives/forms.py:169
 msgid "Evaluation Framework"
-msgstr ""
+msgstr "Cadre d'évaluation"
 
 #: securityobjectives/globals.py:7
 msgid "Passed and sent"
@@ -1713,7 +1713,7 @@ msgstr "Domaines"
 
 #: securityobjectives/models.py:69
 msgid "Domain"
-msgstr ""
+msgstr "Domaine"
 
 #: securityobjectives/models.py:80 securityobjectives/models.py:236
 msgid "is archived"
@@ -1753,7 +1753,7 @@ msgstr "Mesures de sécurité"
 
 #: securityobjectives/models.py:260
 msgid "Security Measure"
-msgstr ""
+msgstr "Mesure de sécurité"
 
 #: securityobjectives/models.py:281
 msgid "Group ID"
@@ -1761,15 +1761,15 @@ msgstr ""
 
 #: securityobjectives/models.py:295
 msgid "Last update"
-msgstr ""
+msgstr "Dernière mise à jour"
 
 #: securityobjectives/models.py:298
 msgid "Submission date"
-msgstr ""
+msgstr "Date de soumission"
 
 #: securityobjectives/models.py:305 securityobjectives/models.py:396
 msgid "Status"
-msgstr ""
+msgstr "Statut"
 
 #: securityobjectives/models.py:311 securityobjectives/models.py:317
 msgid "Submitter"
@@ -1781,11 +1781,11 @@ msgstr "Soumission pour l'année"
 
 #: securityobjectives/models.py:332
 msgid "Review comment"
-msgstr ""
+msgstr "Commentaire de revue"
 
 #: securityobjectives/models.py:335
 msgid "Deadline"
-msgstr ""
+msgstr "Échéance"
 
 #: securityobjectives/models.py:338
 msgid "Group"
@@ -1797,7 +1797,7 @@ msgstr ""
 
 #: securityobjectives/models.py:390
 msgid "Not reviewed"
-msgstr ""
+msgstr "Non revu"
 
 #: securityobjectives/models.py:391
 msgid "Pass"
@@ -1809,7 +1809,7 @@ msgstr ""
 
 #: securityobjectives/models.py:409
 msgid "Planned Measures"
-msgstr ""
+msgstr "Mesures planifiées"
 
 #: securityobjectives/models.py:413
 msgid "It is completely filled out"
