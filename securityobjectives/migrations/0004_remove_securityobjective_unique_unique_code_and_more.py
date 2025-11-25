@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("governanceplatform", "0040_alter_functionality_type"),
+        ("governanceplatform", "0041_alter_company_address_and_more"),
         ("securityobjectives", "0003_alter_standardanswer_status"),
     ]
 

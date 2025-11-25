@@ -39,6 +39,7 @@ def delete_parent_with_child(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ("governanceplatform", "0036_passworduserhistory"),
         (

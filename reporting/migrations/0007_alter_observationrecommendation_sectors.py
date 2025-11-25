@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("governanceplatform", "0042_alter_company_address_and_more"),
+        ("governanceplatform", "0041_alter_company_address_and_more"),
         ("reporting", "0006_observation_observation_recommendations"),
     ]
 

@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("governanceplatform", "0055_merge_20251124_1424"),
+        ("governanceplatform", "0053_alter_user_email_verified"),
         ("securityobjectives", "0012_standardanswergroup_group_id"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
