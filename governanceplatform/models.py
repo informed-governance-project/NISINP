@@ -525,6 +525,8 @@ class User(AbstractUser, PermissionsMixin):
         return []
 
     class Meta:
+        verbose_name_plural = _("Users")
+        verbose_name = _("User")
         permissions = (
             ("import_user", "Can import user"),
             ("export_user", "Can export user"),
@@ -679,6 +681,10 @@ class Regulation(TranslatableModel):
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
+
+    class Meta:
+        verbose_name_plural = _("Regulations")
+        verbose_name = _("Regulation")
 
 
 # To categorize the operator, used for the observers to see or not the incident
