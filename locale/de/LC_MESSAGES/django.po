@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-24 15:10+0100\n"
-"PO-Revision-Date: 2025-11-25 10:49+0000\n"
+"PO-Revision-Date: 2025-11-25 11:03+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/de/>\n"
@@ -1741,7 +1741,7 @@ msgstr "Einreichungsjahr"
 
 #: securityobjectives/models.py:302
 msgid "Review comment"
-msgstr ""
+msgstr "Review Kommentar"
 
 #: securityobjectives/models.py:305
 msgid "Deadline"
