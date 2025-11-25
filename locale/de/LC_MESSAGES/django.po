@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-10-14 14:12+0200\n"
-"PO-Revision-Date: 2025-05-26 09:04+0200\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2025-11-25 09:50+0000\n"
+"Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: \n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 "Generated-By: xls-to-po 1.0\n"
-"X-Generator: Poedit 3.6\n"
 
 #: governanceplatform/admin.py:70 governanceplatform/context_processors.py:24
 #: governanceplatform/views.py:100
@@ -868,7 +869,7 @@ msgstr "Noch nicht eingereicht"
 
 #: incidents/globals.py:44 incidents/globals.py:52 incidents/globals.py:84
 msgid "Under review"
-msgstr "Wird geprüft"
+msgstr "In Prüfung"
 
 #: incidents/globals.py:47 incidents/globals.py:55 incidents/globals.py:94
 msgid "Submission overdue"
