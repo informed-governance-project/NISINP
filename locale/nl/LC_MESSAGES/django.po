@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 13:15+0100\n"
+"POT-Creation-Date: 2025-11-25 15:47+0100\n"
 "PO-Revision-Date: 2025-11-25 13:01+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: \n"
@@ -38,7 +38,7 @@ msgid "Configuration information"
 msgstr "Configuratiegegevens"
 
 #: governanceplatform/admin.py:546 governanceplatform/models.py:184
-#: governanceplatform/models.py:705
+#: governanceplatform/models.py:711
 msgid "Entity categories"
 msgstr "Categorieën van entiteiten"
 
@@ -51,13 +51,13 @@ msgid "Reset 2FA"
 msgstr "Resetten van de 2FA"
 
 #: governanceplatform/admin.py:956 governanceplatform/models.py:272
-#: governanceplatform/models.py:441 governanceplatform/models.py:669
+#: governanceplatform/models.py:441 governanceplatform/models.py:671
 #: incidents/models.py:615 incidents/views.py:1051
 msgid "Regulators"
 msgstr "Regulatoren"
 
 #: governanceplatform/admin.py:975 governanceplatform/models.py:412
-#: governanceplatform/models.py:635 governanceplatform/models.py:719
+#: governanceplatform/models.py:637 governanceplatform/models.py:725
 msgid "Observer"
 msgstr "Waarnemer"
 
@@ -82,19 +82,19 @@ msgstr ""
 msgid "Terms acceptation has been reseted"
 msgstr ""
 
-#: governanceplatform/admin.py:1600 governanceplatform/models.py:739
+#: governanceplatform/admin.py:1600 governanceplatform/models.py:745
 msgid "Observer regulation"
 msgstr "Waarnemer regelgeving"
 
-#: governanceplatform/admin.py:1601 governanceplatform/models.py:740
+#: governanceplatform/admin.py:1601 governanceplatform/models.py:746
 msgid "Observer regulations"
 msgstr "Waarnemer regelgevingen"
 
-#: governanceplatform/admin.py:1608 governanceplatform/models.py:650
+#: governanceplatform/admin.py:1608 governanceplatform/models.py:652
 msgid "Observer user"
 msgstr "Waarnemer gebruiker"
 
-#: governanceplatform/admin.py:1609 governanceplatform/models.py:651
+#: governanceplatform/admin.py:1609 governanceplatform/models.py:653
 msgid "Observer users"
 msgstr "Waarnemer gebruikers"
 
@@ -416,7 +416,7 @@ msgstr "Adres"
 msgid "Types"
 msgstr "Types"
 
-#: governanceplatform/models.py:232 governanceplatform/models.py:545
+#: governanceplatform/models.py:232 governanceplatform/models.py:547
 #: incidents/models.py:524 reporting/filters.py:20
 msgid "Operator"
 msgstr "Operator"
@@ -434,7 +434,7 @@ msgstr "Beschrijving"
 msgid "E-mail address for incident notification"
 msgstr "E-mailadres voor melding van incidenten"
 
-#: governanceplatform/models.py:271 governanceplatform/models.py:602
+#: governanceplatform/models.py:271 governanceplatform/models.py:604
 #: incidents/admin.py:674 incidents/models.py:323 incidents/models.py:532
 msgid "Regulator"
 msgstr "Regulator"
@@ -477,98 +477,112 @@ msgstr ""
 msgid "Indicates whether the user has verified their email address."
 msgstr ""
 
-#: governanceplatform/models.py:550 governanceplatform/models.py:597
-#: governanceplatform/models.py:630 incidents/models.py:1005
-#: incidents/views.py:1736 reporting/models.py:395 reporting/models.py:421
-#: securityobjectives/models.py:421 securityobjectives/views.py:1208
+#: governanceplatform/models.py:528 incidents/admin.py:71
+msgid "Users"
+msgstr "Gebruikers"
+
+#: governanceplatform/models.py:529 governanceplatform/models.py:552
+#: governanceplatform/models.py:599 governanceplatform/models.py:632
+#: incidents/models.py:1005 incidents/views.py:1736 reporting/models.py:395
+#: reporting/models.py:421 securityobjectives/models.py:421
+#: securityobjectives/views.py:1208
 msgid "User"
 msgstr "Gebruiker"
 
-#: governanceplatform/models.py:553 governanceplatform/models.py:605
-#: governanceplatform/models.py:638
+#: governanceplatform/models.py:555 governanceplatform/models.py:607
+#: governanceplatform/models.py:640
 msgid "Is administrator"
 msgstr "Is administrator"
 
-#: governanceplatform/models.py:556
+#: governanceplatform/models.py:558
 msgid "Approved"
 msgstr ""
 
-#: governanceplatform/models.py:564
+#: governanceplatform/models.py:566
 msgid "Company User"
 msgstr "Gebruiker van de onderneming"
 
-#: governanceplatform/models.py:565
+#: governanceplatform/models.py:567
 msgid "Company Users"
 msgstr "Gebruikers van de onderneming"
 
-#: governanceplatform/models.py:582
+#: governanceplatform/models.py:584
 msgid "Incident users can only become administrator after being approved."
 msgstr ""
 
-#: governanceplatform/models.py:588
+#: governanceplatform/models.py:590
 msgid "The first user of an operator must be an administrator."
 msgstr ""
 
-#: governanceplatform/models.py:608 governanceplatform/models.py:641
+#: governanceplatform/models.py:610 governanceplatform/models.py:643
 msgid "Can export incidents"
 msgstr ""
 
-#: governanceplatform/models.py:618
+#: governanceplatform/models.py:620
 msgid "Regulator user"
 msgstr "Gebruiker van de regulator"
 
-#: governanceplatform/models.py:619
+#: governanceplatform/models.py:621
 msgid "Regulator users"
 msgstr "Gebruikers van de regulator"
 
-#: governanceplatform/models.py:662 governanceplatform/models.py:689
+#: governanceplatform/models.py:664 governanceplatform/models.py:695
 #: incidents/models.py:28 incidents/models.py:81 incidents/models.py:124
 #: incidents/models.py:262
 msgid "Label"
 msgstr "Label"
 
-#: governanceplatform/models.py:694
+#: governanceplatform/models.py:686
+#| msgid "Regulation"
+msgid "Regulations"
+msgstr ""
+
+#: governanceplatform/models.py:687 incidents/forms.py:1127
+msgid "Regulation"
+msgstr "Regulering"
+
+#: governanceplatform/models.py:700
 msgid "Code"
 msgstr "Code"
 
-#: governanceplatform/models.py:706
+#: governanceplatform/models.py:712
 msgid "Entity category"
 msgstr "Categorie van de entiteit"
 
-#: governanceplatform/models.py:714 incidents/admin.py:554
+#: governanceplatform/models.py:720 incidents/admin.py:554
 #: incidents/models.py:42 incidents/models.py:318
 msgid "Legal basis"
 msgstr "Wettelijke basis"
 
-#: governanceplatform/models.py:722
+#: governanceplatform/models.py:728
 msgid "Incident rules"
 msgstr "Regels voor incidenten"
 
-#: governanceplatform/models.py:748 incidents/models.py:898
+#: governanceplatform/models.py:754 incidents/models.py:898
 #: incidents/models.py:1008 incidents/models.py:1051 incidents/models.py:1141
 #: reporting/models.py:398 reporting/models.py:430
 #: securityobjectives/models.py:424
 msgid "Timestamp"
 msgstr "Tijdstempel"
 
-#: governanceplatform/models.py:749 incidents/admin.py:105
+#: governanceplatform/models.py:755 incidents/admin.py:105
 #: incidents/admin.py:182
 msgid "Activity"
 msgstr "Activiteit"
 
-#: governanceplatform/models.py:750
+#: governanceplatform/models.py:756
 msgid "Object id"
 msgstr "Object-ID"
 
-#: governanceplatform/models.py:752
+#: governanceplatform/models.py:758
 msgid "Object representation"
 msgstr "Objectweergave"
 
-#: governanceplatform/models.py:755
+#: governanceplatform/models.py:761
 msgid "Additional information"
 msgstr "Aanvullende informatie"
 
-#: governanceplatform/models.py:759 governanceplatform/models.py:760
+#: governanceplatform/models.py:765 governanceplatform/models.py:766
 msgid "Script execution logs"
 msgstr "Logbestanden van scriptuitvoering"
 
@@ -680,10 +694,6 @@ msgstr ""
 #: governanceplatform/views.py:293
 msgid "Your message has been sent."
 msgstr "Uw bericht is verzonden."
-
-#: incidents/admin.py:71
-msgid "Users"
-msgstr "Gebruikers"
 
 #: incidents/admin.py:282 incidents/models.py:166 incidents/models.py:176
 msgid "Question"
@@ -840,10 +850,6 @@ msgstr ""
 #: incidents/forms.py:1018
 msgid "Resolution date cannot be before detection date."
 msgstr ""
-
-#: incidents/forms.py:1127
-msgid "Regulation"
-msgstr "Regulering"
 
 #: incidents/forms.py:1132 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
