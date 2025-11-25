@@ -33,6 +33,10 @@ class MaturityLevel(TranslatableModel):
     def __str__(self):
         return self.label if self.label is not None else ""
 
+    class Meta:
+        verbose_name_plural = _("Maturity levels")
+        verbose_name = _("Maturity level")
+
 
 # Domain : To categorize the security objectives
 class Domain(TranslatableModel):
@@ -59,6 +63,10 @@ class Domain(TranslatableModel):
 
     def __str__(self):
         return self.label if self.label is not None else ""
+
+    class Meta:
+        verbose_name_plural = _("Domains")
+        verbose_name = _("Domain")
 
 
 # SecurityObjective (SO)
@@ -96,6 +104,8 @@ class SecurityObjective(TranslatableModel, models.Model):
     )
 
     class Meta:
+        verbose_name_plural = _("Security Objectives")
+        verbose_name = _("Security Objective")
         constraints = [
             models.UniqueConstraint(
                 fields=["unique_code", "creator"],
@@ -185,6 +195,10 @@ class Standard(TranslatableModel):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
 
+    class Meta:
+        verbose_name_plural = _("Standards")
+        verbose_name = _("Standard")
+
 
 class SecurityObjectivesInStandard(models.Model):
     security_objective = models.ForeignKey(
@@ -240,6 +254,10 @@ class SecurityMeasure(TranslatableModel):
 
     def __str__(self):
         return self.description if self.description is not None else ""
+
+    class Meta:
+        verbose_name_plural = _("Security Measures")
+        verbose_name = _("Security Measure")
 
 
 # A group of StandardAnswer to have the versionning functionnality
