@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
-"PO-Revision-Date: 2025-11-25 13:01+0000\n"
+"PO-Revision-Date: 2025-11-25 15:00+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/de/>\n"
@@ -794,7 +794,7 @@ msgstr "Name des Betreibers"
 
 #: incidents/forms.py:511
 msgid "Incident reference"
-msgstr ""
+msgstr "Vorfallreferenz"
 
 #: incidents/forms.py:515
 msgid ""
@@ -806,7 +806,7 @@ msgstr ""
 
 #: incidents/forms.py:526
 msgid "Complaint reference"
-msgstr ""
+msgstr "Beschwerdereferenz"
 
 #: incidents/forms.py:530
 msgid ""
@@ -852,7 +852,7 @@ msgstr "Datum des Vorfallbeginns"
 
 #: incidents/forms.py:904 incidents/models.py:876
 msgid "Incident resolution date"
-msgstr ""
+msgstr "Datum der Vorfallsbehebung"
 
 #: incidents/forms.py:1012
 msgid "Starting date cannot be after detection date."
