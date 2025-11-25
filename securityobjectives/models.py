@@ -273,8 +273,12 @@ class StandardAnswer(models.Model):
         default=None,
         related_name="standardanswer",
     )
-    last_update = models.DateTimeField(default=timezone.now)
-    submit_date = models.DateTimeField(blank=True, default=None, null=True)
+    last_update = models.DateTimeField(
+        default=timezone.now, verbose_name=_("Last update")
+    )
+    submit_date = models.DateTimeField(
+        blank=True, default=None, null=True, verbose_name=_("Submission date")
+    )
     status = models.CharField(
         max_length=5,
         choices=STANDARD_ANSWER_REVIEW_STATUS,
