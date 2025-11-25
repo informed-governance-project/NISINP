@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
-"PO-Revision-Date: 2025-11-25 13:01+0000\n"
+"PO-Revision-Date: 2025-11-25 15:00+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
@@ -791,7 +791,7 @@ msgstr "Nom de l’opérateur"
 
 #: incidents/forms.py:511
 msgid "Incident reference"
-msgstr ""
+msgstr "Référence de l'incident"
 
 #: incidents/forms.py:515
 msgid ""
@@ -803,7 +803,7 @@ msgstr ""
 
 #: incidents/forms.py:526
 msgid "Complaint reference"
-msgstr ""
+msgstr "Référence de la plainte"
 
 #: incidents/forms.py:530
 msgid ""
