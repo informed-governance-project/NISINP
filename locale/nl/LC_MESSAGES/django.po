@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-10-14 14:12+0200\n"
-"PO-Revision-Date: 2025-07-10 16:33+0200\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2025-11-25 09:59+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 "Generated-By: xls-to-po 1.0\n"
-"X-Generator: Poedit 3.6\n"
 
 #: governanceplatform/admin.py:70 governanceplatform/context_processors.py:24
 #: governanceplatform/views.py:100
@@ -149,8 +150,7 @@ msgstr "6 maanden"
 
 #: governanceplatform/config.py:150 governanceplatform/config_dev.py:151
 msgid "Cookie essential for maintaining user session options."
-msgstr ""
-"Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
+msgstr "Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
 
 #: governanceplatform/config.py:152 governanceplatform/config_dev.py:153
 msgid "Session ID"
@@ -326,9 +326,9 @@ msgid ""
 "This {object_name} is either in use.<br>- You are not its creator "
 "({creator_name})"
 msgstr ""
-"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</"
-"strong><br>- Dit {object_name} is in gebruik.<br>- U bent niet de maker "
-"({creator_name})"
+"<strong>Wijzigings- en verwijderingsacties zijn niet "
+"toegestaan.</strong><br>- Dit {object_name} is in gebruik.<br>- U bent niet "
+"de maker ({creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
@@ -737,8 +737,8 @@ msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
 "<br>"
 msgstr ""
-"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in gebruik."
-"<br>"
+"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in "
+"gebruik.<br>"
 
 #: incidents/admin.py:806 incidents/models.py:305 incidents/models.py:380
 #: incidents/models.py:889
@@ -787,8 +787,8 @@ msgid ""
 "Please include a reference (e.g., an identifier, internal reference, CERT "
 "reference, etc.) to facilitate incident tracking."
 msgstr ""
-"Voeg een referentie toe om uw incident makkelijker te volgen (interne "
-"referentie, CERT-referentie, enz.)"
+"Voeg een referentie toe om uw incident makkelijker te volgen "
+"(interne referentie, CERT-referentie, enz.)"
 
 #: incidents/forms.py:527
 msgid ""
@@ -1224,8 +1224,8 @@ msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, a.u."
-"b."
+"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, "
+"a.u.b."
 
 #: incidents/views.py:671
 msgid "Legal bases"
