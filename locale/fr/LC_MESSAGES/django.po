@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 13:15+0100\n"
-"PO-Revision-Date: 2025-11-25 10:49+0000\n"
+"PO-Revision-Date: 2025-11-25 12:22+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
@@ -659,7 +659,7 @@ msgstr ""
 
 #: governanceplatform/views.py:130 securityobjectives/apps.py:7
 msgid "Security objectives"
-msgstr ""
+msgstr "Objectifs de sécurité"
 
 #: governanceplatform/views.py:135
 msgid "Download Center"
@@ -1701,7 +1701,7 @@ msgstr ""
 
 #: securityobjectives/models.py:37
 msgid "Maturity levels"
-msgstr ""
+msgstr "Niveaux de maturité"
 
 #: securityobjectives/models.py:38
 msgid "Maturity level"
@@ -1709,7 +1709,7 @@ msgstr ""
 
 #: securityobjectives/models.py:68
 msgid "Domains"
-msgstr ""
+msgstr "Domaines"
 
 #: securityobjectives/models.py:69
 msgid "Domain"
@@ -1725,7 +1725,7 @@ msgstr ""
 
 #: securityobjectives/models.py:155
 msgid "Email templates"
-msgstr ""
+msgstr "Modèles d'e-mails"
 
 #: securityobjectives/models.py:156
 msgid "Email template"
@@ -1741,7 +1741,7 @@ msgstr ""
 
 #: securityobjectives/models.py:199
 msgid "Standards"
-msgstr ""
+msgstr "Standarts"
 
 #: securityobjectives/models.py:200
 msgid "Standard"
@@ -1749,7 +1749,7 @@ msgstr ""
 
 #: securityobjectives/models.py:259
 msgid "Security Measures"
-msgstr ""
+msgstr "Mesures de sécurité"
 
 #: securityobjectives/models.py:260
 msgid "Security Measure"
