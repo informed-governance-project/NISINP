@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 15:10+0100\n"
+"POT-Creation-Date: 2025-11-25 13:15+0100\n"
 "PO-Revision-Date: 2025-11-25 11:03+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
@@ -217,7 +217,7 @@ msgid "Email address"
 msgstr "E-Mail-Adresse"
 
 #: governanceplatform/forms.py:43 incidents/models.py:1011
-#: securityobjectives/models.py:397
+#: securityobjectives/models.py:427
 msgid "Role"
 msgstr "Rolle"
 
@@ -288,7 +288,7 @@ msgstr "Abmeldung"
 msgid "Export"
 msgstr ""
 
-#: governanceplatform/globals.py:29
+#: governanceplatform/globals.py:29 securityobjectives/models.py:108
 msgid "Security Objective"
 msgstr ""
 
@@ -341,7 +341,7 @@ msgstr ""
 #: governanceplatform/models.py:239 governanceplatform/models.py:278
 #: incidents/models.py:230 incidents/models.py:259 incidents/models.py:313
 #: reporting/filters.py:60 reporting/models.py:44 reporting/models.py:70
-#: reporting/models.py:96 securityobjectives/models.py:123
+#: reporting/models.py:96 securityobjectives/models.py:133
 msgid "Name"
 msgstr "Name"
 
@@ -357,18 +357,18 @@ msgstr "Akronym"
 #: governanceplatform/models.py:48 incidents/models.py:52
 #: incidents/models.py:85 incidents/models.py:129 incidents/models.py:184
 #: incidents/models.py:233 incidents/models.py:283
-#: securityobjectives/models.py:18 securityobjectives/models.py:45
-#: securityobjectives/models.py:83 securityobjectives/models.py:126
-#: securityobjectives/models.py:226
+#: securityobjectives/models.py:18 securityobjectives/models.py:49
+#: securityobjectives/models.py:91 securityobjectives/models.py:136
+#: securityobjectives/models.py:240
 msgid "Creator name"
 msgstr "Ersteller Name"
 
 #: governanceplatform/models.py:56 incidents/models.py:60
 #: incidents/models.py:93 incidents/models.py:137 incidents/models.py:192
 #: incidents/models.py:241 incidents/models.py:291
-#: securityobjectives/models.py:26 securityobjectives/models.py:53
-#: securityobjectives/models.py:91 securityobjectives/models.py:134
-#: securityobjectives/models.py:234
+#: securityobjectives/models.py:26 securityobjectives/models.py:57
+#: securityobjectives/models.py:99 securityobjectives/models.py:144
+#: securityobjectives/models.py:248
 msgid "Creator"
 msgstr "Ersteller"
 
@@ -381,9 +381,9 @@ msgstr "Sektor"
 #: incidents/admin.py:605 incidents/admin.py:868 incidents/forms.py:669
 #: incidents/models.py:47 incidents/models.py:330 incidents/views.py:1052
 #: reporting/filters.py:44 reporting/filters.py:82 reporting/forms.py:47
-#: reporting/models.py:343 securityobjectives/forms.py:145
-#: securityobjectives/forms.py:193 securityobjectives/forms.py:230
-#: securityobjectives/models.py:299
+#: reporting/models.py:343 securityobjectives/forms.py:146
+#: securityobjectives/forms.py:194 securityobjectives/forms.py:231
+#: securityobjectives/models.py:329
 msgid "Sectors"
 msgstr "Sektoren"
 
@@ -466,8 +466,8 @@ msgid "An account with this email address already exists."
 msgstr "Ein Benutzerkonto mit dieser E-Mail-Adresse existiert bereits."
 
 #: governanceplatform/models.py:450 incidents/views.py:1743
-#: incidents/views.py:1750 securityobjectives/views.py:1212
-#: securityobjectives/views.py:1221
+#: incidents/views.py:1750 securityobjectives/views.py:1215
+#: securityobjectives/views.py:1224
 msgid "Administrator"
 msgstr "Administrator"
 
@@ -488,7 +488,7 @@ msgstr ""
 #: governanceplatform/models.py:550 governanceplatform/models.py:597
 #: governanceplatform/models.py:630 incidents/models.py:1005
 #: incidents/views.py:1736 reporting/models.py:395 reporting/models.py:421
-#: securityobjectives/models.py:391 securityobjectives/views.py:1205
+#: securityobjectives/models.py:421 securityobjectives/views.py:1208
 msgid "User"
 msgstr "Benutzer"
 
@@ -555,7 +555,7 @@ msgstr "Regeln für Vorfälle"
 #: governanceplatform/models.py:748 incidents/models.py:898
 #: incidents/models.py:1008 incidents/models.py:1051 incidents/models.py:1141
 #: reporting/models.py:398 reporting/models.py:430
-#: securityobjectives/models.py:394
+#: securityobjectives/models.py:424
 msgid "Timestamp"
 msgstr "Zeitstempel"
 
@@ -967,11 +967,11 @@ msgstr "Frage – vordefinierte Antworten"
 msgid "Question - predefined answer"
 msgstr "Frage – vordefinierte Antwort"
 
-#: incidents/models.py:216 securityobjectives/models.py:118
+#: incidents/models.py:216 securityobjectives/models.py:128
 msgid "Subject"
 msgstr "Betreff"
 
-#: incidents/models.py:220 securityobjectives/models.py:121
+#: incidents/models.py:220 securityobjectives/models.py:131
 msgid "Content"
 msgstr "Inhalt"
 
@@ -1065,7 +1065,7 @@ msgstr "Erinnerungs-E-Mail"
 msgid "Incident ID"
 msgstr "Vorfall-ID"
 
-#: incidents/models.py:541 securityobjectives/models.py:251
+#: incidents/models.py:541 securityobjectives/models.py:269
 msgid "Contact user"
 msgstr "Ansprechpartner"
 
@@ -1165,7 +1165,7 @@ msgstr ""
 msgid "Full username"
 msgstr "Vollständiger Benutzername"
 
-#: incidents/models.py:1012 securityobjectives/models.py:398
+#: incidents/models.py:1012 securityobjectives/models.py:428
 msgid "Entity name"
 msgstr "Name der Entität"
 
@@ -1174,7 +1174,7 @@ msgid "Incident report processed"
 msgstr "Vorfallbericht bearbeitet"
 
 #: incidents/models.py:1028 reporting/models.py:407
-#: securityobjectives/models.py:405
+#: securityobjectives/models.py:435
 msgid "Action performed"
 msgstr "Aktion ausgeführt"
 
@@ -1225,8 +1225,8 @@ msgstr ""
 #: incidents/views.py:616 incidents/views.py:640 reporting/views.py:150
 #: reporting/views.py:366 reporting/views.py:396 reporting/views.py:592
 #: reporting/views.py:623 reporting/views.py:630 reporting/views.py:1211
-#: securityobjectives/views.py:909 securityobjectives/views.py:915
-#: securityobjectives/views.py:1168
+#: securityobjectives/views.py:912 securityobjectives/views.py:918
+#: securityobjectives/views.py:1171
 msgid "Forbidden"
 msgstr "Verboten"
 
@@ -1236,7 +1236,7 @@ msgid "No incident report could be found."
 msgstr "Es konnte kein Vorfallbericht gefunden werden."
 
 #: incidents/views.py:550 incidents/views.py:588
-#: securityobjectives/views.py:869
+#: securityobjectives/views.py:872
 msgid "An error occurred while generating the report."
 msgstr "Bei der Erstellung des Berichts ist ein Fehler aufgetreten."
 
@@ -1294,8 +1294,8 @@ msgid "Incident Timeline"
 msgstr "Vorfallverlauf"
 
 #: reporting/filters.py:24 reporting/forms.py:39
-#: securityobjectives/forms.py:138 securityobjectives/forms.py:185
-#: securityobjectives/forms.py:222
+#: securityobjectives/forms.py:139 securityobjectives/forms.py:186
+#: securityobjectives/forms.py:223
 msgid "Year"
 msgstr ""
 
@@ -1303,7 +1303,7 @@ msgstr ""
 msgid "JSON File"
 msgstr ""
 
-#: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:174
+#: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:175
 msgid "Company"
 msgstr ""
 
@@ -1580,7 +1580,7 @@ msgstr ""
 msgid "Observation order"
 msgstr ""
 
-#: reporting/models.py:400 securityobjectives/models.py:396
+#: reporting/models.py:400 securityobjectives/models.py:426
 msgid "User full name"
 msgstr ""
 
@@ -1651,7 +1651,7 @@ msgstr ""
 msgid "The report recommendation has been deleted."
 msgstr ""
 
-#: reporting/views.py:638 securityobjectives/views.py:922
+#: reporting/views.py:638 securityobjectives/views.py:925
 msgid "Invalid request"
 msgstr ""
 
@@ -1691,7 +1691,7 @@ msgstr ""
 msgid "Invalid year. Please provide a valid year."
 msgstr ""
 
-#: securityobjectives/forms.py:127 securityobjectives/forms.py:168
+#: securityobjectives/forms.py:128 securityobjectives/forms.py:169
 msgid "Evaluation Framework"
 msgstr ""
 
@@ -1703,79 +1703,123 @@ msgstr ""
 msgid "Revision required and sent"
 msgstr ""
 
-#: securityobjectives/models.py:72 securityobjectives/models.py:222
+#: securityobjectives/models.py:37
+msgid "Maturity levels"
+msgstr ""
+
+#: securityobjectives/models.py:38
+msgid "Maturity level"
+msgstr ""
+
+#: securityobjectives/models.py:68
+msgid "Domains"
+msgstr ""
+
+#: securityobjectives/models.py:69
+msgid "Domain"
+msgstr ""
+
+#: securityobjectives/models.py:80 securityobjectives/models.py:236
 msgid "is archived"
 msgstr ""
 
-#: securityobjectives/models.py:145
+#: securityobjectives/models.py:107
+msgid "Security Objectives"
+msgstr ""
+
+#: securityobjectives/models.py:155
 msgid "Email templates"
 msgstr ""
 
-#: securityobjectives/models.py:146
+#: securityobjectives/models.py:156
 msgid "Email template"
 msgstr ""
 
-#: securityobjectives/models.py:167
+#: securityobjectives/models.py:177
 msgid "Submission e-mail"
 msgstr ""
 
-#: securityobjectives/models.py:176
+#: securityobjectives/models.py:186
 msgid "Email for status change"
 msgstr ""
 
-#: securityobjectives/models.py:263
+#: securityobjectives/models.py:199
+msgid "Standards"
+msgstr ""
+
+#: securityobjectives/models.py:200
+msgid "Standard"
+msgstr ""
+
+#: securityobjectives/models.py:259
+msgid "Security Measures"
+msgstr ""
+
+#: securityobjectives/models.py:260
+msgid "Security Measure"
+msgstr ""
+
+#: securityobjectives/models.py:281
 msgid "Group ID"
 msgstr ""
 
-#: securityobjectives/models.py:283 securityobjectives/models.py:366
+#: securityobjectives/models.py:295
+msgid "Last update"
+msgstr ""
+
+#: securityobjectives/models.py:298
+msgid "Submission date"
+msgstr ""
+
+#: securityobjectives/models.py:305 securityobjectives/models.py:396
 msgid "Status"
 msgstr ""
 
-#: securityobjectives/models.py:286 securityobjectives/models.py:289
+#: securityobjectives/models.py:311 securityobjectives/models.py:317
 msgid "Submitter"
 msgstr "Einreicher"
 
-#: securityobjectives/models.py:297
+#: securityobjectives/models.py:326
 msgid "Year of submission"
 msgstr "Einreichungsjahr"
 
-#: securityobjectives/models.py:302
+#: securityobjectives/models.py:332
 msgid "Review comment"
 msgstr "Review Kommentar"
 
-#: securityobjectives/models.py:305
+#: securityobjectives/models.py:335
 msgid "Deadline"
 msgstr ""
 
-#: securityobjectives/models.py:308
+#: securityobjectives/models.py:338
 msgid "Group"
 msgstr ""
 
-#: securityobjectives/models.py:338
+#: securityobjectives/models.py:368
 msgid "Implemented"
 msgstr ""
 
-#: securityobjectives/models.py:360
+#: securityobjectives/models.py:390
 msgid "Not reviewed"
 msgstr ""
 
-#: securityobjectives/models.py:361
+#: securityobjectives/models.py:391
 msgid "Pass"
 msgstr ""
 
-#: securityobjectives/models.py:362
+#: securityobjectives/models.py:392
 msgid "Fail"
 msgstr ""
 
-#: securityobjectives/models.py:379
+#: securityobjectives/models.py:409
 msgid "Planned Measures"
 msgstr ""
 
-#: securityobjectives/models.py:383
+#: securityobjectives/models.py:413
 msgid "It is completely filled out"
 msgstr ""
 
-#: securityobjectives/views.py:164 securityobjectives/views.py:884
+#: securityobjectives/views.py:164 securityobjectives/views.py:887
 msgid "No data available"
 msgstr ""
 
@@ -1784,40 +1828,40 @@ msgid "Standard does not exist"
 msgstr ""
 
 #: securityobjectives/views.py:239 securityobjectives/views.py:243
-#: securityobjectives/views.py:521 securityobjectives/views.py:640
-#: securityobjectives/views.py:673 securityobjectives/views.py:688
-#: securityobjectives/views.py:771 securityobjectives/views.py:792
+#: securityobjectives/views.py:523 securityobjectives/views.py:643
+#: securityobjectives/views.py:676 securityobjectives/views.py:691
+#: securityobjectives/views.py:774 securityobjectives/views.py:795
 msgid "Declaration not found"
 msgstr ""
 
-#: securityobjectives/views.py:510
+#: securityobjectives/views.py:512
 msgid "No sectors data available"
 msgstr ""
 
-#: securityobjectives/views.py:622
+#: securityobjectives/views.py:625
 msgid "The security objectives declaration has been duplicated."
 msgstr ""
 
-#: securityobjectives/views.py:652
+#: securityobjectives/views.py:655
 msgid "The security objectives declaration has been submitted."
 msgstr ""
 
-#: securityobjectives/views.py:670
+#: securityobjectives/views.py:673
 msgid "The security objectives declaration has been deleted."
 msgstr ""
 
-#: securityobjectives/views.py:727
+#: securityobjectives/views.py:730
 msgid "The review comment has been saved."
 msgstr ""
 
-#: securityobjectives/views.py:942
+#: securityobjectives/views.py:945
 msgid "Error opening the file: {}"
 msgstr ""
 
-#: securityobjectives/views.py:961
+#: securityobjectives/views.py:964
 msgid "No users for this company"
 msgstr ""
 
-#: securityobjectives/views.py:988
+#: securityobjectives/views.py:991
 msgid "An error occurred while importing the declaration file."
 msgstr ""
