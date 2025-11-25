@@ -51,12 +51,13 @@ class SecurityObjectiveAnswerForm(forms.Form):
         if initial:
             is_readonly = initial.get("is_readonly", True)
             is_regulator = initial.get("is_regulator", True)
+            has_review_comment = initial.get("has_review_comment", False)
 
             if is_readonly or is_regulator:
                 set_readonly("is_implemented")
                 set_readonly("justification")
 
-            if is_readonly:
+            if is_readonly or (has_review_comment and not is_regulator):
                 set_readonly("review_comment")
             elif not is_regulator:
                 self.fields["review_comment"].widget = forms.HiddenInput()

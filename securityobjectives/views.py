@@ -430,6 +430,7 @@ def declaration(request):
             security_objective, standard_answer
         )
         security_objective.declaration_status = standard_answer.status
+        security_objective.review_comment = standard_answer.review_comment
         security_measures = security_objective.securitymeasure_set.all().order_by(
             "position"
         )
@@ -468,6 +469,7 @@ def declaration(request):
                 initial = {}
 
             initial["is_regulator"] = is_user_regulator(user)
+            initial["has_review_comment"] = bool(standard_answer.review_comment)
             initial["is_readonly"] = (
                 is_user_operator(user) and standard_answer.status != "UNDE"
             ) or (
