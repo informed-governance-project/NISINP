@@ -6,6 +6,7 @@ from urllib.parse import urlencode, urlparse
 
 import pytz
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
@@ -50,7 +51,7 @@ from governanceplatform.settings import (
 )
 
 from .decorators import check_user_is_correct, regulator_role_required
-from .email import send_email, send_html_email
+from .email import render_to_string_multi_languages, send_email, send_html_email
 from .filters import IncidentFilter
 from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
@@ -947,11 +948,14 @@ def export_incidents(request):
                 email_list = User.objects.filter(
                     groups=platformAdmin_group
                 ).values_list("email", flat=True)
-                html_message = render_to_string(
+                html_message = render_to_string_multi_languages(
                     "emails/incident_mass_export.html",
                     {"regulation": str(regulation), "site_name": SITE_NAME},
                 )
-                subject = _("[{site}] New incident mass export").format(site=SITE_NAME)
+                with translation.override(settings.LANGUAGE_CODE):
+                    subject = _("[{site}] New incident mass export").format(
+                        site=SITE_NAME
+                    )
 
                 send_html_email(
                     subject,

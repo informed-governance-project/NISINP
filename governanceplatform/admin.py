@@ -10,8 +10,8 @@ from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import redirect
-from django.template.loader import render_to_string
 from django.urls import path
+from django.utils import translation
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
@@ -22,7 +22,7 @@ from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
-from incidents.email import send_html_email
+from incidents.email import render_to_string_multi_languages, send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .formset import CompanyUserInlineFormset
@@ -700,10 +700,11 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     def save_formset(self, request, form, formset, change):
         def send_suggestion_email(context, email_list):
-            html_message = render_to_string(
+            html_message = render_to_string_multi_languages(
                 "emails/suggestion_link_user_account.html", context
             )
-            subject = _("Suggestion to Link a User Account with Your Company")
+            with translation.override(settings.LANGUAGE_CODE):
+                subject = _("Suggestion to Link a User Account with Your Company")
 
             send_html_email(subject, html_message, email_list)
 
