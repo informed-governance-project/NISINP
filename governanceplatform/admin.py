@@ -1,10 +1,11 @@
 from django import forms
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Max, Q, Value
+from django.db.models import Count, Max, Model, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
 from django.http import Http404
@@ -107,7 +108,6 @@ class CustomAdminSite(admin.AdminSite):
                     for model in app["models"]
                     if model["object_name"] != ScriptLogEntry._meta.object_name
                 ]
-
         return app_list
 
 
@@ -166,6 +166,49 @@ class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmi
 
 class CustomTranslatableTabularInline(TranslatableTabularInline):
     form = CustomTranslatableAdminForm
+
+
+# Creation of a dummymodel to add the item in the django list
+class SettingsDummy(Model):
+    class Meta:
+        managed = False
+        verbose_name = _("Django Settings")
+        verbose_name_plural = _("Django Settings")
+
+
+@admin.register(SettingsDummy, site=admin_site)
+class SettingsAdmin(admin.ModelAdmin):
+    change_list_template = "admin/settings_list.html"
+
+    def changelist_view(self, request, extra_context=None):
+        settings_dict = {
+            key: getattr(settings, key)
+            for key in dir(settings)
+            if key.isupper() and key in settings.ADMIN_VISIBLE_VARIABLES
+        }
+
+        extra_context = extra_context or {}
+        extra_context["settings"] = settings_dict
+
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_queryset(self, request):
+        return SettingsDummy.objects.none()
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_module_permission(self, request):
+        return request.user.groups.filter(name="PlatformAdmin").exists()
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.groups.filter(name="PlatformAdmin").exists()
 
 
 @admin.register(Site, site=admin_site)
