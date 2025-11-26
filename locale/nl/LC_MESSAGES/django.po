@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
-"PO-Revision-Date: 2025-11-25 13:01+0000\n"
+"PO-Revision-Date: 2025-11-26 09:42+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -618,7 +618,7 @@ msgstr ""
 
 #: governanceplatform/views.py:86
 msgid "Accessibility statement"
-msgstr ""
+msgstr "Toegankelijkheidsverklaring"
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
@@ -642,7 +642,7 @@ msgstr "Accountbeveiliging"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
-msgstr ""
+msgstr "Wachtwoord wijzigen"
 
 #: governanceplatform/views.py:106
 msgid "Log out"
@@ -940,7 +940,7 @@ msgstr "Stappen in meldingsformulier"
 
 #: incidents/models.py:119
 msgid "Reference"
-msgstr ""
+msgstr "Referentie"
 
 #: incidents/models.py:125
 msgid "Tooltip"
