@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
-"PO-Revision-Date: 2025-11-25 15:00+0000\n"
+"PO-Revision-Date: 2025-11-26 09:42+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/de/>\n"
@@ -624,11 +624,11 @@ msgstr "Nutzungsbedingungen"
 
 #: governanceplatform/views.py:85
 msgid "Cookies policy"
-msgstr ""
+msgstr "Cookies-Richtlinie"
 
 #: governanceplatform/views.py:86
 msgid "Accessibility statement"
-msgstr ""
+msgstr "Erklärung zur Barrierefreiheit"
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
@@ -652,7 +652,7 @@ msgstr "Kontosicherheit"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
-msgstr ""
+msgstr "Passwort ändern"
 
 #: governanceplatform/views.py:106
 msgid "Log out"
@@ -680,7 +680,7 @@ msgstr "Sicherheitsziele"
 
 #: governanceplatform/views.py:135
 msgid "Download Center"
-msgstr ""
+msgstr "Download Center"
 
 #: governanceplatform/views.py:137 reporting/models.py:324
 msgid "Configuration"
@@ -951,7 +951,7 @@ msgstr "Schritte im Meldeformular"
 
 #: incidents/models.py:119
 msgid "Reference"
-msgstr ""
+msgstr "Referenz"
 
 #: incidents/models.py:125
 msgid "Tooltip"
@@ -1592,7 +1592,7 @@ msgstr ""
 
 #: reporting/models.py:429
 msgid "Filename"
-msgstr ""
+msgstr "Dateiname"
 
 #: reporting/views.py:146
 #, python-format
