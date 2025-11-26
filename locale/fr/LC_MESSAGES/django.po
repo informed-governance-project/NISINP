@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
-"PO-Revision-Date: 2025-11-25 15:00+0000\n"
+"PO-Revision-Date: 2025-11-26 09:42+0000\n"
 "Last-Translator: Weblate Admin <weblate@admin.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
@@ -613,7 +613,7 @@ msgstr "Le compte a été sauvegardé avec succès."
 #: governanceplatform/views.py:83 governanceplatform/views.py:96
 #: governanceplatform/views.py:98
 msgid "Home"
-msgstr ""
+msgstr "Accueil"
 
 #: governanceplatform/views.py:84
 msgid "Terms of service"
@@ -621,11 +621,11 @@ msgstr "Conditions générales d'utilisation"
 
 #: governanceplatform/views.py:85
 msgid "Cookies policy"
-msgstr ""
+msgstr "Politique de cookies"
 
 #: governanceplatform/views.py:86
 msgid "Accessibility statement"
-msgstr ""
+msgstr "Déclaration d'accessibilité"
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
@@ -649,7 +649,7 @@ msgstr "Sécurité du compte"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
-msgstr ""
+msgstr "Changement de mot de passe"
 
 #: governanceplatform/views.py:106
 msgid "Log out"
@@ -677,7 +677,7 @@ msgstr "Objectifs de sécurité"
 
 #: governanceplatform/views.py:135
 msgid "Download Center"
-msgstr ""
+msgstr "Centre de téléchargement"
 
 #: governanceplatform/views.py:137 reporting/models.py:324
 msgid "Configuration"
@@ -947,7 +947,7 @@ msgstr "Étapes du formulaire de notification"
 
 #: incidents/models.py:119
 msgid "Reference"
-msgstr ""
+msgstr "Référence"
 
 #: incidents/models.py:125
 msgid "Tooltip"
@@ -1331,7 +1331,7 @@ msgstr ""
 
 #: reporting/globals.py:11
 msgid "Sector average"
-msgstr ""
+msgstr "Moyenne du secteur"
 
 #: reporting/helpers.py:654 reporting/helpers.py:733
 msgid "All services"
@@ -1588,7 +1588,7 @@ msgstr ""
 
 #: reporting/models.py:429
 msgid "Filename"
-msgstr ""
+msgstr "Nom du fichier"
 
 #: reporting/views.py:146
 #, python-format
