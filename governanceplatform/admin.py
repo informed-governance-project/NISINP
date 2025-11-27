@@ -990,7 +990,14 @@ class userRegulatorMultipleInline(userRegulatorInline):
 # reset the 2FA we delete the TOTP devices
 @admin.action(description=_("Reset 2FA"))
 def reset_2FA(modeladmin, request, queryset):
+    request_user = request.user
     for user in queryset:
+        # conditions for regulatoradmin issue #550
+        if user_in_group(request_user, "RegulatorAdmin") and not (
+            user_in_group(user, "RegulatorAdmin")
+            or user_in_group(user, "RegulatorUser")
+        ):
+            continue
         devices = devices_for_user(user)
         for device in devices:
             device.delete()
