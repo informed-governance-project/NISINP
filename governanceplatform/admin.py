@@ -1078,7 +1078,13 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
 
         if user_in_group(user, "PlatformAdmin"):
             groups = groups.exclude(
-                name__in=["OperatorAdmin", "OperatorUser", "IncidentUser"]
+                name__in=[
+                    "OperatorAdmin",
+                    "OperatorUser",
+                    "IncidentUser",
+                    "ObserverUser",
+                    "RegulatorUser",
+                ]
             )
 
         if user_in_group(user, "ObserverAdmin"):
@@ -1358,7 +1364,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     groups__in=[
                         PlatformAdminGroupId,
                         RegulatorAdminGroupId,
-                        observerUserGroupId,
                         observerAdminGroupId,
                     ]
                 )
