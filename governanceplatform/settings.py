@@ -513,6 +513,13 @@ try:
 except AttributeError:
     RT_SECRET_KEY = HASH_KEY
 
+try:
+    DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = (
+        config.DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT
+    )
+except AttributeError:
+    DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = 90
+
 # variable visible in admin
 try:
     ADMIN_VISIBLE_VARIABLES = config.ADMIN_VISIBLE_VARIABLES
@@ -534,4 +541,5 @@ except AttributeError:
         "REGULATOR_CONTACT",
         "TERMS_ACCEPTANCE_TIME_IN_DAYS",
         "TIME_ZONE",
+        "DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT",
     ]
