@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-02-10 14:30+0100\n"
-"PO-Revision-Date: 2026-02-11 13:27+0000\n"
-"Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
+"PO-Revision-Date: 2026-02-12 09:27+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -152,8 +152,7 @@ msgstr "6 maanden"
 
 #: governanceplatform/config.py:150 governanceplatform/config_dev.py:153
 msgid "Cookie essential for maintaining user session options."
-msgstr ""
-"Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
+msgstr "Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
 
 #: governanceplatform/config.py:152 governanceplatform/config_dev.py:155
 msgid "Session ID"
@@ -312,9 +311,9 @@ msgid ""
 "This {object_name} is either in use.<br>- You are not its creator "
 "({creator_name})"
 msgstr ""
-"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</"
-"strong><br>- Dit {object_name} is in gebruik.<br>- U bent niet de maker "
-"({creator_name})"
+"<strong>Wijzigings- en verwijderingsacties zijn niet "
+"toegestaan.</strong><br>- Dit {object_name} is in gebruik.<br>- U bent niet "
+"de maker ({creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
@@ -771,8 +770,8 @@ msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
 "<br>"
 msgstr ""
-"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in gebruik."
-"<br>"
+"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in "
+"gebruik.<br>"
 
 #: incidents/admin.py:911 incidents/models.py:304 incidents/models.py:379
 #: incidents/models.py:917
@@ -1305,8 +1304,8 @@ msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, a.u."
-"b."
+"De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, "
+"a.u.b."
 
 #: incidents/views.py:1117
 msgid "Legal bases"
