@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-25 15:47+0100\n"
 "PO-Revision-Date: 2025-12-02 09:49+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -72,7 +72,7 @@ msgstr "Rollen"
 
 #: governanceplatform/admin.py:1138
 msgid "Companies"
-msgstr ""
+msgstr "Ondernemingen"
 
 #: governanceplatform/admin.py:1166
 msgid "Cookies acceptation has been reseted"
@@ -257,7 +257,7 @@ msgstr ""
 
 #: governanceplatform/formset.py:24
 msgid "There must be at least one administrator user."
-msgstr ""
+msgstr "Er moet minstens een administrator bestaan."
 
 #: governanceplatform/globals.py:18
 msgid "Addition"
@@ -281,7 +281,7 @@ msgstr "Uitloggen"
 
 #: governanceplatform/globals.py:24
 msgid "Export"
-msgstr ""
+msgstr "Exporteren"
 
 #: governanceplatform/globals.py:29 securityobjectives/models.py:108
 msgid "Security Objective"
