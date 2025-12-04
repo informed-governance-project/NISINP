@@ -788,9 +788,20 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
             ("FAIL", _("Revision required")),
         ]
 
-        self.fields["review_status"].widget.attrs[
-            "onfocus"
-        ] = "this.options[0].disabled = true;"
+        initial_review_status = self.initial.get("review_status")
+
+        class_map = {
+            "PASS": "fw-bold bg-passed text-white",
+            "FAIL": "fw-bold bg-failed text-white",
+        }
+
+        select_class = class_map.get(initial_review_status, "")
+
+        self.fields["review_status"].widget.attrs = {
+            "onfocus": "this.options[0].disabled = true;",
+            "class": f"w-25 {select_class}",
+            "onchange": "reviewStatusChange(this)",
+        }
 
         self.fields["comment"].widget.attrs.update(
             {
