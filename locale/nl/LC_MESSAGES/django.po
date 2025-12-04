@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 15:47+0100\n"
+"POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-02 09:49+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
@@ -15,86 +15,91 @@ msgstr ""
 "X-Generator: Weblate 5.14.3\n"
 "Generated-By: xls-to-po 1.0\n"
 
-#: governanceplatform/admin.py:70 governanceplatform/context_processors.py:29
+#: governanceplatform/admin.py:71 governanceplatform/context_processors.py:29
 #: governanceplatform/views.py:99
 msgid "Settings"
 msgstr "Instellingen"
 
-#: governanceplatform/admin.py:373
+#: governanceplatform/admin.py:175 governanceplatform/admin.py:176
+#| msgid "Settings"
+msgid "Django Settings"
+msgstr ""
+
+#: governanceplatform/admin.py:416
 msgid "Contact for company"
 msgstr "Aanspreekpunt voor de onderneming"
 
-#: governanceplatform/admin.py:374
+#: governanceplatform/admin.py:417
 msgid "Contacts for company"
 msgstr "Aanspreekpunten voor de onderneming"
 
-#: governanceplatform/admin.py:526 governanceplatform/admin.py:1105
-#: governanceplatform/admin.py:1118
+#: governanceplatform/admin.py:569 governanceplatform/admin.py:1162
+#: governanceplatform/admin.py:1175
 msgid "Contact information"
 msgstr "Informatie aanspreekpunt"
 
-#: governanceplatform/admin.py:537
+#: governanceplatform/admin.py:580
 msgid "Configuration information"
 msgstr "Configuratiegegevens"
 
-#: governanceplatform/admin.py:546 governanceplatform/models.py:184
+#: governanceplatform/admin.py:589 governanceplatform/models.py:184
 #: governanceplatform/models.py:711
 msgid "Entity categories"
 msgstr "Categorieën van entiteiten"
 
-#: governanceplatform/admin.py:663
+#: governanceplatform/admin.py:707
 msgid "Suggestion to Link a User Account with Your Company"
 msgstr ""
 
-#: governanceplatform/admin.py:947
+#: governanceplatform/admin.py:991
 msgid "Reset 2FA"
 msgstr "Resetten van de 2FA"
 
-#: governanceplatform/admin.py:956 governanceplatform/models.py:272
+#: governanceplatform/admin.py:1007 governanceplatform/models.py:272
 #: governanceplatform/models.py:441 governanceplatform/models.py:671
-#: incidents/models.py:615 incidents/views.py:1051
+#: incidents/models.py:615 incidents/views.py:1055
 msgid "Regulators"
 msgstr "Regulatoren"
 
-#: governanceplatform/admin.py:975 governanceplatform/models.py:412
+#: governanceplatform/admin.py:1026 governanceplatform/models.py:412
 #: governanceplatform/models.py:637 governanceplatform/models.py:725
 msgid "Observer"
 msgstr "Waarnemer"
 
-#: governanceplatform/admin.py:994 governanceplatform/models.py:233
+#: governanceplatform/admin.py:1045 governanceplatform/models.py:233
 #: governanceplatform/models.py:436
 msgid "Operators"
 msgstr "Operatoren"
 
-#: governanceplatform/admin.py:1019
+#: governanceplatform/admin.py:1070
 msgid "Roles"
 msgstr "Rollen"
 
-#: governanceplatform/admin.py:1138
+#: governanceplatform/admin.py:1195
 msgid "Companies"
 msgstr "Ondernemingen"
 
-#: governanceplatform/admin.py:1166
+#: governanceplatform/admin.py:1223
 msgid "Cookies acceptation has been reseted"
 msgstr ""
 
-#: governanceplatform/admin.py:1174
+#: governanceplatform/admin.py:1231
 msgid "Terms acceptation has been reseted"
 msgstr ""
 
-#: governanceplatform/admin.py:1600 governanceplatform/models.py:745
+#: governanceplatform/admin.py:1656 governanceplatform/models.py:745
 msgid "Observer regulation"
 msgstr "Waarnemer regelgeving"
 
-#: governanceplatform/admin.py:1601 governanceplatform/models.py:746
+#: governanceplatform/admin.py:1657 governanceplatform/models.py:746
 msgid "Observer regulations"
 msgstr "Waarnemer regelgevingen"
 
-#: governanceplatform/admin.py:1608 governanceplatform/models.py:652
+#: governanceplatform/admin.py:1664 governanceplatform/models.py:652
 msgid "Observer user"
 msgstr "Waarnemer gebruiker"
 
-#: governanceplatform/admin.py:1609 governanceplatform/models.py:653
+#: governanceplatform/admin.py:1665 governanceplatform/models.py:653
 msgid "Observer users"
 msgstr "Waarnemer gebruikers"
 
@@ -373,7 +378,7 @@ msgstr "Sector"
 
 #: governanceplatform/models.py:79 incidents/admin.py:533
 #: incidents/admin.py:605 incidents/admin.py:868 incidents/forms.py:669
-#: incidents/models.py:47 incidents/models.py:330 incidents/views.py:1052
+#: incidents/models.py:47 incidents/models.py:330 incidents/views.py:1056
 #: reporting/filters.py:44 reporting/filters.py:82 reporting/forms.py:47
 #: reporting/models.py:343 securityobjectives/forms.py:146
 #: securityobjectives/forms.py:194 securityobjectives/forms.py:231
@@ -459,8 +464,8 @@ msgstr "Waarnemers"
 msgid "An account with this email address already exists."
 msgstr "Er is al een gebruiker geregistreerd met dit e-mailadres."
 
-#: governanceplatform/models.py:450 incidents/views.py:1743
-#: incidents/views.py:1750 securityobjectives/views.py:1215
+#: governanceplatform/models.py:450 incidents/views.py:1747
+#: incidents/views.py:1754 securityobjectives/views.py:1215
 #: securityobjectives/views.py:1224
 msgid "Administrator"
 msgstr "Administrator"
@@ -483,7 +488,7 @@ msgstr "Gebruikers"
 
 #: governanceplatform/models.py:529 governanceplatform/models.py:552
 #: governanceplatform/models.py:599 governanceplatform/models.py:632
-#: incidents/models.py:1005 incidents/views.py:1736 reporting/models.py:395
+#: incidents/models.py:1005 incidents/views.py:1740 reporting/models.py:395
 #: reporting/models.py:421 securityobjectives/models.py:421
 #: securityobjectives/views.py:1208
 msgid "User"
@@ -533,11 +538,10 @@ msgid "Label"
 msgstr "Label"
 
 #: governanceplatform/models.py:686
-#| msgid "Regulation"
 msgid "Regulations"
 msgstr ""
 
-#: governanceplatform/models.py:687 incidents/forms.py:1127
+#: governanceplatform/models.py:687 incidents/forms.py:1138
 msgid "Regulation"
 msgstr "Regulering"
 
@@ -628,7 +632,7 @@ msgstr "Account"
 msgid "Create account"
 msgstr "Een account aanmaken"
 
-#: governanceplatform/views.py:96 incidents/views.py:1049
+#: governanceplatform/views.py:96 incidents/views.py:1053
 msgid "Contact"
 msgstr "Aanspreekpunt"
 
@@ -773,8 +777,8 @@ msgstr "Zoeken"
 msgid "Add details"
 msgstr "Voeg details toe"
 
-#: incidents/forms.py:296 incidents/forms.py:661 incidents/forms.py:884
-#: incidents/forms.py:891 incidents/forms.py:898 incidents/forms.py:905
+#: incidents/forms.py:296 incidents/forms.py:661 incidents/forms.py:895
+#: incidents/forms.py:902 incidents/forms.py:909 incidents/forms.py:916
 msgid "Date format yyyy-mm-dd hh:mm"
 msgstr "Datumnotatie JJJJ-MM-DD UU:MM"
 
@@ -809,7 +813,7 @@ msgstr ""
 msgid "Send notification to"
 msgstr "Melding verzenden naar"
 
-#: incidents/forms.py:649 incidents/forms.py:876
+#: incidents/forms.py:649 incidents/forms.py:887
 msgid "Select the incident time zone"
 msgstr "Selecteer de tijdzone van het incident"
 
@@ -827,47 +831,47 @@ msgstr "Aanvaard"
 msgid "Revision required"
 msgstr ""
 
-#: incidents/forms.py:883
+#: incidents/forms.py:894
 msgid "Incident notification date"
 msgstr "Datum van de incidentmelding"
 
-#: incidents/forms.py:890 incidents/models.py:870
+#: incidents/forms.py:901 incidents/models.py:870
 msgid "Incident detection date"
 msgstr "Datum waarop het incident is ontdekt"
 
-#: incidents/forms.py:897
+#: incidents/forms.py:908
 msgid "Incident start date"
 msgstr "Datum van aanvang van het incident"
 
-#: incidents/forms.py:904 incidents/models.py:876
+#: incidents/forms.py:915 incidents/models.py:876
 msgid "Incident resolution date"
 msgstr ""
 
-#: incidents/forms.py:1012
+#: incidents/forms.py:1023
 msgid "Starting date cannot be after detection date."
 msgstr ""
 
-#: incidents/forms.py:1018
+#: incidents/forms.py:1029
 msgid "Resolution date cannot be before detection date."
 msgstr ""
 
-#: incidents/forms.py:1132 incidents/models.py:376 incidents/models.py:589
+#: incidents/forms.py:1143 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
 msgstr "Workflow"
 
-#: incidents/forms.py:1138 incidents/models.py:407 incidents/models.py:479
+#: incidents/forms.py:1149 incidents/models.py:407 incidents/models.py:479
 msgid "Report"
 msgstr "Verslag"
 
-#: incidents/forms.py:1148
+#: incidents/forms.py:1159
 msgid "From"
 msgstr ""
 
-#: incidents/forms.py:1157
+#: incidents/forms.py:1168
 msgid "To"
 msgstr ""
 
-#: incidents/forms.py:1163
+#: incidents/forms.py:1174
 msgid "File format"
 msgstr ""
 
@@ -926,7 +930,7 @@ msgid "Impact"
 msgstr "Impact"
 
 #: incidents/models.py:75 incidents/models.py:604 incidents/models.py:908
-#: incidents/views.py:1518
+#: incidents/views.py:1522
 msgid "Impacts"
 msgstr "Gevolgen"
 
@@ -1148,7 +1152,7 @@ msgstr ""
 msgid "Report timeline timezone"
 msgstr ""
 
-#: incidents/models.py:912 incidents/views.py:1522
+#: incidents/models.py:912 incidents/views.py:1526
 msgid "Comment/Explanation"
 msgstr ""
 
@@ -1197,27 +1201,27 @@ msgstr ""
 msgid "Answers"
 msgstr "Antwoorden"
 
-#: incidents/views.py:267
+#: incidents/views.py:268
 msgid "Missing data, incident report not created."
 msgstr "Ontbrekende gegevens, incidentverslag niet gemaakt."
 
-#: incidents/views.py:274 incidents/views.py:368
+#: incidents/views.py:275 incidents/views.py:369
 msgid "Workflow not found"
 msgstr "Workflow niet gevonden"
 
-#: incidents/views.py:278 incidents/views.py:371 incidents/views.py:460
-#: incidents/views.py:502 incidents/views.py:539 incidents/views.py:612
+#: incidents/views.py:279 incidents/views.py:372 incidents/views.py:461
+#: incidents/views.py:503 incidents/views.py:540 incidents/views.py:613
 msgid "Incident not found"
 msgstr "Incident niet gevonden"
 
-#: incidents/views.py:282 incidents/views.py:374
+#: incidents/views.py:283 incidents/views.py:375
 msgid "Incident is closed"
 msgstr ""
 
-#: incidents/views.py:286 incidents/views.py:293 incidents/views.py:347
-#: incidents/views.py:378 incidents/views.py:388 incidents/views.py:443
-#: incidents/views.py:506 incidents/views.py:543 incidents/views.py:582
-#: incidents/views.py:616 incidents/views.py:640 reporting/views.py:150
+#: incidents/views.py:287 incidents/views.py:294 incidents/views.py:348
+#: incidents/views.py:379 incidents/views.py:389 incidents/views.py:444
+#: incidents/views.py:507 incidents/views.py:544 incidents/views.py:583
+#: incidents/views.py:617 incidents/views.py:641 reporting/views.py:150
 #: reporting/views.py:366 reporting/views.py:396 reporting/views.py:592
 #: reporting/views.py:623 reporting/views.py:630 reporting/views.py:1211
 #: securityobjectives/views.py:912 securityobjectives/views.py:918
@@ -1225,37 +1229,37 @@ msgstr ""
 msgid "Forbidden"
 msgstr "Verboden"
 
-#: incidents/views.py:312 incidents/views.py:318 incidents/views.py:362
-#: incidents/views.py:385 incidents/views.py:445 incidents/views.py:578
+#: incidents/views.py:313 incidents/views.py:319 incidents/views.py:363
+#: incidents/views.py:386 incidents/views.py:446 incidents/views.py:579
 msgid "No incident report could be found."
 msgstr "Er is geen incidentverslag gevonden."
 
-#: incidents/views.py:550 incidents/views.py:588
+#: incidents/views.py:551 incidents/views.py:589
 #: securityobjectives/views.py:872
 msgid "An error occurred while generating the report."
 msgstr "Er is een fout opgetreden bij het genereren van het verslag."
 
-#: incidents/views.py:624
+#: incidents/views.py:625
 msgid "The incident has been deleted."
 msgstr "Het incident is verwijderd."
 
-#: incidents/views.py:626
+#: incidents/views.py:627
 msgid "The incident could not be deleted."
 msgstr "Het incident kan niet verwijderd worden."
 
-#: incidents/views.py:628
+#: incidents/views.py:629
 msgid "An error occurred while deleting the incident."
 msgstr "Er is een fout opgetreden bij het verwijderen van het incident."
 
-#: incidents/views.py:746 incidents/views.py:869
+#: incidents/views.py:747 incidents/views.py:870
 msgid "No incidents available for export."
 msgstr ""
 
-#: incidents/views.py:926
+#: incidents/views.py:927
 msgid "Incidents Export"
 msgstr ""
 
-#: incidents/views.py:929
+#: incidents/views.py:930
 #, python-brace-format
 msgid ""
 "A total of {count} incidents were exported from regulation {regulation} "
@@ -1263,12 +1267,12 @@ msgid ""
 "{to_date}.)"
 msgstr ""
 
-#: incidents/views.py:954
+#: incidents/views.py:956
 #, python-brace-format
 msgid "[{site}] New incident mass export"
 msgstr ""
 
-#: incidents/views.py:1007
+#: incidents/views.py:1011
 msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
@@ -1276,15 +1280,15 @@ msgstr ""
 "De daglimiet voor incidentverslagen is bereikt. Probeer morgen nog eens, a.u."
 "b."
 
-#: incidents/views.py:1050
+#: incidents/views.py:1054
 msgid "Legal bases"
 msgstr "Wettelijke basis"
 
-#: incidents/views.py:1053
+#: incidents/views.py:1057
 msgid "Detection date"
 msgstr "Datum van ontdekking"
 
-#: incidents/views.py:1510
+#: incidents/views.py:1514
 msgid "Incident Timeline"
 msgstr "Tijdlijn van het incident"
 
