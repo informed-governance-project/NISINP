@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     "two_factor",
     "import_export",
     "parler",
+    "parler_patch",
     "phonenumber_field",
     "django_filters",
     "cookiebanner",
