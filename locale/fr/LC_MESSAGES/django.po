@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-05 15:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
 "Language: fr\n"
@@ -77,15 +77,15 @@ msgstr "Rôles"
 
 #: governanceplatform/admin.py:1195
 msgid "Companies"
-msgstr ""
+msgstr "Entrepries"
 
 #: governanceplatform/admin.py:1223
 msgid "Cookies acceptation has been reseted"
-msgstr ""
+msgstr "L'acceptation des cookies a été réinitialisée"
 
 #: governanceplatform/admin.py:1231
 msgid "Terms acceptation has been reseted"
-msgstr ""
+msgstr "L'acceptation des conditions d'utilisation a été réinitialisée"
 
 #: governanceplatform/admin.py:1656 governanceplatform/models.py:745
 msgid "Observer regulation"
@@ -101,7 +101,7 @@ msgstr "Observateur utilisateur"
 
 #: governanceplatform/admin.py:1665 governanceplatform/models.py:653
 msgid "Observer users"
-msgstr "Observateur utilisateurs"
+msgstr "Utilisateurs d'un observateur"
 
 #: governanceplatform/apps.py:7
 msgid "Governance"
@@ -201,7 +201,7 @@ msgstr "Notification d'incident"
 
 #: governanceplatform/context_processors.py:90
 msgid "Modules"
-msgstr ""
+msgstr "Modules"
 
 #: governanceplatform/forms.py:21 governanceplatform/forms.py:118
 msgid "First name"
@@ -237,7 +237,7 @@ msgstr ""
 
 #: governanceplatform/forms.py:182
 msgid "There is an issue, please verify your e-mail"
-msgstr ""
+msgstr "Il y a un problème, veuillez vérifier votre adresse mail"
 
 #: governanceplatform/forms.py:214
 #, python-format
@@ -263,10 +263,12 @@ msgid ""
 "A token is already set. To remove it, clear the field and save. To update "
 "it, enter a new token."
 msgstr ""
+"Un jeton est déjà défini. Pour le supprimer, effacez le champ et "
+"enregistrez. Pour le mettre à jour, entrez un nouveau jeton."
 
 #: governanceplatform/formset.py:24
 msgid "There must be at least one administrator user."
-msgstr ""
+msgstr "Il doit y avoir au moins un administrateur."
 
 #: governanceplatform/globals.py:18
 msgid "Addition"
