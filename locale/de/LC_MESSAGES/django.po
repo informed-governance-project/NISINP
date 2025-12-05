@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-08 15:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1231,7 +1231,7 @@ msgstr "Vorfall nicht gefunden"
 
 #: incidents/views.py:283 incidents/views.py:375
 msgid "Incident is closed"
-msgstr ""
+msgstr "Der Vorfall ist abgeschlossen"
 
 #: incidents/views.py:287 incidents/views.py:294 incidents/views.py:348
 #: incidents/views.py:379 incidents/views.py:389 incidents/views.py:444
@@ -1268,11 +1268,11 @@ msgstr "Beim Löschen des Vorfalls ist ein Fehler aufgetreten."
 
 #: incidents/views.py:747 incidents/views.py:870
 msgid "No incidents available for export."
-msgstr ""
+msgstr "Keine Vorfälle zum Export verfügbar."
 
 #: incidents/views.py:927
 msgid "Incidents Export"
-msgstr ""
+msgstr "Vorfälle exportieren"
 
 #: incidents/views.py:930
 #, python-brace-format
@@ -1281,11 +1281,14 @@ msgid ""
 "[{sectorregulation} - ({workflow})] within date range ({from_date} - "
 "{to_date}.)"
 msgstr ""
+"Insgesamt wurden {count} Vorfälle aus der Vorschrift {regulation} "
+"[{sectorregulation} - ({workflow})] innerhalb des Zeitraums "
+"({from_date} - {to_date})exportiert.)"
 
 #: incidents/views.py:956
 #, python-brace-format
 msgid "[{site}] New incident mass export"
-msgstr ""
+msgstr "[{site}] Neuer Massen-Export von Vorfällen"
 
 #: incidents/views.py:1011
 msgid ""
@@ -1315,7 +1318,7 @@ msgstr "Jahr"
 
 #: reporting/forms.py:22
 msgid "JSON File"
-msgstr ""
+msgstr "JSON Datei"
 
 #: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:175
 msgid "Company"
@@ -1323,23 +1326,23 @@ msgstr "Unternehmen"
 
 #: reporting/globals.py:4
 msgid "Reduction"
-msgstr ""
+msgstr "Reduktion"
 
 #: reporting/globals.py:5
 msgid "Deny"
-msgstr ""
+msgstr "Ablehnen"
 
 #: reporting/globals.py:6
 msgid "Acceptation"
-msgstr ""
+msgstr "Annahme"
 
 #: reporting/globals.py:7
 msgid "Shared"
-msgstr ""
+msgstr "Geteilt"
 
 #: reporting/globals.py:8
 msgid "Untreated"
-msgstr ""
+msgstr "Unbehandelt"
 
 #: reporting/globals.py:11
 msgid "Sector average"
@@ -1347,7 +1350,7 @@ msgstr "Sektor Durchschnitt"
 
 #: reporting/helpers.py:654 reporting/helpers.py:733
 msgid "All services"
-msgstr ""
+msgstr "Alle Dienste"
 
 #: reporting/helpers.py:692
 msgid "Postponed"
@@ -1359,11 +1362,11 @@ msgstr "Zu überprüfen"
 
 #: reporting/helpers.py:699
 msgid "Open"
-msgstr ""
+msgstr "Auf"
 
 #: reporting/helpers.py:908 reporting/helpers.py:991
 msgid "average"
-msgstr ""
+msgstr "Durchschnitt"
 
 #: reporting/models.py:30
 msgid "Comment"
@@ -1372,7 +1375,7 @@ msgstr "Kommentar"
 #: reporting/models.py:54 reporting/models.py:80 reporting/models.py:106
 #: reporting/models.py:175 reporting/models.py:262 reporting/models.py:427
 msgid "uuid"
-msgstr ""
+msgstr "uuid"
 
 #: reporting/models.py:58 reporting/models.py:123 reporting/models.py:185
 msgid "Asset"
@@ -1380,11 +1383,11 @@ msgstr "Asset"
 
 #: reporting/models.py:59
 msgid "Assets"
-msgstr ""
+msgstr "Assets"
 
 #: reporting/models.py:84
 msgid "Vulnerabilities"
-msgstr ""
+msgstr "Schwachstellen"
 
 #: reporting/models.py:85 reporting/models.py:198
 msgid "Vulnerability"
@@ -1392,7 +1395,7 @@ msgstr "Schwachstelle"
 
 #: reporting/models.py:110
 msgid "Threats"
-msgstr ""
+msgstr "Bedrohungen"
 
 #: reporting/models.py:111 reporting/models.py:190
 msgid "Threat"
@@ -1400,47 +1403,47 @@ msgstr "Bedrohung"
 
 #: reporting/models.py:129 reporting/models.py:363
 msgid "Risk Analysis"
-msgstr ""
+msgstr "Risikoanalyse"
 
 #: reporting/models.py:132
 msgid "Total of all risks"
-msgstr ""
+msgstr "Summe aller Risiken"
 
 #: reporting/models.py:135
 msgid "Total of untreated risks"
-msgstr ""
+msgstr "Gesamtzahl der unbehandelten Risiken"
 
 #: reporting/models.py:139
 msgid "Total of treated risks"
-msgstr ""
+msgstr "Gesamtzahl der behandelten Risiken"
 
 #: reporting/models.py:143
 msgid "Total of reduced risks"
-msgstr ""
+msgstr "Gesamtzahl der reduzierten Risiken"
 
 #: reporting/models.py:147
 msgid "Total of denied risks"
-msgstr ""
+msgstr "Gesamtzahl der abgelehnten Risiken"
 
 #: reporting/models.py:151
 msgid "Total of accepted risks"
-msgstr ""
+msgstr "Gesamtzahl der akzeptierten Risiken"
 
 #: reporting/models.py:155
 msgid "Total of shared risks"
-msgstr ""
+msgstr "Gesamtzahl der geteilten Risiken"
 
 #: reporting/models.py:159
 msgid "Average of current risks"
-msgstr ""
+msgstr "Durchschnitt der aktuellen Risiken"
 
 #: reporting/models.py:163
 msgid "Average of residual risks"
-msgstr ""
+msgstr "Durchschnitt der Restrisiken"
 
 #: reporting/models.py:167
 msgid "Risk analysis stats"
-msgstr ""
+msgstr "Risikoanalyse-Statistiken"
 
 #: reporting/models.py:168
 msgid "Risk analysis stat"
@@ -1448,39 +1451,39 @@ msgstr ""
 
 #: reporting/models.py:193
 msgid "Threat value"
-msgstr ""
+msgstr "Bedrohungswert"
 
 #: reporting/models.py:201
 msgid "Vulnerability value"
-msgstr ""
+msgstr "Schwachstellenwert"
 
 #: reporting/models.py:204
 msgid "Residual risk"
-msgstr ""
+msgstr "Restrisiko"
 
 #: reporting/models.py:209
 msgid "Risk treatment"
-msgstr ""
+msgstr "Risikobehandlung"
 
 #: reporting/models.py:215
 msgid "Maximum risk"
-msgstr ""
+msgstr "Höchstes Risiko"
 
 #: reporting/models.py:219
 msgid "Confidentility risk"
-msgstr ""
+msgstr "Vertraulichkeitsrisiko"
 
 #: reporting/models.py:223
 msgid "Integrity risk"
-msgstr ""
+msgstr "Integritätsrisiko"
 
 #: reporting/models.py:227
 msgid "Availability risk"
-msgstr ""
+msgstr "Verfügbarkeitsrisiko"
 
 #: reporting/models.py:231
 msgid "Confidentility impact"
-msgstr ""
+msgstr "Vertraulichkeitsauswirkung"
 
 #: reporting/models.py:235
 msgid "Integrity impact"
@@ -1488,11 +1491,11 @@ msgstr ""
 
 #: reporting/models.py:239
 msgid "Availability impact"
-msgstr ""
+msgstr "Verfügbarkeitsauswirkung"
 
 #: reporting/models.py:243
 msgid "recommendations"
-msgstr ""
+msgstr "Empfehlungen"
 
 #: reporting/models.py:247
 msgid "Risks"
@@ -1500,15 +1503,15 @@ msgstr "Risiken"
 
 #: reporting/models.py:248
 msgid "Risk"
-msgstr ""
+msgstr "Risiko"
 
 #: reporting/models.py:255 reporting/models.py:339
 msgid "Recommendation name"
-msgstr ""
+msgstr "Name der Empfehlung"
 
 #: reporting/models.py:257
 msgid "Recommendation description"
-msgstr ""
+msgstr "Empfehlungsbeschreibung"
 
 #: reporting/models.py:265
 msgid "Status of the recommendation"
@@ -1540,27 +1543,27 @@ msgstr ""
 
 #: reporting/models.py:314
 msgid "Top 3"
-msgstr ""
+msgstr "Top 3"
 
 #: reporting/models.py:314
 msgid "Top 5"
-msgstr ""
+msgstr "Top 5"
 
 #: reporting/models.py:314
 msgid "Top 10"
-msgstr ""
+msgstr "Top 10"
 
 #: reporting/models.py:319
 msgid "Security objectives excluded"
-msgstr ""
+msgstr "Ausgeschlossene Sicherheitsziele"
 
 #: reporting/models.py:323
 msgid "Configurations"
-msgstr ""
+msgstr "Einstellungen"
 
 #: reporting/models.py:331
 msgid "description"
-msgstr ""
+msgstr "Beschreibung"
 
 #: reporting/models.py:347
 msgid "Creation date"
@@ -1568,35 +1571,35 @@ msgstr "Erstelldatum"
 
 #: reporting/models.py:354
 msgid "Recommendations for observation"
-msgstr ""
+msgstr "Empfehlungen"
 
 #: reporting/models.py:355
 msgid "Recommendation for observation"
-msgstr ""
+msgstr "Empfehlung"
 
 #: reporting/models.py:368
 msgid "Observation recommendations"
-msgstr ""
+msgstr "Beobachtungen und Empfehlungen"
 
 #: reporting/models.py:372
 msgid "Observations"
-msgstr ""
+msgstr "Beobachtungen"
 
 #: reporting/models.py:373
 msgid "Observation"
-msgstr ""
+msgstr "Beobachtung"
 
 #: reporting/models.py:384
 msgid "Observations order"
-msgstr ""
+msgstr "Beobachtungsreihenfolge"
 
 #: reporting/models.py:385
 msgid "Observation order"
-msgstr ""
+msgstr "Beobachtungsreihenfolge"
 
 #: reporting/models.py:400 securityobjectives/models.py:426
 msgid "User full name"
-msgstr ""
+msgstr "Vollständiger Name des Benutzers"
 
 #: reporting/models.py:429
 msgid "Filename"
@@ -1605,61 +1608,65 @@ msgstr "Dateiname"
 #: reporting/views.py:146
 #, python-format
 msgid "%(sector)s forbidden"
-msgstr ""
+msgstr "%(sector)s verboten"
 
 #: reporting/views.py:166
 msgid "No reporting data"
-msgstr ""
+msgstr "Keine Berichtsdaten"
 
 #: reporting/views.py:183 reporting/views.py:189
 msgid "No configuration for sector"
-msgstr ""
+msgstr "Keine Konfiguration für Sektor"
 
 #: reporting/views.py:212
 msgid "No data found for security objectives report"
-msgstr ""
+msgstr "Keine Daten für den Bericht über Sicherheitsziele gefunden"
 
 #: reporting/views.py:224
 msgid "No data found for risk report"
-msgstr ""
+msgstr "Keine Daten für Risikobericht gefunden"
 
 #: reporting/views.py:277
 msgid ""
 "Report is being generated. It will be available shortly in the Download "
 "Center."
 msgstr ""
+"Der Bericht wird gerade erstellt. Er wird in Kürze im Download-Center "
+"verfügbar sein."
 
 #: reporting/views.py:283
 msgid ""
 "Reports are being generated. They will be available shortly in the Download "
 "Center."
 msgstr ""
+"Berichte werden derzeit erstellt. Sie werden in Kürze im Download-Center "
+"verfügbar sein."
 
 #: reporting/views.py:355
 msgid "All sectors have been configured"
-msgstr ""
+msgstr "Alle Sektoren wurden konfiguriert"
 
 #: reporting/views.py:392
 msgid "Configuration not found"
-msgstr ""
+msgstr "Konfiguration nicht gefunden"
 
 #: reporting/views.py:486
 msgid "Recommendations have been added successfully"
-msgstr ""
+msgstr "Empfehlungen wurden erfolgreich hinzugefügt"
 
 #: reporting/views.py:522
 #, python-brace-format
 msgid "No recommendations from {last_year}"
-msgstr ""
+msgstr "Keine Empfehlungen aus {last_year}"
 
 #: reporting/views.py:530
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
-msgstr ""
+msgstr "Empfehlungen wurden aus {last_year} kopiert"
 
 #: reporting/views.py:563
 msgid "No report recommendation found"
-msgstr ""
+msgstr "Keine Empfehlung gefunden"
 
 #: reporting/views.py:567
 msgid "The report recommendation has been deleted."
