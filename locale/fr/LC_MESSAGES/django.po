@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-05 14:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
 "Language: fr\n"
@@ -22,9 +22,8 @@ msgid "Settings"
 msgstr "Paramètres"
 
 #: governanceplatform/admin.py:175 governanceplatform/admin.py:176
-#| msgid "Settings"
 msgid "Django Settings"
-msgstr ""
+msgstr "Paramètres Django"
 
 #: governanceplatform/admin.py:416
 msgid "Contact for company"
@@ -50,11 +49,11 @@ msgstr "Catégories d’entités"
 
 #: governanceplatform/admin.py:707
 msgid "Suggestion to Link a User Account with Your Company"
-msgstr ""
+msgstr "Suggestion pour associer un compte utilisateur à votre entreprise"
 
 #: governanceplatform/admin.py:991
 msgid "Reset 2FA"
-msgstr "Réinitialisation de la 2-FA"
+msgstr "Réinitialisation du 2-FA"
 
 #: governanceplatform/admin.py:1007 governanceplatform/models.py:272
 #: governanceplatform/models.py:441 governanceplatform/models.py:671
