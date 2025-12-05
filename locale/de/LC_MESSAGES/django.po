@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-05 09:27+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/de/>\n"
 "Language: de\n"
@@ -1841,7 +1841,7 @@ msgstr ""
 #: securityobjectives/views.py:676 securityobjectives/views.py:691
 #: securityobjectives/views.py:774 securityobjectives/views.py:795
 msgid "Declaration not found"
-msgstr ""
+msgstr "Deklaration nicht gefunden"
 
 #: securityobjectives/views.py:512
 msgid "No sectors data available"
@@ -1849,15 +1849,15 @@ msgstr ""
 
 #: securityobjectives/views.py:625
 msgid "The security objectives declaration has been duplicated."
-msgstr ""
+msgstr "Die Deklaration der Sicherheitsziele wurde dupliziert."
 
 #: securityobjectives/views.py:655
 msgid "The security objectives declaration has been submitted."
-msgstr ""
+msgstr "Die Deklaration der Sicherheitsziele wurde eingereicht."
 
 #: securityobjectives/views.py:673
 msgid "The security objectives declaration has been deleted."
-msgstr ""
+msgstr "Die Deklaration der Sicherheitsziele wurde gelöscht."
 
 #: securityobjectives/views.py:730
 msgid "The review comment has been saved."
@@ -1873,4 +1873,4 @@ msgstr ""
 
 #: securityobjectives/views.py:991
 msgid "An error occurred while importing the declaration file."
-msgstr ""
+msgstr "Beim Importieren der Deklarationsdatei ist ein Fehler aufgetreten."
