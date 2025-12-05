@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-05 16:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
 "Language: fr\n"
@@ -296,7 +296,7 @@ msgstr "Exporter"
 
 #: governanceplatform/globals.py:29 securityobjectives/models.py:108
 msgid "Security Objective"
-msgstr ""
+msgstr "Objectifs de sécurité"
 
 #: governanceplatform/globals.py:30 governanceplatform/views.py:142
 #: reporting/apps.py:8
@@ -457,11 +457,11 @@ msgstr "Reçoit toutes les notifications d’incident"
 
 #: governanceplatform/models.py:312
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: governanceplatform/models.py:349
 msgid "Queue"
-msgstr ""
+msgstr "File d'attente"
 
 #: governanceplatform/models.py:413 governanceplatform/models.py:446
 msgid "Observers"
@@ -484,11 +484,11 @@ msgstr ""
 
 #: governanceplatform/models.py:458
 msgid "Email verified"
-msgstr ""
+msgstr "Email vérifié"
 
 #: governanceplatform/models.py:460
 msgid "Indicates whether the user has verified their email address."
-msgstr ""
+msgstr "Indique si l'utilisateur a confirmé son adresse e-mail."
 
 #: governanceplatform/models.py:528 incidents/admin.py:71
 msgid "Users"
@@ -509,7 +509,7 @@ msgstr "Est administrateur"
 
 #: governanceplatform/models.py:558
 msgid "Approved"
-msgstr ""
+msgstr "Approuvé"
 
 #: governanceplatform/models.py:566
 msgid "Company User"
@@ -522,14 +522,16 @@ msgstr "Utilisateurs de l’entreprise"
 #: governanceplatform/models.py:584
 msgid "Incident users can only become administrator after being approved."
 msgstr ""
+"Les utilisateurs incidents ne peuvent devenir administrateurs qu'après avoir "
+"été approuvés."
 
 #: governanceplatform/models.py:590
 msgid "The first user of an operator must be an administrator."
-msgstr ""
+msgstr "Le premier utilisateur d'un opérateur doit être un administrateur."
 
 #: governanceplatform/models.py:610 governanceplatform/models.py:643
 msgid "Can export incidents"
-msgstr ""
+msgstr "Peut exporter les incidents"
 
 #: governanceplatform/models.py:620
 msgid "Regulator user"
@@ -547,7 +549,7 @@ msgstr "Intitulé"
 
 #: governanceplatform/models.py:686
 msgid "Regulations"
-msgstr ""
+msgstr "Régulations"
 
 #: governanceplatform/models.py:687 incidents/forms.py:1138
 msgid "Regulation"
@@ -693,6 +695,7 @@ msgid ""
 "Account created. A password reset email has been sent. Please check your "
 "inbox to set your password."
 msgstr ""
+"Compte créé. Un e-mail de réinitialisation du mot de passe vous a été envoyé."
 
 #: governanceplatform/views.py:189 governanceplatform/views.py:298
 msgid "Invalid captcha"
@@ -701,7 +704,7 @@ msgstr "Captcha invalide"
 #: governanceplatform/views.py:284
 #, python-format
 msgid "%(name)s Contact page"
-msgstr ""
+msgstr "%(name)s Page de contact"
 
 #: governanceplatform/views.py:293
 msgid "Your message has been sent."
@@ -768,6 +771,8 @@ msgid ""
 "<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
 "in use.<br>- You are not its creator ({creator_name})"
 msgstr ""
+"<strong>La suppression n'est pas autorisée.</strong><br>- {object_name} est "
+"en cours d'utilisation.<br>- Vous n'êtes pas son créateur ({creator_name})"
 
 #: incidents/decorators.py:39
 msgid ""
@@ -804,7 +809,7 @@ msgid ""
 "reference, etc.) to facilitate incident tracking."
 msgstr ""
 "Veuillez insérer une référence pour suivre facilement votre incident "
-"(référence interne, référence CERT, etc.)"
+"(ex : référence interne, référence CERT, etc.)."
 
 #: incidents/forms.py:526
 msgid "Complaint reference"
@@ -840,7 +845,7 @@ msgstr "Améliorations requises"
 
 #: incidents/forms.py:894
 msgid "Incident notification date"
-msgstr "Date de la notification incident"
+msgstr "Date de la notification d'incident"
 
 #: incidents/forms.py:901 incidents/models.py:870
 msgid "Incident detection date"
@@ -856,11 +861,12 @@ msgstr "Date de résolution de l'incident"
 
 #: incidents/forms.py:1023
 msgid "Starting date cannot be after detection date."
-msgstr ""
+msgstr "La date de début ne peut pas être postérieure à la date de détection."
 
 #: incidents/forms.py:1029
 msgid "Resolution date cannot be before detection date."
 msgstr ""
+"La date de résolution ne peut pas être postérieure à la date de détection."
 
 #: incidents/forms.py:1143 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
@@ -872,15 +878,15 @@ msgstr "Rapport"
 
 #: incidents/forms.py:1159
 msgid "From"
-msgstr ""
+msgstr "De"
 
 #: incidents/forms.py:1168
 msgid "To"
-msgstr ""
+msgstr "à"
 
 #: incidents/forms.py:1174
 msgid "File format"
-msgstr ""
+msgstr "Format du fichier"
 
 #: incidents/globals.py:38 reporting/helpers.py:699
 msgid "Closed"
@@ -989,6 +995,11 @@ msgid ""
 "                #INCIDENT_ID#,\n"
 "                #DEADLINE#"
 msgstr ""
+"Available placeholders : #INCIDENT_NOTIFICATION_DATE#,\n"
+"                #INCIDENT_DETECTION_DATE#,\n"
+"                #INCIDENT_STARTING_DATE#,\n"
+"                #INCIDENT_ID#,\n"
+"                #DEADLINE#"
 
 #: incidents/models.py:252 incidents/models.py:396
 msgid "Emails"
@@ -1000,7 +1011,7 @@ msgstr "Courriel"
 
 #: incidents/models.py:268
 msgid "Impacts disclosure required"
-msgstr "Indication des impacts requise"
+msgstr "Indication de l'impact requise"
 
 #: incidents/models.py:273
 msgid "Submission email"
@@ -1153,19 +1164,19 @@ msgstr "Incidents"
 
 #: incidents/models.py:873
 msgid "Incident starting date"
-msgstr ""
+msgstr "Date de début de l'incident"
 
 #: incidents/models.py:882
 msgid "Report timeline timezone"
-msgstr ""
+msgstr "Chronologie et fuseau horaire"
 
 #: incidents/models.py:912 incidents/views.py:1526
 msgid "Comment/Explanation"
-msgstr ""
+msgstr "Commentaire / Explication"
 
 #: incidents/models.py:918
 msgid "Timeline"
-msgstr ""
+msgstr "Chronologie"
 
 #: incidents/models.py:1010
 msgid "Full username"
@@ -1198,11 +1209,11 @@ msgstr "Obligatoire"
 
 #: incidents/models.py:1078
 msgid "Updated at"
-msgstr ""
+msgstr "Mis à jour le"
 
 #: incidents/models.py:1082
 msgid "Deleted date"
-msgstr ""
+msgstr "Date de suppression"
 
 #: incidents/models.py:1148
 msgid "Answers"
@@ -1223,7 +1234,7 @@ msgstr "Incident non trouvé"
 
 #: incidents/views.py:283 incidents/views.py:375
 msgid "Incident is closed"
-msgstr ""
+msgstr "L'incident est clos"
 
 #: incidents/views.py:287 incidents/views.py:294 incidents/views.py:348
 #: incidents/views.py:379 incidents/views.py:389 incidents/views.py:444
@@ -1260,11 +1271,11 @@ msgstr "Une erreur s'est produite lors de la suppression de l'incident."
 
 #: incidents/views.py:747 incidents/views.py:870
 msgid "No incidents available for export."
-msgstr ""
+msgstr "Aucun incident disponible pour l'export."
 
 #: incidents/views.py:927
 msgid "Incidents Export"
-msgstr ""
+msgstr "Export des incidents"
 
 #: incidents/views.py:930
 #, python-brace-format
@@ -1273,19 +1284,22 @@ msgid ""
 "[{sectorregulation} - ({workflow})] within date range ({from_date} - "
 "{to_date}.)"
 msgstr ""
+"Au total, {count} incidents ont été exportés pour la réglementation "
+"{regulation} [{sectorregulation} - ({workflow})] entre le {from_date} et le "
+"{to_date}.)"
 
 #: incidents/views.py:956
 #, python-brace-format
 msgid "[{site}] New incident mass export"
-msgstr ""
+msgstr "[{site}] Nouvel export en masse d'incidents"
 
 #: incidents/views.py:1011
 msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"Le nombre de rapports d'incidents journaliers a été atteint. Veuillez "
-"réessayer demain."
+"Le nombre maximum de rapports d'incidents journaliers a été atteint. "
+"Veuillez réessayer demain."
 
 #: incidents/views.py:1054
 msgid "Legal bases"
