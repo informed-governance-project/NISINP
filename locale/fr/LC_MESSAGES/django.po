@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-04 09:56+0100\n"
 "PO-Revision-Date: 2025-12-05 17:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
 "Language: fr\n"
@@ -1132,7 +1132,7 @@ msgstr "Référence interne de l'incident"
 
 #: incidents/models.py:581
 msgid "Criminal complaint file number"
-msgstr "Numéro de dossier de la plainte"
+msgstr "Numéro de dossier de plainte"
 
 #: incidents/models.py:585
 msgid "Impacted service"
@@ -1321,31 +1321,31 @@ msgstr "Année"
 
 #: reporting/forms.py:22
 msgid "JSON File"
-msgstr ""
+msgstr "Fichier JSON"
 
 #: reporting/forms.py:28 reporting/models.py:21 securityobjectives/forms.py:175
 msgid "Company"
-msgstr "Entité"
+msgstr "Entreprise"
 
 #: reporting/globals.py:4
 msgid "Reduction"
-msgstr ""
+msgstr "Réduction"
 
 #: reporting/globals.py:5
 msgid "Deny"
-msgstr ""
+msgstr "Refuser"
 
 #: reporting/globals.py:6
 msgid "Acceptation"
-msgstr ""
+msgstr "Acceptation"
 
 #: reporting/globals.py:7
 msgid "Shared"
-msgstr ""
+msgstr "Partagé"
 
 #: reporting/globals.py:8
 msgid "Untreated"
-msgstr ""
+msgstr "Non traité"
 
 #: reporting/globals.py:11
 msgid "Sector average"
@@ -1353,7 +1353,7 @@ msgstr "Moyenne du secteur"
 
 #: reporting/helpers.py:654 reporting/helpers.py:733
 msgid "All services"
-msgstr ""
+msgstr "Tous les services"
 
 #: reporting/helpers.py:692
 msgid "Postponed"
@@ -1365,11 +1365,11 @@ msgstr "A vérifier"
 
 #: reporting/helpers.py:699
 msgid "Open"
-msgstr ""
+msgstr "Ouvert"
 
 #: reporting/helpers.py:908 reporting/helpers.py:991
 msgid "average"
-msgstr ""
+msgstr "moyenne"
 
 #: reporting/models.py:30
 msgid "Comment"
@@ -1378,7 +1378,7 @@ msgstr "Commentaire"
 #: reporting/models.py:54 reporting/models.py:80 reporting/models.py:106
 #: reporting/models.py:175 reporting/models.py:262 reporting/models.py:427
 msgid "uuid"
-msgstr ""
+msgstr "uuid"
 
 #: reporting/models.py:58 reporting/models.py:123 reporting/models.py:185
 msgid "Asset"
@@ -1386,11 +1386,11 @@ msgstr "Actif"
 
 #: reporting/models.py:59
 msgid "Assets"
-msgstr ""
+msgstr "Actifs"
 
 #: reporting/models.py:84
 msgid "Vulnerabilities"
-msgstr ""
+msgstr "Vulnérabilités"
 
 #: reporting/models.py:85 reporting/models.py:198
 msgid "Vulnerability"
@@ -1398,7 +1398,7 @@ msgstr "Vulnérabilité"
 
 #: reporting/models.py:110
 msgid "Threats"
-msgstr ""
+msgstr "Menaces"
 
 #: reporting/models.py:111 reporting/models.py:190
 msgid "Threat"
@@ -1406,99 +1406,99 @@ msgstr "Menace"
 
 #: reporting/models.py:129 reporting/models.py:363
 msgid "Risk Analysis"
-msgstr ""
+msgstr "Analyse des risques"
 
 #: reporting/models.py:132
 msgid "Total of all risks"
-msgstr ""
+msgstr "Total de tous les risques"
 
 #: reporting/models.py:135
 msgid "Total of untreated risks"
-msgstr ""
+msgstr "Total des risques non traités"
 
 #: reporting/models.py:139
 msgid "Total of treated risks"
-msgstr ""
+msgstr "Total des risques traités"
 
 #: reporting/models.py:143
 msgid "Total of reduced risks"
-msgstr ""
+msgstr "Total des risques réduits"
 
 #: reporting/models.py:147
 msgid "Total of denied risks"
-msgstr ""
+msgstr "Total des risques refusés"
 
 #: reporting/models.py:151
 msgid "Total of accepted risks"
-msgstr ""
+msgstr "Total des risques acceptés"
 
 #: reporting/models.py:155
 msgid "Total of shared risks"
-msgstr ""
+msgstr "Total des risques partagés"
 
 #: reporting/models.py:159
 msgid "Average of current risks"
-msgstr ""
+msgstr "Moyenne des risques actuels"
 
 #: reporting/models.py:163
 msgid "Average of residual risks"
-msgstr ""
+msgstr "Moyenne des risques résiduels"
 
 #: reporting/models.py:167
 msgid "Risk analysis stats"
-msgstr ""
+msgstr "Statistiques sur l'analyse des risques"
 
 #: reporting/models.py:168
 msgid "Risk analysis stat"
-msgstr ""
+msgstr "Statistiques sur l'analyse des risques"
 
 #: reporting/models.py:193
 msgid "Threat value"
-msgstr ""
+msgstr "Niveau de la menace"
 
 #: reporting/models.py:201
 msgid "Vulnerability value"
-msgstr ""
+msgstr "Niveau de la vulnérabilité"
 
 #: reporting/models.py:204
 msgid "Residual risk"
-msgstr ""
+msgstr "Risque résiduel"
 
 #: reporting/models.py:209
 msgid "Risk treatment"
-msgstr ""
+msgstr "Traitement de risques"
 
 #: reporting/models.py:215
 msgid "Maximum risk"
-msgstr ""
+msgstr "Risque maximum"
 
 #: reporting/models.py:219
 msgid "Confidentility risk"
-msgstr ""
+msgstr "Risque de confidentialité"
 
 #: reporting/models.py:223
 msgid "Integrity risk"
-msgstr ""
+msgstr "Risque d'intégrité"
 
 #: reporting/models.py:227
 msgid "Availability risk"
-msgstr ""
+msgstr "Risque de disponibilité"
 
 #: reporting/models.py:231
 msgid "Confidentility impact"
-msgstr ""
+msgstr "Impact sur la confidentialité"
 
 #: reporting/models.py:235
 msgid "Integrity impact"
-msgstr ""
+msgstr "Impact sur l'intégrité"
 
 #: reporting/models.py:239
 msgid "Availability impact"
-msgstr ""
+msgstr "Impact sur la disponibilité"
 
 #: reporting/models.py:243
 msgid "recommendations"
-msgstr ""
+msgstr "recommandations"
 
 #: reporting/models.py:247
 msgid "Risks"
@@ -1506,23 +1506,23 @@ msgstr "Risques"
 
 #: reporting/models.py:248
 msgid "Risk"
-msgstr ""
+msgstr "Risque"
 
 #: reporting/models.py:255 reporting/models.py:339
 msgid "Recommendation name"
-msgstr ""
+msgstr "Nom de la recommandation"
 
 #: reporting/models.py:257
 msgid "Recommendation description"
-msgstr ""
+msgstr "Description de la recommandation"
 
 #: reporting/models.py:265
 msgid "Status of the recommendation"
-msgstr ""
+msgstr "Statut de la recommandation"
 
 #: reporting/models.py:267
 msgid "Due date"
-msgstr ""
+msgstr "Date d'échéance"
 
 #: reporting/models.py:270
 msgid "Recommendations"
@@ -1530,43 +1530,43 @@ msgstr "Recommandations"
 
 #: reporting/models.py:271
 msgid "Recommendation"
-msgstr ""
+msgstr "Recommandation"
 
 #: reporting/models.py:304
 msgid "Number of year to compare"
-msgstr ""
+msgstr "Nombre d'années à comparer"
 
 #: reporting/models.py:309
 msgid "High risk rate threshold"
-msgstr ""
+msgstr "Seuil de risque élevé"
 
 #: reporting/models.py:313
 msgid "Ranking"
-msgstr ""
+msgstr "Classement"
 
 #: reporting/models.py:314
 msgid "Top 3"
-msgstr ""
+msgstr "Top 3"
 
 #: reporting/models.py:314
 msgid "Top 5"
-msgstr ""
+msgstr "Top 5"
 
 #: reporting/models.py:314
 msgid "Top 10"
-msgstr ""
+msgstr "Top 10"
 
 #: reporting/models.py:319
 msgid "Security objectives excluded"
-msgstr ""
+msgstr "Objectifs de sécurité exclus"
 
 #: reporting/models.py:323
 msgid "Configurations"
-msgstr ""
+msgstr "Configurations"
 
 #: reporting/models.py:331
 msgid "description"
-msgstr ""
+msgstr "description"
 
 #: reporting/models.py:347
 msgid "Creation date"
@@ -1574,35 +1574,35 @@ msgstr "Date de création"
 
 #: reporting/models.py:354
 msgid "Recommendations for observation"
-msgstr ""
+msgstr "Recommandations pour l'observation"
 
 #: reporting/models.py:355
 msgid "Recommendation for observation"
-msgstr ""
+msgstr "Recommandation"
 
 #: reporting/models.py:368
 msgid "Observation recommendations"
-msgstr ""
+msgstr "Recommandations"
 
 #: reporting/models.py:372
 msgid "Observations"
-msgstr ""
+msgstr "Observations"
 
 #: reporting/models.py:373
 msgid "Observation"
-msgstr ""
+msgstr "Observation"
 
 #: reporting/models.py:384
 msgid "Observations order"
-msgstr ""
+msgstr "Ordre des observations"
 
 #: reporting/models.py:385
 msgid "Observation order"
-msgstr ""
+msgstr "Ordre des observations"
 
 #: reporting/models.py:400 securityobjectives/models.py:426
 msgid "User full name"
-msgstr ""
+msgstr "Nom complet de l'utilisateur"
 
 #: reporting/models.py:429
 msgid "Filename"
@@ -1611,105 +1611,109 @@ msgstr "Nom du fichier"
 #: reporting/views.py:146
 #, python-format
 msgid "%(sector)s forbidden"
-msgstr ""
+msgstr "%(sector)s interdit"
 
 #: reporting/views.py:166
 msgid "No reporting data"
-msgstr ""
+msgstr "Aucune donnée disponible"
 
 #: reporting/views.py:183 reporting/views.py:189
 msgid "No configuration for sector"
-msgstr ""
+msgstr "Aucune configuration pour le secteur"
 
 #: reporting/views.py:212
 msgid "No data found for security objectives report"
-msgstr ""
+msgstr "Aucune donnée trouvée pour le rapport sur les objectifs de sécurité"
 
 #: reporting/views.py:224
 msgid "No data found for risk report"
-msgstr ""
+msgstr "Aucune donnée trouvée pour le rapport sur les risques"
 
 #: reporting/views.py:277
 msgid ""
 "Report is being generated. It will be available shortly in the Download "
 "Center."
 msgstr ""
+"Le rapport est en cours de génération. Il sera bientôt disponible dans le "
+"centre de téléchargement."
 
 #: reporting/views.py:283
 msgid ""
 "Reports are being generated. They will be available shortly in the Download "
 "Center."
 msgstr ""
+"Les rapports sont en cours de génération. Ils seront bientôt disponibles "
+"dans le centre de téléchargement."
 
 #: reporting/views.py:355
 msgid "All sectors have been configured"
-msgstr ""
+msgstr "Tous les secteurs ont été configurés"
 
 #: reporting/views.py:392
 msgid "Configuration not found"
-msgstr ""
+msgstr "Configuration introuvable"
 
 #: reporting/views.py:486
 msgid "Recommendations have been added successfully"
-msgstr ""
+msgstr "Les recommandations ont été ajoutées avec succès"
 
 #: reporting/views.py:522
 #, python-brace-format
 msgid "No recommendations from {last_year}"
-msgstr ""
+msgstr "Aucune recommandations pour {last_year}"
 
 #: reporting/views.py:530
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
-msgstr ""
+msgstr "Les recommandations de {last_year} ont été copiées"
 
 #: reporting/views.py:563
 msgid "No report recommendation found"
-msgstr ""
+msgstr "Aucune recommandation trouvée"
 
 #: reporting/views.py:567
 msgid "The report recommendation has been deleted."
-msgstr ""
+msgstr "La recommandation a été supprimée."
 
 #: reporting/views.py:638 securityobjectives/views.py:925
 msgid "Invalid request"
-msgstr ""
+msgstr "Requête non valide"
 
 #: reporting/views.py:728
 msgid "Risk analysis successfully imported"
-msgstr ""
+msgstr "Analyse des risques importée avec succès"
 
 #: reporting/views.py:1155
 msgid "Uploaded file is not a JSON file."
-msgstr ""
+msgstr "Le fichier téléchargé n'est pas un fichier JSON."
 
 #: reporting/views.py:1160
 msgid "Uploaded file contains invalid JSON."
-msgstr ""
+msgstr "Le fichier téléchargé contient un JSON invalide."
 
 #: reporting/views.py:1163
 msgid "JSON file must contain an object at the root."
-msgstr ""
+msgstr "Le fichier JSON doit contenir un objet à la racine."
 
 #: reporting/views.py:1166
 msgid "Missing 'instances' key in the JSON file."
-msgstr ""
+msgstr "Clé « instances » manquante dans le fichier JSON."
 
 #: reporting/views.py:1180
 msgid "No company found"
-msgstr ""
+msgstr "Aucune entreprise trouvée"
 
 #: reporting/views.py:1189
 msgid "No sector found"
-msgstr ""
+msgstr "Aucun secteur trouvé"
 
 #: reporting/views.py:1198
 msgid "Year value is not a valid number"
-msgstr ""
+msgstr "La valeur de l'année n'est pas valide"
 
 #: reporting/views.py:1206
 msgid "Invalid year. Please provide a valid year."
-msgstr ""
+msgstr "Année non valide. Veuillez indiquer une année valide."
 
 #: securityobjectives/forms.py:128 securityobjectives/forms.py:169
 msgid "Evaluation Framework"
@@ -1717,11 +1721,11 @@ msgstr "Cadre d'évaluation"
 
 #: securityobjectives/globals.py:7
 msgid "Passed and sent"
-msgstr ""
+msgstr "Approuvé et envoyé"
 
 #: securityobjectives/globals.py:9
 msgid "Revision required and sent"
-msgstr ""
+msgstr "Améliorations requises et envoyé"
 
 #: securityobjectives/models.py:37
 msgid "Maturity levels"
@@ -1729,7 +1733,7 @@ msgstr "Niveaux de maturité"
 
 #: securityobjectives/models.py:38
 msgid "Maturity level"
-msgstr ""
+msgstr "Niveau de maturité"
 
 #: securityobjectives/models.py:68
 msgid "Domains"
@@ -1741,11 +1745,11 @@ msgstr "Domaine"
 
 #: securityobjectives/models.py:80 securityobjectives/models.py:236
 msgid "is archived"
-msgstr ""
+msgstr "est archivé"
 
 #: securityobjectives/models.py:107
 msgid "Security Objectives"
-msgstr ""
+msgstr "Objectifs de Sécurité"
 
 #: securityobjectives/models.py:155
 msgid "Email templates"
@@ -1753,23 +1757,23 @@ msgstr "Modèles d'e-mails"
 
 #: securityobjectives/models.py:156
 msgid "Email template"
-msgstr ""
+msgstr "Modèle d'e-mail"
 
 #: securityobjectives/models.py:177
 msgid "Submission e-mail"
-msgstr ""
+msgstr "E-mail de soumission"
 
 #: securityobjectives/models.py:186
 msgid "Email for status change"
-msgstr ""
+msgstr "E-mail pour changement de statut"
 
 #: securityobjectives/models.py:199
 msgid "Standards"
-msgstr "Standarts"
+msgstr "Standards"
 
 #: securityobjectives/models.py:200
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 #: securityobjectives/models.py:259
 msgid "Security Measures"
@@ -1781,7 +1785,7 @@ msgstr "Mesure de sécurité"
 
 #: securityobjectives/models.py:281
 msgid "Group ID"
-msgstr ""
+msgstr "Groupe ID"
 
 #: securityobjectives/models.py:295
 msgid "Last update"
@@ -1813,11 +1817,11 @@ msgstr "Échéance"
 
 #: securityobjectives/models.py:338
 msgid "Group"
-msgstr ""
+msgstr "Groupe"
 
 #: securityobjectives/models.py:368
 msgid "Implemented"
-msgstr ""
+msgstr "Implémenté"
 
 #: securityobjectives/models.py:390
 msgid "Not reviewed"
@@ -1825,11 +1829,11 @@ msgstr "Non revu"
 
 #: securityobjectives/models.py:391
 msgid "Pass"
-msgstr ""
+msgstr "Réussi"
 
 #: securityobjectives/models.py:392
 msgid "Fail"
-msgstr ""
+msgstr "Échec"
 
 #: securityobjectives/models.py:409
 msgid "Planned Measures"
@@ -1837,51 +1841,52 @@ msgstr "Mesures planifiées"
 
 #: securityobjectives/models.py:413
 msgid "It is completely filled out"
-msgstr ""
+msgstr "C'est entièrement rempli"
 
 #: securityobjectives/views.py:164 securityobjectives/views.py:887
 msgid "No data available"
-msgstr ""
+msgstr "Aucune donnée disponible"
 
 #: securityobjectives/views.py:218
 msgid "Standard does not exist"
-msgstr ""
+msgstr "Le standard n'existe pas"
 
 #: securityobjectives/views.py:239 securityobjectives/views.py:243
 #: securityobjectives/views.py:523 securityobjectives/views.py:643
 #: securityobjectives/views.py:676 securityobjectives/views.py:691
 #: securityobjectives/views.py:774 securityobjectives/views.py:795
 msgid "Declaration not found"
-msgstr ""
+msgstr "Déclaration introuvable"
 
 #: securityobjectives/views.py:512
 msgid "No sectors data available"
-msgstr ""
+msgstr "Aucune donnée sectorielle disponible"
 
 #: securityobjectives/views.py:625
 msgid "The security objectives declaration has been duplicated."
-msgstr ""
+msgstr "La déclaration des objectifs de sécurité a été dupliquée."
 
 #: securityobjectives/views.py:655
 msgid "The security objectives declaration has been submitted."
-msgstr ""
+msgstr "La déclaration des objectifs de sécurité a été soumise."
 
 #: securityobjectives/views.py:673
 msgid "The security objectives declaration has been deleted."
-msgstr ""
+msgstr "La déclaration relative aux objectifs de sécurité a été supprimée."
 
 #: securityobjectives/views.py:730
 msgid "The review comment has been saved."
-msgstr ""
+msgstr "Le commentaire de revue a été enregistré."
 
 #: securityobjectives/views.py:945
 msgid "Error opening the file: {}"
-msgstr ""
+msgstr "Erreur lors de l'ouverture du fichier : {}"
 
 #: securityobjectives/views.py:964
 msgid "No users for this company"
-msgstr ""
+msgstr "Aucun utilisateur pour cette entreprise"
 
 #: securityobjectives/views.py:991
 msgid "An error occurred while importing the declaration file."
 msgstr ""
+"Une erreur s'est produite lors de l'importation du fichier de la déclaration."
