@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-09 08:04+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"Last-Translator: Jacques Kellner <Jacques.Kellner+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -94,15 +94,15 @@ msgstr "Beobachter Regulierung"
 
 #: governanceplatform/admin.py:1664 governanceplatform/models.py:652
 msgid "Observer user"
-msgstr "Beobachter Benutzer"
+msgstr "Beobachter Nutzer"
 
 #: governanceplatform/admin.py:1665 governanceplatform/models.py:653
 msgid "Observer users"
-msgstr "Beobachter Benutzer"
+msgstr "Beobachter Nutzer"
 
 #: governanceplatform/apps.py:7
 msgid "Governance"
-msgstr "Governance"
+msgstr "Steuerung"
 
 #: governanceplatform/config.py:104 governanceplatform/config_dev.py:105
 msgid "Dutch"
@@ -265,11 +265,11 @@ msgstr ""
 
 #: governanceplatform/formset.py:24
 msgid "There must be at least one administrator user."
-msgstr "Es muss mindestens ein Administratorbenutzer geben."
+msgstr "Es muss mindestens einen Administrator geben."
 
 #: governanceplatform/globals.py:18
 msgid "Addition"
-msgstr "Hinzufügung"
+msgstr "Ergänzung"
 
 #: governanceplatform/globals.py:19
 msgid "Modification"
