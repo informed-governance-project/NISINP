@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-09 08:04+0000\n"
-"Last-Translator: Jacques Kellner <Jacques.Kellner+RegAdmin@ilr.lu>\n"
+"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -102,7 +102,7 @@ msgstr "Beobachter Nutzer"
 
 #: governanceplatform/apps.py:7
 msgid "Governance"
-msgstr "Steuerung"
+msgstr "Verwaltung"
 
 #: governanceplatform/config.py:104 governanceplatform/config_dev.py:105
 msgid "Dutch"
@@ -441,7 +441,7 @@ msgstr "Beschreibung"
 
 #: governanceplatform/models.py:255 governanceplatform/models.py:294
 msgid "E-mail address for incident notification"
-msgstr "E-Mail-Adresse für die Meldung von Vorfällen"
+msgstr "E-Mail-Adresse für die Vorfallmeldung"
 
 #: governanceplatform/models.py:271 governanceplatform/models.py:604
 #: incidents/admin.py:674 incidents/models.py:323 incidents/models.py:532
@@ -507,7 +507,7 @@ msgstr "Ist Administrator"
 
 #: governanceplatform/models.py:558
 msgid "Approved"
-msgstr "Abgenommen"
+msgstr "Bestätigt"
 
 #: governanceplatform/models.py:566
 msgid "Company User"
@@ -559,7 +559,7 @@ msgstr "Referenz"
 
 #: governanceplatform/models.py:712
 msgid "Entity category"
-msgstr "Kategorie der Entität"
+msgstr "Entitätskategorie"
 
 #: governanceplatform/models.py:720 incidents/admin.py:554
 #: incidents/models.py:42 incidents/models.py:318
@@ -568,7 +568,7 @@ msgstr "Rechtsgrundlage"
 
 #: governanceplatform/models.py:728
 msgid "Incident rules"
-msgstr "Regeln für Vorfälle"
+msgstr "Vorfallregeln"
 
 #: governanceplatform/models.py:754 incidents/models.py:898
 #: incidents/models.py:1008 incidents/models.py:1051 incidents/models.py:1141
@@ -588,7 +588,7 @@ msgstr "Objekt-ID"
 
 #: governanceplatform/models.py:758
 msgid "Object representation"
-msgstr "Darstellung des Objektes"
+msgstr "Objektdarstellung"
 
 #: governanceplatform/models.py:761
 msgid "Additional information"
@@ -695,7 +695,7 @@ msgid ""
 "Account created. A password reset email has been sent. Please check your "
 "inbox to set your password."
 msgstr ""
-"Konto erstellt. Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet. "
+"Konto erstellt. Eine E-Mail zum Zurücksetzen des Passworts wurde versendet. "
 "Bitte überprüfen Sie Ihren Posteingang, um Ihr Passwort festzulegen."
 
 #: governanceplatform/views.py:189 governanceplatform/views.py:298
@@ -729,7 +729,7 @@ msgstr "Vordefinierte Antworten"
 
 #: incidents/admin.py:428 incidents/models.py:116
 msgid "Question Type"
-msgstr "Frage-Art"
+msgstr "Frageart"
 
 #: incidents/admin.py:589 incidents/admin.py:764 incidents/admin.py:848
 msgid "General"
@@ -772,9 +772,9 @@ msgid ""
 "<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
 "in use.<br>- You are not its creator ({creator_name})"
 msgstr ""
-"<strong>Das Löschen ist nicht zulässig.</strong><br>- Dieses {Objektname} "
-"wird derzeit verwendet.<br>- Sie sind nicht dessen Ersteller "
-"({Erstellername})"
+"<strong>Das Löschen ist nicht zulässig.</strong><br>- Dieses Objekt  "
+"{object_name} wird derzeit verwendet.<br>- Sie sind nicht dessen Ersteller "
+"({creator_name})"
 
 #: incidents/decorators.py:39
 msgid ""
@@ -790,7 +790,7 @@ msgstr "Suchen"
 
 #: incidents/forms.py:266
 msgid "Add details"
-msgstr "Genauere Angaben hinzufügen"
+msgstr "Details hinzufügen"
 
 #: incidents/forms.py:296 incidents/forms.py:661 incidents/forms.py:895
 #: incidents/forms.py:902 incidents/forms.py:909 incidents/forms.py:916
@@ -870,7 +870,7 @@ msgstr "Das Startdatum darf nicht nach dem Erkennungsdatum liegen."
 
 #: incidents/forms.py:1029
 msgid "Resolution date cannot be before detection date."
-msgstr "Das Datum der Auflösung darf nicht vor dem Datum der Erkennung liegen."
+msgstr "Das Auflösungsdatum darf nicht vor dem Entdeckungsdatum liegen."
 
 #: incidents/forms.py:1143 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
@@ -1039,11 +1039,11 @@ msgstr "Status-Aktualisierungs E-Mail"
 
 #: incidents/models.py:365
 msgid "Incident notification workflows"
-msgstr "Workflow für die Meldung von Vorfällen"
+msgstr "Workflow für die Vorfallmeldungen"
 
 #: incidents/models.py:366
 msgid "Incident notification workflow"
-msgstr "Workflows für die Meldung von Vorfällen"
+msgstr "Workflows für die Vorfallmeldung"
 
 #: incidents/models.py:382 incidents/models.py:1037 incidents/models.py:1054
 #: incidents/models.py:1071
@@ -1064,7 +1064,7 @@ msgstr "Berichte"
 
 #: incidents/models.py:474
 msgid "Email subject"
-msgstr "E-Mail-Betreff"
+msgstr "E-Mail Betreff"
 
 #: incidents/models.py:485
 msgid "Trigger event"
@@ -1100,7 +1100,7 @@ msgstr "Vorname des Ansprechpartners"
 
 #: incidents/models.py:554
 msgid "Contact job title"
-msgstr "Stellenbezeichnung des Ansprechpartners"
+msgstr "Jobtitel des Ansprechpartners"
 
 #: incidents/models.py:556
 msgid "Contact email"
@@ -1120,7 +1120,7 @@ msgstr "Vorname des technischen Ansprechpartners"
 
 #: incidents/models.py:568
 msgid "Technical job title"
-msgstr "Stellenbezeichnung des technischen Ansprechpartners"
+msgstr "Jobtitel des technischen Ansprechpartners"
 
 #: incidents/models.py:571
 msgid "Technical email"
@@ -1132,7 +1132,7 @@ msgstr "Telefon des technischen Ansprechpartners"
 
 #: incidents/models.py:578
 msgid "Internal incident reference"
-msgstr "Interne Vorfall-Kennung"
+msgstr "Interne Vorfall-Nummer"
 
 #: incidents/models.py:581
 msgid "Criminal complaint file number"
@@ -1426,7 +1426,7 @@ msgstr "Gesamtzahl der behandelten Risiken"
 
 #: reporting/models.py:143
 msgid "Total of reduced risks"
-msgstr "Gesamtzahl der reduzierten Risiken"
+msgstr "Gesamtanzahl der reduzierten Risiken"
 
 #: reporting/models.py:147
 msgid "Total of denied risks"
@@ -1450,7 +1450,7 @@ msgstr "Durchschnitt der Restrisiken"
 
 #: reporting/models.py:167
 msgid "Risk analysis stats"
-msgstr "Risikoanalyse-Statistiken"
+msgstr "Risikoanalyse-Statistik"
 
 #: reporting/models.py:168
 msgid "Risk analysis stat"
@@ -1494,7 +1494,7 @@ msgstr "Vertraulichkeitsauswirkung"
 
 #: reporting/models.py:235
 msgid "Integrity impact"
-msgstr "Integritätsauswierkung"
+msgstr "Integritätsauswirkung"
 
 #: reporting/models.py:239
 msgid "Availability impact"
@@ -1777,7 +1777,7 @@ msgstr "Standards"
 
 #: securityobjectives/models.py:200
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 #: securityobjectives/models.py:259
 msgid "Security Measures"
@@ -1789,7 +1789,7 @@ msgstr "Sicherheitsmaßnahme"
 
 #: securityobjectives/models.py:281
 msgid "Group ID"
-msgstr ""
+msgstr "Gruppen-ID"
 
 #: securityobjectives/models.py:295
 msgid "Last update"
@@ -1821,11 +1821,11 @@ msgstr "Frist"
 
 #: securityobjectives/models.py:338
 msgid "Group"
-msgstr ""
+msgstr "Gruppe"
 
 #: securityobjectives/models.py:368
 msgid "Implemented"
-msgstr ""
+msgstr "Implementiert"
 
 #: securityobjectives/models.py:390
 msgid "Not reviewed"
@@ -1833,7 +1833,7 @@ msgstr "Nicht überprüft"
 
 #: securityobjectives/models.py:392
 msgid "Fail"
-msgstr ""
+msgstr "Nicht bestanden"
 
 #: securityobjectives/models.py:409
 msgid "Planned Measures"
@@ -1841,15 +1841,15 @@ msgstr "Geplante Maßnahmen"
 
 #: securityobjectives/models.py:413
 msgid "It is completely filled out"
-msgstr ""
+msgstr "Es ist vollständig ausgefüllt"
 
 #: securityobjectives/views.py:164 securityobjectives/views.py:887
 msgid "No data available"
-msgstr ""
+msgstr "Keine Daten verfügbar"
 
 #: securityobjectives/views.py:218
 msgid "Standard does not exist"
-msgstr ""
+msgstr "Standard existiert nicht"
 
 #: securityobjectives/views.py:239 securityobjectives/views.py:243
 #: securityobjectives/views.py:523 securityobjectives/views.py:643
@@ -1860,7 +1860,7 @@ msgstr "Deklaration nicht gefunden"
 
 #: securityobjectives/views.py:512
 msgid "No sectors data available"
-msgstr ""
+msgstr "Keine Daten zu Sektoren verfügbar"
 
 #: securityobjectives/views.py:625
 msgid "The security objectives declaration has been duplicated."
@@ -1876,15 +1876,15 @@ msgstr "Die Deklaration der Sicherheitsziele wurde gelöscht."
 
 #: securityobjectives/views.py:730
 msgid "The review comment has been saved."
-msgstr ""
+msgstr "Der Bewertungskommentar wurde gespeichert."
 
 #: securityobjectives/views.py:945
 msgid "Error opening the file: {}"
-msgstr ""
+msgstr "Fehler beim Öffnen der Datei: {}"
 
 #: securityobjectives/views.py:964
 msgid "No users for this company"
-msgstr ""
+msgstr "Keine Benutzer für dieses Unternehmen"
 
 #: securityobjectives/views.py:991
 msgid "An error occurred while importing the declaration file."
