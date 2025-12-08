@@ -1228,7 +1228,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             raise Http404()
 
         User.objects.update(accepted_terms=False)
-        messages.success(request, _("Terms acceptation has been reseted"))
+        messages.success(request, _("Terms acceptation has been reset"))
         return redirect("..")
 
     def changelist_view(self, request, extra_context=None):
