@@ -3,18 +3,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 09:26+0100\n"
+"POT-Creation-Date: 2025-12-08 09:59+0100\n"
 "PO-Revision-Date: 2025-12-05 17:27+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
-"backend/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "backend/fr/>\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.14.3\n"
-"Generated-By: xls-to-po 1.0\n"
 
 #: governanceplatform/admin.py:71 governanceplatform/context_processors.py:29
 #: governanceplatform/views.py:99
@@ -84,8 +81,8 @@ msgid "Cookies acceptation has been reseted"
 msgstr "L'acceptation des cookies a été réinitialisée"
 
 #: governanceplatform/admin.py:1231
-msgid "Terms acceptation has been reseted"
-msgstr "L'acceptation des conditions d'utilisation a été réinitialisée"
+msgid "Terms acceptation has been reset"
+msgstr ""
 
 #: governanceplatform/admin.py:1656 governanceplatform/models.py:745
 msgid "Observer regulation"
@@ -1535,7 +1532,6 @@ msgid "Recommendation"
 msgstr "Recommandation"
 
 #: reporting/models.py:304
-#| msgid "Number of year to compare"
 msgid "Number of years to compare"
 msgstr ""
 
