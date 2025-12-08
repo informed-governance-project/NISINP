@@ -3,10 +3,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-04 09:56+0100\n"
+"POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-05 17:27+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
-"Language-Team: French <http://127.0.0.1:8010/projects/serima-reporting/"
 "backend/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -128,8 +127,8 @@ msgid ""
 msgstr ""
 "Ce site web utilise des cookies et des technologies similaires "
 "indispensables à son fonctionnement, sans traiter pour autant de données à "
-"caractère personnel. En cliquant sur « Accepter », vous consentez à l’"
-"utilisation des cookies. Pour plus de détails, voir :"
+"caractère personnel. En cliquant sur « Accepter », vous consentez à "
+"l’utilisation des cookies. Pour plus de détails, voir :"
 
 #: governanceplatform/config.py:142 governanceplatform/config_dev.py:143
 msgid "Cookie used to store the user’s consent to the use of cookies."
@@ -310,9 +309,9 @@ msgid ""
 "This {object_name} is either in use.<br>- You are not its creator "
 "({creator_name})"
 msgstr ""
-"<strong>Les actions de modification et de suppression ne sont pas "
-"autorisées.</strong><br>- Ce {object_name} est soit en cours "
-"d'utilisation.<br>- Vous n'en êtes pas le créateur ({creator_name})"
+"<strong>Les actions de modification et de suppression ne sont pas autorisées."
+"</strong><br>- Ce {object_name} est soit en cours d'utilisation.<br>- Vous "
+"n'en êtes pas le créateur ({creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
@@ -808,8 +807,8 @@ msgid ""
 "Please include a reference (e.g., an identifier, internal reference, CERT "
 "reference, etc.) to facilitate incident tracking."
 msgstr ""
-"Veuillez insérer une référence pour suivre facilement votre incident "
-"(ex : référence interne, référence CERT, etc.)."
+"Veuillez insérer une référence pour suivre facilement votre incident (ex : "
+"référence interne, référence CERT, etc.)."
 
 #: incidents/forms.py:526
 msgid "Complaint reference"
@@ -819,7 +818,8 @@ msgstr "Référence de la plainte"
 msgid ""
 "Insert the file number of a criminal complaint that you have filed with the "
 "police."
-msgstr "Insérer le numéro de dossier de la plainte déposée auprès de la police."
+msgstr ""
+"Insérer le numéro de dossier de la plainte déposée auprès de la police."
 
 #: incidents/forms.py:608
 msgid "Send notification to"
@@ -835,6 +835,7 @@ msgstr "Sélectionnez la date et l'heure"
 
 #: incidents/forms.py:787 incidents/globals.py:45 incidents/globals.py:53
 #: incidents/globals.py:74 securityobjectives/globals.py:6
+#: securityobjectives/models.py:391
 msgid "Passed"
 msgstr "Réussi"
 
@@ -1533,8 +1534,9 @@ msgid "Recommendation"
 msgstr "Recommandation"
 
 #: reporting/models.py:304
-msgid "Number of year to compare"
-msgstr "Nombre d'années à comparer"
+#| msgid "Number of year to compare"
+msgid "Number of years to compare"
+msgstr ""
 
 #: reporting/models.py:309
 msgid "High risk rate threshold"
@@ -1826,10 +1828,6 @@ msgstr "Implémenté"
 #: securityobjectives/models.py:390
 msgid "Not reviewed"
 msgstr "Non revu"
-
-#: securityobjectives/models.py:391
-msgid "Pass"
-msgstr "Réussi"
 
 #: securityobjectives/models.py:392
 msgid "Fail"

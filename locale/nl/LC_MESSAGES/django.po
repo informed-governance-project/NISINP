@@ -3,9 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-04 09:56+0100\n"
+"POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-02 09:49+0000\n"
-"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +20,6 @@ msgid "Settings"
 msgstr "Instellingen"
 
 #: governanceplatform/admin.py:175 governanceplatform/admin.py:176
-#| msgid "Settings"
 msgid "Django Settings"
 msgstr ""
 
@@ -823,6 +821,7 @@ msgstr "Selecteer datum en uur"
 
 #: incidents/forms.py:787 incidents/globals.py:45 incidents/globals.py:53
 #: incidents/globals.py:74 securityobjectives/globals.py:6
+#: securityobjectives/models.py:391
 msgid "Passed"
 msgstr "Aanvaard"
 
@@ -1512,7 +1511,7 @@ msgid "Recommendation"
 msgstr ""
 
 #: reporting/models.py:304
-msgid "Number of year to compare"
+msgid "Number of years to compare"
 msgstr ""
 
 #: reporting/models.py:309
@@ -1800,10 +1799,6 @@ msgstr ""
 
 #: securityobjectives/models.py:390
 msgid "Not reviewed"
-msgstr ""
-
-#: securityobjectives/models.py:391
-msgid "Pass"
 msgstr ""
 
 #: securityobjectives/models.py:392
