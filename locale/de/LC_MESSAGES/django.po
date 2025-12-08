@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-08 09:26+0100\n"
 "PO-Revision-Date: 2025-12-08 15:27+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1515,11 +1515,11 @@ msgstr "Empfehlungsbeschreibung"
 
 #: reporting/models.py:265
 msgid "Status of the recommendation"
-msgstr ""
+msgstr "Status der Empfehlung"
 
 #: reporting/models.py:267
 msgid "Due date"
-msgstr ""
+msgstr "Fälligkeitsdatum"
 
 #: reporting/models.py:270
 msgid "Recommendations"
@@ -1527,7 +1527,7 @@ msgstr "Empfehlungen"
 
 #: reporting/models.py:271
 msgid "Recommendation"
-msgstr ""
+msgstr "Empfehlung"
 
 #: reporting/models.py:304
 msgid "Number of years to compare"
@@ -1535,11 +1535,11 @@ msgstr ""
 
 #: reporting/models.py:309
 msgid "High risk rate threshold"
-msgstr ""
+msgstr "Schwellenwert für hohe Risikoklasse"
 
 #: reporting/models.py:313
 msgid "Ranking"
-msgstr ""
+msgstr "Rangliste"
 
 #: reporting/models.py:314
 msgid "Top 3"
