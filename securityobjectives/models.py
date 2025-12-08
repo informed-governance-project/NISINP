@@ -388,7 +388,7 @@ class SecurityObjectiveStatus(models.Model):
     status = models.CharField(
         choices=[
             ("NOT_REVIEWED", _("Not reviewed")),
-            ("PASS", _("Pass")),
+            ("PASS", _("Passed")),
             ("FAIL", _("Fail")),
         ],
         blank=False,

@@ -301,7 +301,7 @@ class SectorReportConfiguration(models.Model):
     )
 
     number_of_year = models.PositiveSmallIntegerField(
-        verbose_name=_("Number of year to compare"),
+        verbose_name=_("Number of years to compare"),
         choices=[(nb_year, str(nb_year)) for nb_year in range(1, 4)],
     )
 
