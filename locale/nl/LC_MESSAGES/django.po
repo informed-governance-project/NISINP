@@ -3,16 +3,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-04 09:51+0100\n"
-"PO-Revision-Date: 2025-07-10 16:33+0200\n"
-"Last-Translator: \n"
+"POT-Creation-Date: 2025-12-08 09:43+0100\n"
+"PO-Revision-Date: 2025-12-02 09:49+0000\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 "Generated-By: xls-to-po 1.0\n"
-"X-Generator: Poedit 3.6\n"
 
 #: governanceplatform/admin.py:71 governanceplatform/context_processors.py:24
 #: governanceplatform/views.py:99
@@ -20,7 +20,6 @@ msgid "Settings"
 msgstr "Instellingen"
 
 #: governanceplatform/admin.py:175 governanceplatform/admin.py:176
-#| msgid "Settings"
 msgid "Django Settings"
 msgstr ""
 
@@ -76,7 +75,7 @@ msgstr "Rollen"
 
 #: governanceplatform/admin.py:1195
 msgid "Companies"
-msgstr ""
+msgstr "Ondernemingen"
 
 #: governanceplatform/admin.py:1223
 msgid "Cookies acceptation has been reseted"
@@ -260,7 +259,7 @@ msgstr ""
 
 #: governanceplatform/formset.py:24
 msgid "There must be at least one administrator user."
-msgstr ""
+msgstr "Er moet minstens een administrator bestaan."
 
 #: governanceplatform/globals.py:18
 msgid "Addition"
@@ -284,7 +283,7 @@ msgstr "Uitloggen"
 
 #: governanceplatform/globals.py:24
 msgid "Export"
-msgstr ""
+msgstr "Exporteren"
 
 #: governanceplatform/globals.py:28
 msgid "Security objective"
@@ -597,7 +596,7 @@ msgstr ""
 
 #: governanceplatform/views.py:86
 msgid "Accessibility statement"
-msgstr ""
+msgstr "Toegankelijkheidsverklaring"
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
@@ -621,7 +620,7 @@ msgstr "Accountbeveiliging"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
-msgstr ""
+msgstr "Wachtwoord wijzigen"
 
 #: governanceplatform/views.py:106
 msgid "Log out"
@@ -921,7 +920,7 @@ msgstr "Stappen in meldingsformulier"
 
 #: incidents/models.py:119
 msgid "Reference"
-msgstr ""
+msgstr "Referentie"
 
 #: incidents/models.py:125
 msgid "Tooltip"

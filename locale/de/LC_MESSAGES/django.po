@@ -3,15 +3,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-04 09:51+0100\n"
-"PO-Revision-Date: 2025-11-25 15:00+0000\n"
-"Last-Translator: Weblate Admin <weblate@admin.lu>\n"
-"Language-Team: German <http://127.0.0.1:8010/projects/serima-reporting/"
-"backend/de/>\n"
+"POT-Creation-Date: 2025-12-08 09:43+0100\n"
+"PO-Revision-Date: 2025-12-08 07:27+0000\n"
+"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"backend/de/>\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 5.14.3\n"
 "Generated-By: xls-to-po 1.0\n"
@@ -22,9 +21,8 @@ msgid "Settings"
 msgstr "Einstellungen"
 
 #: governanceplatform/admin.py:175 governanceplatform/admin.py:176
-#| msgid "Settings"
 msgid "Django Settings"
-msgstr ""
+msgstr "Django-Einstellungen"
 
 #: governanceplatform/admin.py:416
 msgid "Contact for company"
@@ -50,7 +48,7 @@ msgstr "Entitäts-Kategorien"
 
 #: governanceplatform/admin.py:707
 msgid "Suggestion to Link a User Account with Your Company"
-msgstr ""
+msgstr "Vorschlag zur Verknüpfung eines Benutzerkontos mit Ihrem Unternehmen"
 
 #: governanceplatform/admin.py:991
 msgid "Reset 2FA"
@@ -293,6 +291,7 @@ msgid "Export"
 msgstr ""
 
 #: governanceplatform/globals.py:28
+#| msgid "Security objectives"
 msgid "Security objective"
 msgstr ""
 
@@ -604,11 +603,11 @@ msgstr "Nutzungsbedingungen"
 
 #: governanceplatform/views.py:85
 msgid "Cookies policy"
-msgstr ""
+msgstr "Cookies-Richtlinie"
 
 #: governanceplatform/views.py:86
 msgid "Accessibility statement"
-msgstr ""
+msgstr "Erklärung zur Barrierefreiheit"
 
 #: governanceplatform/views.py:88 governanceplatform/views.py:102
 msgid "Account"
@@ -632,7 +631,7 @@ msgstr "Kontosicherheit"
 
 #: governanceplatform/views.py:105
 msgid "Change password"
-msgstr ""
+msgstr "Passwort ändern"
 
 #: governanceplatform/views.py:106
 msgid "Log out"
@@ -660,7 +659,7 @@ msgstr "Sicherheitsziele"
 
 #: governanceplatform/views.py:135
 msgid "Download Center"
-msgstr ""
+msgstr "Download Center"
 
 #: governanceplatform/views.py:137
 msgid "Configuration"
@@ -933,7 +932,7 @@ msgstr "Schritte im Meldeformular"
 
 #: incidents/models.py:119
 msgid "Reference"
-msgstr ""
+msgstr "Referenz"
 
 #: incidents/models.py:125
 msgid "Tooltip"
@@ -1135,19 +1134,19 @@ msgstr "Vorfälle"
 
 #: incidents/models.py:873
 msgid "Incident starting date"
-msgstr ""
+msgstr "Beginn des Vorfalls"
 
 #: incidents/models.py:882
 msgid "Report timeline timezone"
-msgstr ""
+msgstr "Bericht Zeitablauf Zeitzone"
 
 #: incidents/models.py:912 incidents/views.py:1526
 msgid "Comment/Explanation"
-msgstr ""
+msgstr "Kommentar/Erläuterung"
 
 #: incidents/models.py:918
 msgid "Timeline"
-msgstr ""
+msgstr "Zeitablauf"
 
 #: incidents/models.py:1010
 msgid "Full username"
