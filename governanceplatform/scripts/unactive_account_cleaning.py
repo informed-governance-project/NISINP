@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
+from django.contrib.auth.models import Group
 from django.db import DatabaseError
 from django.db.models.functions import Now
 
@@ -16,12 +17,13 @@ logger = logging.getLogger(__name__)
 @shared_task(name="unactive_account_cleaning")
 def run(logger=logger):
     logger.info("running incident_cleaning.py")
-    # for all closed incident
     try:
+        IncidentUserGrouId = Group.objects.get(name="IncidentUser").id
         user_to_delete_qs = User.objects.filter(
             last_login__isnull=True,
             email_verified=False,
             date_joined__lte=Now() - timedelta(seconds=PASSWORD_RESET_TIMEOUT),
+            groups__in=[IncidentUserGrouId],
         )
     except DatabaseError as e:
         logger.error("Failed to fetch users to delete: %s", e, exc_info=True)

@@ -175,7 +175,6 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
 # mark use for deletion to avoid removing group on inexisting object
 @receiver(pre_delete, sender=User)
 def mark_user_for_deletion(sender, instance, **kwargs):
-    print("mark user for deletion")
     if not hasattr(_thread_locals, "deleting_users"):
         _thread_locals.deleting_users = set()
     _thread_locals.deleting_users.add(instance.pk)

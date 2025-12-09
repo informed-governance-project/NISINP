@@ -142,7 +142,7 @@ class OperatorType(TranslatableModel):
 # operator are companies
 class Company(models.Model):
     identifier = models.CharField(
-        max_length=4,
+        max_length=10,
         verbose_name=_("Acronym"),
         unique=True,
     )  # requirement from business concat(name_country_regulator)
@@ -326,7 +326,11 @@ class Observer(TranslatableModel):
 
     def get_incidents(self):
         if self.is_receiving_all_incident:
-            return Incident.objects.all().order_by("-incident_notification_date")
+            return (
+                Incident.objects.all()
+                .order_by("-incident_notification_date")
+                .exclude(sector_regulation__isnull=True)
+            )
 
         observer_regulations = self.observerregulation_set.all()
 
@@ -337,7 +341,9 @@ class Observer(TranslatableModel):
         for observer_regulation in observer_regulations:
             filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
-            query = Incident.objects.filter(sector_regulation__regulation=regulation)
+            query = Incident.objects.filter(
+                sector_regulation__regulation=regulation
+            ).exclude(sector_regulation__isnull=True)
             conditions = filter_conditions.get("conditions", [])
             if conditions:
                 for condition in conditions:
@@ -425,7 +431,7 @@ class User(AbstractUser, PermissionsMixin):
 
     email_verified = models.BooleanField(
         verbose_name=_("Email verified"),
-        default=True,
+        default=False,
         help_text=_("Indicates whether the user has verified their email address."),
     )
 
@@ -494,6 +500,8 @@ class User(AbstractUser, PermissionsMixin):
         return []
 
     class Meta:
+        verbose_name_plural = _("Users")
+        verbose_name = _("User")
         permissions = (
             ("import_user", "Can import user"),
             ("export_user", "Can export user"),
@@ -648,6 +656,10 @@ class Regulation(TranslatableModel):
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
         return label_translation or ""
+
+    class Meta:
+        verbose_name_plural = _("Regulations")
+        verbose_name = _("Regulation")
 
 
 # To categorize the operator, used for the observers to see or not the incident

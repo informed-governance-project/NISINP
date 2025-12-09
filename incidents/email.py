@@ -8,7 +8,7 @@ from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from governanceplatform.models import Observer, RegulatorUser
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
@@ -48,7 +48,9 @@ def replace_email_variables(content, incident):
                 )
             else:
                 var_txt = (
-                    last_report.report_timeline.incident_detection_date.strftime("%Y-%m-%d")
+                    last_report.report_timeline.incident_detection_date.strftime(
+                        "%Y-%m-%d"
+                    )
                     if last_report.report_timeline.incident_detection_date is not None
                     else ""
                 )
@@ -58,7 +60,9 @@ def replace_email_variables(content, incident):
                 var_txt = ""
             else:
                 var_txt = (
-                    last_report.report_timeline.incident_starting_date.strftime("%Y-%m-%d")
+                    last_report.report_timeline.incident_starting_date.strftime(
+                        "%Y-%m-%d"
+                    )
                     if last_report.report_timeline.incident_starting_date is not None
                     else ""
                 )
@@ -135,11 +139,14 @@ def get_recipient_list(incident):
 
 
 def send_email(email, incident, send_to_observers=False):
-    subject = replace_email_variables(email.subject, incident)
-    html_content = render_to_string(
+    subject = replace_email_variables(
+        email.safe_translation_getter("subject", language_code=settings.LANGUAGE_CODE),
+        incident,
+    )
+    html_content = render_to_string_multi_languages(
         "incidents/email.html",
         {
-            "content": replace_email_variables(email.content, incident),
+            "content": None,
             "url_site": settings.PUBLIC_URL,
             "company_name": incident.company_name,
             "incident_contact_title": incident.contact_title,
@@ -149,6 +156,8 @@ def send_email(email, incident, send_to_observers=False):
             "technical_contact_firstname": incident.technical_firstname,
             "technical_contact_lastname": incident.technical_lastname,
         },
+        content=email,
+        incident=incident,
     )
     recipient_list = get_recipient_list(incident)
 
@@ -250,3 +259,48 @@ def check_rt_config(observer):
     except requests.RequestException as e:
         logger.error(f"Error connecting to RT API: {e}")
         return False
+
+
+def render_to_string_multi_languages(
+    template_name, context, content=None, incident=None
+):
+    """
+    Render a template in multiple languages.
+    - 'content' and 'incident' are ONLY used to replace variables
+        in the content context in send_email() function.
+    """
+    parts = []
+
+    with translation.override(settings.LANGUAGE_CODE):
+        if content and incident:
+            context["content"] = replace_email_variables(
+                content.safe_translation_getter(
+                    "content", language_code=settings.LANGUAGE_CODE
+                ),
+                incident,
+            )
+        baseline = render_to_string(template_name, context)
+
+    for lang_code, lang_name in settings.LANGUAGES:
+        with translation.override(lang_code):
+            if content and incident:
+                context["content"] = replace_email_variables(
+                    content.safe_translation_getter("content", language_code=lang_code),
+                    incident,
+                )
+
+            rendered = render_to_string(template_name, context)
+
+            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
+                continue
+
+            parts.append(
+                f"""
+                <h3>{translation.gettext(lang_name)} ({lang_code})</h3>
+                {rendered}
+                """.strip()
+            )
+    if not parts:
+        return baseline
+
+    return "<hr>".join(parts)
