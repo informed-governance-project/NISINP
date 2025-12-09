@@ -3,17 +3,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 09:46+0100\n"
-"PO-Revision-Date: 2025-12-08 07:27+0000\n"
-"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
+"POT-Creation-Date: 2025-12-09 11:28+0100\n"
+"PO-Revision-Date: 2025-12-09 08:04+0000\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"backend/de/>\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 5.14.3\n"
-"Generated-By: xls-to-po 1.0\n"
 
 #: governanceplatform/admin.py:71 governanceplatform/context_processors.py:24
 #: governanceplatform/views.py:99
@@ -68,7 +66,7 @@ msgstr "Beobachter"
 #: governanceplatform/admin.py:1045 governanceplatform/models.py:208
 #: governanceplatform/models.py:411
 msgid "Operators"
-msgstr "Betreiber"
+msgstr "Operatoren"
 
 #: governanceplatform/admin.py:1070
 msgid "Roles"
@@ -76,35 +74,35 @@ msgstr "Rollen"
 
 #: governanceplatform/admin.py:1195
 msgid "Companies"
-msgstr ""
+msgstr "Unternehmen"
 
 #: governanceplatform/admin.py:1223
 msgid "Cookies acceptation has been reseted"
-msgstr ""
+msgstr "Die Cookie-Zusage wurde zurückgesetzt"
 
 #: governanceplatform/admin.py:1231
-msgid "Terms acceptation has been reseted"
-msgstr ""
+msgid "Terms acceptation has been reset"
+msgstr "Die Zustimmung zu den Nutzungsbedingungen wurde zurückgesetzt"
 
 #: governanceplatform/admin.py:1656 governanceplatform/models.py:720
 msgid "Observer regulation"
-msgstr "Beobachter Rechtsgrundlage"
+msgstr "Beobachter Regulierung"
 
 #: governanceplatform/admin.py:1657 governanceplatform/models.py:721
 msgid "Observer regulations"
-msgstr "Beobachter Rechtsgrundlagen"
+msgstr "Beobachter Regulierung"
 
 #: governanceplatform/admin.py:1664 governanceplatform/models.py:627
 msgid "Observer user"
-msgstr "Beobachter Benutzer"
+msgstr "Beobachter Nutzer"
 
 #: governanceplatform/admin.py:1665 governanceplatform/models.py:628
 msgid "Observer users"
-msgstr "Beobachter Benutzer"
+msgstr "Beobachter Nutzer"
 
 #: governanceplatform/apps.py:7
 msgid "Governance"
-msgstr "Governance"
+msgstr "Verwaltung"
 
 #: governanceplatform/config.py:104 governanceplatform/config_dev.py:105
 msgid "Dutch"
@@ -116,7 +114,7 @@ msgstr "Cookie-Hinweis"
 
 #: governanceplatform/config.py:132 governanceplatform/config_dev.py:133
 msgid "Essential"
-msgstr "Erforderlich"
+msgstr "Wesentlich"
 
 #: governanceplatform/config.py:134 governanceplatform/config_dev.py:135
 msgid ""
@@ -170,7 +168,7 @@ msgstr "Token"
 
 #: governanceplatform/config.py:165 governanceplatform/config_dev.py:166
 msgid "Cookie used to store user language preferences."
-msgstr "Cookie zum Speichern der bevorzugten Sprache des Benutzers."
+msgstr "Cookie zum Speichern der bevorzugten Sprache des Nutzers."
 
 #: governanceplatform/config.py:166 governanceplatform/config_dev.py:167
 msgid "Language settings"
@@ -189,7 +187,7 @@ msgstr ""
 
 #: governanceplatform/config.py:172 governanceplatform/config_dev.py:173
 msgid "Dark/light theme settings"
-msgstr "Einstellung für dunkles/helles Thema"
+msgstr "Einstellung für dunkles/helles Design"
 
 #: governanceplatform/context_processors.py:50
 #: governanceplatform/context_processors.py:53 governanceplatform/views.py:123
@@ -199,7 +197,7 @@ msgstr "Vorfallmeldung"
 
 #: governanceplatform/context_processors.py:86
 msgid "Modules"
-msgstr ""
+msgstr "Module"
 
 #: governanceplatform/forms.py:21 governanceplatform/forms.py:118
 msgid "First name"
@@ -235,7 +233,7 @@ msgstr ""
 
 #: governanceplatform/forms.py:182
 msgid "There is an issue, please verify your e-mail"
-msgstr ""
+msgstr "Es gibt ein Problem, bitte überprüfen Sie Ihre E-Mail-Adresse"
 
 #: governanceplatform/forms.py:214
 #, python-format
@@ -261,14 +259,16 @@ msgid ""
 "A token is already set. To remove it, clear the field and save. To update "
 "it, enter a new token."
 msgstr ""
+"Ein Token ist bereits konfiguriert. Um es zu entfernen, löschen Sie das Feld "
+"und speichern Sie. Um es zu aktualisieren, geben Sie ein neues Token ein."
 
 #: governanceplatform/formset.py:24
 msgid "There must be at least one administrator user."
-msgstr ""
+msgstr "Es muss mindestens einen Administrator geben."
 
 #: governanceplatform/globals.py:18
 msgid "Addition"
-msgstr "Hinzufügung"
+msgstr "Ergänzung"
 
 #: governanceplatform/globals.py:19
 msgid "Modification"
@@ -288,7 +288,7 @@ msgstr "Abmeldung"
 
 #: governanceplatform/globals.py:24
 msgid "Export"
-msgstr ""
+msgstr "Exportieren"
 
 #: governanceplatform/globals.py:28
 msgid "Security objective"
@@ -302,12 +302,12 @@ msgid ""
 "({creator_name})"
 msgstr ""
 "<strong>Änderungen und Löschungen sind nicht erlaubt.</strong><br>- Dieses "
-"Objekt {object_name} wird entweder   verwendet.<br>- Sie sind nicht sein "
+"Objekt {object_name} wird entweder verwendet.<br>- Sie sind nicht sein "
 "Schöpfer ({creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
-msgstr "Der Benutzer muss eine E-Mail-Adresse haben"
+msgstr "Der Nutzer muss eine E-Mail-Adresse haben"
 
 #: governanceplatform/managers.py:28
 msgid "Superuser must have is_staff=True."
@@ -409,7 +409,7 @@ msgstr "Typen"
 #: governanceplatform/models.py:207 governanceplatform/models.py:522
 #: incidents/models.py:524
 msgid "Operator"
-msgstr "Betreiber"
+msgstr "Operator"
 
 #: governanceplatform/models.py:216 governanceplatform/models.py:255
 msgid "Full name"
@@ -422,7 +422,7 @@ msgstr "Beschreibung"
 
 #: governanceplatform/models.py:230 governanceplatform/models.py:269
 msgid "E-mail address for incident notification"
-msgstr "E-Mail-Adresse für die Meldung von Vorfällen"
+msgstr "E-Mail-Adresse für die Vorfallsmeldung"
 
 #: governanceplatform/models.py:246 governanceplatform/models.py:579
 #: incidents/admin.py:674 incidents/models.py:323 incidents/models.py:532
@@ -435,11 +435,11 @@ msgstr "Erhält alle Vorfallmeldungen"
 
 #: governanceplatform/models.py:287
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: governanceplatform/models.py:324
 msgid "Queue"
-msgstr ""
+msgstr "Warteschlange"
 
 #: governanceplatform/models.py:388 governanceplatform/models.py:421
 msgid "Observers"
@@ -462,11 +462,11 @@ msgstr ""
 
 #: governanceplatform/models.py:433
 msgid "Email verified"
-msgstr ""
+msgstr "E-Mail-Adresse bestätigt"
 
 #: governanceplatform/models.py:435
 msgid "Indicates whether the user has verified their email address."
-msgstr ""
+msgstr "Gibt an, ob der Benutzer seine E-Mail-Adresse bestätigt hat."
 
 #: governanceplatform/models.py:503 incidents/admin.py:71
 msgid "Users"
@@ -485,7 +485,7 @@ msgstr "Ist Administrator"
 
 #: governanceplatform/models.py:533
 msgid "Approved"
-msgstr ""
+msgstr "Bestätigt"
 
 #: governanceplatform/models.py:541
 msgid "Company User"
@@ -498,14 +498,16 @@ msgstr "Benutzer des Unternehmens"
 #: governanceplatform/models.py:559
 msgid "Incident users can only become administrator after being approved."
 msgstr ""
+"Benutzer von Vorfällen können erst nach ihrer Genehmigung zum Administrator "
+"werden."
 
 #: governanceplatform/models.py:565
 msgid "The first user of an operator must be an administrator."
-msgstr ""
+msgstr "Der erste Benutzer eines Betreibers muss ein Administrator sein."
 
 #: governanceplatform/models.py:585 governanceplatform/models.py:618
 msgid "Can export incidents"
-msgstr ""
+msgstr "Darf Vorfälle exportieren"
 
 #: governanceplatform/models.py:595
 msgid "Regulator user"
@@ -523,7 +525,7 @@ msgstr "Bezeichnung"
 
 #: governanceplatform/models.py:661
 msgid "Regulations"
-msgstr ""
+msgstr "Vorschriften"
 
 #: governanceplatform/models.py:662 incidents/forms.py:1138
 msgid "Regulation"
@@ -535,7 +537,7 @@ msgstr "Referenz"
 
 #: governanceplatform/models.py:687
 msgid "Entity category"
-msgstr "Kategorie der Entität"
+msgstr "Entitätskategorie"
 
 #: governanceplatform/models.py:695 incidents/admin.py:554
 #: incidents/models.py:42 incidents/models.py:318
@@ -544,7 +546,7 @@ msgstr "Rechtsgrundlage"
 
 #: governanceplatform/models.py:703
 msgid "Incident rules"
-msgstr "Regeln für Vorfälle"
+msgstr "Vorfallregeln"
 
 #: governanceplatform/models.py:729 incidents/models.py:898
 #: incidents/models.py:1008 incidents/models.py:1051 incidents/models.py:1141
@@ -562,7 +564,7 @@ msgstr "Objekt-ID"
 
 #: governanceplatform/models.py:733
 msgid "Object representation"
-msgstr "Darstellung des Objektes"
+msgstr "Objektdarstellung"
 
 #: governanceplatform/models.py:736
 msgid "Additional information"
@@ -594,7 +596,7 @@ msgstr "Das Konto wurde erfolgreich gespeichert."
 #: governanceplatform/views.py:83 governanceplatform/views.py:96
 #: governanceplatform/views.py:98
 msgid "Home"
-msgstr ""
+msgstr "Startseite"
 
 #: governanceplatform/views.py:84
 msgid "Terms of service"
@@ -673,6 +675,8 @@ msgid ""
 "Account created. A password reset email has been sent. Please check your "
 "inbox to set your password."
 msgstr ""
+"Konto erstellt. Eine E-Mail zum Zurücksetzen des Passworts wurde versendet. "
+"Bitte überprüfen Sie Ihren Posteingang, um Ihr Passwort festzulegen."
 
 #: governanceplatform/views.py:189 governanceplatform/views.py:298
 msgid "Invalid captcha"
@@ -681,7 +685,7 @@ msgstr "Ungültiges Captcha"
 #: governanceplatform/views.py:284
 #, python-format
 msgid "%(name)s Contact page"
-msgstr ""
+msgstr "%(name)s Kontaktseite"
 
 #: governanceplatform/views.py:293
 msgid "Your message has been sent."
@@ -705,7 +709,7 @@ msgstr "Vordefinierte Antworten"
 
 #: incidents/admin.py:428 incidents/models.py:116
 msgid "Question Type"
-msgstr "Frage-Art"
+msgstr "Frageart"
 
 #: incidents/admin.py:589 incidents/admin.py:764 incidents/admin.py:848
 msgid "General"
@@ -748,6 +752,9 @@ msgid ""
 "<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
 "in use.<br>- You are not its creator ({creator_name})"
 msgstr ""
+"<strong>Das Löschen ist nicht zulässig.</strong><br>- Dieses Objekt "
+"{object_name} wird derzeit verwendet.<br>- Sie sind nicht dessen Ersteller "
+"({creator_name})"
 
 #: incidents/decorators.py:39
 msgid ""
@@ -763,7 +770,7 @@ msgstr "Suchen"
 
 #: incidents/forms.py:266
 msgid "Add details"
-msgstr "Genauere Angaben hinzufügen"
+msgstr "Details hinzufügen"
 
 #: incidents/forms.py:296 incidents/forms.py:661 incidents/forms.py:895
 #: incidents/forms.py:902 incidents/forms.py:909 incidents/forms.py:916
@@ -838,11 +845,11 @@ msgstr "Datum der Vorfallsbehebung"
 
 #: incidents/forms.py:1023
 msgid "Starting date cannot be after detection date."
-msgstr ""
+msgstr "Das Startdatum darf nicht nach dem Erkennungsdatum liegen."
 
 #: incidents/forms.py:1029
 msgid "Resolution date cannot be before detection date."
-msgstr ""
+msgstr "Das Auflösungsdatum darf nicht vor dem Entdeckungsdatum liegen."
 
 #: incidents/forms.py:1143 incidents/models.py:376 incidents/models.py:589
 msgid "Workflow"
@@ -854,15 +861,15 @@ msgstr "Bericht"
 
 #: incidents/forms.py:1159
 msgid "From"
-msgstr ""
+msgstr "Von"
 
 #: incidents/forms.py:1168
 msgid "To"
-msgstr ""
+msgstr "Zu"
 
 #: incidents/forms.py:1174
 msgid "File format"
-msgstr ""
+msgstr "Dateiformat"
 
 #: incidents/globals.py:38
 msgid "Closed"
@@ -870,7 +877,7 @@ msgstr "Geschlossen"
 
 #: incidents/globals.py:39
 msgid "Ongoing"
-msgstr "Andauernd"
+msgstr "Laufend"
 
 #: incidents/globals.py:43 incidents/globals.py:51 incidents/globals.py:99
 msgid "Unsubmitted"
@@ -878,7 +885,7 @@ msgstr "Noch nicht eingereicht"
 
 #: incidents/globals.py:44 incidents/globals.py:52 incidents/globals.py:84
 msgid "Under review"
-msgstr "In Prüfung"
+msgstr "Wird geprüft"
 
 #: incidents/globals.py:47 incidents/globals.py:55 incidents/globals.py:94
 msgid "Submission overdue"
@@ -969,6 +976,11 @@ msgid ""
 "                #INCIDENT_ID#,\n"
 "                #DEADLINE#"
 msgstr ""
+"Available placeholders : #INCIDENT_NOTIFICATION_DATE#,\n"
+"                #INCIDENT_DETECTION_DATE#,\n"
+"                #INCIDENT_STARTING_DATE#,\n"
+"                #INCIDENT_ID#,\n"
+"                #DEADLINE#"
 
 #: incidents/models.py:252 incidents/models.py:396
 msgid "Emails"
@@ -1004,11 +1016,11 @@ msgstr "Status-Aktualisierungs E-Mail"
 
 #: incidents/models.py:365
 msgid "Incident notification workflows"
-msgstr "Workflow für die Meldung von Vorfällen"
+msgstr "Workflow für die Vorfallmeldungen"
 
 #: incidents/models.py:366
 msgid "Incident notification workflow"
-msgstr "Workflows für die Meldung von Vorfällen"
+msgstr "Workflow für die Vorfallmeldung"
 
 #: incidents/models.py:382 incidents/models.py:1037 incidents/models.py:1054
 #: incidents/models.py:1071
@@ -1029,7 +1041,7 @@ msgstr "Berichte"
 
 #: incidents/models.py:474
 msgid "Email subject"
-msgstr "E-Mail-Betreff"
+msgstr "E-Mail Betreff"
 
 #: incidents/models.py:485
 msgid "Trigger event"
@@ -1065,7 +1077,7 @@ msgstr "Vorname des Ansprechpartners"
 
 #: incidents/models.py:554
 msgid "Contact job title"
-msgstr "Stellenbezeichnung des Ansprechpartners"
+msgstr "Jobtitel des Ansprechpartners"
 
 #: incidents/models.py:556
 msgid "Contact email"
@@ -1085,7 +1097,7 @@ msgstr "Vorname des technischen Ansprechpartners"
 
 #: incidents/models.py:568
 msgid "Technical job title"
-msgstr "Stellenbezeichnung des technischen Ansprechpartners"
+msgstr "Jobtitel des technischen Ansprechpartners"
 
 #: incidents/models.py:571
 msgid "Technical email"
@@ -1097,7 +1109,7 @@ msgstr "Telefon des technischen Ansprechpartners"
 
 #: incidents/models.py:578
 msgid "Internal incident reference"
-msgstr "Interne Vorfall-Kennung"
+msgstr "Interne Vorfall-Nummer"
 
 #: incidents/models.py:581
 msgid "Criminal complaint file number"
@@ -1177,11 +1189,11 @@ msgstr "Erforderlich"
 
 #: incidents/models.py:1078
 msgid "Updated at"
-msgstr ""
+msgstr "Aktualisiert am"
 
 #: incidents/models.py:1082
 msgid "Deleted date"
-msgstr ""
+msgstr "Löschdatum"
 
 #: incidents/models.py:1148
 msgid "Answers"
@@ -1202,7 +1214,7 @@ msgstr "Vorfall nicht gefunden"
 
 #: incidents/views.py:283 incidents/views.py:375
 msgid "Incident is closed"
-msgstr ""
+msgstr "Der Vorfall ist abgeschlossen"
 
 #: incidents/views.py:287 incidents/views.py:294 incidents/views.py:348
 #: incidents/views.py:379 incidents/views.py:389 incidents/views.py:444
@@ -1234,11 +1246,11 @@ msgstr "Beim Löschen des Vorfalls ist ein Fehler aufgetreten."
 
 #: incidents/views.py:747 incidents/views.py:870
 msgid "No incidents available for export."
-msgstr ""
+msgstr "Keine Vorfälle zum Export verfügbar."
 
 #: incidents/views.py:927
 msgid "Incidents Export"
-msgstr ""
+msgstr "Vorfälle exportieren"
 
 #: incidents/views.py:930
 #, python-brace-format
@@ -1247,11 +1259,14 @@ msgid ""
 "[{sectorregulation} - ({workflow})] within date range ({from_date} - "
 "{to_date}.)"
 msgstr ""
+"Insgesamt wurden {count} Vorfälle aus der Vorschrift {regulation} "
+"[{sectorregulation} - ({workflow})] innerhalb des Zeitraums ({from_date} - "
+"{to_date})exportiert.)"
 
 #: incidents/views.py:956
 #, python-brace-format
 msgid "[{site}] New incident mass export"
-msgstr ""
+msgstr "[{site}] Neuer Massen-Export von Vorfällen"
 
 #: incidents/views.py:1011
 msgid ""
