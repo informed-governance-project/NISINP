@@ -26,4 +26,8 @@ app.conf.beat_schedule = {
         "task": "unactive_account_cleaning",
         "schedule": crontab(hour=22, minute=00),
     },
+    "clean_incident_user": {
+        "task": "clean_incident_user",
+        "schedule": crontab(hour=23, minute=00),
+    },
 }
