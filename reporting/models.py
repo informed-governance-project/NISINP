@@ -165,7 +165,7 @@ class ServiceStat(models.Model):
 
     class Meta:
         verbose_name_plural = _("Risk analysis stats")
-        verbose_name = _("Risk analysis stat")
+        verbose_name = _("Risk analysis stats")
 
 
 # Store the risk data
