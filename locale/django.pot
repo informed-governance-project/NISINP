@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 09:09+0100\n"
+"POT-Creation-Date: 2025-12-11 15:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -586,7 +586,7 @@ msgid "Your password must not match any previously used passwords."
 msgstr ""
 
 #: governanceplatform/views.py:54
-msgid "The account has been successfully saved."
+msgid "The account has successfully been saved."
 msgstr ""
 
 #: governanceplatform/views.py:83 governanceplatform/views.py:96
@@ -1397,12 +1397,8 @@ msgstr ""
 msgid "Average of residual risks"
 msgstr ""
 
-#: reporting/models.py:167
+#: reporting/models.py:167 reporting/models.py:168
 msgid "Risk analysis stats"
-msgstr ""
-
-#: reporting/models.py:168
-msgid "Risk analysis stat"
 msgstr ""
 
 #: reporting/models.py:193

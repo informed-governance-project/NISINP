@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 09:59+0100\n"
+"POT-Creation-Date: 2025-12-11 15:25+0100\n"
 "PO-Revision-Date: 2025-12-11 13:27+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language: fr\n"
@@ -611,7 +611,7 @@ msgstr ""
 "Votre mot de passe ne doit pas correspondre à un mot de passe déjà utilisé."
 
 #: governanceplatform/views.py:54
-msgid "The account has been successfully saved."
+msgid "The account has successfully been saved."
 msgstr "Le compte a été sauvegardé avec succès."
 
 #: governanceplatform/views.py:83 governanceplatform/views.py:96
@@ -805,8 +805,8 @@ msgid ""
 "Please include a reference (e.g., an identifier, internal reference, CERT "
 "reference, etc.) to facilitate incident tracking."
 msgstr ""
-"Veuillez insérer une référence pour suivre facilement votre incident "
-"(ex : référence interne, référence CERT, etc.)."
+"Veuillez insérer une référence pour suivre facilement votre incident (ex : "
+"référence interne, référence CERT, etc.)."
 
 #: incidents/forms.py:526
 msgid "Complaint reference"
@@ -1443,12 +1443,8 @@ msgstr "Moyenne des risques actuels"
 msgid "Average of residual risks"
 msgstr "Moyenne des risques résiduels"
 
-#: reporting/models.py:167
+#: reporting/models.py:167 reporting/models.py:168
 msgid "Risk analysis stats"
-msgstr "Statistiques sur l'analyse des risques"
-
-#: reporting/models.py:168
-msgid "Risk analysis stat"
 msgstr "Statistiques sur l'analyse des risques"
 
 #: reporting/models.py:193
