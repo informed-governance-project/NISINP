@@ -51,7 +51,7 @@ def edit_account(request):
             form.save()
             messages.success(
                 request,
-                _("The account has been successfully saved."),
+                _("The account has successfully been saved."),
             )
     else:
         form = CustomUserChangeForm(instance=user)
