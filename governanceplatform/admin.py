@@ -996,6 +996,11 @@ def reset_2FA(modeladmin, request, queryset):
             or user_in_group(user, "RegulatorUser")
         ):
             continue
+        # conditions for RegulatorUser issue #57
+        if user_in_group(request_user, "RegulatorUser") and not user_in_group(
+            user, "RegulatorAdmin"
+        ):
+            continue
         devices = devices_for_user(user)
         for device in devices:
             device.delete()
