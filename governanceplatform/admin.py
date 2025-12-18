@@ -560,8 +560,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "identifier",
-        "companyuser__sectors__translations__name",
-        "companyuser__sectors__parent__translations__name",
     ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
@@ -996,6 +994,11 @@ def reset_2FA(modeladmin, request, queryset):
         if user_in_group(request_user, "RegulatorAdmin") and not (
             user_in_group(user, "RegulatorAdmin")
             or user_in_group(user, "RegulatorUser")
+        ):
+            continue
+        # conditions for RegulatorUser issue #57
+        if user_in_group(request_user, "RegulatorUser") and not user_in_group(
+            user, "RegulatorAdmin"
         ):
             continue
         devices = devices_for_user(user)
