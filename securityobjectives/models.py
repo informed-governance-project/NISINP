@@ -13,6 +13,10 @@ class MaturityLevel(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
     level = models.IntegerField(default=0)
+    standard = models.ForeignKey(
+        "Standard",
+        on_delete=models.CASCADE,
+    )
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -44,6 +48,10 @@ class Domain(TranslatableModel):
         label=models.CharField(max_length=255, blank=True, default=None, null=True),
     )
     position = models.IntegerField(default=0)
+    standard = models.ForeignKey(
+        "Standard",
+        on_delete=models.CASCADE,
+    )
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
