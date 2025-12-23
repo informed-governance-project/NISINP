@@ -286,7 +286,7 @@ class StandardAnswerGroup(models.Model):
     # FFFFFFFFFF = framework limited to 10 chars
     # YYYY = Year
     # NNNN = Number
-    group_id = models.CharField(max_length=33, verbose_name=_("Group ID"))
+    group_id = models.CharField(max_length=33, verbose_name=_("Group ID"), unique=True)
 
 
 # The answers of the operator
