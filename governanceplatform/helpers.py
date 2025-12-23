@@ -477,18 +477,12 @@ def render_to_string_multi_languages(
         baseline = render_to_string(template_name, context)
 
     for lang_code, lang_name in settings.LANGUAGES:
-        print(lang_code)
         with translation.override(lang_code):
             if content and object:
-                print("content and object")
-                print(content)
-                print(object)
                 context["content"] = replace_email_variables(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-                print("context content")
-                print(context["content"])
 
             rendered = render_to_string(template_name, context)
 
@@ -503,5 +497,4 @@ def render_to_string_multi_languages(
             )
     if not parts:
         return baseline
-    print(parts)
     return "<hr>".join(parts)
