@@ -1127,12 +1127,6 @@ class QuestionOptionsInlineForm(forms.ModelForm):
 
 
 class ExportIncidentsForm(forms.Form):
-    max_dt = datetime.today().date()
-    try:
-        min_dt = max_dt.replace(year=max_dt.year - 2)
-    except ValueError:
-        min_dt = max_dt - timedelta(days=730)
-
     regulation = forms.ModelChoiceField(
         queryset=Regulation.objects.none(),
         label=_("Regulation"),
@@ -1150,24 +1144,6 @@ class ExportIncidentsForm(forms.Form):
         required=True,
     )
 
-    from_date = forms.DateField(
-        required=True,
-        widget=TempusDominusV6Widget(
-            min_date=min_dt,
-            max_date=max_dt,
-        ),
-        label=_("From"),
-    )
-
-    to_date = forms.DateField(
-        required=True,
-        widget=TempusDominusV6Widget(
-            min_date=min_dt,
-            max_date=max_dt,
-        ),
-        label=_("To"),
-    )
-
     file_format = forms.ChoiceField(
         choices=[("xlsx", "Excel (.xlsx)"), ("csv", "CSV (.csv)")],
         required=True,
@@ -1182,7 +1158,28 @@ class ExportIncidentsForm(forms.Form):
         )
         workflow_qs = kwargs.pop("workflow_qs", Workflow.objects.none())
         super().__init__(*args, **kwargs)
-
+        # initialize date
+        max_dt = datetime.today().date()
+        try:
+            min_dt = max_dt.replace(year=max_dt.year - 2)
+        except ValueError:
+            min_dt = max_dt - timedelta(days=730)
+        self.fields["from_date"] = forms.DateField(
+            required=True,
+            widget=TempusDominusV6Widget(
+                min_date=min_dt,
+                max_date=max_dt,
+            ),
+            label=_("From"),
+        )
+        self.fields["to_date"] = forms.DateField(
+            required=True,
+            widget=TempusDominusV6Widget(
+                min_date=min_dt,
+                max_date=max_dt,
+            ),
+            label=_("To"),
+        )
         self.fields["regulation"].queryset = regulation_qs
         self.fields["sectorregulation"].queryset = sectorregulation_qs
         self.fields["workflow"].queryset = workflow_qs
