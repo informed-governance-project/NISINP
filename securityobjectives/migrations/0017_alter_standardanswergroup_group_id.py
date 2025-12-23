@@ -51,6 +51,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="standardanswergroup",
             name="group_id",
-            field=models.CharField(max_length=33, unique=True, verbose_name="Group ID"),
+            field=models.CharField(max_length=39, unique=True, verbose_name="Group ID"),
         ),
     ]
