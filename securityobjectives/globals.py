@@ -11,4 +11,5 @@ STANDARD_ANSWER_REVIEW_STATUS = [
 
 SO_EMAIL_VARIABLES = [
     ("#SO_REFERENCE#", "group_id"),
+    ("#DEADLINE#", "deadline"),
 ]

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models import Q
@@ -69,14 +71,21 @@ def send_email(email, standard_answer):
 
 # replace the variables in globals.py by the right value
 def replace_email_variables(content, standard_answer):
-    # find the incidents which don't have final notification.
     modify_content = content
-    for _i, (variable, _key) in enumerate(SO_EMAIL_VARIABLES):
+    for _i, (variable, key) in enumerate(SO_EMAIL_VARIABLES):
         if variable == "#SO_REFERENCE#":
             group_id = standard_answer.group.group_id
             if not group_id:
                 var_txt = ""
             else:
                 var_txt = group_id
+        else:
+            var_txt = (
+                getattr(standard_answer, key)
+                if getattr(standard_answer, key) is not None
+                else ""
+            )
+            if isinstance(var_txt, date):
+                var_txt = getattr(standard_answer, key).strftime("%Y-%m-%d")
         modify_content = modify_content.replace(variable, var_txt)
     return modify_content
