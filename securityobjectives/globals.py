@@ -8,3 +8,7 @@ STANDARD_ANSWER_REVIEW_STATUS = [
     ("FAIL", _("Revision required")),
     ("FAILM", _("Revision required and sent")),
 ]
+
+SO_EMAIL_VARIABLES = [
+    ("#SO_REFERENCE#", "group_id"),
+]

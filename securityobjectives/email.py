@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
 
+from governanceplatform.helpers import render_to_string_multi_languages
 from governanceplatform.models import RegulatorUser
+from securityobjectives.globals import SO_EMAIL_VARIABLES
 
 
 def send_html_email(subject, content, recipient_list):
@@ -13,13 +14,21 @@ def send_html_email(subject, content, recipient_list):
 
 def send_email(email, standard_answer):
     if email is not None:
-        subject = email.subject
-        html_content = render_to_string(
+        subject = replace_email_variables(
+            email.safe_translation_getter(
+                "subject", language_code=settings.LANGUAGE_CODE
+            ),
+            standard_answer,
+        )
+        html_content = render_to_string_multi_languages(
             "security_objectives/email.html",
             {
-                "content": email.content,
+                "content": None,
                 "url_site": settings.PUBLIC_URL,
             },
+            replace_email_variables,
+            content=email,
+            object=standard_answer,
         )
         if standard_answer.submitter_user is not None:
             recipient_list = [standard_answer.submitter_user.email]
@@ -39,3 +48,18 @@ def send_email(email, standard_answer):
         recipient_list.extend(regulator_users_sectored_emails)
 
         send_html_email(subject, html_content, recipient_list)
+
+
+# replace the variables in globals.py by the right value
+def replace_email_variables(content, standard_answer):
+    # find the incidents which don't have final notification.
+    modify_content = content
+    for _i, (variable, _key) in enumerate(SO_EMAIL_VARIABLES):
+        if variable == "#SO_REFERENCE#":
+            group_id = standard_answer.group.group_id
+            if not group_id:
+                var_txt = ""
+            else:
+                var_txt = group_id
+        modify_content = modify_content.replace(variable, var_txt)
+    return modify_content
