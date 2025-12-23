@@ -198,6 +198,15 @@ class Standard(TranslatableModel):
         default=None,
         related_name="security_objective_status_changed_email",
     )
+    security_objective_closure_email = models.ForeignKey(
+        SecurityObjectiveEmail,
+        verbose_name=_("Email for closure"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="security_objective_closure_email",
+    )
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
