@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.db.models import Q
 
 from governanceplatform.helpers import render_to_string_multi_languages
-from governanceplatform.models import RegulatorUser
+from governanceplatform.models import CompanyUser, RegulatorUser
 from securityobjectives.globals import SO_EMAIL_VARIABLES
 
 
@@ -30,16 +31,32 @@ def send_email(email, standard_answer):
             content=email,
             object=standard_answer,
         )
-        if standard_answer.submitter_user is not None:
-            recipient_list = [standard_answer.submitter_user.email]
+        recipient_list = []
+        company_users_emails = []
+        # get company user emails
+        if standard_answer.submitter_company is not None:
+            company_users = CompanyUser.objects.filter(
+                company=standard_answer.submitter_company
+            ).distinct("user")
+            for c in company_users:
+                company_users_emails.append(c.user.email)
+        recipient_list.extend(company_users_emails)
+
         # get also regulator email and emails of responsible people for the designated sectors
+        # + administrator issue #580
         regulator_email = standard_answer.standard.regulator.email_for_notification
         if regulator_email is not None:
             recipient_list.append(regulator_email)
 
         regulator_users_sectored = RegulatorUser.objects.filter(
-            regulator=standard_answer.standard.regulator,
-            sectors__in=standard_answer.sectors.all(),
+            Q(
+                regulator=standard_answer.standard.regulator,
+                sectors__in=standard_answer.sectors.all(),
+            )
+            | Q(
+                is_regulator_administrator=True,
+                regulator=standard_answer.standard.regulator,
+            )
         ).distinct("user")
         regulator_users_sectored_emails = []
         for u in regulator_users_sectored:
