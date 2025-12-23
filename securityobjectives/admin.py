@@ -54,6 +54,7 @@ class DomainAdmin(
     should_escape_html = False
     exclude = ["creator_name", "creator"]
     list_display = [
+        "standard",
         "position",
         "label",
         "creator",
@@ -178,7 +179,7 @@ class MaturityLevelAdmin(
     resource_class = MaturityLevelResource
     should_escape_html = False
     exclude = ["creator_name", "creator"]
-    list_display = ["level", "label", "creator"]
+    list_display = ["standard", "level", "label", "creator"]
     ordering = ["level"]
     list_filter = ["creator"]
 
