@@ -32,7 +32,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 

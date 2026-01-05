@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 
 from governanceplatform.models import Company, Sector

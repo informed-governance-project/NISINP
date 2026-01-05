@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -6,7 +8,6 @@ from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import TranslationUpdateMixin
 from governanceplatform.models import Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget
-from django.db.models import Count
 
 from .models import ObservationRecommendation
 
@@ -56,7 +57,7 @@ class ObservationRecommendationAdmin(CustomTranslatableAdmin, ImportExportModelA
         "sectors",
     )
 
-    @admin.display(description="Sectors")
+    @admin.display(description=_("Sectors"))
     def get_sector_name(self, obj):
         return [sector for sector in obj.sectors.all()]
 

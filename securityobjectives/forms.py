@@ -1,6 +1,6 @@
 from django import forms
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from incidents.forms import DropdownCheckboxSelectMultiple
 from incidents.widgets import TempusDominusV6Widget
