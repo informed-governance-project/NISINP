@@ -1,6 +1,6 @@
 import django_filters
 from django.db.models import F, Q
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.models import Sector
 

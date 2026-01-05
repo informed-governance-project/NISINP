@@ -468,32 +468,32 @@ class User(AbstractUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    @admin.display(description="companies")
+    @admin.display(description=_("Companies"))
     def get_companies(self):
         return [company.name for company in self.companies.all().distinct()]
 
-    @admin.display(description="companies")
+    @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, op_admin):
         companies = (
             self.companies.all().distinct() & op_admin.companies.all().distinct()
         )
         return [company.name for company in companies.all().distinct()]
 
-    @admin.display(description="regulators")
+    @admin.display(description=_("Regulators"))
     def get_regulators(self):
         return [
             regulator.safe_translation_getter("name", any_language=True)
             for regulator in self.regulators.all()
         ]
 
-    @admin.display(description="observers")
+    @admin.display(description=_("Observers"))
     def get_observers(self):
         return [
             observer.safe_translation_getter("name", any_language=True)
             for observer in self.observers.all()
         ]
 
-    @admin.display(description="Roles")
+    @admin.display(description=_("Roles"))
     def get_permissions_groups(self):
         return ", ".join([group.name for group in self.groups.all()])
 
@@ -671,7 +671,7 @@ class Regulation(TranslatableModel):
         verbose_name=_("Regulators"),
     )
 
-    @admin.display(description="regulators")
+    @admin.display(description=_("Regulators"))
     def get_regulators(self):
         return [
             regulator.safe_translation_getter("name", any_language=True)

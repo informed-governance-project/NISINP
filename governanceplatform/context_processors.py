@@ -1,3 +1,4 @@
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform import __version__
@@ -77,13 +78,13 @@ def user_modules(request):
                 module_name = None
                 if hasattr(module, "safe_translation_getter"):
                     module_name = module.safe_translation_getter(
-                        "name", language_code="en"
+                        "name", language_code=get_language()
                     )
                 else:
                     module_name = getattr(module, "name", None)
 
                 user_modules.append({"type": module.type, "name": module_name})
-                module_labels[f"/{module.type}"] = _(module_name)
+                module_labels[f"/{module.type}"] = module_name
 
     name = next(
         (label for prefix, label in module_labels.items() if path.startswith(prefix)),

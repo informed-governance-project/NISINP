@@ -3,7 +3,7 @@ import json
 from django import template
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from incidents.globals import REPORT_STATUS_MAP
 from incidents.models import IncidentWorkflow

@@ -609,11 +609,11 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         ),
     ]
 
-    @admin.display(description="Regulations")
+    @admin.display(description=_("Regulations"))
     def get_regulations(self, obj):
         return ", ".join([c.label for c in obj.regulations.all()])
 
-    @admin.display(description="Sector")
+    @admin.display(description=_("Sector"))
     def get_sector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
@@ -626,7 +626,7 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
 
         return sectors
 
-    @admin.display(description="Sub-sector")
+    @admin.display(description=_("Sub-sector"))
     def get_subsector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():

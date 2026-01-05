@@ -2,7 +2,7 @@ import functools
 
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.helpers import (
     is_observer_user,
