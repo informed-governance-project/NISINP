@@ -10,9 +10,11 @@ from .globals import STANDARD_ANSWER_REVIEW_STATUS
 # Maturity level : define a matury (e.g. sophisticated)
 class MaturityLevel(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True),
+        label=models.CharField(
+            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
+        ),
     )
-    level = models.IntegerField(default=0)
+    level = models.IntegerField(verbose_name=_("Level"), default=0)
     standard = models.ForeignKey(
         "Standard",
         on_delete=models.CASCADE,
@@ -45,11 +47,14 @@ class MaturityLevel(TranslatableModel):
 # Domain : To categorize the security objectives
 class Domain(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True),
+        label=models.CharField(
+            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
+        ),
     )
-    position = models.IntegerField(default=0)
+    position = models.IntegerField(verbose_name=_("Position"), default=0)
     standard = models.ForeignKey(
         "Standard",
+        verbose_name=_("Standard"),
         on_delete=models.CASCADE,
     )
     # name of the regulator who create the object
@@ -80,14 +85,27 @@ class Domain(TranslatableModel):
 # SecurityObjective (SO)
 class SecurityObjective(TranslatableModel, models.Model):
     translations = TranslatedFields(
-        objective=models.CharField(max_length=255, blank=True, default=None, null=True),
-        description=models.TextField(),
+        objective=models.CharField(
+            verbose_name=_("Objective"),
+            max_length=255,
+            blank=True,
+            default=None,
+            null=True,
+        ),
+        description=models.TextField(verbose_name=_("Description")),
     )
-    unique_code = models.CharField(max_length=255, blank=True, default=None, null=True)
+    unique_code = models.CharField(
+        verbose_name=_("Unique code"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
     # when we want to delete a SO we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(default=False, verbose_name=_("is archived"))
     domain = models.ForeignKey(
         Domain,
+        verbose_name=_("Domain"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -173,17 +191,25 @@ class SecurityObjectiveEmail(TranslatableModel, models.Model):
 # Standard : A group of security objectives
 class Standard(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(max_length=255, blank=True, default=None, null=True),
-        description=models.TextField(),
+        label=models.CharField(
+            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
+        ),
+        description=models.TextField(verbose_name=_("Description")),
     )
     regulator = models.ForeignKey(
-        "governanceplatform.regulator", on_delete=models.CASCADE
+        "governanceplatform.regulator",
+        verbose_name=_("Regulator"),
+        on_delete=models.CASCADE,
     )
     regulation = models.ForeignKey(
-        "governanceplatform.regulation", on_delete=models.CASCADE
+        "governanceplatform.regulation",
+        verbose_name=_("Regulation"),
+        on_delete=models.CASCADE,
     )
     security_objectives = models.ManyToManyField(
-        SecurityObjective, through="SecurityObjectivesInStandard"
+        SecurityObjective,
+        verbose_name=_("Security objectives"),
+        through="SecurityObjectivesInStandard",
     )
     # email
     submission_email = models.ForeignKey(
@@ -226,14 +252,15 @@ class Standard(TranslatableModel):
 class SecurityObjectivesInStandard(models.Model):
     security_objective = models.ForeignKey(
         SecurityObjective,
+        verbose_name=_("Security Objective"),
         on_delete=models.CASCADE,
     )
     standard = models.ForeignKey(
         Standard,
         on_delete=models.CASCADE,
     )
-    position = models.IntegerField(default=0)
-    priority = models.IntegerField(default=0)
+    position = models.IntegerField(verbose_name=_("Position"), default=0)
+    priority = models.IntegerField(verbose_name=_("Priority"), default=0)
 
     class Meta:
         constraints = [
@@ -246,15 +273,19 @@ class SecurityObjectivesInStandard(models.Model):
 
 # link between security measure, SO and maturity
 class SecurityMeasure(TranslatableModel):
-    security_objective = models.ForeignKey(SecurityObjective, on_delete=models.CASCADE)
+    security_objective = models.ForeignKey(
+        SecurityObjective,
+        verbose_name=_("Security Objective"),
+        on_delete=models.CASCADE,
+    )
     maturity_level = models.ForeignKey(
-        MaturityLevel, on_delete=models.SET_NULL, null=True
+        MaturityLevel, verbose_name=_("Level"), on_delete=models.SET_NULL, null=True
     )
     translations = TranslatedFields(
-        description=models.TextField(),
-        evidence=models.TextField(),
+        description=models.TextField(verbose_name=_("Description")),
+        evidence=models.TextField(verbose_name=_("Evidence")),
     )
-    position = models.IntegerField(default=0)
+    position = models.IntegerField(verbose_name=_("Position"), default=0)
     # when we want to delete a Security Measure we need to check if it has been answered if yes, archived instead of delete
     is_archived = models.BooleanField(default=False, verbose_name=_("is archived"))
 
@@ -285,7 +316,9 @@ class SecurityMeasure(TranslatableModel):
 
 # A group of StandardAnswer to have the versionning functionnality
 class StandardAnswerGroup(models.Model):
-    notification_date = models.DateTimeField(default=timezone.now)
+    notification_date = models.DateTimeField(
+        verbose_name=_("Notification date"), default=timezone.now
+    )
     # we allo to store user in case he is registered
     contact_user = models.ForeignKey(
         "governanceplatform.User",
@@ -308,6 +341,7 @@ class StandardAnswerGroup(models.Model):
 class StandardAnswer(models.Model):
     standard = models.ForeignKey(
         Standard,
+        verbose_name=_("Standard"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -340,9 +374,19 @@ class StandardAnswer(models.Model):
         verbose_name=_("Submitter"),
     )
     # to display in case we delete the user or the company
-    creator_name = models.CharField(max_length=255, blank=True, default=None, null=True)
+    creator_name = models.CharField(
+        verbose_name=_("Creator name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
     creator_company_name = models.CharField(
-        max_length=255, blank=True, default=None, null=True
+        verbose_name=_("Company of creator"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
     )
     # the year for the one
     year_of_submission = models.PositiveIntegerField(
@@ -370,9 +414,12 @@ class StandardAnswer(models.Model):
 
 # the answer of the operator by SM
 class SecurityMeasureAnswer(models.Model):
-    security_measure_notification_date = models.DateTimeField(default=timezone.now)
+    security_measure_notification_date = models.DateTimeField(
+        verbose_name=_("Notification date"), default=timezone.now
+    )
     standard_answer = models.ForeignKey(
         StandardAnswer,
+        verbose_name=_("Standard Answer"),
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -381,21 +428,23 @@ class SecurityMeasureAnswer(models.Model):
     )
     security_measure = models.ForeignKey(
         SecurityMeasure,
+        verbose_name=_("Security Measure"),
         on_delete=models.CASCADE,
         null=True,
         blank=True,
         default=None,
         related_name="securitymeasureanswers",
     )
-    justification = models.TextField()
+    justification = models.TextField(verbose_name=_("Justification"))
     is_implemented = models.BooleanField(default=False, verbose_name=_("Implemented"))
-    review_comment = models.TextField()
+    review_comment = models.TextField(verbose_name=_("Review comment"))
 
 
 # SO Status set by regulator
 class SecurityObjectiveStatus(models.Model):
     standard_answer = models.ForeignKey(
         StandardAnswer,
+        verbose_name=_("Security objectives statement"),
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -403,6 +452,7 @@ class SecurityObjectiveStatus(models.Model):
     )
     security_objective = models.ForeignKey(
         SecurityObjective,
+        verbose_name=_("Security Objective"),
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -420,6 +470,7 @@ class SecurityObjectiveStatus(models.Model):
     )
 
     score = models.DecimalField(
+        verbose_name=_("Score"),
         default=0,
         max_digits=4,
         decimal_places=2,
