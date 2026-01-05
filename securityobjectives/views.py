@@ -1240,7 +1240,6 @@ def get_completion_objective(security_objective, standard_answer):
     ).aggregate(first_level=Min("level"), last_level=Max("level"))
 
     first_maturity_level = levels["first_level"]
-    last_maturity_level = levels["last_level"]
 
     queryset = SecurityMeasureAnswer.objects.filter(
         security_measure__security_objective=security_objective,
@@ -1305,22 +1304,15 @@ def get_completion_objective(security_objective, standard_answer):
     any_partially = partially_count > 0
 
     if all_completed and not any_partially:
-        last_level_security_measures = SecurityMeasure.objects.filter(
-            security_objective=security_objective,
-            maturity_level__level=last_maturity_level,
-        ).count()
-
-        last_level_security_measures_checked = SecurityMeasureAnswer.objects.filter(
+        first_level_security_measures_checked = SecurityMeasureAnswer.objects.filter(
             security_measure__security_objective=security_objective,
-            security_measure__maturity_level__level=last_maturity_level,
+            security_measure__maturity_level__level=first_maturity_level,
             is_implemented=True,
-            justification__gt="",
             standard_answer=standard_answer,
-        ).count()
+        )
 
-        actions_planned = bool(so_status and so_status.actions)
-
-        if last_level_security_measures != last_level_security_measures_checked:
+        if first_level_security_measures_checked:
+            actions_planned = bool(so_status and so_status.actions)
             all_completed = actions_planned
             any_partially = not actions_planned
 
