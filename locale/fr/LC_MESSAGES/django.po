@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-06 08:51+0100\n"
-"PO-Revision-Date: 2025-12-11 15:27+0000\n"
-"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
+"PO-Revision-Date: 2026-01-09 15:27+0000\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -76,7 +76,7 @@ msgstr "Rôles"
 #: governanceplatform/admin.py:1198 governanceplatform/models.py:471
 #: governanceplatform/models.py:475
 msgid "Companies"
-msgstr "Entrepries"
+msgstr "Entreprises"
 
 #: governanceplatform/admin.py:1226
 msgid "Cookies acceptation has been reseted"
@@ -88,11 +88,11 @@ msgstr "L'acceptation des conditions d'utilisation a été réinitialisée"
 
 #: governanceplatform/admin.py:1659 governanceplatform/models.py:745
 msgid "Observer regulation"
-msgstr "Observateur régulation"
+msgstr "Régulation de l'observateur"
 
 #: governanceplatform/admin.py:1660 governanceplatform/models.py:746
 msgid "Observer regulations"
-msgstr "Observateur régulations"
+msgstr "Régulations de l'observateur"
 
 #: governanceplatform/admin.py:1667 governanceplatform/models.py:652
 msgid "Observer user"
@@ -167,7 +167,7 @@ msgstr ""
 #: governanceplatform/config.py:160 governanceplatform/config_dev.py:161
 #: governanceplatform/forms.py:296 governanceplatform/models.py:319
 msgid "Token"
-msgstr "Token"
+msgstr "Jeton"
 
 #: governanceplatform/config.py:165 governanceplatform/config_dev.py:166
 msgid "Cookie used to store user language preferences."
@@ -302,7 +302,7 @@ msgstr "Objectifs de sécurité"
 #: governanceplatform/globals.py:30 governanceplatform/views.py:142
 #: reporting/apps.py:8
 msgid "Reporting"
-msgstr "Reporting"
+msgstr "Génération de rapports"
 
 #: governanceplatform/helpers.py:321
 #, python-brace-format
@@ -334,7 +334,7 @@ msgstr "La session a expiré. Veuillez vous reconnecter pour continuer."
 #: governanceplatform/middleware.py:248
 msgid "For security reasons, you will need to log in again to access it."
 msgstr ""
-"Pour des raisons de sécurité, vous devrez vous authentifier à nouveau pour y "
+"Par mesure de sécurité, vous devrez vous authentifier à nouveau pour y "
 "accéder."
 
 #: governanceplatform/mixins.py:68
@@ -748,7 +748,7 @@ msgstr "Supervision"
 
 #: incidents/admin.py:629
 msgid "Sub-sector"
-msgstr ""
+msgstr "Sous-secteur"
 
 #: incidents/admin.py:691
 msgid "Email type"
@@ -1740,7 +1740,7 @@ msgstr "Améliorations requises et envoyé"
 
 #: securityobjectives/models.py:17 securityobjectives/models.py:282
 msgid "Level"
-msgstr ""
+msgstr "Niveau"
 
 #: securityobjectives/models.py:43
 msgid "Maturity levels"
@@ -1765,11 +1765,11 @@ msgstr "Domaine"
 
 #: securityobjectives/models.py:89
 msgid "Objective"
-msgstr ""
+msgstr "Objectif"
 
 #: securityobjectives/models.py:98
 msgid "Unique code"
-msgstr ""
+msgstr "Code unique"
 
 #: securityobjectives/models.py:105 securityobjectives/models.py:290
 msgid "is archived"
@@ -1784,6 +1784,8 @@ msgid ""
 "Available placeholders: #SO_REFERENCE#,\n"
 "                #DEADLINE#"
 msgstr ""
+"Mots clé : #SO_REFERENCE#,\n"
+"                #DEADLINE#"
 
 #: securityobjectives/models.py:187
 msgid "Email templates"
@@ -1803,7 +1805,7 @@ msgstr "E-mail pour changement de statut"
 
 #: securityobjectives/models.py:235
 msgid "Email for closure"
-msgstr ""
+msgstr "E-mail de clôture"
 
 #: securityobjectives/models.py:248
 msgid "Standards"
@@ -1811,11 +1813,11 @@ msgstr "Standards"
 
 #: securityobjectives/models.py:263
 msgid "Priority"
-msgstr ""
+msgstr "Priorité"
 
 #: securityobjectives/models.py:286
 msgid "Evidence"
-msgstr ""
+msgstr "Preuve"
 
 #: securityobjectives/models.py:313
 msgid "Security Measures"
@@ -1827,7 +1829,7 @@ msgstr "Mesure de sécurité"
 
 #: securityobjectives/models.py:320 securityobjectives/models.py:418
 msgid "Notification date"
-msgstr ""
+msgstr "Date de notification"
 
 #: securityobjectives/models.py:337
 msgid "Group ID"
@@ -1851,7 +1853,7 @@ msgstr "Soumetteur"
 
 #: securityobjectives/models.py:385
 msgid "Company of creator"
-msgstr ""
+msgstr "Entreprise du créateur"
 
 #: securityobjectives/models.py:393
 msgid "Year of submission"
@@ -1871,11 +1873,11 @@ msgstr "Groupe"
 
 #: securityobjectives/models.py:422
 msgid "Standard Answer"
-msgstr ""
+msgstr "Réponse standard"
 
 #: securityobjectives/models.py:438
 msgid "Justification"
-msgstr ""
+msgstr "Justification"
 
 #: securityobjectives/models.py:439
 msgid "Implemented"
@@ -1883,7 +1885,7 @@ msgstr "Implémenté"
 
 #: securityobjectives/models.py:447
 msgid "Security objectives statement"
-msgstr ""
+msgstr "Déclaration des objectifs de sécurité"
 
 #: securityobjectives/models.py:463
 msgid "Not reviewed"
@@ -1895,7 +1897,7 @@ msgstr "Échec"
 
 #: securityobjectives/models.py:473
 msgid "Score"
-msgstr ""
+msgstr "Score"
 
 #: securityobjectives/models.py:483
 msgid "Planned Measures"
