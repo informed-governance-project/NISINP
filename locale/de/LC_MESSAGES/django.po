@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-06 08:51+0100\n"
 "PO-Revision-Date: 2026-01-09 15:27+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1745,7 +1745,7 @@ msgstr "Korrektur erforderlich und gesendet"
 
 #: securityobjectives/models.py:17 securityobjectives/models.py:282
 msgid "Level"
-msgstr ""
+msgstr "Ebene"
 
 #: securityobjectives/models.py:43
 msgid "Maturity levels"
@@ -1810,7 +1810,7 @@ msgstr "E-Mail zur Statusänderung"
 
 #: securityobjectives/models.py:235
 msgid "Email for closure"
-msgstr "E-Mail zur Schließung"
+msgstr "E-Mail zur Vorgangsschließung"
 
 #: securityobjectives/models.py:248
 msgid "Standards"
@@ -1858,7 +1858,7 @@ msgstr "Einreicher"
 
 #: securityobjectives/models.py:385
 msgid "Company of creator"
-msgstr "Unternehmen des Einreichers"
+msgstr "Unternehmen des Erstellers"
 
 #: securityobjectives/models.py:393
 msgid "Year of submission"
@@ -1902,7 +1902,7 @@ msgstr "Nicht bestanden"
 
 #: securityobjectives/models.py:473
 msgid "Score"
-msgstr "Punktzahl"
+msgstr "Gesamtwertung"
 
 #: securityobjectives/models.py:483
 msgid "Planned Measures"
