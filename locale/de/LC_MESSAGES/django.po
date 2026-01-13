@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-14 16:43+0100\n"
-"PO-Revision-Date: 2026-01-09 16:27+0000\n"
+"PO-Revision-Date: 2026-01-19 08:27+0000\n"
 "Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -67,7 +67,7 @@ msgstr "Beobachter"
 #: governanceplatform/admin.py:1014 governanceplatform/models.py:233
 #: governanceplatform/models.py:436
 msgid "Operators"
-msgstr "Operatoren"
+msgstr "Betreiber"
 
 #: governanceplatform/admin.py:1039 governanceplatform/models.py:496
 msgid "Roles"
@@ -432,7 +432,7 @@ msgstr "Typen"
 #: governanceplatform/models.py:232 governanceplatform/models.py:547
 #: incidents/models.py:524 reporting/filters.py:20
 msgid "Operator"
-msgstr "Operator"
+msgstr "Betreiber"
 
 #: governanceplatform/models.py:241 governanceplatform/models.py:280
 msgid "Full name"
