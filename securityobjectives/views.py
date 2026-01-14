@@ -727,7 +727,7 @@ def review_comment_declaration(request, standard_answer_id: int):
             create_entry_log(user, standard_answer, "COMMENT", request)
             messages.success(
                 request,
-                _("The review comment has been saved."),
+                _("The security objectives review has been sent."),
             )
 
             if standard_answer.status == STANDARD_ANSWER_REVIEW_STATUS[2][0]:
