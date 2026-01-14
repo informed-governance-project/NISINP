@@ -280,7 +280,7 @@ def create_workflow(request):
         return redirect("incidents")
 
     if incident.incident_status == "CLOSE":
-        messages.error(request, _("Incident is closed"))
+        messages.error(request, _("The incident has been closed"))
         return redirect("incidents")
 
     if not incident.is_fillable(workflow):
@@ -372,7 +372,7 @@ def edit_workflow(request):
             messages.error(request, _("Incident not found"))
             return redirect("incidents")
         if incident.incident_status == "CLOSE":
-            messages.error(request, _("Incident is closed"))
+            messages.error(request, _("The incident has been closed"))
             return redirect("incidents")
         if not is_user_regulator(user):
             if not incident.is_fillable(workflow):
