@@ -155,7 +155,7 @@ def create_so_declaration(request):
     standard_list = [
         (standard.id, str(standard))
         for standard in Standard.objects.filter(
-            securityobjectivesinstandard__isnull=False
+            security_objectives_set__isnull=False
         ).distinct()
     ]
 
@@ -252,8 +252,8 @@ def declaration(request):
 
     standard = standard_answer.standard
 
-    security_objectives_queryset = (
-        standard.securityobjectivesinstandard_set.all().order_by("position")
+    security_objectives_queryset = standard.security_objectives_set.all().order_by(
+        "position"
     )
 
     levels = MaturityLevel.objects.all().aggregate(
@@ -804,8 +804,8 @@ def download_declaration_pdf(request, standard_answer_id: int):
         levels = MaturityLevel.objects.all().aggregate(
             first_level=Min("level"), last_level=Max("level")
         )
-        security_objectives_queryset = (
-            standard.securityobjectivesinstandard_set.all().order_by("position")
+        security_objectives_queryset = standard.security_objectives.all().order_by(
+            "position"
         )
         security_objectives = defaultdict(lambda: defaultdict(list))
 
@@ -994,7 +994,7 @@ def import_so_declaration(request):
 
             security_objectives = {
                 obj.security_objective.unique_code: obj.security_objective
-                for obj in standard.securityobjectivesinstandard_set.all()
+                for obj in standard.security_objectives.all()
             }
 
             for row in ws.iter_rows(
@@ -1084,7 +1084,7 @@ def import_so_declaration(request):
 def get_standard_answers_with_progress(standard_answer_queryset):
     standard_answers = standard_answer_queryset.annotate(
         total_security_objectives=Count(
-            "standard__securityobjectivesinstandard__security_objective",
+            "standard__security_objectives",
             distinct=True,
         ),
         total_security_objectives_answered=Count(
@@ -1338,8 +1338,8 @@ def get_standard_answer_status(standard_answer):
     standard = standard_answer.standard
     status = STANDARD_ANSWER_REVIEW_STATUS[1][0]
 
-    security_objectives_queryset = (
-        standard.securityobjectivesinstandard_set.all().order_by("position")
+    security_objectives_queryset = standard.security_objectives.all().order_by(
+        "position"
     )
 
     status_counts_queryset = (

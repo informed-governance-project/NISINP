@@ -250,14 +250,16 @@ class Standard(TranslatableModel):
 
 
 class SecurityObjectivesInStandard(models.Model):
-    security_objective = models.ForeignKey(
+    security_objective = models.OneToOneField(
         SecurityObjective,
         verbose_name=_("Security Objective"),
         on_delete=models.CASCADE,
+        related_name="standard_link",
     )
     standard = models.ForeignKey(
         Standard,
         on_delete=models.CASCADE,
+        related_name="security_objectives_set",
     )
     position = models.IntegerField(verbose_name=_("Position"), default=0)
     priority = models.IntegerField(verbose_name=_("Priority"), default=0)
