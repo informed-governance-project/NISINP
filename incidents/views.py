@@ -109,7 +109,8 @@ def get_incidents(request):
         elif user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
-                affected_sectors__in=request.user.get_sectors().all()
+                sector_regulation__regulator__in=user.regulators.all(),
+                affected_sectors__in=request.user.get_sectors().all(),
             ).distinct()
 
         else:
