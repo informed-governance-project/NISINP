@@ -1338,10 +1338,6 @@ def get_standard_answer_status(standard_answer):
     standard = standard_answer.standard
     status = STANDARD_ANSWER_REVIEW_STATUS[1][0]
 
-    security_objectives_queryset = standard.security_objectives.all().order_by(
-        "position"
-    )
-
     status_counts_queryset = (
         SecurityObjectiveStatus.objects.filter(standard_answer=standard_answer)
         .values("status")
@@ -1353,7 +1349,7 @@ def get_standard_answer_status(standard_answer):
         {item["status"]: item["count"] for item in status_counts_queryset},
     )
 
-    security_objectives_count = security_objectives_queryset.count()
+    security_objectives_count = standard.security_objectives.all().count()
 
     if (
         sum(status_counts_dict.values()) == security_objectives_count
