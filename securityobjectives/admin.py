@@ -97,11 +97,31 @@ class SecurityObjectiveInline(admin.TabularInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
-        if db_field.name == "security_objective":
-            # Regulator
-            if is_user_regulator(user):
+        if db_field.name == "security_objective" and is_user_regulator(user):
+            standard_id = request.resolver_match.kwargs.get("object_id")
+            # update we have the standard
+            if standard_id:
+                linked_to_other_standards = (
+                    SecurityObjectivesInStandard.objects.exclude(
+                        standard_id=standard_id
+                    ).values("security_objective_id")
+                )
+
                 kwargs["queryset"] = (
                     SecurityObjective.objects.filter(creator__in=user.regulators.all())
+                    .exclude(id__in=linked_to_other_standards)
+                    .order_by("unique_code")
+                    .distinct()
+                )
+            # creation we don't have the standard
+            else:
+                kwargs["queryset"] = (
+                    SecurityObjective.objects.filter(creator__in=user.regulators.all())
+                    .exclude(
+                        id__in=SecurityObjectivesInStandard.objects.values(
+                            "security_objective_id"
+                        )
+                    )
                     .order_by("unique_code")
                     .distinct()
                 )
