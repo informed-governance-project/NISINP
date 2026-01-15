@@ -321,10 +321,10 @@ class StandardAnswerGroup(models.Model):
     notification_date = models.DateTimeField(
         verbose_name=_("Notification date"), default=timezone.now
     )
-    # we allo to store user in case he is registered
-    contact_user = models.ForeignKey(
-        "governanceplatform.User",
-        verbose_name=_("Contact user"),
+    # we save the company
+    company = models.ForeignKey(
+        "governanceplatform.Company",
+        verbose_name=_("Company"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

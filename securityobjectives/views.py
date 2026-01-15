@@ -185,15 +185,15 @@ def create_so_declaration(request):
                 )
                 subsector_for_ref = sector.acronym[:3] if sector else ""
                 group_by_company = (
-                    company.standardanswer_set.filter(
-                        year_of_submission=date.today().year
+                    company.standardanswergroup_set.filter(
+                        notification_date__year=date.today().year
                     ).count()
                     if company
                     else 0
                 )
                 number_of_group = f"{group_by_company:04}"
                 sag = StandardAnswerGroup.objects.create(
-                    contact_user=user,
+                    company=company,
                     group_id=(
                         f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
                         f"{number_of_group}_{date.today().year}"
