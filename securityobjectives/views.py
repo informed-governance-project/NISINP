@@ -510,18 +510,20 @@ def copy_declaration(request, group_id: int):
     initial = {"sectors": sector_list}
     if not sector_list:
         messages.error(request, _("No sectors data available"))
-    try:
-        # get the last standard from the group
-        original_standard_answer = (
-            StandardAnswer.objects.filter(group__pk=group_id)
-            .order_by("-last_update")
-            .first()
-        )
-        if not has_change_permission(request, original_standard_answer, "copy"):
-            return redirect("securityobjectives")
-    except StandardAnswer.DoesNotExist:
+
+    # get the last standard from the group
+    original_standard_answer = (
+        StandardAnswer.objects.filter(group__pk=group_id)
+        .order_by("-last_update")
+        .first()
+    )
+    if not original_standard_answer:
         messages.error(request, _("Declaration not found"))
-        return redirect("securityobjectives")
+        return JsonResponse({"error": "Declaration not found"}, status=404)
+
+    if not has_change_permission(request, original_standard_answer, "copy"):
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
     if request.method == "POST":
         form = CopySOForm(request.POST, initial=initial)
         if form.is_valid():
@@ -686,10 +688,10 @@ def review_comment_declaration(request, standard_answer_id: int):
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
         if not has_change_permission(request, standard_answer, "review_comment"):
-            return redirect("securityobjectives")
+            return JsonResponse({"error": "Forbidden"}, status=403)
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
-        return redirect("securityobjectives")
+        return JsonResponse({"error": "Declaration not found"}, status=404)
 
     initial = model_to_dict(
         standard_answer, fields=["review_comment", "deadline", "status"]
