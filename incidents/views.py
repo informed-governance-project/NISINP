@@ -109,7 +109,8 @@ def get_incidents(request):
         elif user_in_group(user, "RegulatorUser"):
             # RegulatorUser has access to all incidents linked by sectors.
             incidents = incidents.filter(
-                affected_sectors__in=request.user.get_sectors().all()
+                sector_regulation__regulator__in=user.regulators.all(),
+                affected_sectors__in=request.user.get_sectors().all(),
             ).distinct()
 
         else:
@@ -501,11 +502,11 @@ def access_log(request, incident_id: int):
         incident = Incident.objects.get(pk=incident_id)
     except Incident.DoesNotExist:
         messages.error(request, _("Incident not found"))
-        return redirect("incidents")
+        return JsonResponse({"error": "Incident not found"}, status=400)
 
     if not can_access_incident(user, incident, company_id):
         messages.error(request, _("Forbidden"))
-        return redirect("incidents")
+        return JsonResponse({"error": "Forbidden"}, status=400)
 
     is_regulator_incidents = request.session.get("is_regulator_incidents", False)
 
@@ -639,7 +640,7 @@ def export_incidents(request):
 
     if not can_export_incidents(user):
         messages.error(request, _("Forbidden"))
-        return redirect("incidents")
+        return JsonResponse({"error": "Forbidden"}, status=400)
 
     regulation_ids = []
     sectorregulation_ids = []
