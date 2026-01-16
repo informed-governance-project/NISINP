@@ -77,6 +77,25 @@ class Domain(TranslatableModel):
     def __str__(self):
         return self.label if self.label is not None else ""
 
+    # override save, when we change the standard all the SOs under the domain
+    # must be unlinked from the previous standard
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+            return
+
+        old_standard_id = Domain.objects.values_list("standard_id", flat=True).get(
+            pk=self.pk
+        )
+
+        super().save(*args, **kwargs)
+        if (self.standard is not None and old_standard_id != self.standard.id) or (
+            self.standard is None and old_standard_id is not None
+        ):
+            SecurityObjectivesInStandard.objects.filter(
+                security_objective__domain=self
+            ).delete()
+
     class Meta:
         verbose_name_plural = _("Domains")
         verbose_name = _("Domain")
@@ -128,6 +147,34 @@ class SecurityObjective(TranslatableModel, models.Model):
         blank=True,
         default=None,
     )
+
+    # override save, when we change the standard all the SOs under the domain
+    # must be unlinked from the previous standard
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+            return
+
+        old_domain_id = SecurityObjective.objects.values_list(
+            "domain_id", flat=True
+        ).get(pk=self.pk)
+
+        super().save(*args, **kwargs)
+        if (self.domain is not None and old_domain_id != self.domain.id) or (
+            self.domain is None and old_domain_id is not None
+        ):
+            old_domain = None
+            if old_domain_id:
+                old_domain = Domain.objects.get(pk=old_domain_id)
+            if (
+                old_domain
+                and self.domain
+                and (old_domain.standard.id == self.domain.standard.id)
+            ):
+                return
+            SecurityObjectivesInStandard.objects.filter(
+                security_objective=self
+            ).delete()
 
     class Meta:
         verbose_name_plural = _("Security Objectives")

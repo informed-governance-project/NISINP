@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from parler.forms import TranslatableModelForm
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.helpers import is_user_regulator
@@ -110,6 +114,7 @@ class SecurityObjectiveInline(admin.TabularInline):
                 kwargs["queryset"] = (
                     SecurityObjective.objects.filter(creator__in=user.regulators.all())
                     .exclude(id__in=linked_to_other_standards)
+                    .exclude(~Q(domain__standard__id=standard_id))
                     .order_by("unique_code")
                     .distinct()
                 )
@@ -122,6 +127,7 @@ class SecurityObjectiveInline(admin.TabularInline):
                             "security_objective_id"
                         )
                     )
+                    .exclude(~Q(domain__standard__id=standard_id))
                     .order_by("unique_code")
                     .distinct()
                 )
@@ -372,6 +378,31 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         )
 
 
+# add a custom form for SecurityMeasure to ensure that
+# all the standard are the same
+class SecurityMeasureAdminForm(TranslatableModelForm):
+    class Meta:
+        model = SecurityMeasure
+        exclude = ["creator_name", "creator", "is_archived"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        so = cleaned_data.get("security_objective")
+        ml = cleaned_data.get("maturity_level")
+        sois = SecurityObjectivesInStandard.objects.get(security_objective=so)
+
+        if sois and ml:
+            if sois.standard_id != ml.standard_id:
+                raise ValidationError(
+                    _(
+                        "Standard of security objective and maturity level must be the same"
+                    )
+                )
+
+        return cleaned_data
+
+
 @admin.register(SecurityMeasure, site=admin_site)
 class SecurityMeasureAdmin(
     PermissionMixin,
@@ -380,10 +411,10 @@ class SecurityMeasureAdmin(
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
+    form = SecurityMeasureAdminForm
     resource_class = SecurityMeasureResource
     should_escape_html = False
     list_display = ["security_objective", "position", "description", "creator"]
-    exclude = ["creator_name", "creator", "is_archived"]
     ordering = ["security_objective__unique_code", "position"]
     list_filter = ["creator"]
 
