@@ -426,7 +426,7 @@ def translated_queryset(
     return qs
 
 
-def generate_display_methods(translated_fields):
+def generate_display_methods(translated_fields, related_fields=None):
     """
     Dynamically generates display methods for translated fields.
     Example: for “label” → creates label_display() with
@@ -447,6 +447,32 @@ def generate_display_methods(translated_fields):
             return _method
 
         methods[f"{field}_display"] = make_method(field)
+
+    if related_fields:
+        for related_attr, translated_field in related_fields:
+
+            def make_related_method(rel_attr, trans_field):
+                def _method(self, obj):
+                    related_obj = getattr(obj, rel_attr, None)
+                    if not related_obj:
+                        return "-"
+                    # safe_translation_getter for Parler
+                    return getattr(
+                        related_obj,
+                        "safe_translation_getter",
+                        lambda f, any_language=True: "-",
+                    )(trans_field, any_language=True)
+
+                _method.short_description = _(rel_attr.replace("_", " ").capitalize())
+                _method.admin_order_field = (
+                    f"{rel_attr}__translations__{translated_field}"
+                )
+                return _method
+
+            methods[f"{related_attr}_display"] = make_related_method(
+                related_attr, translated_field
+            )
+
     return methods
 
 
