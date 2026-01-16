@@ -7,7 +7,7 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from parler.forms import TranslatableModelForm
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.helpers import is_user_regulator
+from governanceplatform.helpers import generate_display_methods, is_user_regulator
 from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
 from governanceplatform.models import Regulation
 from governanceplatform.widgets import TranslatedNameWidget
@@ -57,14 +57,28 @@ class DomainAdmin(
     resource_class = DomainResource
     should_escape_html = False
     exclude = ["creator_name", "creator"]
-    list_display = [
-        "standard",
+    search_fields = [
+        "translations__label",
+        "creator__translations__name",
         "position",
-        "label",
+        "standard__translations__label",
+    ]
+    list_display = [
+        "standard_display",
+        "position",
+        "label_display",
         "creator",
     ]
-    ordering = ["position"]
+
     list_filter = ["creator", "standard"]
+    translated_fields = ["label"]
+    related_fields = [("standard", "label")]
+
+
+for name, method in generate_display_methods(
+    ["label"], [("standard", "label")]
+).items():
+    setattr(DomainAdmin, name, method)
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -145,10 +159,16 @@ class StandardAdmin(
 ):
     resource_class = StandardResource
     should_escape_html = False
-    list_display = ["label", "description", "regulator"]
+    list_display = ["label_display", "description_display", "regulator"]
+    search_fields = [
+        "translations__label",
+        "translations__description",
+        "regulator__translations__name",
+    ]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
     list_filter = ["regulator"]
+    translated_fields = ["description", "label"]
 
     # exclude standards which are not belonging to the user regulator
     def get_queryset(self, request):
@@ -170,6 +190,10 @@ class StandardAdmin(
         user = request.user
         obj.regulator = user.regulators.first()
         super().save_model(request, obj, form, change)
+
+
+for name, method in generate_display_methods(["label", "description"]).items():
+    setattr(StandardAdmin, name, method)
 
 
 class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
@@ -205,9 +229,22 @@ class MaturityLevelAdmin(
     resource_class = MaturityLevelResource
     should_escape_html = False
     exclude = ["creator_name", "creator"]
-    list_display = ["standard", "level", "label", "creator"]
-    ordering = ["level"]
+    search_fields = [
+        "translations__label",
+        "creator__translations__name",
+        "level",
+        "standard__translations__label",
+    ]
+    list_display = ["standard_display", "level", "label_display", "creator"]
     list_filter = ["creator", "standard"]
+    translated_fields = ["label"]
+    related_fields = [("standard", "label")]
+
+
+for name, method in generate_display_methods(
+    ["label"], [("standard", "label")]
+).items():
+    setattr(MaturityLevelAdmin, name, method)
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
@@ -486,12 +523,21 @@ class SOEmailAdmin(
 ):
     list_display = [
         "name",
-        "subject",
-        "content",
+        "subject_display",
+        "content_display",
         "creator",
     ]
-    search_fields = ["translations__subject", "translations__content"]
+    search_fields = [
+        "translations__subject",
+        "translations__content",
+        "creator__translations__name",
+    ]
+    translated_fields = ["subject", "content"]
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
     should_escape_html = False
     list_filter = ["creator"]
+
+
+for name, method in generate_display_methods(["subject", "content"]).items():
+    setattr(SOEmailAdmin, name, method)
