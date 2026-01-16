@@ -64,7 +64,7 @@ class DomainAdmin(
         "creator",
     ]
     ordering = ["position"]
-    list_filter = ["creator"]
+    list_filter = ["creator", "standard"]
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
@@ -207,7 +207,7 @@ class MaturityLevelAdmin(
     exclude = ["creator_name", "creator"]
     list_display = ["standard", "level", "label", "creator"]
     ordering = ["level"]
-    list_filter = ["creator"]
+    list_filter = ["creator", "standard"]
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
@@ -294,6 +294,7 @@ class SecurityObjectiveAdmin(
     resource_class = SecurityObjectiveResource
     should_escape_html = False
     list_display = [
+        "standard_display",
         "unique_code",
         "objective",
         "description",
@@ -301,7 +302,11 @@ class SecurityObjectiveAdmin(
         "creator",
     ]
     exclude = ["is_archived", "creator_name", "creator"]
-    list_filter = ["creator"]
+    list_filter = ["creator", "standard"]
+
+    @admin.display(description=_("Standard"))
+    def standard_display(self, obj):
+        return obj.standard_link.standard if obj.standard_link else "-"
 
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -414,9 +419,23 @@ class SecurityMeasureAdmin(
     form = SecurityMeasureAdminForm
     resource_class = SecurityMeasureResource
     should_escape_html = False
-    list_display = ["security_objective", "position", "description", "creator"]
+    list_display = [
+        "standard_display",
+        "security_objective",
+        "position",
+        "description",
+        "creator",
+    ]
     ordering = ["security_objective__unique_code", "position"]
-    list_filter = ["creator"]
+    list_filter = ["creator", "security_objective__standard_link__standard"]
+
+    @admin.display(description=_("Standard"))
+    def standard_display(self, obj):
+        return (
+            obj.security_objective.standard_link.standard
+            if obj.security_objective.standard_link
+            else "-"
+        )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
