@@ -174,31 +174,7 @@ def create_so_declaration(request):
                 standard = Standard.objects.get(pk=so_standard_id)
                 user = request.user
                 company = get_active_company_from_session(request)
-                company_for_ref = company.identifier if company else ""
-                framework_for_ref = (
-                    standard.label[:10] if standard and standard.label else ""
-                )
-                sector_id = sectors[0] if sectors[0] else None
-                sector = Sector.objects.get(id=sector_id) if sector_id else None
-                sector_for_ref = (
-                    sector.parent.acronym[:3] if sector and sector.parent else ""
-                )
-                subsector_for_ref = sector.acronym[:3] if sector else ""
-                group_by_company = (
-                    company.standardanswergroup_set.filter(
-                        notification_date__year=date.today().year
-                    ).count()
-                    if company
-                    else 0
-                )
-                number_of_group = f"{group_by_company:04}"
-                sag = StandardAnswerGroup.objects.create(
-                    company=company,
-                    group_id=(
-                        f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
-                        f"{number_of_group}_{date.today().year}"
-                    ),
-                )
+                sag = create_standard_answer_group(company, sectors, standard)
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     submitter_user=user,
@@ -974,6 +950,8 @@ def import_so_declaration(request):
                 if not valid_sectors:
                     return HttpResponseRedirect(request.headers.get("referer"))
 
+                group = create_standard_answer_group(company, sectors, standard)
+
                 new_standard_answer = StandardAnswer(
                     standard=standard,
                     status=STANDARD_ANSWER_REVIEW_STATUS[1][0],  # Default UNDER REVIEW
@@ -983,6 +961,7 @@ def import_so_declaration(request):
                     creator_company_name=str(company),
                     year_of_submission=year,
                     submit_date=timezone.now(),
+                    group=group,
                 )
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(valid_sectors)
@@ -995,8 +974,7 @@ def import_so_declaration(request):
                 return HttpResponseRedirect(request.headers.get("referer"))
 
             security_objectives = {
-                obj.security_objective.unique_code: obj.security_objective
-                for obj in standard.security_objectives.all()
+                obj.unique_code: obj for obj in standard.security_objectives.all()
             }
 
             for row in ws.iter_rows(
@@ -1419,3 +1397,29 @@ def duplicate_standard_answer(original):
         new_sos.save()
     new_obj.save()
     return new_obj
+
+
+# function to create a standard_answer_group
+def create_standard_answer_group(company, sectors, standard):
+    company_for_ref = company.identifier if company else ""
+    framework_for_ref = standard.label[:10] if standard and standard.label else ""
+    sector_id = sectors[0] if sectors[0] else None
+    sector = Sector.objects.get(id=sector_id) if sector_id else None
+    sector_for_ref = sector.parent.acronym[:3] if sector and sector.parent else ""
+    subsector_for_ref = sector.acronym[:3] if sector else ""
+    group_by_company = (
+        company.standardanswergroup_set.filter(
+            notification_date__year=date.today().year
+        ).count()
+        if company
+        else 0
+    )
+    number_of_group = f"{group_by_company:04}"
+    sag = StandardAnswerGroup.objects.create(
+        company=company,
+        group_id=(
+            f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
+            f"{number_of_group}_{date.today().year}"
+        ),
+    )
+    return sag
