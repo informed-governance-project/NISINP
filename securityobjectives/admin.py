@@ -460,11 +460,19 @@ class SecurityMeasureAdmin(
         "standard_display",
         "security_objective",
         "position",
-        "description",
+        "description_display",
         "creator",
+    ]
+    search_fields = [
+        "security_objective__standard_link__standard__translations__label",
+        "security_objective__unique_code",
+        "security_objective__translations__objective",
+        "translations__description",
+        "position",
     ]
     ordering = ["security_objective__unique_code", "position"]
     list_filter = ["creator", "security_objective__standard_link__standard"]
+    translated_fields = ["description"]
 
     @admin.display(description=_("Standard"))
     def standard_display(self, obj):
@@ -493,6 +501,10 @@ class SecurityMeasureAdmin(
                 )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+for name, method in generate_display_methods(["description"], []).items():
+    setattr(SecurityMeasureAdmin, name, method)
 
 
 class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
