@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-14 16:43+0100\n"
 "PO-Revision-Date: 2026-01-19 08:27+0000\n"
-"Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1253,7 +1253,7 @@ msgstr "Vorfall nicht gefunden"
 
 #: incidents/views.py:283 incidents/views.py:375
 msgid "The incident has been closed"
-msgstr ""
+msgstr "Der Vorfall wurde abgeschlossen"
 
 #: incidents/views.py:287 incidents/views.py:294 incidents/views.py:348
 #: incidents/views.py:379 incidents/views.py:389 incidents/views.py:444
@@ -1944,7 +1944,7 @@ msgstr "Die Deklaration der Sicherheitsziele wurde gelöscht."
 
 #: securityobjectives/views.py:730
 msgid "The security objectives review has been sent."
-msgstr ""
+msgstr "Die Überprüfung der Sicherheitsziele wurde gesendet."
 
 #: securityobjectives/views.py:945
 msgid "Error opening the file: {}"
