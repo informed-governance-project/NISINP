@@ -70,7 +70,7 @@ class DomainAdmin(
         "creator",
     ]
 
-    list_filter = ["creator", "standard"]
+    list_filter = ["standard", "position", "translations__label", "creator"]
     translated_fields = ["label"]
     related_fields = [("standard", "label")]
 
@@ -167,7 +167,7 @@ class StandardAdmin(
     ]
     exclude = ("regulator",)
     inlines = (SecurityObjectiveInline,)
-    list_filter = ["regulator"]
+    list_filter = ["translations__label", "regulator"]
     translated_fields = ["description", "label"]
 
     # exclude standards which are not belonging to the user regulator
@@ -236,7 +236,7 @@ class MaturityLevelAdmin(
         "standard__translations__label",
     ]
     list_display = ["standard_display", "level", "label_display", "creator"]
-    list_filter = ["creator", "standard"]
+    list_filter = ["standard", "level", "creator"]
     translated_fields = ["label"]
     related_fields = [("standard", "label")]
 
@@ -333,13 +333,28 @@ class SecurityObjectiveAdmin(
     list_display = [
         "standard_display",
         "unique_code",
-        "objective",
-        "description",
+        "objective_display",
+        "description_display",
         "domain",
         "creator",
     ]
     exclude = ["is_archived", "creator_name", "creator"]
-    list_filter = ["creator", "standard"]
+    list_filter = [
+        "standard",
+        "unique_code",
+        "translations__objective",
+        "domain",
+        "creator",
+    ]
+    translated_fields = ["description", "objective"]
+    related_fields = [("domain", "label")]
+    search_fields = [
+        "unique_code",
+        "translations__objective",
+        "translations__description",
+        "domain__translations__label",
+        "creator__translations__name",
+    ]
 
     @admin.display(description=_("Standard"))
     def standard_display(self, obj):
@@ -363,6 +378,12 @@ class SecurityObjectiveAdmin(
                 ).distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+for name, method in generate_display_methods(
+    ["description", "objective"], [("domain", "label")]
+).items():
+    setattr(SecurityObjectiveAdmin, name, method)
 
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
@@ -471,7 +492,11 @@ class SecurityMeasureAdmin(
         "position",
     ]
     ordering = ["security_objective__unique_code", "position"]
-    list_filter = ["creator", "security_objective__standard_link__standard"]
+    list_filter = [
+        "security_objective__standard_link__standard",
+        "security_objective",
+        "creator",
+    ]
     translated_fields = ["description"]
 
     @admin.display(description=_("Standard"))
@@ -548,7 +573,7 @@ class SOEmailAdmin(
     fields = ("name", "subject", "content")
     resource_class = SOEmailResource
     should_escape_html = False
-    list_filter = ["creator"]
+    list_filter = ["name", "translations__subject", "creator"]
 
 
 for name, method in generate_display_methods(["subject", "content"]).items():
