@@ -203,10 +203,7 @@ class SecurityObjectiveEmail(TranslatableModel, models.Model):
         ),
         content=models.TextField(
             verbose_name=_("Content"),
-            help_text=_(
-                """Available placeholders: #SO_REFERENCE#,
-                #DEADLINE#"""
-            ),
+            help_text=_("""Available placeholders: #SO_REFERENCE#"""),
         ),
     )
     name = models.CharField(verbose_name=_("Name"), max_length=255)
@@ -446,9 +443,6 @@ class StandardAnswer(models.Model):
     )
     review_comment = models.TextField(
         blank=True, default=None, null=True, verbose_name=_("Review comment")
-    )
-    deadline = models.DateTimeField(
-        blank=True, default=None, null=True, verbose_name=_("Deadline")
     )
     group = models.ForeignKey(
         StandardAnswerGroup, on_delete=models.CASCADE, verbose_name=_("Group")

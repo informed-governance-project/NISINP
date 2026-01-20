@@ -645,9 +645,7 @@ def review_comment_declaration(request, standard_answer_id: int):
         messages.error(request, _("Declaration not found"))
         return JsonResponse({"error": "Declaration not found"}, status=404)
 
-    initial = model_to_dict(
-        standard_answer, fields=["review_comment", "deadline", "status"]
-    )
+    initial = model_to_dict(standard_answer, fields=["review_comment", "status"])
     if is_user_operator(user):
         create_entry_log(user, standard_answer, "READ", request)
         initial["is_readonly"] = is_user_operator(user)
@@ -672,7 +670,6 @@ def review_comment_declaration(request, standard_answer_id: int):
                 return JsonResponse({"success": True})
 
             standard_answer.review_comment = form.cleaned_data["review_comment"]
-            standard_answer.deadline = form.cleaned_data["deadline"]
             standard_answer.status = form.cleaned_data["status"]
             standard_answer.last_update = timezone.now()
             standard_answer.save()
@@ -1128,7 +1125,7 @@ def has_change_permission(request, standard_answer, action):
                     is_user_regulator_sector and standard_answer.status != "UNDE"
                 ) or (
                     is_standard_answer_in_user_company
-                    and (standard_answer.review_comment or standard_answer.deadline)
+                    and standard_answer.review_comment
                 )
             case "log":
                 return is_user_regulator_sector or is_standard_answer_in_user_company

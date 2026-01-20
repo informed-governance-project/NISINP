@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from incidents.forms import DropdownCheckboxSelectMultiple
-from incidents.widgets import TempusDominusV6Widget
 
 from .models import SecurityObjectiveStatus, StandardAnswer
 
@@ -244,14 +243,13 @@ class CopySOForm(forms.Form):
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = StandardAnswer
-        fields = ["review_comment", "deadline", "status"]
+        fields = ["review_comment", "status"]
         widgets = {
             "review_comment": forms.Textarea(
                 attrs={
                     "rows": 3,
                 }
             ),
-            "deadline": TempusDominusV6Widget(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -259,7 +257,6 @@ class ReviewForm(forms.ModelForm):
         is_only_review_comment = kwargs.pop("is_only_review_comment", False)
         super().__init__(*args, **kwargs)
         self.fields["review_comment"].required = True
-        self.fields["deadline"].required = False
         self.fields["status"].required = False
         self.fields["status"].disabled = True
         self.is_only_review_comment = False
@@ -270,7 +267,6 @@ class ReviewForm(forms.ModelForm):
             is_read_only = initial.get("is_readonly", True)
             self.is_read_only = is_read_only
             self.fields["review_comment"].disabled = is_read_only
-            self.fields["deadline"].disabled = is_read_only
             new_classes = f"{current_classes} fw-bolder text-white"
 
             if initial["status"] == "PASSM":
@@ -294,7 +290,6 @@ class ReviewForm(forms.ModelForm):
         if is_only_review_comment and not is_read_only:
             self.is_only_review_comment = True
             self.fields["status"].widget = forms.HiddenInput()
-            self.fields["deadline"].widget = forms.HiddenInput()
 
     def clean_status(self):
         status = self.cleaned_data.get("status")
