@@ -33,6 +33,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import override
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 
@@ -694,6 +695,18 @@ def review_comment_declaration(request, standard_answer_id: int):
                 send_email(
                     standard_answer.standard.security_objective_status_changed_email,
                     standard_answer,
+                )
+
+            with override(settings.PARLER_DEFAULT_LANGUAGE_CODE):
+                status_label = dict(STANDARD_ANSWER_REVIEW_STATUS).get(
+                    standard_answer.status, ""
+                )
+
+                create_entry_log(
+                    user,
+                    standard_answer,
+                    f"REVIEW STATUS: {status_label}",
+                    request,
                 )
 
         return redirect("securityobjectives")

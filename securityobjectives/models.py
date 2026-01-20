@@ -555,7 +555,7 @@ class LogStandardAnswer(models.Model):
         null=True,
         default=None,
     )
-    action = models.CharField(max_length=10, verbose_name=_("Action performed"))
+    action = models.CharField(max_length=250, verbose_name=_("Action performed"))
 
     def save(self, *args, **kwargs):
         self.user_full_name = self.user.get_full_name()
