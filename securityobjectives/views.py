@@ -767,7 +767,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
         levels = MaturityLevel.objects.all().aggregate(
             first_level=Min("level"), last_level=Max("level")
         )
-        security_objectives_queryset = standard.security_objectives.all().order_by(
+        security_objectives_queryset = standard.security_objectives_set.all().order_by(
             "position"
         )
         security_objectives = defaultdict(lambda: defaultdict(list))
