@@ -511,33 +511,8 @@ def copy_declaration(request, group_id: int):
                 "creator_company_name": original_standard_answer.creator_company_name,
             }
             company = original_standard_answer_dict["submitter_company"]
-            company_for_ref = company.identifier if company else ""
             standard = original_standard_answer_dict["standard"]
-            framework_for_ref = (
-                standard.label[:10] if standard and standard.label else ""
-            )
-            sector_id = sectors[0] if sectors[0] else None
-            sector = Sector.objects.get(id=sector_id) if sector_id else None
-            sector_for_ref = (
-                sector.parent.acronym[:3] if sector and sector.parent else ""
-            )
-            subsector_for_ref = sector.acronym[:3] if sector else ""
-            group_by_company = (
-                company.standardanswer_set.filter(
-                    year_of_submission=year,
-                    sectors=sector,
-                ).count()
-                if company
-                else 0
-            )
-            number_of_group = f"{group_by_company:04}"
-            sag = StandardAnswerGroup.objects.create(
-                contact_user=user,
-                group_id=(
-                    f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
-                    f"{number_of_group}_{year}"
-                ),
-            )
+            sag = create_standard_answer_group(company, sectors, standard)
 
             new_standard_answer = StandardAnswer(
                 **original_standard_answer_dict,
