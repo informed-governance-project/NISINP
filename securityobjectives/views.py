@@ -617,10 +617,7 @@ def submit_declaration(request, standard_answer_id: int):
 def delete_declaration(request, standard_answer_id: int):
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
-        if (
-            not has_change_permission(request, standard_answer, "delete")
-            or standard_answer.status != "UNDE"
-        ):
+        if not has_change_permission(request, standard_answer, "delete"):
             return redirect("securityobjectives")
         standard_answer.delete()
         messages.success(
@@ -1314,7 +1311,7 @@ def get_standard_answer_status(standard_answer):
         {item["status"]: item["count"] for item in status_counts_queryset},
     )
 
-    security_objectives_count = standard.security_objectives.all().count()
+    security_objectives_count = standard.security_objectives_set.all().count()
 
     if (
         sum(status_counts_dict.values()) == security_objectives_count
