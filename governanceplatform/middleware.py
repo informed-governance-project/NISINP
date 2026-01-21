@@ -188,26 +188,52 @@ class CheckFunctionalityAccessMiddleware:
 
     def __call__(self, request):
         user = request.user
-        if user.is_authenticated:
-            functionalities_types = Functionality.objects.filter(
-                regulator__isnull=False
-            ).values_list("type", flat=True)
+        if not user.is_authenticated:
+            return self.get_response(request)
 
-            functionality_path = resolve(request.path).route.split("/")[0]
-            if not Functionality.objects.filter(type=functionality_path).exists():
+        resolver = resolve(request.path)
+
+        existing_functionalities = set(
+            Functionality.objects.values_list("type", flat=True)
+        )
+
+        functionalities_types = Functionality.objects.filter(
+            regulator__isnull=False
+        ).values_list("type", flat=True)
+
+        functionality_path = resolver.route.split("/")[0]
+
+        # regulator case
+        if request.user.regulators.exists():
+            regulator = request.user.regulators.first()
+            regulator_functionalities = regulator.functionalities.values_list(
+                "type", flat=True
+            )
+
+            if functionality_path == "admin":
+                url_name = resolver.url_name
+                app_label = resolver.kwargs.get("app_label", url_name.split("_", 1)[0])
+
+                if not app_label:
+                    return self.get_response(request)
+
+                if app_label not in existing_functionalities:
+                    return self.get_response(request)
+
+                if app_label not in regulator_functionalities:
+                    raise Http404()
+
+            if functionality_path not in existing_functionalities:
                 return self.get_response(request)
 
-            if functionality_path not in functionalities_types:
+            if functionality_path not in regulator_functionalities:
                 raise Http404()
 
-            # regulator case
-            if request.user.regulators.first() is not None:
-                regulator = request.user.regulators.first()
-                regulator_functionalities = regulator.functionalities.values_list(
-                    "type", flat=True
-                )
-                if functionality_path not in regulator_functionalities:
-                    raise Http404()
+        if functionality_path not in existing_functionalities:
+            return self.get_response(request)
+
+        if functionality_path not in functionalities_types:
+            raise Http404()
 
         return self.get_response(request)
 
