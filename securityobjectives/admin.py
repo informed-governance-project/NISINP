@@ -448,16 +448,45 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     # link the correct object to the row
     def before_import_row(self, row, **kwargs):
         creator = kwargs.get("creator")
-        if row["security_objective"] and creator:
-            so = SecurityObjective.objects.filter(
-                unique_code=row["security_objective"], creator=creator
+        lang = get_language() or "en"
+        if row["standard"]:
+            standard = Standard.objects.filter(
+                translations__label=row["standard"],
+                regulator=creator,
             ).first()
-            row["security_objective"] = so
-        if row["maturity_level"] and creator:
-            ml = MaturityLevel.objects.filter(
-                translations__label=row["maturity_level"], creator=creator
-            ).first()
-            row["maturity_level"] = ml
+        if standard:
+            if row["security_objective"] and creator:
+                so = SecurityObjective.objects.filter(
+                    unique_code=row["security_objective"],
+                    standard=standard,
+                    creator=creator,
+                ).first()
+                row["security_objective"] = so
+            if (
+                row["maturity_level"]
+                and row["maturity_level_level"] is not None
+                and creator
+            ):
+                ml = (
+                    MaturityLevel.objects.filter(
+                        standard=standard,
+                        level=row["maturity_level_level"],
+                    )
+                    .translated(lang, label=row["maturity_level"])
+                    .first()
+                )
+                if not ml:
+                    ml = MaturityLevel.objects.create(
+                        standard=standard,
+                        creator=creator,
+                        level=row["maturity_level_level"],
+                    )
+                    ml.set_current_language(lang)
+                    ml.label = row["maturity_level"]
+                    ml.save()
+                row["maturity_level"] = ml
+            if row["evidence"] is None:
+                row["evidence"] = ""
         return super().before_import_row(row, **kwargs)
 
     class Meta:
