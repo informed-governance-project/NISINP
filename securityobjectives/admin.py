@@ -498,6 +498,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
             "description",
             "evidence",
         )
+        import_id_fields = ("security_objective", "maturity_level", "position")
 
 
 # add a custom form for SecurityMeasure to ensure that
