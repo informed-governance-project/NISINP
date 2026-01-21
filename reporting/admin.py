@@ -5,7 +5,7 @@ from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.mixins import TranslationUpdateMixin
+from governanceplatform.mixins import FunctionalityMixin, TranslationUpdateMixin
 from governanceplatform.models import Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget
 
@@ -46,7 +46,9 @@ class ObservationRecommendationResource(
 
 
 @admin.register(ObservationRecommendation, site=admin_site)
-class ObservationRecommendationAdmin(CustomTranslatableAdmin, ImportExportModelAdmin):
+class ObservationRecommendationAdmin(
+    FunctionalityMixin, CustomTranslatableAdmin, ImportExportModelAdmin
+):
     resource_class = ObservationRecommendationResource
     list_display = ["code", "description", "get_sector_name"]
     search_fields = ["code", "description"]

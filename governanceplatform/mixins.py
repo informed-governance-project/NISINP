@@ -78,3 +78,16 @@ class ShowReminderForTranslationsMixin:
     def add_view(self, request, form_url="", extra_context=None):
         self._add_reminder_message(request)
         return super().add_view(request, form_url, extra_context)
+
+
+class FunctionalityMixin:
+    def has_module_permission(self, request):
+        user = request.user
+
+        if not user.regulators.exists():
+            return super().has_module_permission(request)
+
+        regulator = user.regulators.first()
+        allowed = regulator.functionalities.values_list("type", flat=True)
+
+        return self.model._meta.app_label in allowed

@@ -9,7 +9,11 @@ from parler.forms import TranslatableModelForm
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.helpers import generate_display_methods, is_user_regulator
-from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
+from governanceplatform.mixins import (
+    FunctionalityMixin,
+    PermissionMixin,
+    TranslationUpdateMixin,
+)
 from governanceplatform.models import Regulation
 from governanceplatform.widgets import TranslatedNameWidget
 from securityobjectives.models import (
@@ -49,6 +53,7 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(Domain, site=admin_site)
 class DomainAdmin(
+    FunctionalityMixin,
     PermissionMixin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
@@ -150,6 +155,7 @@ class SecurityObjectiveInline(admin.TabularInline):
 
 @admin.register(Standard, site=admin_site)
 class StandardAdmin(
+    FunctionalityMixin,
     PermissionMixin,
     ImportMixin,
     ImportExportModelAdmin,
@@ -219,6 +225,7 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(MaturityLevel, site=admin_site)
 class MaturityLevelAdmin(
+    FunctionalityMixin,
     PermissionMixin,
     ImportMixin,
     ImportExportModelAdmin,
@@ -357,6 +364,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 
 @admin.register(SecurityObjective, site=admin_site)
 class SecurityObjectiveAdmin(
+    FunctionalityMixin,
     PermissionMixin,
     ImportMixin,
     ImportExportModelAdmin,
@@ -533,6 +541,7 @@ class SecurityMeasureAdminForm(TranslatableModelForm):
 
 @admin.register(SecurityMeasure, site=admin_site)
 class SecurityMeasureAdmin(
+    FunctionalityMixin,
     PermissionMixin,
     ImportMixin,
     ImportExportModelAdmin,
@@ -621,7 +630,11 @@ class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(SecurityObjectiveEmail, site=admin_site)
 class SOEmailAdmin(
-    PermissionMixin, ImportMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+    FunctionalityMixin,
+    PermissionMixin,
+    ImportMixin,
+    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     list_display = [
         "name",
