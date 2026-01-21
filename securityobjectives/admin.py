@@ -521,7 +521,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
 
 # add a custom form for SecurityMeasure to ensure that
 # all the standard are the same
-class SecurityMeasureAdminForm(TranslatableModelForm):
+class SecurityMeasureAdminForm(TranslatableModelForm, PermissionMixin):
     class Meta:
         model = SecurityMeasure
         exclude = ["creator_name", "creator", "is_archived"]
