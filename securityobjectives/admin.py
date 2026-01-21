@@ -271,7 +271,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     )
     standard = fields.Field(
         column_name="standard",
-        attribute="stamdard",
+        attribute="standard",
     )
     position = fields.Field(
         column_name="position",
@@ -289,11 +289,15 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         creator = kwargs.get("creator")
         lang = get_language() or "en"
         if row["standard"]:
-            standard = Standard.objects.filter(
-                translations__label=row["standard"],
-                regulator=creator,
-            ).first()
+            standard = (
+                Standard.objects.filter(
+                    regulator=creator,
+                )
+                .translated(lang, label=row["standard"])
+                .first()
+            )
             if standard:
+                row["standard"] = standard
                 self._row_cache[id(row)] = {
                     "standard": standard,
                 }
@@ -348,6 +352,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "standard",
             "position",
         )
+        import_id_fields = ("unique_code", "standard")
 
 
 @admin.register(SecurityObjective, site=admin_site)
