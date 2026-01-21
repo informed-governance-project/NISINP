@@ -284,6 +284,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         column_name="position",
         attribute="position",
     )
+    creator = fields.Field(
+        column_name="creator",
+        attribute="creator",
+    )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
         creator = kwargs.get("creator")
@@ -295,6 +299,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     def before_import_row(self, row, **kwargs):
         creator = kwargs.get("creator")
         lang = get_language() or "en"
+        row["creator"] = creator
         if row["standard"]:
             standard = (
                 Standard.objects.filter(
@@ -359,7 +364,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "standard",
             "position",
         )
-        import_id_fields = ("unique_code", "standard")
+        import_id_fields = ("unique_code", "creator")
 
 
 @admin.register(SecurityObjective, site=admin_site)
