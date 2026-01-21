@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
@@ -54,8 +55,6 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 class DomainAdmin(
     FunctionalityMixin,
     PermissionMixin,
-    ImportMixin,
-    ImportExportModelAdmin,
     ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
@@ -255,6 +254,11 @@ for name, method in generate_display_methods(
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._row_cache = {}
+
     id = fields.Field(column_name="id", attribute="id", readonly=True)
     objective = fields.Field(
         column_name="objective",
@@ -290,30 +294,56 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     # link the correct object to the row
     def before_import_row(self, row, **kwargs):
         creator = kwargs.get("creator")
-        if row["domain"]:
-            domain = Domain.objects.filter(
-                creator=creator, translations__label=row["domain"]
-            ).first()
-            row["domain"] = domain
+        lang = get_language() or "en"
         if row["standard"]:
             standard = Standard.objects.filter(
                 translations__label=row["standard"],
                 regulator=creator,
             ).first()
-            row["standard"] = standard
+            if standard:
+                self._row_cache[id(row)] = {
+                    "standard": standard,
+                }
+            if standard:
+                if row["domain"]:
+                    domain = (
+                        Domain.objects.filter(standard=standard)
+                        .translated(lang, label=row["domain"])
+                        .first()
+                    )
+                    if not domain and row["domain_position"]:
+                        domain = Domain.objects.create(
+                            standard=standard,
+                            position=row["domain_position"],
+                            creator=creator,
+                        )
+                        domain.set_current_language(lang)
+                        domain.label = row["domain"]
+                        domain.save()
+                    row["domain"] = domain
+
         return super().before_import_row(row, **kwargs)
 
     # if there is a standard get it and save the SO
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
         so = SecurityObjective.objects.get(pk=row_result.object_id)
-        if row["standard"] and row["position"]:
-            standard = Standard.objects.filter(
-                translations__label=row["standard"]
+        cached = self._row_cache.pop(id(row), {})
+        standard = cached.get("standard")
+        if standard and so:
+            sois = SecurityObjectivesInStandard.objects.filter(
+                security_objective=so,
+                standard=standard,
             ).first()
-            if standard is not None and row["position"] is not None:
-                SecurityObjectivesInStandard.objects.create(
-                    security_objective=so, standard=standard, position=row["position"]
+            if not sois:
+                sois = SecurityObjectivesInStandard.objects.create(
+                    security_objective=so,
+                    standard=standard,
                 )
+            if row["priority"] and row["priority"] is not None:
+                sois.priority = row["priority"]
+            if row["position"] and row["position"] is not None:
+                sois.position = row["position"]
+            sois.save()
 
     class Meta:
         model = SecurityObjective
@@ -426,16 +456,45 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     # link the correct object to the row
     def before_import_row(self, row, **kwargs):
         creator = kwargs.get("creator")
-        if row["security_objective"] and creator:
-            so = SecurityObjective.objects.filter(
-                unique_code=row["security_objective"], creator=creator
+        lang = get_language() or "en"
+        if row["standard"]:
+            standard = Standard.objects.filter(
+                translations__label=row["standard"],
+                regulator=creator,
             ).first()
-            row["security_objective"] = so
-        if row["maturity_level"] and creator:
-            ml = MaturityLevel.objects.filter(
-                translations__label=row["maturity_level"], creator=creator
-            ).first()
-            row["maturity_level"] = ml
+        if standard:
+            if row["security_objective"] and creator:
+                so = SecurityObjective.objects.filter(
+                    unique_code=row["security_objective"],
+                    standard=standard,
+                    creator=creator,
+                ).first()
+                row["security_objective"] = so
+            if (
+                row["maturity_level"]
+                and row["maturity_level_level"] is not None
+                and creator
+            ):
+                ml = (
+                    MaturityLevel.objects.filter(
+                        standard=standard,
+                        level=row["maturity_level_level"],
+                    )
+                    .translated(lang, label=row["maturity_level"])
+                    .first()
+                )
+                if not ml:
+                    ml = MaturityLevel.objects.create(
+                        standard=standard,
+                        creator=creator,
+                        level=row["maturity_level_level"],
+                    )
+                    ml.set_current_language(lang)
+                    ml.label = row["maturity_level"]
+                    ml.save()
+                row["maturity_level"] = ml
+            if row["evidence"] is None:
+                row["evidence"] = ""
         return super().before_import_row(row, **kwargs)
 
     class Meta:
