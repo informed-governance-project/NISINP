@@ -3,6 +3,7 @@ import json
 from django import template
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 
 from incidents.globals import REPORT_STATUS_MAP
@@ -55,6 +56,7 @@ def get_incident_workflow_by_workflow(incident, workflow):
         item["timestamp"] = item["timestamp"].isoformat()
         item["css_class"] = review_status["class"]
         item["review_status"] = review_status["label"]
+        item["comment"] = escape(item["comment"])
 
     return json.dumps(data, cls=DjangoJSONEncoder)
 

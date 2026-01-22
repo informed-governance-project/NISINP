@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
@@ -177,6 +178,11 @@ def get_incidents(request):
                     incident,
                 )
             )
+
+            if latest_incident_workflow and latest_incident_workflow.comment:
+                latest_incident_workflow.comment = escape(
+                    latest_incident_workflow.comment
+                )
 
             mapping = REPORT_STATUS_MAP.get(status, REPORT_STATUS_MAP["UNDE"])
 
