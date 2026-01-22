@@ -421,6 +421,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                 sois.position = row["position"]
             sois.save()
 
+    def get_export_fields(self):
+        fields = super().get_export_fields()
+        return [f for f in fields if f.attribute != "id"]
+
     class Meta:
         model = SecurityObjective
         fields = (
@@ -434,7 +438,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "priority",
         )
         import_id_fields = ("unique_code", "creator")
-        # exclude = ("id", "creator")
 
 
 @admin.register(SecurityObjective, site=admin_site)
