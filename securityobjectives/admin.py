@@ -314,21 +314,19 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                     "standard": standard,
                 }
             if standard:
-                if row["domain"]:
-                    domain = (
-                        Domain.objects.filter(standard=standard)
-                        .translated(lang, label=row["domain"])
-                        .first()
-                    )
-                    if not domain and row["domain_position"]:
+                if row["domain"] and row["domain_position"]:
+                    domain = Domain.objects.filter(
+                        standard=standard, position=row["domain_position"]
+                    ).first()
+                    if not domain:
                         domain = Domain.objects.create(
                             standard=standard,
                             position=row["domain_position"],
                             creator=creator,
                         )
-                        domain.set_current_language(lang)
-                        domain.label = row["domain"]
-                        domain.save()
+                    domain.set_current_language(lang)
+                    domain.label = row["domain"]
+                    domain.save()
                     row["domain"] = domain
 
         return super().before_import_row(row, **kwargs)
@@ -485,23 +483,19 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                 and row["maturity_level_level"] is not None
                 and creator
             ):
-                ml = (
-                    MaturityLevel.objects.filter(
-                        standard=standard,
-                        level=row["maturity_level_level"],
-                    )
-                    .translated(lang, label=row["maturity_level"])
-                    .first()
-                )
+                ml = MaturityLevel.objects.filter(
+                    standard=standard,
+                    level=row["maturity_level_level"],
+                ).first()
                 if not ml:
                     ml = MaturityLevel.objects.create(
                         standard=standard,
                         creator=creator,
                         level=row["maturity_level_level"],
                     )
-                    ml.set_current_language(lang)
-                    ml.label = row["maturity_level"]
-                    ml.save()
+                ml.set_current_language(lang)
+                ml.label = row["maturity_level"]
+                ml.save()
                 row["maturity_level"] = ml
             if row["evidence"] is None:
                 row["evidence"] = ""
