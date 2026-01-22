@@ -292,6 +292,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     creator = fields.Field(
         column_name="creator",
         attribute="creator",
+        readonly=True,
     )
 
     def dehydrate_standard(self, obj):
@@ -513,6 +514,11 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         self.request = kwargs.pop("request", None)
 
     id = fields.Field(column_name="id", attribute="id", readonly=True)
+    standard = fields.Field(
+        column_name="standard",
+        attribute="standard",
+        widget=TranslatedNameWidget(Standard, field="description"),
+    )
     security_objective = fields.Field(
         column_name="security_objective",
         attribute="security_objective",
@@ -520,7 +526,9 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     maturity_level = fields.Field(
         column_name="maturity_level",
         attribute="maturity_level",
+        widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
+    maturity_level_level = fields.Field(column_name="maturity_level_level")
     position = fields.Field(
         column_name="position",
         attribute="position",
@@ -533,6 +541,29 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="evidence",
         attribute="evidence",
     )
+    creator = fields.Field(
+        column_name="creator",
+        attribute="creator",
+        readonly=True,
+    )
+
+    def dehydrate_maturity_level_level(self, obj):
+        if obj.maturity_level and obj.maturity_level.pk:
+            return obj.maturity_level.level
+        else:
+            return self._current_import_row["maturity_level_level"]
+
+    def dehydrate_standard(self, obj):
+        if hasattr(self, "_current_import_row"):
+            return self._current_import_row["standard"]
+        else:
+            return (
+                SecurityObjectivesInStandard.objects.filter(
+                    security_objective=obj.security_objective
+                )
+                .first()
+                .standard
+            )
 
     def skip_row(
         self, instance, original, row, import_validation_errors=None, **kwargs
@@ -557,6 +588,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
 
     # link the correct object to the row
     def before_import_row(self, row, **kwargs):
+        self._current_import_row = row
         creator = kwargs.get("creator")
         lang = get_language() or "en"
         if row["standard"]:
@@ -590,16 +622,26 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                 ml.set_current_language(lang)
                 ml.label = row["maturity_level"]
                 ml.save()
-                row["maturity_level"] = ml
             if row["evidence"] is None:
                 row["evidence"] = ""
         return super().before_import_row(row, **kwargs)
 
+    # erase the temporary variable
+    def after_import_row(self, row, row_result, row_number=None, **kwargs):
+        if hasattr(self, "_current_import_row"):
+            del self._current_import_row
+
+    def get_export_fields(self):
+        fields = super().get_export_fields()
+        return [f for f in fields if f.attribute != "id"]
+
     class Meta:
         model = SecurityMeasure
         fields = (
+            "standard",
             "security_objective",
             "maturity_level",
+            "maturity_level_level",
             "position",
             "description",
             "evidence",
