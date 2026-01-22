@@ -161,9 +161,6 @@ class SecurityObjectiveInline(admin.TabularInline):
 class StandardAdmin(
     FunctionalityMixin,
     PermissionMixin,
-    ImportMixin,
-    ImportExportModelAdmin,
-    ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
     resource_class = StandardResource
@@ -231,9 +228,6 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
 class MaturityLevelAdmin(
     FunctionalityMixin,
     PermissionMixin,
-    ImportMixin,
-    ImportExportModelAdmin,
-    ExportActionModelAdmin,
     CustomTranslatableAdmin,
 ):
     resource_class = MaturityLevelResource
