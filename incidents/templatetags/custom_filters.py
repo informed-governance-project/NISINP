@@ -56,7 +56,7 @@ def get_incident_workflow_by_workflow(incident, workflow):
         item["timestamp"] = item["timestamp"].isoformat()
         item["css_class"] = review_status["class"]
         item["review_status"] = review_status["label"]
-        item["comment"] = escape(item["comment"])
+        item["comment"] = escape(item["comment"]) if item["comment"] else ""
 
     return json.dumps(data, cls=DjangoJSONEncoder)
 
