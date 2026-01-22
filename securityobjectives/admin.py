@@ -8,7 +8,11 @@ from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from parler.forms import TranslatableModelForm
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
-from governanceplatform.helpers import generate_display_methods, is_user_regulator
+from governanceplatform.helpers import (
+    can_change_or_delete_obj,
+    generate_display_methods,
+    is_user_regulator,
+)
 from governanceplatform.mixins import (
     FunctionalityMixin,
     PermissionMixin,
@@ -257,6 +261,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.request = kwargs.pop("request", None)
         self._row_cache = {}
 
     id = fields.Field(column_name="id", attribute="id", readonly=True)
@@ -288,6 +293,21 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         column_name="creator",
         attribute="creator",
     )
+
+    def skip_row(
+        self, instance, original, row, import_validation_errors=None, **kwargs
+    ):
+        # Object already in used we don't change
+        if instance and instance.pk and self.request:
+            return not can_change_or_delete_obj(self.request, instance)
+
+        return super().skip_row(
+            instance,
+            original,
+            row,
+            import_validation_errors=import_validation_errors,
+            **kwargs
+        )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
         creator = kwargs.get("creator")
@@ -402,6 +422,10 @@ class SecurityObjectiveAdmin(
         "creator__translations__name",
     ]
 
+    def get_resource_kwargs(self, request, *args, **kwargs):
+        # This passes the current request object to the Resource's __init__
+        return {"request": request}
+
     @admin.display(description=_("Standard"))
     def standard_display(self, obj):
         return obj.standard_link.standard if obj.standard_link else "-"
@@ -433,6 +457,10 @@ for name, method in generate_display_methods(
 
 
 class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = kwargs.pop("request", None)
+
     id = fields.Field(column_name="id", attribute="id", readonly=True)
     security_objective = fields.Field(
         column_name="security_objective",
@@ -454,6 +482,21 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         column_name="evidence",
         attribute="evidence",
     )
+
+    def skip_row(
+        self, instance, original, row, import_validation_errors=None, **kwargs
+    ):
+        # Object already in used we don't change
+        if instance and instance.pk and self.request:
+            return not can_change_or_delete_obj(self.request, instance)
+
+        return super().skip_row(
+            instance,
+            original,
+            row,
+            import_validation_errors=import_validation_errors,
+            **kwargs
+        )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
         creator = kwargs.get("creator")
@@ -571,6 +614,10 @@ class SecurityMeasureAdmin(
         "creator",
     ]
     translated_fields = ["description"]
+
+    def get_resource_kwargs(self, request, *args, **kwargs):
+        # This passes the current request object to the Resource's __init__
+        return {"request": request}
 
     @admin.display(description=_("Standard"))
     def standard_display(self, obj):
