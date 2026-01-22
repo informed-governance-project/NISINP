@@ -257,6 +257,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         super().__init__(*args, **kwargs)
         self.request = kwargs.pop("request", None)
         self._row_cache = {}
+        self._importing = False
 
     id = fields.Field(column_name="id", attribute="id", readonly=True)
     objective = fields.Field(
@@ -274,19 +275,71 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     domain = fields.Field(
         column_name="domain",
         attribute="domain",
+        widget=TranslatedNameWidget(Domain, field="label"),
     )
+    domain_position = fields.Field(column_name="domain_position")
+
     standard = fields.Field(
         column_name="standard",
         attribute="standard",
+        widget=TranslatedNameWidget(Standard, field="label"),
     )
     position = fields.Field(
         column_name="position",
         attribute="position",
     )
+    priority = fields.Field(column_name="priority")
     creator = fields.Field(
         column_name="creator",
         attribute="creator",
     )
+
+    def dehydrate_standard(self, obj):
+        if self._importing:
+            cached = self._row_cache.get(id(self._current_import_row), {})
+            standard = cached.get("standard")
+        elif obj and obj.pk and not self._importing:
+            sois = SecurityObjectivesInStandard.objects.filter(
+                security_objective=obj
+            ).first()
+            standard = sois.standard
+        if standard:
+            standard.set_current_language(get_language())
+            return standard.label
+        else:
+            return self._current_import_row["standard"]
+
+    def dehydrate_position(self, obj):
+        if obj and obj.pk and not self._importing:
+            sois = SecurityObjectivesInStandard.objects.filter(
+                security_objective=obj,
+            ).first()
+            if sois:
+                return sois.position
+        else:
+            return self._current_import_row["position"]
+
+    def dehydrate_priority(self, obj):
+        if obj and obj.pk and not self._importing:
+            sois = SecurityObjectivesInStandard.objects.filter(
+                security_objective=obj,
+            ).first()
+            if sois:
+                return sois.priority
+        else:
+            return self._current_import_row["priority"]
+
+    def dehydrate_domain_position(self, obj):
+        if obj.domain and obj.domain.pk:
+            return obj.domain.position
+        else:
+            return self._current_import_row["domain_position"]
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        self._importing = True
+
+    def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
+        self._importing = False
 
     def skip_row(
         self, instance, original, row, import_validation_errors=None, **kwargs
@@ -311,6 +364,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 
     # link the correct object to the row
     def before_import_row(self, row, **kwargs):
+        self._current_import_row = row
         creator = kwargs.get("creator")
         lang = get_language() or "en"
         row["creator"] = creator
@@ -323,7 +377,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                 .first()
             )
             if standard:
-                row["standard"] = standard
                 self._row_cache[id(row)] = {
                     "standard": standard,
                 }
@@ -341,12 +394,13 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                     domain.set_current_language(lang)
                     domain.label = row["domain"]
                     domain.save()
-                    row["domain"] = domain
 
         return super().before_import_row(row, **kwargs)
 
     # if there is a standard get it and save the SO
     def after_import_row(self, row, row_result, row_number=None, **kwargs):
+        if hasattr(self, "_current_import_row"):
+            del self._current_import_row
         so = SecurityObjective.objects.get(pk=row_result.object_id)
         cached = self._row_cache.pop(id(row), {})
         standard = cached.get("standard")
@@ -373,10 +427,13 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "description",
             "unique_code",
             "domain",
+            "domain_position",
             "standard",
             "position",
+            "priority",
         )
         import_id_fields = ("unique_code", "creator")
+        # exclude = ("id", "creator")
 
 
 @admin.register(SecurityObjective, site=admin_site)
