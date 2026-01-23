@@ -39,10 +39,10 @@ class TranslatedNameWidget(widgets.ForeignKeyWidget):
 
         for lang_code in languages:
             try:
-                instance = self.model._parler_meta.root_model.objects.get(
+                instance = self.model._parler_meta.root_model.objects.filter(
                     **{self.field: value.strip()},
                     language_code=lang_code,
-                )
+                ).first()
                 return instance.master
             except (self.model.DoesNotExist, TranslationDoesNotExist):
                 pass
