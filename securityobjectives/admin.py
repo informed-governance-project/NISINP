@@ -176,12 +176,6 @@ class StandardAdmin(
     list_filter = ["translations__label", "regulator"]
     translated_fields = ["description", "label"]
 
-    # exclude standards which are not belonging to the user regulator
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        user = request.user
-        return queryset.filter(regulator=user.regulators.first())
-
     # limit regulation to the one authorized by paltformadmin
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulation":
@@ -519,7 +513,6 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     standard = fields.Field(
         column_name="standard",
         attribute="standard",
-        widget=TranslatedNameWidget(Standard, field="description"),
     )
     security_objective = fields.Field(
         column_name="security_objective",
