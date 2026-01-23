@@ -282,7 +282,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     standard = fields.Field(
         column_name="standard",
         attribute="standard",
-        widget=TranslatedNameWidget(Standard, field="label"),
     )
     position = fields.Field(
         column_name="position",
