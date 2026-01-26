@@ -42,6 +42,8 @@ def populate_group_id(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ("securityobjectives", "0016_domain_standard_maturitylevel_standard"),
     ]
