@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 15:53+0100\n"
+"POT-Creation-Date: 2026-01-26 09:18+0100\n"
 "PO-Revision-Date: 2026-01-20 16:27+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
@@ -55,7 +55,7 @@ msgstr "2FA zurücksetzen"
 #: governanceplatform/admin.py:976 governanceplatform/models.py:272
 #: governanceplatform/models.py:441 governanceplatform/models.py:482
 #: governanceplatform/models.py:671 governanceplatform/models.py:674
-#: incidents/models.py:615 incidents/views.py:1056
+#: incidents/models.py:615 incidents/views.py:1062
 msgid "Regulators"
 msgstr "Aufsichtsbehörden"
 
@@ -331,7 +331,7 @@ msgstr "Das CSRF-Token ist abgelaufen. Bitte versuchen Sie es erneut."
 msgid "Session expired. Please log in again to continue."
 msgstr "Sitzung abgelaufen. Bitte melden Sie sich erneut an, um fortzufahren."
 
-#: governanceplatform/middleware.py:248
+#: governanceplatform/middleware.py:274
 msgid "For security reasons, you will need to log in again to access it."
 msgstr ""
 "Aus Sicherheitsgründen müssen Sie sich erneut anmelden, um darauf zugreifen "
@@ -386,8 +386,8 @@ msgstr "Sektor"
 
 #: governanceplatform/models.py:79 incidents/admin.py:533
 #: incidents/admin.py:605 incidents/admin.py:868 incidents/forms.py:669
-#: incidents/models.py:47 incidents/models.py:330 incidents/views.py:1057
-#: reporting/admin.py:60 reporting/filters.py:44 reporting/filters.py:82
+#: incidents/models.py:47 incidents/models.py:330 incidents/views.py:1063
+#: reporting/admin.py:62 reporting/filters.py:44 reporting/filters.py:82
 #: reporting/forms.py:47 reporting/models.py:343
 #: securityobjectives/forms.py:145 securityobjectives/forms.py:193
 #: securityobjectives/forms.py:230 securityobjectives/models.py:442
@@ -476,8 +476,8 @@ msgstr "Beobachter"
 msgid "An account with this email address already exists."
 msgstr "Ein Benutzerkonto mit dieser E-Mail-Adresse existiert bereits."
 
-#: governanceplatform/models.py:450 incidents/views.py:1748
-#: incidents/views.py:1755 securityobjectives/views.py:1177
+#: governanceplatform/models.py:450 incidents/views.py:1754
+#: incidents/views.py:1761 securityobjectives/views.py:1177
 #: securityobjectives/views.py:1186
 msgid "Administrator"
 msgstr "Administrator"
@@ -502,7 +502,7 @@ msgstr "Benutzer"
 
 #: governanceplatform/models.py:529 governanceplatform/models.py:552
 #: governanceplatform/models.py:599 governanceplatform/models.py:632
-#: incidents/models.py:1005 incidents/views.py:1741 reporting/models.py:395
+#: incidents/models.py:1005 incidents/views.py:1747 reporting/models.py:395
 #: reporting/models.py:421 securityobjectives/models.py:538
 #: securityobjectives/views.py:1170
 msgid "User"
@@ -652,7 +652,7 @@ msgstr "Konto"
 msgid "Create account"
 msgstr "Benutzerkonto erstellen"
 
-#: governanceplatform/views.py:96 incidents/views.py:1054
+#: governanceplatform/views.py:96 incidents/views.py:1060
 msgid "Contact"
 msgstr "Kontakt"
 
@@ -961,7 +961,7 @@ msgid "Impact"
 msgstr "Auswirkung"
 
 #: incidents/models.py:75 incidents/models.py:604 incidents/models.py:908
-#: incidents/views.py:1523
+#: incidents/views.py:1529
 msgid "Impacts"
 msgstr "Auswirkungen"
 
@@ -1193,7 +1193,7 @@ msgstr "Beginn des Vorfalls"
 msgid "Report timeline timezone"
 msgstr "Bericht Zeitablauf Zeitzone"
 
-#: incidents/models.py:912 incidents/views.py:1527
+#: incidents/models.py:912 incidents/views.py:1533
 msgid "Comment/Explanation"
 msgstr "Kommentar/Erläuterung"
 
@@ -1238,27 +1238,27 @@ msgstr "Aktualisiert am"
 msgid "Deleted date"
 msgstr "Löschdatum"
 
-#: incidents/views.py:269
+#: incidents/views.py:275
 msgid "Missing data, incident report not created."
 msgstr "Fehlende Daten, Vorfallbericht wurde nicht erstellt."
 
-#: incidents/views.py:276 incidents/views.py:370
+#: incidents/views.py:282 incidents/views.py:376
 msgid "Workflow not found"
 msgstr "Workflow nicht gefunden"
 
-#: incidents/views.py:280 incidents/views.py:373 incidents/views.py:462
-#: incidents/views.py:504 incidents/views.py:541 incidents/views.py:614
+#: incidents/views.py:286 incidents/views.py:379 incidents/views.py:468
+#: incidents/views.py:510 incidents/views.py:547 incidents/views.py:620
 msgid "Incident not found"
 msgstr "Vorfall nicht gefunden"
 
-#: incidents/views.py:284 incidents/views.py:376
+#: incidents/views.py:290 incidents/views.py:382
 msgid "The incident has been closed"
 msgstr "Der Vorfall wurde abgeschlossen"
 
-#: incidents/views.py:288 incidents/views.py:295 incidents/views.py:349
-#: incidents/views.py:380 incidents/views.py:390 incidents/views.py:445
-#: incidents/views.py:508 incidents/views.py:545 incidents/views.py:584
-#: incidents/views.py:618 incidents/views.py:642 reporting/views.py:150
+#: incidents/views.py:294 incidents/views.py:301 incidents/views.py:355
+#: incidents/views.py:386 incidents/views.py:396 incidents/views.py:451
+#: incidents/views.py:514 incidents/views.py:551 incidents/views.py:590
+#: incidents/views.py:624 incidents/views.py:648 reporting/views.py:150
 #: reporting/views.py:366 reporting/views.py:396 reporting/views.py:592
 #: reporting/views.py:623 reporting/views.py:630 reporting/views.py:1211
 #: securityobjectives/views.py:872 securityobjectives/views.py:878
@@ -1266,37 +1266,37 @@ msgstr "Der Vorfall wurde abgeschlossen"
 msgid "Forbidden"
 msgstr "Verboten"
 
-#: incidents/views.py:314 incidents/views.py:320 incidents/views.py:364
-#: incidents/views.py:387 incidents/views.py:447 incidents/views.py:580
+#: incidents/views.py:320 incidents/views.py:326 incidents/views.py:370
+#: incidents/views.py:393 incidents/views.py:453 incidents/views.py:586
 msgid "No incident report could be found."
 msgstr "Es konnte kein Vorfallbericht gefunden werden."
 
-#: incidents/views.py:552 incidents/views.py:590
+#: incidents/views.py:558 incidents/views.py:596
 #: securityobjectives/views.py:832
 msgid "An error occurred while generating the report."
 msgstr "Bei der Erstellung des Berichts ist ein Fehler aufgetreten."
 
-#: incidents/views.py:626
+#: incidents/views.py:632
 msgid "The incident has been deleted."
 msgstr "Der Vorfall wurde gelöscht."
 
-#: incidents/views.py:628
+#: incidents/views.py:634
 msgid "The incident could not be deleted."
 msgstr "Der Vorfall konnte nicht gelöscht werden."
 
-#: incidents/views.py:630
+#: incidents/views.py:636
 msgid "An error occurred while deleting the incident."
 msgstr "Beim Löschen des Vorfalls ist ein Fehler aufgetreten."
 
-#: incidents/views.py:748 incidents/views.py:871
+#: incidents/views.py:754 incidents/views.py:877
 msgid "No incidents available for export."
 msgstr "Keine Vorfälle zum Export verfügbar."
 
-#: incidents/views.py:928
+#: incidents/views.py:934
 msgid "Incidents Export"
 msgstr "Vorfälle exportieren"
 
-#: incidents/views.py:931
+#: incidents/views.py:937
 #, python-brace-format
 msgid ""
 "A total of {count} incidents were exported from regulation {regulation} "
@@ -1307,12 +1307,12 @@ msgstr ""
 "[{sectorregulation} - ({workflow})] innerhalb des Zeitraums ({from_date} - "
 "{to_date})exportiert.)"
 
-#: incidents/views.py:957
+#: incidents/views.py:963
 #, python-brace-format
 msgid "[{site}] New incident mass export"
 msgstr "[{site}] Neuer Massen-Export von Vorfällen"
 
-#: incidents/views.py:1012
+#: incidents/views.py:1018
 msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
@@ -1320,15 +1320,15 @@ msgstr ""
 "Das Tageslimit für Vorfallberichte wurde erreicht. Bitte versuchen Sie es "
 "morgen erneut."
 
-#: incidents/views.py:1055
+#: incidents/views.py:1061
 msgid "Legal bases"
 msgstr "Rechtsgrundlagen"
 
-#: incidents/views.py:1058
+#: incidents/views.py:1064
 msgid "Detection date"
 msgstr "Datum der Entdeckung"
 
-#: incidents/views.py:1515
+#: incidents/views.py:1521
 msgid "Incident Timeline"
 msgstr "Vorfallverlauf"
 
@@ -1731,13 +1731,13 @@ msgstr "Der Jahreswert ist keine gültige Zahl"
 msgid "Invalid year. Please provide a valid year."
 msgstr "Ungültiges Jahr. Bitte geben Sie ein gültiges Jahr an."
 
-#: securityobjectives/admin.py:359 securityobjectives/admin.py:502
+#: securityobjectives/admin.py:477 securityobjectives/admin.py:710
 #: securityobjectives/models.py:57 securityobjectives/models.py:293
 #: securityobjectives/models.py:390
 msgid "Standard"
 msgstr "Standard"
 
-#: securityobjectives/admin.py:462
+#: securityobjectives/admin.py:665
 msgid "Standard of security objective and maturity level must be the same"
 msgstr ""
 "Der Standard für die Sicherheitsziele und die Reifegrade muss identisch sein"
