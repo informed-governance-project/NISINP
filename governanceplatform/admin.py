@@ -21,8 +21,9 @@ from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
+from governanceplatform.helpers import render_to_string_multi_languages
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
-from incidents.email import render_to_string_multi_languages, send_html_email
+from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .formset import CompanyUserInlineFormset

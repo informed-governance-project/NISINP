@@ -464,9 +464,7 @@ def generate_display_methods(translated_fields, related_fields=None):
                     )(trans_field, any_language=True)
 
                 _method.short_description = _(rel_attr.replace("_", " ").capitalize())
-                _method.admin_order_field = (
-                    f"{rel_attr}__translations__{translated_field}"
-                )
+                _method.admin_order_field = f"{rel_attr}__translations__{trans_field}"
                 return _method
 
             methods[f"{related_attr}_display"] = make_related_method(
@@ -479,7 +477,7 @@ def generate_display_methods(translated_fields, related_fields=None):
 def render_to_string_multi_languages(
     template_name,
     context,
-    replace_email_variables,
+    replace_email_variables=None,
     content=None,
     object=None,
 ):
