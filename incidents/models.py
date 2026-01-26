@@ -141,7 +141,7 @@ class Question(TranslatableModel):
         default=None,
     )
 
-    @admin.display(description="Predefined Answers")
+    @admin.display(description=_("Answers"))
     def get_predefined_answers(self):
         return [
             predefined_answer.predefined_answer

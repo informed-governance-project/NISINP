@@ -560,8 +560,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
         "identifier",
-        "companyuser__sectors__translations__name",
-        "companyuser__sectors__parent__translations__name",
     ]
     inlines = (CompanyUserMultipleInline,)
     fieldsets = [
@@ -663,40 +661,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             )
         else:
             obj.delete()
-
-    # assure that the correct sectors are saved
-    def save_related(self, request, form, formsets, change):
-        if change:
-            user = request.user
-            sectors = dict()
-            # Access and modify inline objects
-            for formset in formsets:
-                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
-                    user, "RegulatorUser"
-                ):
-                    ru = RegulatorUser.objects.get(
-                        user=user, regulator=user.regulators.first()
-                    )
-                    for obj in formset.save(commit=False):  # Inline objects are here
-                        if obj.pk is not None:
-                            sects = []
-                            for sect in obj.sectors.all():
-                                if sect not in ru.sectors.all():
-                                    sects.append(sect.id)
-                            sectors[obj] = sects
-            super().save_related(request, form, formsets, change)
-            # re assign sectors which are not assigned to the current regulatoruser
-            for formset in formsets:
-                if isinstance(formset, CompanyUserInline.formset) and user_in_group(
-                    user, "RegulatorUser"
-                ):
-                    for obj in formset.save(commit=False):  # Inline objects are here
-                        if obj in sectors:
-                            if sectors[obj] is not None:
-                                obj.sectors.add(*sectors[obj])
-                                obj.save()  # Explicitly save changes
-        else:
-            super().save_related(request, form, formsets, change)
 
     def save_formset(self, request, form, formset, change):
         def send_suggestion_email(context, email_list):
@@ -996,6 +960,11 @@ def reset_2FA(modeladmin, request, queryset):
         if user_in_group(request_user, "RegulatorAdmin") and not (
             user_in_group(user, "RegulatorAdmin")
             or user_in_group(user, "RegulatorUser")
+        ):
+            continue
+        # conditions for RegulatorUser issue #57
+        if user_in_group(request_user, "RegulatorUser") and not user_in_group(
+            user, "RegulatorAdmin"
         ):
             continue
         devices = devices_for_user(user)
