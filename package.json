@@ -1,6 +1,6 @@
 {
   "name": "nisinp",
-  "version": "0.0.1",
+  "version": "0.5.11",
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
