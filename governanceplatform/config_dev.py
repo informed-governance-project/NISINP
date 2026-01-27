@@ -1,3 +1,5 @@
+# This configuration is for illustrative purposes only.
+# Please do not use it as is in production.
 import os
 
 from django.utils.translation import gettext_lazy as _
