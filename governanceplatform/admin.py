@@ -21,7 +21,6 @@ from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
-from governanceplatform.helpers import render_to_string_multi_languages
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 from incidents.email import send_html_email
 
@@ -34,6 +33,7 @@ from .helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
+    render_to_string_multi_languages,
     user_in_group,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin

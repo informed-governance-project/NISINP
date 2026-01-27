@@ -491,7 +491,7 @@ def render_to_string_multi_languages(
     parts = []
 
     with translation.override(settings.LANGUAGE_CODE):
-        if content and object:
+        if content and object and replace_email_variables:
             context["content"] = replace_email_variables(
                 content.safe_translation_getter(
                     "content", language_code=settings.LANGUAGE_CODE
@@ -502,7 +502,7 @@ def render_to_string_multi_languages(
 
     for lang_code, lang_name in settings.LANGUAGES:
         with translation.override(lang_code):
-            if content and object:
+            if content and object and replace_email_variables:
                 context["content"] = replace_email_variables(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
