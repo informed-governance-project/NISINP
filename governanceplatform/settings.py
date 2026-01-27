@@ -14,8 +14,8 @@ import os
 
 try:
     from governanceplatform import config  # type: ignore
-except ImportError:  # pragma: no cover
-    from governanceplatform import config_dev as config
+except ImportError as exc:  # pragma: no cover
+    raise ImportError("The configuration file cannot be found") from exc
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -457,6 +457,12 @@ try:
     CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
 except AttributeError:
     CSRF_COOKIE_SECURE = False
+
+# Secure CSRF via HTTPS
+try:
+    SESSION_COOKIE_HTTPONLY = config.SESSION_COOKIE_HTTPONLY
+except AttributeError:
+    SESSION_COOKIE_HTTPONLY = False
 
 # SSL proxy config
 try:

@@ -193,6 +193,9 @@ SECURE_PROXY_SSL_HEADER = (
     None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
 )
 
+# Cookies configuration
+SESSION_COOKIE_HTTPONLY = False
+
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
 
