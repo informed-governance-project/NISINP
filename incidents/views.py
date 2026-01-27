@@ -34,6 +34,7 @@ from governanceplatform.helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
+    render_to_string_multi_languages,
     user_in_group,
 )
 from governanceplatform.models import (
@@ -51,7 +52,7 @@ from governanceplatform.settings import (
 )
 
 from .decorators import check_user_is_correct, regulator_role_required
-from .email import render_to_string_multi_languages, send_email, send_html_email
+from .email import send_email, send_html_email
 from .filters import IncidentFilter
 from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
 from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS

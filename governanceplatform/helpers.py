@@ -1,12 +1,15 @@
 import secrets
 from typing import Any, Optional
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import connection
 from django.db.models import F, Max, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce, Lower
 from django.http import HttpRequest
+from django.template.loader import render_to_string
+from django.utils import translation
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -360,8 +363,8 @@ def translated_queryset(
     return qs
 
 
-def generate_display_methods(translated_fields):
-    """ "
+def generate_display_methods(translated_fields, related_fields=None):
+    """
     Dynamically generates display methods for translated fields.
     Example: for “label” → creates label_display() with
     - admin_order_field = “_label”
@@ -381,4 +384,78 @@ def generate_display_methods(translated_fields):
             return _method
 
         methods[f"{field}_display"] = make_method(field)
+
+    if related_fields:
+        for related_attr, translated_field in related_fields:
+
+            def make_related_method(rel_attr, trans_field):
+                def _method(self, obj):
+                    related_obj = getattr(obj, rel_attr, None)
+                    if not related_obj:
+                        return "-"
+                    # safe_translation_getter for Parler
+                    return getattr(
+                        related_obj,
+                        "safe_translation_getter",
+                        lambda f, any_language=True: "-",
+                    )(trans_field, any_language=True)
+
+                _method.short_description = _(rel_attr.replace("_", " ").capitalize())
+                _method.admin_order_field = f"{rel_attr}__translations__{trans_field}"
+                return _method
+
+            methods[f"{related_attr}_display"] = make_related_method(
+                related_attr, translated_field
+            )
+
     return methods
+
+
+def render_to_string_multi_languages(
+    template_name,
+    context,
+    replace_email_variables=None,
+    content=None,
+    object=None,
+):
+    """
+    Render a template in multiple languages.
+    - 'content' and 'object' are ONLY used to replace variables
+        in the content context in send_email() function.
+    replace_email_variables is a function to be given depending of the module sending email,
+    object is an object (incident, standard_answer) to be given depending of the module,
+    """
+    parts = []
+
+    with translation.override(settings.LANGUAGE_CODE):
+        if content and object and replace_email_variables:
+            context["content"] = replace_email_variables(
+                content.safe_translation_getter(
+                    "content", language_code=settings.LANGUAGE_CODE
+                ),
+                object,
+            )
+        baseline = render_to_string(template_name, context)
+
+    for lang_code, lang_name in settings.LANGUAGES:
+        with translation.override(lang_code):
+            if content and object and replace_email_variables:
+                context["content"] = replace_email_variables(
+                    content.safe_translation_getter("content", language_code=lang_code),
+                    object,
+                )
+
+            rendered = render_to_string(template_name, context)
+
+            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
+                continue
+
+            parts.append(
+                f"""
+                <h3>{translation.gettext(lang_name)} ({lang_code})</h3>
+                {rendered}
+                """.strip()
+            )
+    if not parts:
+        return baseline
+    return "<hr>".join(parts)

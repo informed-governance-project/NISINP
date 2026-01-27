@@ -22,7 +22,7 @@ from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
-from incidents.email import render_to_string_multi_languages, send_html_email
+from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
 from .formset import CompanyUserInlineFormset
@@ -33,6 +33,7 @@ from .helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
+    render_to_string_multi_languages,
     user_in_group,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
