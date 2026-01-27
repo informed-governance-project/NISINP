@@ -1,5 +1,4 @@
 from import_export import widgets
-from parler.models import TranslationDoesNotExist
 
 from .settings import LANGUAGES
 
@@ -16,15 +15,14 @@ class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
         instances = []
         for name in names:
             for lang_code in languages:
-                try:
-                    instance = self.model._parler_meta.root_model.objects.get(
-                        **{self.field: name.strip()},
-                        language_code=lang_code,
-                    )
+                instance = self.model._parler_meta.root_model.objects.filter(
+                    **{self.field: name.strip()},
+                    language_code=lang_code,
+                ).first()
+
+                if instance is not None:
                     instances.append(instance.master_id)
                     break
-                except (self.model.DoesNotExist, TranslationDoesNotExist):
-                    pass
 
         return instances
 
@@ -38,13 +36,11 @@ class TranslatedNameWidget(widgets.ForeignKeyWidget):
         languages = [lang[0] for lang in LANGUAGES]
 
         for lang_code in languages:
-            try:
-                instance = self.model._parler_meta.root_model.objects.get(
-                    **{self.field: value.strip()},
-                    language_code=lang_code,
-                )
-                return instance.master
-            except (self.model.DoesNotExist, TranslationDoesNotExist):
-                pass
+            instance = self.model._parler_meta.root_model.objects.filter(
+                **{self.field: value.strip()},
+                language_code=lang_code,
+            ).first()
 
+            if instance is not None:
+                return instance.master
         return
