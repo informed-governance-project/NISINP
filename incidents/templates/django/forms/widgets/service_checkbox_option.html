@@ -5,9 +5,9 @@
     <input class="form-check-input" name="{{ widget.name }}" type="checkbox" id="{{ widget.index }}_{{ widget.attrs.id }}" value="{{ widget.value|stringformat:'s' }}" {% include "django/forms/widgets/attrs.html" %}>
     <label class="form-check-label" for="{{ widget.index }}_{{ widget.attrs.id }}">
         <div>
-        {% for label in widget.label|linebreaksbr|split:"<br>" %}
+        {% for label in widget.label|splitlines %}
             {% if label %}
-                <p class="{% if forloop.first %}fw-bold mb-2{% else %}small text-muted ps-3 mb-1{% endif %}">{{ label|safe }}</p>
+                <p class="{% if forloop.first %}fw-bold mb-2{% else %}small text-muted ps-3 mb-1{% endif %}">{{ label }}</p>
             {% endif %}
         {% endfor %}
         </div>
