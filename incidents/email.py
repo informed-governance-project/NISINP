@@ -156,8 +156,9 @@ def send_email(email, incident, send_to_observers=False):
             "technical_contact_firstname": incident.technical_firstname,
             "technical_contact_lastname": incident.technical_lastname,
         },
+        replace_email_variables,
         content=email,
-        incident=incident,
+        object=incident,
     )
     recipient_list = get_recipient_list(incident)
 
