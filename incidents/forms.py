@@ -463,18 +463,7 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                "class": "required checkbox ",
-                "onclick": "if (checked==true) {"
-                "document.getElementsByClassName('technical_lastname')[0].value="
-                "document.getElementsByClassName('contact_lastname')[0].value; "
-                "document.getElementsByClassName('technical_firstname')[0].value="
-                "document.getElementsByClassName('contact_firstname')[0].value; "
-                "document.getElementsByClassName('technical_title')[0].value="
-                "document.getElementsByClassName('contact_title')[0].value; "
-                "document.getElementsByClassName('technical_email')[0].value="
-                "document.getElementsByClassName('contact_email')[0].value; "
-                "document.getElementsByClassName('technical_telephone')[0].value="
-                "document.getElementsByClassName('contact_telephone')[0].value;}",
+                "class": "required checkbox is_technical_the_same",
             }
         ),
         initial=False,
