@@ -15,10 +15,11 @@ import os
 DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
     import governanceplatform.config as config  # type: ignore
-except ImportError as exc:  # pragma: no cover
+except ModuleNotFoundError as exc:  # pragma: no cover
     if DJANGO_CI:
         import governanceplatform.config_dev as config  # type: ignore
-    raise ImportError("The configuration file cannot be found") from exc
+    else:
+        raise ImportError("The configuration file cannot be found") from exc
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
