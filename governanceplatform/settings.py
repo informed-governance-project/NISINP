@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 
 try:
-    from governanceplatform import config  # type: ignore
+    import governanceplatform.config as config  # type: ignore
 except ImportError as exc:  # pragma: no cover
     raise ImportError("The configuration file cannot be found") from exc
 
