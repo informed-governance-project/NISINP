@@ -460,11 +460,17 @@ try:
 except AttributeError:
     CSRF_COOKIE_SECURE = False
 
-# Secure CSRF via HTTPS
+# Secure cookie session
 try:
     SESSION_COOKIE_HTTPONLY = config.SESSION_COOKIE_HTTPONLY
 except AttributeError:
     SESSION_COOKIE_HTTPONLY = False
+
+# Secure CSRF cookie
+try:
+    CSRF_COOKIE_HTTPONLY = config.CSRF_COOKIE_HTTPONLY
+except AttributeError:
+    CSRF_COOKIE_HTTPONLY = False
 
 # SSL proxy config
 try:

@@ -194,7 +194,8 @@ SECURE_PROXY_SSL_HEADER = (
 )
 
 # Cookies configuration
-SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
