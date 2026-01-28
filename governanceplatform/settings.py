@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 
+DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
-    from governanceplatform import config  # type: ignore
-except ImportError as exc:  # pragma: no cover
-    raise ImportError("The configuration file cannot be found") from exc
+    import governanceplatform.config as config  # type: ignore
+except ModuleNotFoundError as exc:  # pragma: no cover
+    if DJANGO_CI:
+        import governanceplatform.config_dev as config  # type: ignore
+    else:
+        raise ImportError("The configuration file cannot be found") from exc
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -458,11 +462,17 @@ try:
 except AttributeError:
     CSRF_COOKIE_SECURE = False
 
-# Secure CSRF via HTTPS
+# Secure cookie session
 try:
     SESSION_COOKIE_HTTPONLY = config.SESSION_COOKIE_HTTPONLY
 except AttributeError:
     SESSION_COOKIE_HTTPONLY = False
+
+# Secure CSRF cookie
+try:
+    CSRF_COOKIE_HTTPONLY = config.CSRF_COOKIE_HTTPONLY
+except AttributeError:
+    CSRF_COOKIE_HTTPONLY = False
 
 # SSL proxy config
 try:
@@ -551,3 +561,21 @@ except AttributeError:
         "TIME_ZONE",
         "DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT",
     ]
+
+# Clickjacking
+try:
+    X_FRAME_OPTIONS = config.X_FRAME_OPTIONS
+except AttributeError:
+    X_FRAME_OPTIONS = "DENY"
+
+# MIME sniffing
+try:
+    SECURE_CONTENT_TYPE_NOSNIFF = config.SECURE_CONTENT_TYPE_NOSNIFF
+except AttributeError:
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # => X-Content-Type-Options: nosniff
+
+# Referrer Policy
+try:
+    REFERRER_POLICY = config.REFERRER_POLICY
+except AttributeError:
+    REFERRER_POLICY = "strict-origin-when-cross-origin"

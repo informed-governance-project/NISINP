@@ -32,6 +32,7 @@ jobs:
       POSTGRES_PORT: 5432
       SECRET_KEY: test_secret_key
       DEBUG: "False"
+      DJANGO_CI: "True"
 
     steps:
       - name: Checkout code
