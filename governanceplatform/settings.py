@@ -459,6 +459,11 @@ try:
     CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
 except AttributeError:
     CSRF_COOKIE_SECURE = False
+# Secure Cookie language via HTTPS
+try:
+    LANGUAGE_COOKIE_SECURE = config.LANGUAGE_COOKIE_SECURE
+except AttributeError:
+    LANGUAGE_COOKIE_SECURE = False
 
 # Secure cookie session
 try:
@@ -471,6 +476,28 @@ try:
     CSRF_COOKIE_HTTPONLY = config.CSRF_COOKIE_HTTPONLY
 except AttributeError:
     CSRF_COOKIE_HTTPONLY = False
+
+# Secure Language cookie
+try:
+    LANGUAGE_COOKIE_HTTPONLY = config.LANGUAGE_COOKIE_HTTPONLY
+except AttributeError:
+    LANGUAGE_COOKIE_HTTPONLY = False
+
+# Samesite attribute for cookies
+try:
+    SESSION_COOKIE_SAMESITE = config.SESSION_COOKIE_SAMESITE
+except AttributeError:
+    SESSION_COOKIE_SAMESITE = "Lax"
+
+try:
+    CSRF_COOKIE_SAMESITE = config.CSRF_COOKIE_SAMESITE
+except AttributeError:
+    CSRF_COOKIE_SAMESITE = "Lax"
+
+try:
+    LANGUAGE_COOKIE_SAMESITE = config.LANGUAGE_COOKIE_SAMESITE
+except AttributeError:
+    LANGUAGE_COOKIE_SAMESITE = "Lax"
 
 # SSL proxy config
 try:
