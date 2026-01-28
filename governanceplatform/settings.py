@@ -549,3 +549,21 @@ except AttributeError:
         "TIME_ZONE",
         "DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT",
     ]
+
+# Clickjacking
+try:
+    X_FRAME_OPTIONS = config.X_FRAME_OPTIONS
+except AttributeError:
+    X_FRAME_OPTIONS = "DENY"
+
+# MIME sniffing
+try:
+    SECURE_CONTENT_TYPE_NOSNIFF = config.SECURE_CONTENT_TYPE_NOSNIFF
+except AttributeError:
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # => X-Content-Type-Options: nosniff
+
+# Referrer Policy
+try:
+    REFERRER_POLICY = config.REFERRER_POLICY
+except AttributeError:
+    REFERRER_POLICY = "strict-origin-when-cross-origin"

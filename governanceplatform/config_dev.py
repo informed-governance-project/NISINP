@@ -212,3 +212,12 @@ EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
 EMAIL_CONTACT_FROM = "test@mail.localhost"
 # Captcha settings
 CAPTCHA_FONT_SIZE = 30
+
+# Clickjacking
+X_FRAME_OPTIONS = "DENY"
+
+# MIME sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True  # => X-Content-Type-Options: nosniff
+
+# Referrer Policy
+REFERRER_POLICY = "strict-origin-when-cross-origin"
