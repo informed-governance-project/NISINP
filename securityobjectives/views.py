@@ -34,6 +34,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import override
+from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
 
@@ -614,6 +615,7 @@ def submit_declaration(request, standard_answer_id: int):
 
 @login_required
 @otp_required
+@require_http_methods(["POST"])
 def delete_declaration(request, standard_answer_id: int):
     try:
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
