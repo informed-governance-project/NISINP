@@ -787,9 +787,7 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
         select_class = class_map.get(initial_review_status, "")
 
         self.fields["review_status"].widget.attrs = {
-            "onfocus": "this.options[0].disabled = true;",
-            "class": f"w-25 {select_class}",
-            "onchange": "reviewStatusChange(this)",
+            "class": f"w-25 {select_class} review_status_selector",
         }
 
         self.fields["comment"].widget.attrs.update(
