@@ -113,7 +113,7 @@ class CompanySelectFormSet(BaseModelFormSet):
 
         if queryset:
             for company in queryset:
-                for sector in company.get_queryset_sectors():
+                for sector in Sector.objects.all():
                     if not self.sectors_filter or str(sector.id) in self.sectors_filter:
                         self.company_sectors.append(
                             {"company": company, "sector": sector}
