@@ -12,7 +12,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                "onclick": "update_so_declaration(this)",
+                "class": "so-input-field",
             }
         ),
     )
@@ -22,7 +22,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                "onchange": "update_so_declaration(this)",
+                "class": "so-input-field",
             }
         ),
     )
@@ -32,7 +32,7 @@ class SecurityObjectiveAnswerForm(forms.Form):
             attrs={
                 "rows": 2,
                 "placeholder": "",
-                "onchange": "update_so_declaration(this)",
+                "class": "so-input-field",
             }
         ),
     )
@@ -70,15 +70,13 @@ class SecurityObjectiveStatusForm(forms.ModelForm):
         widgets = {
             "status": forms.Select(
                 attrs={
-                    "class": "so_status_form",
-                    "onchange": "update_so_declaration(this)",
+                    "class": "so_status_form so-input-field",
                 }
             ),
             "actions": forms.Textarea(
                 attrs={
-                    "class": "so_actions_form",
+                    "class": "so_actions_form so-input-field",
                     "placeholder": "",
-                    "onchange": "update_so_declaration(this)",
                 }
             ),
         }
