@@ -94,7 +94,7 @@ class CustomUserChangeForm(UserChangeForm):
 
 class SelectCompany(forms.Form):
     select_company = forms.ModelChoiceField(
-        queryset=None, required=False, label="Company"
+        queryset=None, required=True, label="Company"
     )
 
     def __init__(self, *args, **kwargs):
