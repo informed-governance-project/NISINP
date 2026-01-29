@@ -605,6 +605,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
 @login_required
 @otp_required
 @check_user_is_correct
+@require_http_methods(["POST"])
 def delete_incident(request, incident_id: int):
     user = request.user
     company_id = request.session.get("company_in_use")
