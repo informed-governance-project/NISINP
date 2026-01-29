@@ -114,6 +114,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     # OperatorAdmin/User can access only incidents related to selected company.
     if (
         is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
@@ -137,7 +138,10 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
 # check if the user is allowed to create an incident_workflow
 def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
     # if it's the incident of the user he can create
-    if incident.contact_user == user:
+    if (
+        incident.contact_user == user
+        and user.companyuser_set.filter(company__id=company_id).exists()
+    ):
         return True
 
     # if it's regulator incident
@@ -150,18 +154,14 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     ):
         return True
 
-    # if it's in his sector and user of the company
+    # OperatorAdmin/User can create only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorUser")
+        is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # if he is admin of the company he can create
-    if (
-        user_in_group(user, "OperatorAdmin")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
+
     return False
 
 
@@ -169,7 +169,10 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
 # for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
     # if it's the incident of the user he can create
-    if incident.contact_user == user:
+    if (
+        incident.contact_user == user
+        and user.companyuser_set.filter(company__id=company_id).exists()
+    ):
         return True
 
     # if it's regulator incident
@@ -182,18 +185,14 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
     ):
         return True
 
-    # if it's in his sector and user of the company
+    # OperatorAdmin/User can edit only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorUser")
+        is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # if he is admin of the company he can create
-    if (
-        user_in_group(user, "OperatorAdmin")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
+
     # if he is the regulator admin of the incident need to be link to his regulator
     if (
         user_in_group(user, "RegulatorAdmin")
