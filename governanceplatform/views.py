@@ -13,7 +13,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
-from governanceplatform.models import Company
 from incidents.decorators import check_user_is_correct
 
 from .context_processors import user_modules
@@ -209,29 +208,28 @@ def select_company(request):
         )
 
         if form.is_valid() and request.user.is_authenticated:
-            if not form.cleaned_data["select_company"]:
-                return render(
-                    request, "registration/select_company.html", {"form": form}
+            user = request.user
+            company_id = form.cleaned_data["select_company"].id
+            user_company = user.companyuser_set.filter(
+                company__id=company_id, approved=True
+            )
+            if not user_company.exists():
+                messages.error(
+                    request, "The select company is not linked to the account."
                 )
-            user_company = Company.objects.get(
-                id=form.cleaned_data["select_company"].id
-            )
-            if user_company:
-                user = request.user
-                request.session["company_in_use"] = user_company.id
-                is_administrator = user.companyuser_set.filter(
-                    company=user_company, is_company_administrator=True
-                ).exists()
-                if is_administrator:
-                    set_operator_admin_permissions(user)
-                else:
-                    set_operator_user_permissions(user)
+                return logout_view(request)
 
-                return index(request)
+            request.session["company_in_use"] = company_id
+            is_administrator = user_company.filter(
+                is_company_administrator=True
+            ).exists()
+            if is_administrator:
+                set_operator_admin_permissions(user)
+            else:
+                set_operator_user_permissions(user)
 
-            messages.warning(
-                request, "The select company is not linked to the account."
-            )
+            return index(request)
+
     else:
         form = form = SelectCompany(
             companies=request.user.companies.filter(
