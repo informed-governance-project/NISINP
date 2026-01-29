@@ -787,9 +787,7 @@ class RegulatorIncidentWorkflowCommentForm(forms.ModelForm):
         select_class = class_map.get(initial_review_status, "")
 
         self.fields["review_status"].widget.attrs = {
-            "onfocus": "this.options[0].disabled = true;",
-            "class": f"w-25 {select_class}",
-            "onchange": "reviewStatusChange(this)",
+            "class": f"w-25 {select_class} review_status_selector",
         }
 
         self.fields["comment"].widget.attrs.update(
@@ -1053,32 +1051,23 @@ class IncidentStatusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        onchange_funtion = f"onChangeIncident(this, {self.instance.pk})"
-        classes_select_widget = "border-0 form-select-sm py-0 select-break-spaces"
-
         # Set fields to not required
         self.fields["incident_id"].required = False
         self.fields["incident_status"].required = False
         self.fields["is_significative_impact"].required = False
 
         self.fields["incident_id"].widget.attrs = {
-            "class": "form-control-sm",
-            "onchange": onchange_funtion,
-        }
-        self.fields["incident_status"].widget.attrs = {
-            "class": classes_select_widget,
-            "onchange": onchange_funtion,
+            "class": "form-control-sm incident-input-field ",
+            "data-incident-id": self.instance.pk,
         }
 
-        attrs = {
-            "class": "large-checkbox",
-            "onchange": onchange_funtion,
+        self.fields["is_significative_impact"].widget.attrs = {
+            "class": "large-checkbox incident-input-field is_significative_impact_checkbox",
+            "data-incident-id": self.instance.pk,
         }
 
         if self.instance.incident_status == "CLOSE":
-            attrs["disabled"] = "true"
-
-        self.fields["is_significative_impact"].widget.attrs = attrs
+            self.fields["is_significative_impact"].widget.attrs["disabled"] = "true"
 
     class Meta:
         model = Incident
