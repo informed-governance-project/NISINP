@@ -206,10 +206,9 @@ class ObservationRecommendationOrderForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        onchange_function = f"onChangeRecommendation(this, {self.instance.pk})"
-
         self.fields["order"].widget.attrs = {
-            "onchange": onchange_function,
+            "class": "reporting-input-field",
+            "data-recommendation-id": self.instance.pk,
         }
 
     class Meta:
