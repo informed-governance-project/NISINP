@@ -39,6 +39,7 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import (
     CompanyUser,
+    ObserverUser,
     Regulation,
     RegulatorUser,
     Sector,
@@ -80,7 +81,7 @@ def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
     incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
-        "-incident_notification_date"
+        "-incident_last_update"
     )
     html_view = "operator/incidents.html"
 
@@ -122,9 +123,7 @@ def get_incidents(request):
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = (
-            user.observers.first()
-            .get_incidents()
-            .order_by("-incident_notification_date")
+            user.observers.first().get_incidents().order_by("-incident_last_update")
         )
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif is_user_operator(user):
@@ -1756,6 +1755,13 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         if ru and ru.is_regulator_administrator:
             role = _("Administrator")
         entity_name = regulator.name
+
+    elif is_observer_user(user):
+        observer = user.observers.first()
+        ou = ObserverUser.objects.filter(user=user, observer=observer).first()
+        if ou and ou.is_observer_administrator:
+            role = _("Administrator")
+        entity_name = observer.name
 
     log = LogReportRead.objects.create(
         user=user,

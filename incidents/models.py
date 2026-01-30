@@ -516,6 +516,7 @@ class Incident(models.Model):
     )
     incident_notification_date = models.DateTimeField(default=timezone.now)
     incident_detection_date = models.DateTimeField(blank=True, null=True)
+    incident_last_update = models.DateTimeField(blank=True, null=True)
     company_name = models.CharField(
         max_length=100, verbose_name=_("Name of the Operator")
     )
@@ -630,6 +631,11 @@ class Incident(models.Model):
         blank=False,
         default=INCIDENT_STATUS[1][0],
     )
+
+    # update the incident_last_update of incident
+    def save(self, *args, **kwargs):
+        self.incident_last_update = timezone.now()
+        super().save(*args, **kwargs)
 
     def get_incident_root_sector(self):
         return list({sector.parent for sector in self.affected_sectors.all()})
@@ -1030,6 +1036,11 @@ class LogReportRead(models.Model):
     def save(self, *args, **kwargs):
         self.user_full_name = self.user.get_full_name()
         super().save(*args, **kwargs)
+
+        # update the incident_last_update of incident
+        if self.action not in ("READ", "DOWNLOAD") and self.incident:
+            self.incident.incident_last_update = self.timestamp
+            self.incident.save(update_fields=["incident_last_update"])
 
 
 class QuestionCategoryOptions(models.Model):
