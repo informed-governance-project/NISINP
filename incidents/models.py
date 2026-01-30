@@ -1032,6 +1032,11 @@ class LogReportRead(models.Model):
         self.user_full_name = self.user.get_full_name()
         super().save(*args, **kwargs)
 
+        # update the incident_last_update of incident
+        if self.action not in ("READ", "DOWNLOAD") and self.incident:
+            self.incident.incident_last_update = self.timestamp
+            self.incident.save(update_fields=["incident_last_update"])
+
 
 class QuestionCategoryOptions(models.Model):
     question_category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE)
