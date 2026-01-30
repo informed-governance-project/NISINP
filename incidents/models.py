@@ -632,6 +632,11 @@ class Incident(models.Model):
         default=INCIDENT_STATUS[1][0],
     )
 
+    # update the incident_last_update of incident
+    def save(self, *args, **kwargs):
+        self.incident_last_update = timezone.now()
+        super().save(*args, **kwargs)
+
     def get_incident_root_sector(self):
         return list({sector.parent for sector in self.affected_sectors.all()})
 

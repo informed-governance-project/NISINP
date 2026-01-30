@@ -80,7 +80,7 @@ def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
     incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
-        "-incident_notification_date"
+        "-incident_last_update"
     )
     html_view = "operator/incidents.html"
 
@@ -122,9 +122,7 @@ def get_incidents(request):
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
         incidents = (
-            user.observers.first()
-            .get_incidents()
-            .order_by("-incident_notification_date")
+            user.observers.first().get_incidents().order_by("-incident_last_update")
         )
         f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
     elif is_user_operator(user):
