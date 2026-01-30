@@ -39,6 +39,7 @@ from governanceplatform.helpers import (
 )
 from governanceplatform.models import (
     CompanyUser,
+    ObserverUser,
     Regulation,
     RegulatorUser,
     Sector,
@@ -1754,6 +1755,13 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         if ru and ru.is_regulator_administrator:
             role = _("Administrator")
         entity_name = regulator.name
+
+    elif is_observer_user(user):
+        observer = user.observers.first()
+        ou = ObserverUser.objects.filter(user=user, observer=observer).first()
+        if ou and ou.is_observer_administrator:
+            role = _("Administrator")
+        entity_name = observer.name
 
     log = LogReportRead.objects.create(
         user=user,
