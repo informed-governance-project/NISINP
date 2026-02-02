@@ -1099,7 +1099,11 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             and not request.GET
             and user_in_group(request.user, "RegulatorAdmin")
         ):
-            return queryset.filter(regulators=request.user.regulators.first())
+            return queryset.filter(
+                Q(regulators=request.user.regulators.first())
+                | Q(groups__in=[get_group_id("RegulatorUser")])
+            ).distinct()
+        return queryset
 
 
 @admin.register(User, site=admin_site)
@@ -1118,8 +1122,10 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_permissions_groups",
         "get_2FA_activation",
         "email_verified",
+        "date_joined",
     ]
     search_fields = ["first_name", "last_name", "email", "phone_number"]
+    readonly_fields = ("groups_readonly", "date_joined")
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
@@ -1155,6 +1161,10 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
+
+    @admin.display(description=_("Roles"))
+    def groups_readonly(self, obj):
+        return obj.get_permissions_groups()
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -1212,6 +1222,20 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
+    def _add_fields_readonly(self, fieldsets, obj):
+        if not obj:
+            return fieldsets
+
+        fieldsets = list(fieldsets)
+        name, opts = fieldsets[0]
+        opts = dict(opts)
+        opts["fields"] = [(field,) for field in self.readonly_fields] + list(
+            opts["fields"]
+        )
+        fieldsets[0] = (name, opts)
+
+        return fieldsets
+
     def get_fieldsets(self, request, obj=None):
         # RegulatorAdmin
         if is_user_regulator(request.user):
@@ -1223,7 +1247,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     and not user_in_group(user, "PlatformAdmin")
                     and not user == request.user
                 ):
-                    return self.admin_fieldsets
+                    fieldsets = self.admin_fieldsets
+                    return self._add_fields_readonly(fieldsets, obj)
         # PlatformAdmin
         if user_in_group(request.user, "PlatformAdmin"):
             if "object_id" in request.resolver_match.kwargs:
@@ -1237,8 +1262,10 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     )
                     and not user == request.user
                 ):
-                    return self.admin_fieldsets
-        return self.standard_fieldsets
+                    fieldsets = self.admin_fieldsets
+                    return self._add_fields_readonly(fieldsets, obj)
+
+        return self._add_fields_readonly(self.standard_fieldsets, obj)
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
@@ -1257,7 +1284,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and is_user_regulator(obj):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and is_user_operator(obj):
-                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+                inline_instances = []
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):
