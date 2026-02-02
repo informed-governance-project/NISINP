@@ -1125,7 +1125,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "date_joined",
     ]
     search_fields = ["first_name", "last_name", "email", "phone_number"]
-    readonly_fields = ("groups_readonly", "date_joined")
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
@@ -1161,10 +1160,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     ]
     actions = [reset_2FA]
     change_list_template = "admin/reset_accepted_terms.html"
-
-    @admin.display(description=_("Roles"))
-    def groups_readonly(self, obj):
-        return obj.get_permissions_groups()
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -1222,19 +1217,42 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = (
+            "get_permissions_groups",
+            "date_joined",
+            "get_2FA_activation",
+            "email_verified",
+        )
+
+        if obj is None:
+            return readonly_fields
+
+        if user_in_group(obj, "PlatformAdmin"):
+            return readonly_fields
+        if is_user_regulator(obj):
+            return ("get_regulators",) + readonly_fields
+        if is_observer_user(obj):
+            return ("get_observers",) + readonly_fields
+        if is_user_operator(obj):
+            return ("get_companies",) + readonly_fields
+
+        return readonly_fields
+
     def _add_fields_readonly(self, fieldsets, obj):
         if not obj:
             return fieldsets
 
-        fieldsets = list(fieldsets)
-        name, opts = fieldsets[0]
-        opts = dict(opts)
-        opts["fields"] = [(field,) for field in self.readonly_fields] + list(
-            opts["fields"]
-        )
-        fieldsets[0] = (name, opts)
+        additional_fields = [
+            (field,) for field in self.get_readonly_fields(self._request, obj)
+        ]
 
-        return fieldsets
+        additional_fieldset = (
+            _("Additional information"),
+            {"fields": additional_fields},
+        )
+
+        return list(fieldsets) + [additional_fieldset]
 
     def get_fieldsets(self, request, obj=None):
         # RegulatorAdmin
