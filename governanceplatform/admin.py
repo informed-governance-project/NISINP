@@ -1099,7 +1099,11 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             and not request.GET
             and user_in_group(request.user, "RegulatorAdmin")
         ):
-            return queryset.filter(regulators=request.user.regulators.first())
+            return queryset.filter(
+                Q(regulators=request.user.regulators.first())
+                | Q(groups__in=[get_group_id("RegulatorUser")])
+            ).distinct()
+        return queryset
 
 
 @admin.register(User, site=admin_site)
@@ -1280,7 +1284,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and is_user_regulator(obj):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and is_user_operator(obj):
-                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+                inline_instances = []
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):
@@ -1355,8 +1359,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
         observerAdminGroupId = get_group_id(name="ObserverAdmin")
         observerUserGroupId = get_group_id(name="ObserverUser")
-        operatorAdminGroupId = get_group_id(name="OperatorAdmin")
-        operatorUserGroupId = get_group_id(name="OperatorUser")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -1377,8 +1379,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     PlatformAdminGroupId,
                     observerUserGroupId,
                     observerAdminGroupId,
-                    operatorAdminGroupId,
-                    operatorUserGroupId,
                 ]
             ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
         # Regulator User
