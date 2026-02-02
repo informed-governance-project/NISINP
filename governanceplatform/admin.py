@@ -185,7 +185,7 @@ class SettingsAdmin(admin.ModelAdmin):
         settings_dict = {
             key: getattr(settings, key)
             for key in dir(settings)
-            if key.isupper() and key in settings.ADMIN_VISIBLE_VARIABLES
+            if key.isupper() and key not in settings.ADMIN_UNVISIBLE_VARIABLES
         }
 
         extra_context = extra_context or {}
