@@ -589,6 +589,7 @@ def copy_declaration(request, group_id: int):
 
 @login_required
 @otp_required
+@require_http_methods(["POST"])
 def submit_declaration(request, standard_answer_id: int):
     user = request.user
     standard_answer_queryset = StandardAnswer.objects.filter(pk=standard_answer_id)
