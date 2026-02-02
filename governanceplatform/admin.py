@@ -1355,6 +1355,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         RegulatorAdminGroupId = get_group_id(name="RegulatorAdmin")
         observerAdminGroupId = get_group_id(name="ObserverAdmin")
         observerUserGroupId = get_group_id(name="ObserverUser")
+        operatorAdminGroupId = get_group_id(name="OperatorAdmin")
+        operatorUserGroupId = get_group_id(name="OperatorUser")
 
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
@@ -1375,6 +1377,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     PlatformAdminGroupId,
                     observerUserGroupId,
                     observerAdminGroupId,
+                    operatorAdminGroupId,
+                    operatorUserGroupId,
                 ]
             ).filter(Q(regulators=user.regulators.first()) | Q(regulators=None))
         # Regulator User
