@@ -14,6 +14,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
+from markdownx.widgets import MarkdownxWidget
 from parler.models import TranslatableModel
 
 from governanceplatform.admin import (
@@ -730,6 +731,14 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "subject",
         "content",
     ]
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if "content" in form.base_fields:
+            form.base_fields["content"].widget = MarkdownxWidget()
+
+        return form
+
     search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
     fields = ("name", "subject", "content")

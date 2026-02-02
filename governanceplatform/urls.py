@@ -104,6 +104,7 @@ urlpatterns = [
     path("healthz", include("health_check.urls")),
     # URL patterns to serve the translations in JavaScript
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    path("markdownx/", include("markdownx.urls")),
 ]
 
 
