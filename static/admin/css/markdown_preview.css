@@ -1,0 +1,26 @@
+.field-content,
+.field-html_preview {
+    display: inline-block;
+    vertical-align: top;
+    width: 48%;
+}
+
+.field-content textarea {
+    width: 100%;
+    min-height: 400px;
+    font-family: monospace;
+}
+
+.markdown-html-preview {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 12px;
+    min-height: 400px;
+    overflow-y: auto;
+}
+
+.markdown-html-preview h1,
+.markdown-html-preview h2,
+.markdown-html-preview h3 {
+    margin-top: 1em;
+}

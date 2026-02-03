@@ -10,11 +10,12 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
-from markdownx.widgets import MarkdownxWidget
+from markdownx.utils import markdownify
 from parler.models import TranslatableModel
 
 from governanceplatform.admin import (
@@ -25,6 +26,7 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
+    sanitize_html,
     set_creator,
     translated_queryset,
     user_in_group,
@@ -732,17 +734,43 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "content",
     ]
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if "content" in form.base_fields:
-            form.base_fields["content"].widget = MarkdownxWidget()
-
-        return form
-
     search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
-    fields = ("name", "subject", "content")
     resource_class = EmailResource
+
+    readonly_fields = ("html_preview",)
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("name", "subject"),
+            },
+        ),
+        (
+            "Content",
+            {
+                "fields": ("content", "html_preview"),
+            },
+        ),
+    )
+
+    @admin.display(description="HTML preview")
+    def html_preview(self, obj):
+        if not obj or not obj.content:
+            return "No preview yet"
+        html_content = markdownify(obj.content)
+        html_content = sanitize_html(html_content)
+        return mark_safe(
+            f"""
+            <div class="markdown-html-preview">
+                {html_content}
+            </div>
+            """
+        )
+
+    class Media:
+        css = {"all": ("admin/css/markdown_preview.css",)}
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
