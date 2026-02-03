@@ -64,7 +64,7 @@ class DomainAdmin(
 ):
     resource_class = DomainResource
     should_escape_html = False
-    exclude = ["creator_name", "creator"]
+    exclude = ["creator_name"]
     search_fields = [
         "translations__label",
         "creator__translations__name",
@@ -78,9 +78,26 @@ class DomainAdmin(
         "creator",
     ]
 
+    fields = [
+        "standard",
+        "label",
+        "position",
+    ]
+
     list_filter = ["standard", "position", "translations__label", "creator"]
     translated_fields = ["label"]
     related_fields = [("standard", "label")]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
 
 
 for name, method in generate_display_methods(
@@ -175,6 +192,44 @@ class StandardAdmin(
     inlines = (SecurityObjectiveInline,)
     list_filter = ["translations__label", "regulator"]
     translated_fields = ["description", "label"]
+    fieldsets = [
+        (
+            _("General"),
+            {
+                "classes": ["wide", "extrapretty"],
+                "fields": ["regulation", "label", "description"],
+            },
+        ),
+        (
+            _("Notification Email"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "submission_email",
+                    "security_objective_status_changed_email",
+                    "security_objective_closure_email",
+                ],
+            },
+        ),
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("regulator",)
+        return ()
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = list(super().get_fieldsets(request, obj))
+
+        title, opts = fieldsets[0]
+        opts = opts.copy()
+        opts["fields"] = list(opts["fields"])
+
+        if obj:
+            opts["fields"].append("regulator")
+
+        fieldsets[0] = (title, opts)
+        return fieldsets
 
     # limit regulation to the one authorized by paltformadmin
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -237,6 +292,22 @@ class MaturityLevelAdmin(
     list_filter = ["standard", "level", "creator"]
     translated_fields = ["label"]
     related_fields = [("standard", "label")]
+    fields = [
+        "standard",
+        "label",
+        "level",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
 
 
 for name, method in generate_display_methods(
@@ -470,6 +541,24 @@ class SecurityObjectiveAdmin(
         "creator__translations__name",
     ]
 
+    fields = [
+        "domain",
+        "unique_code",
+        "objective",
+        "description",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
+
     def get_resource_kwargs(self, request, *args, **kwargs):
         # This passes the current request object to the Resource's __init__
         return {"request": request}
@@ -701,6 +790,26 @@ class SecurityMeasureAdmin(
         "security_objective",
         "creator",
     ]
+
+    fields = [
+        "security_objective",
+        "maturity_level",
+        "position",
+        "description",
+        "evidence",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
+
     translated_fields = ["description"]
 
     def get_resource_kwargs(self, request, *args, **kwargs):
