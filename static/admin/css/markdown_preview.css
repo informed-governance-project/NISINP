@@ -12,14 +12,54 @@
 }
 
 .markdown-html-preview {
-    border: 1px;
-    padding: 12px;
-    min-height: 400px;
-    overflow-y: auto;
+    all: initial;
+    color:inherit;
+    background: inherit;
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .markdown-html-preview h1,
 .markdown-html-preview h2,
 .markdown-html-preview h3 {
-    margin-top: 1em;
+    color:inherit;
+    background: inherit;
+}
+
+.markdown-html-preview h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 16px 0 8px;
+}
+
+.markdown-html-preview h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 14px 0 6px;
+}
+
+.markdown-html-preview h3 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 12px 0 6px;
+}
+
+.markdown-html-preview p {
+    margin: 8px 0;
+}
+
+.markdown-html-preview a {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+.markdown-html-preview ul,
+.markdown-html-preview ol {
+    margin: 8px 0 8px 24px;
+}
+
+.markdown-html-preview li {
+    margin: 4px 0;
 }
