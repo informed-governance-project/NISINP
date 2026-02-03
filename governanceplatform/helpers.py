@@ -2,6 +2,8 @@ import secrets
 from collections import defaultdict
 from typing import Any, Optional
 
+import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from django.conf import settings
 from django.contrib import messages
 from django.db import connection
@@ -13,6 +15,7 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from markdownx.utils import markdownify
 
 from incidents.models import (
     Answer,
@@ -506,7 +509,8 @@ def render_to_string_multi_languages(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-
+            context["content"] = markdownify(context["content"])
+            context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
             if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
@@ -521,3 +525,44 @@ def render_to_string_multi_languages(
     if not parts:
         return baseline
     return "<hr>".join(parts)
+
+
+def sanitize_html(html, tags=None, attributes=None, styles=None):
+    """
+    Docstring for sanitize_html with bleach
+    :param html: The HTML to sanitize
+    :param tags: allowed tags in a set []
+    :param attributes: allowed attributes in a dict {"key":["attribute1", "attribute2"]}
+    :param styles: allowed styles in a set []
+    """
+    if tags is None:
+        tags = [
+            "p",
+            "pre",
+            "code",
+            "h1",
+            "h2",
+            "h3",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+        ]
+    if attributes is None:
+        attributes = {
+            "a": ["href", "title"],
+            "span": ["style"],
+        }
+    if styles is None:
+        styles = ["color", "font-weight", "font-style", "text-decoration"]
+    css_sanitizer = CSSSanitizer(allowed_css_properties=styles)
+
+    return bleach.clean(
+        html,
+        tags=tags,
+        attributes=attributes,
+        strip=True,
+        css_sanitizer=css_sanitizer,
+    )

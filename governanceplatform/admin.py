@@ -185,7 +185,7 @@ class SettingsAdmin(admin.ModelAdmin):
         settings_dict = {
             key: getattr(settings, key)
             for key in dir(settings)
-            if key.isupper() and key in settings.ADMIN_VISIBLE_VARIABLES
+            if key.isupper() and key not in settings.ADMIN_UNVISIBLE_VARIABLES
         }
 
         extra_context = extra_context or {}
@@ -1099,7 +1099,11 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
             and not request.GET
             and user_in_group(request.user, "RegulatorAdmin")
         ):
-            return queryset.filter(regulators=request.user.regulators.first())
+            return queryset.filter(
+                Q(regulators=request.user.regulators.first())
+                | Q(groups__in=[get_group_id("RegulatorUser")])
+            ).distinct()
+        return queryset
 
 
 @admin.register(User, site=admin_site)
@@ -1118,6 +1122,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "get_permissions_groups",
         "get_2FA_activation",
         "email_verified",
+        "date_joined",
     ]
     search_fields = ["first_name", "last_name", "email", "phone_number"]
     list_filter = [
@@ -1212,6 +1217,43 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def get_2FA_activation(self, obj):
         return bool(user_has_device(obj))
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = (
+            "get_permissions_groups",
+            "date_joined",
+            "get_2FA_activation",
+            "email_verified",
+        )
+
+        if obj is None:
+            return readonly_fields
+
+        if user_in_group(obj, "PlatformAdmin"):
+            return readonly_fields
+        if is_user_regulator(obj):
+            return ("get_regulators",) + readonly_fields
+        if is_observer_user(obj):
+            return ("get_observers",) + readonly_fields
+        if is_user_operator(obj):
+            return ("get_companies",) + readonly_fields
+
+        return readonly_fields
+
+    def _add_fields_readonly(self, fieldsets, obj):
+        if not obj:
+            return fieldsets
+
+        additional_fields = [
+            (field,) for field in self.get_readonly_fields(self._request, obj)
+        ]
+
+        additional_fieldset = (
+            _("Additional information"),
+            {"fields": additional_fields},
+        )
+
+        return list(fieldsets) + [additional_fieldset]
+
     def get_fieldsets(self, request, obj=None):
         # RegulatorAdmin
         if is_user_regulator(request.user):
@@ -1223,7 +1265,8 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     and not user_in_group(user, "PlatformAdmin")
                     and not user == request.user
                 ):
-                    return self.admin_fieldsets
+                    fieldsets = self.admin_fieldsets
+                    return self._add_fields_readonly(fieldsets, obj)
         # PlatformAdmin
         if user_in_group(request.user, "PlatformAdmin"):
             if "object_id" in request.resolver_match.kwargs:
@@ -1237,8 +1280,10 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                     )
                     and not user == request.user
                 ):
-                    return self.admin_fieldsets
-        return self.standard_fieldsets
+                    fieldsets = self.admin_fieldsets
+                    return self._add_fields_readonly(fieldsets, obj)
+
+        return self._add_fields_readonly(self.standard_fieldsets, obj)
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
@@ -1257,7 +1302,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             if obj and is_user_regulator(obj):
                 inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and is_user_operator(obj):
-                inline_instances = [CompanyUserInline(self.model, self.admin_site)]
+                inline_instances = []
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):

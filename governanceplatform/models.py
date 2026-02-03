@@ -470,28 +470,32 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description=_("Companies"))
     def get_companies(self):
-        return [company.name for company in self.companies.all().distinct()]
+        return ", ".join([company.name for company in self.companies.all().distinct()])
 
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, op_admin):
         companies = (
             self.companies.all().distinct() & op_admin.companies.all().distinct()
         )
-        return [company.name for company in companies.all().distinct()]
+        return ", ".join([company.name for company in companies.all().distinct()])
 
-    @admin.display(description=_("Regulators"))
+    @admin.display(description=_("Regulator"))
     def get_regulators(self):
-        return [
-            regulator.safe_translation_getter("name", any_language=True)
-            for regulator in self.regulators.all()
-        ]
+        return ", ".join(
+            [
+                regulator.safe_translation_getter("name", any_language=True)
+                for regulator in self.regulators.all()
+            ]
+        )
 
-    @admin.display(description=_("Observers"))
+    @admin.display(description=_("Observer"))
     def get_observers(self):
-        return [
-            observer.safe_translation_getter("name", any_language=True)
-            for observer in self.observers.all()
-        ]
+        return ", ".join(
+            [
+                observer.safe_translation_getter("name", any_language=True)
+                for observer in self.observers.all()
+            ]
+        )
 
     @admin.display(description=_("Roles"))
     def get_permissions_groups(self):
