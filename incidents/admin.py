@@ -135,6 +135,23 @@ class LogEntryAdmin(admin.ModelAdmin):
         "_action_flag",
     ]
 
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": [
+                    "user",
+                    "action_time",
+                    "content_type",
+                    "object_id",
+                    "object_repr",
+                    "_action_flag",
+                    "change_message",
+                ],
+            },
+        ),
+    ]
+
     def has_add_permission(self, request):
         return False
 
@@ -461,15 +478,26 @@ class QuestionAdmin(
         "creator__translations__name",
         "predefinedanswer__translations__predefined_answer",
     ]
-    resource_class = QuestionResource
     fields = [
         "question_type",
         "reference",
         "label",
         "tooltip",
     ]
+    resource_class = QuestionResource
     inlines = [PredefinedAnswerInline]
     list_filter = [QuestionTypeListFilter]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -767,7 +795,7 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     ]
     inlines = (QuestionOptionsInline,)
     save_as = True
-    exclude = ["creator_name", "creator"]
+    exclude = ["creator_name"]
     fieldsets = [
         (
             _("General"),
@@ -786,6 +814,24 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
             },
         ),
     ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = list(super().get_fieldsets(request, obj))
+
+        title, opts = fieldsets[0]
+        opts = opts.copy()
+        opts["fields"] = list(opts["fields"])
+
+        if obj:
+            opts["fields"].append("creator")
+
+        fieldsets[0] = (title, opts)
+        return fieldsets
 
     # give the parent object to the inlines
     def get_inline_instances(self, request, obj=None):
