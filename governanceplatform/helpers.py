@@ -480,12 +480,21 @@ def sanitize_html(html, tags=None, attributes=None, styles=None):
             "h1",
             "h2",
             "h3",
+            "h4",
+            "h5",
+            "h6",
+            "hr",
             "table",
             "thead",
-            "tbody",
+            "strong",
+            "em",
+            "del",
             "tr",
             "th",
             "td",
+            "ul",
+            "ol",
+            "li",
         ]
     if attributes is None:
         attributes = {
