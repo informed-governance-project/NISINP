@@ -15,7 +15,7 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from markdownx.utils import markdownify
+from markdown import markdown
 
 from incidents.models import (
     Answer,
@@ -428,6 +428,46 @@ def translated_queryset(
     return qs
 
 
+def annotate_translated_field_from_related_models(
+    qs,
+    *,
+    full_path,
+    annotated_name,
+):
+    default_lang = settings.PARLER_DEFAULT_LANGUAGE_CODE
+    lang = translation.get_language()
+    relation_path, translated_field = full_path.rsplit("__translations__", 1)
+
+    lang_key = f"_{translated_field}_lang"
+    default_key = f"_{translated_field}_default"
+
+    qs = qs.annotate(
+        **{
+            lang_key: Max(
+                f"{relation_path}__translations__{translated_field}",
+                filter=Q(**{f"{relation_path}__translations__language_code": lang}),
+            ),
+            default_key: Max(
+                f"{relation_path}__translations__{translated_field}",
+                filter=Q(
+                    **{f"{relation_path}__translations__language_code": default_lang}
+                ),
+            ),
+        }
+    ).annotate(
+        **{
+            annotated_name: Coalesce(
+                lang_key,
+                default_key,
+                Value(""),
+                output_field=TextField(),
+            )
+        }
+    )
+
+    return qs
+
+
 def generate_display_methods(translated_fields, related_fields=None):
     """
     Dynamically generates display methods for translated fields.
@@ -509,7 +549,7 @@ def render_to_string_multi_languages(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-            context["content"] = markdownify(context["content"])
+            context["content"] = markdown(text=context["content"], output_format="html")
             context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
@@ -543,12 +583,21 @@ def sanitize_html(html, tags=None, attributes=None, styles=None):
             "h1",
             "h2",
             "h3",
+            "h4",
+            "h5",
+            "h6",
+            "hr",
             "table",
             "thead",
-            "tbody",
+            "strong",
+            "em",
+            "del",
             "tr",
             "th",
             "td",
+            "ul",
+            "ol",
+            "li",
         ]
     if attributes is None:
         attributes = {
@@ -566,3 +615,38 @@ def sanitize_html(html, tags=None, attributes=None, styles=None):
         strip=True,
         css_sanitizer=css_sanitizer,
     )
+
+
+def sort_queryset_by_field(
+    qs,
+    sort_field,
+    sort_direction,
+    default_sort_field,
+    allowed_sort_fields,
+):
+
+    if sort_field not in allowed_sort_fields:
+        return qs.order_by(f"-{default_sort_field}")
+
+    field = allowed_sort_fields[sort_field]
+
+    if "__translations__" in field:
+        annotated_name = f"sort_{field.replace('__', '_')}"
+        qs = annotate_translated_field_from_related_models(
+            qs,
+            full_path=field,
+            annotated_name=annotated_name,
+        )
+        field = annotated_name
+
+    ordering = []
+
+    if sort_direction == "desc":
+        ordering.append(f"-{field}")
+    else:
+        ordering.append(field)
+
+    if field != default_sort_field:
+        ordering.append(f"-{default_sort_field}")
+
+    return qs.order_by(*ordering)

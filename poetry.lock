@@ -48,14 +48,14 @@ vine = ">=5.0.0,<6.0.0"
 
 [[package]]
 name = "asgiref"
-version = "3.11.0"
+version = "3.11.1"
 description = "ASGI specs, helper code, and adapters"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "asgiref-3.11.0-py3-none-any.whl", hash = "sha256:1db9021efadb0d9512ce8ffaf72fcef601c7b73a8807a1bb2ef143dc6b14846d"},
-    {file = "asgiref-3.11.0.tar.gz", hash = "sha256:13acff32519542a1736223fb79a715acdebe24286d98e8b164a73085f40da2c4"},
+    {file = "asgiref-3.11.1-py3-none-any.whl", hash = "sha256:e8667a091e69529631969fd45dc268fa79b99c92c5fcdda727757e52146ec133"},
+    {file = "asgiref-3.11.1.tar.gz", hash = "sha256:5f184dc43b7e763efe848065441eac62229c9f7b0475f41f80e207a114eda4ce"},
 ]
 
 [package.dependencies]
@@ -947,14 +947,14 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.2.10"
+version = "5.2.11"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "django-5.2.10-py3-none-any.whl", hash = "sha256:cf85067a64250c95d5f9067b056c5eaa80591929f7e16fbcd997746e40d6c45c"},
-    {file = "django-5.2.10.tar.gz", hash = "sha256:74df100784c288c50a2b5cad59631d71214f40f72051d5af3fdf220c20bdbbbe"},
+    {file = "django-5.2.11-py3-none-any.whl", hash = "sha256:e7130df33ada9ab5e5e929bc19346a20fe383f5454acb2cc004508f242ee92c0"},
+    {file = "django-5.2.11.tar.gz", hash = "sha256:7f2d292ad8b9ee35e405d965fbbad293758b858c34bbf7f3df551aeeac6f02d3"},
 ]
 
 [package.dependencies]
@@ -1097,14 +1097,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-health-check"
-version = "3.22.0"
+version = "3.23.3"
 description = "Monitor the health of your Django app and its connected services."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_health_check-3.22.0-py3-none-any.whl", hash = "sha256:242a17ef30212eda941296ed3ed1577cd5817f0c40ed46a67703c940de8f4706"},
-    {file = "django_health_check-3.22.0.tar.gz", hash = "sha256:b93897c09d47fcc990fff480f28e72e676aee331808c14f0bdcfb8d64de623b1"},
+    {file = "django_health_check-3.23.3-py3-none-any.whl", hash = "sha256:3055971ff8cbd361b736dcf4551769f9ba28d3aca5462679dd50e4ef193de8d0"},
+    {file = "django_health_check-3.23.3.tar.gz", hash = "sha256:7b5e6e6c8b2254190a65cf497c292a4af407a3d52b316f4c801601ce2b20de94"},
 ]
 
 [package.dependencies]
@@ -1132,23 +1132,6 @@ files = [
 diff-match-patch = "*"
 Django = ">=3.2"
 tablib = {version = "3.5.0", extras = ["html", "ods", "xls", "xlsx", "yaml"]}
-
-[[package]]
-name = "django-markdownx"
-version = "4.0.9"
-description = "A comprehensive Markdown editor built for Django."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "django-markdownx-4.0.9.tar.gz", hash = "sha256:f82949beaddcaf5cbe765f580b1bf062b3aa5eea94633fdbbb6466514311a907"},
-    {file = "django_markdownx-4.0.9-py2.py3-none-any.whl", hash = "sha256:0e78759a8701073fee3e4883764a9bf1cdf3fe4c2941747acbe4f093f9285805"},
-]
-
-[package.dependencies]
-Django = "*"
-Markdown = "*"
-Pillow = "*"
 
 [[package]]
 name = "django-otp"
@@ -3965,4 +3948,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e719a408bbeba513a01af79c3341c102add3cf2c966688c5633fe3653243c771"
+content-hash = "c2897c839b5ecb5f769d534b2912baf2f6e5c5900a4d0f2253c5a4c77ad4e6b9"

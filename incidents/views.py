@@ -35,6 +35,7 @@ from governanceplatform.helpers import (
     is_user_operator,
     is_user_regulator,
     render_to_string_multi_languages,
+    sort_queryset_by_field,
     user_in_group,
 )
 from governanceplatform.models import (
@@ -56,7 +57,12 @@ from .decorators import check_user_is_correct, regulator_role_required
 from .email import send_email, send_html_email
 from .filters import IncidentFilter
 from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
-from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
+from .globals import (
+    ALLOWED_SORT_FIELDS,
+    REGIONAL_AREA,
+    REPORT_STATUS_MAP,
+    WORKFLOW_REVIEW_STATUS,
+)
 from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
     Answer,
@@ -79,10 +85,20 @@ from .pdf_generation import get_pdf_report
 @check_user_is_correct
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
+
     user = request.user
-    incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
-        "-incident_last_update"
+    incidents = Incident.objects.filter(sector_regulation__isnull=False)
+    sort_field = request.GET.get("sort_field", "last_update")
+    sort_direction = request.GET.get("sort_direction", "desc")
+
+    incidents = sort_queryset_by_field(
+        incidents,
+        sort_field,
+        sort_direction,
+        "incident_last_update",
+        ALLOWED_SORT_FIELDS,
     )
+
     html_view = "operator/incidents.html"
 
     search_value = request.GET.get("search", None)

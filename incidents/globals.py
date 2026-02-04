@@ -100,3 +100,14 @@ REPORT_STATUS_MAP = {
         "tooltip": _("The report has not been submitted yet."),
     },
 }
+
+ALLOWED_SORT_FIELDS = {
+    "last_update": "incident_last_update",
+    "notification_date": "incident_notification_date",
+    "status": "incident_status",
+    "company_name": "company__name",
+    "company_identifier": "company__identifier",
+    "regulation": "sector_regulation__regulation__translations__label",
+    "reference": "incident_id",
+    "sectors": "affected_sectors__translations__name",
+}
