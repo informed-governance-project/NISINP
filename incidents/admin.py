@@ -15,7 +15,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
-from markdownx.utils import markdownify
+from markdown import markdown
 from parler.models import TranslatableModel
 
 from governanceplatform.admin import (
@@ -787,7 +787,7 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def html_preview(self, obj):
         if not obj or not obj.content:
             return "No preview yet"
-        html_content = markdownify(obj.content)
+        html_content = markdown(text=obj.content, output_format="html")
         html_content = sanitize_html(html_content)
         return mark_safe(
             f"""

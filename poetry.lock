@@ -1134,23 +1134,6 @@ Django = ">=3.2"
 tablib = {version = "3.5.0", extras = ["html", "ods", "xls", "xlsx", "yaml"]}
 
 [[package]]
-name = "django-markdownx"
-version = "4.0.9"
-description = "A comprehensive Markdown editor built for Django."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "django-markdownx-4.0.9.tar.gz", hash = "sha256:f82949beaddcaf5cbe765f580b1bf062b3aa5eea94633fdbbb6466514311a907"},
-    {file = "django_markdownx-4.0.9-py2.py3-none-any.whl", hash = "sha256:0e78759a8701073fee3e4883764a9bf1cdf3fe4c2941747acbe4f093f9285805"},
-]
-
-[package.dependencies]
-Django = "*"
-Markdown = "*"
-Pillow = "*"
-
-[[package]]
 name = "django-otp"
 version = "1.7.0"
 description = "A pluggable framework for adding two-factor authentication to Django using one-time passwords."
@@ -3965,4 +3948,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e719a408bbeba513a01af79c3341c102add3cf2c966688c5633fe3653243c771"
+content-hash = "c2897c839b5ecb5f769d534b2912baf2f6e5c5900a4d0f2253c5a4c77ad4e6b9"

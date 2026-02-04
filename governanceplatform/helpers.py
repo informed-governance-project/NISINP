@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from markdownx.utils import markdownify
+from markdown import markdown
 
 from incidents.models import (
     Answer,
@@ -446,7 +446,7 @@ def render_to_string_multi_languages(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-            context["content"] = markdownify(context["content"])
+            context["content"] = markdown(text=context["content"], output_format="html")
             context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
