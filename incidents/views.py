@@ -87,10 +87,12 @@ def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
     incidents = Incident.objects.filter(sector_regulation__isnull=False)
-    sort_field = request.GET.get("sort_field", "last_update")
-    sort_direction = request.GET.get("sort_direction", "desc")
     html_view = "operator/incidents.html"
     search_value = request.GET.get("search", None)
+
+    if "reset_sort" in request.GET:
+        request.session.pop("incidents_sort_params", None)
+        return redirect("incidents")
 
     if "reset" in request.GET or search_value == "":
         request.session.pop("incidents_filter_params", None)
@@ -98,12 +100,21 @@ def get_incidents(request):
 
     # Save filter params in user's session
     current_params = request.session.get("incidents_filter_params", {}).copy()
+    current_sort_params = request.session.get("incidents_sort_params", {}).copy()
 
     for key, values in request.GET.lists():
+        if key in ["sort_field", "sort_direction"]:
+            continue
         current_params[key] = values if key == "affected_sectors" else values[0]
 
+    for key, value in request.GET.items():
+        if key in ("sort_field", "sort_direction"):
+            current_sort_params[key] = value
+
     incidents_filter_params = current_params
+    incidents_sort_params = current_sort_params
     request.session["incidents_filter_params"] = incidents_filter_params
+    request.session["incidents_sort_params"] = incidents_sort_params
 
     if is_user_regulator(user):
         html_view = "regulator/incidents.html"
@@ -136,6 +147,9 @@ def get_incidents(request):
         incidents = incidents.filter(contact_user=user)
 
     # Apply sorting
+    sort_field = incidents_sort_params.get("sort_field", "last_update")
+    sort_direction = incidents_sort_params.get("sort_direction", "desc")
+
     incidents = sort_queryset_by_field(
         incidents,
         sort_field,
@@ -238,6 +252,8 @@ def get_incidents(request):
         context={
             "site_name": SITE_NAME,
             "filter": f,
+            "sort_field": sort_field,
+            "sort_direction": sort_direction,
             "incidents": page_obj,
             "is_filtered": bool(is_filtered),
             "is_regulator_incidents": request.session.get(
