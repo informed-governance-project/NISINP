@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Deferrable
+from django.db.models import Deferrable, Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
@@ -325,54 +325,88 @@ class Observer(TranslatableModel):
     )
 
     def get_incidents(self):
+        base_qs = Incident.objects.exclude(sector_regulation__isnull=True)
+
         if self.is_receiving_all_incident:
-            return (
-                Incident.objects.all()
-                .order_by("-incident_notification_date")
-                .exclude(sector_regulation__isnull=True)
-            )
+            return base_qs
 
         observer_regulations = self.observerregulation_set.all()
-
         if not observer_regulations:
             return Incident.objects.none()
 
-        querysets = []
+        final_q = Q()
+
         for observer_regulation in observer_regulations:
-            filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
-            query = Incident.objects.filter(
-                sector_regulation__regulation=regulation
-            ).exclude(sector_regulation__isnull=True)
+            filter_conditions = observer_regulation.incident_rule
             conditions = filter_conditions.get("conditions", [])
+
+            regulation_q = Q(sector_regulation__regulation=regulation)
+
             if conditions:
                 for condition in conditions:
-                    include_entity_categories = condition.get("include", [])
-                    exclude_entity_categories = condition.get("exclude", [])
-                    query_filtered = query
-                    if include_entity_categories:
-                        for entity_category_code in include_entity_categories:
-                            query_filtered = query_filtered.filter(
-                                company__entity_categories__code=entity_category_code
-                            )
+                    condition_q = Q()
 
-                    if exclude_entity_categories:
-                        for entity_category_code in exclude_entity_categories:
-                            query_filtered = query_filtered.exclude(
-                                company__entity_categories__code=entity_category_code
-                            )
-                    querysets.append(query_filtered)
+                    for code in condition.get("include", []):
+                        condition_q &= Q(company__entity_categories__code=code)
+
+                    for code in condition.get("exclude", []):
+                        condition_q &= ~Q(company__entity_categories__code=code)
+
+                    final_q |= regulation_q & condition_q
             else:
-                querysets.append(query)
+                final_q |= regulation_q
 
-        if querysets:
-            combined_queryset = querysets[0]
-            for qs in querysets[1:]:
-                combined_queryset = combined_queryset.union(qs)
-        else:
-            combined_queryset = Incident.objects.none()
+        return base_qs.filter(final_q).distinct()
 
-        return combined_queryset
+    # def get_incidents(self):
+    #     if self.is_receiving_all_incident:
+    #         return (
+    #             Incident.objects.all()
+    #             .exclude(sector_regulation__isnull=True)
+    #         )
+
+    #     observer_regulations = self.observerregulation_set.all()
+
+    #     if not observer_regulations:
+    #         return Incident.objects.none()
+
+    #     querysets = []
+    #     for observer_regulation in observer_regulations:
+    #         filter_conditions = observer_regulation.incident_rule
+    #         regulation = observer_regulation.regulation
+    #         query = Incident.objects.filter(
+    #             sector_regulation__regulation=regulation
+    #         ).exclude(sector_regulation__isnull=True)
+    #         conditions = filter_conditions.get("conditions", [])
+    #         if conditions:
+    #             for condition in conditions:
+    #                 include_entity_categories = condition.get("include", [])
+    #                 exclude_entity_categories = condition.get("exclude", [])
+    #                 query_filtered = query
+    #                 if include_entity_categories:
+    #                     for entity_category_code in include_entity_categories:
+    #                         query_filtered = query_filtered.filter(
+    #                             company__entity_categories__code=entity_category_code
+    #                         )
+
+    #                 if exclude_entity_categories:
+    #                     for entity_category_code in exclude_entity_categories:
+    #                         query_filtered = query_filtered.exclude(
+    #                             company__entity_categories__code=entity_category_code
+    #                         )
+    #                 querysets.append(query_filtered)
+    #         else:
+    #             querysets.append(query)
+
+    #     if querysets:
+    #         combined_queryset = querysets[0]
+    #         for qs in querysets[1:]:
+    #             combined_queryset = combined_queryset.union(qs)
+    #     else:
+    #         combined_queryset = Incident.objects.none()
+
+    #     return combined_queryset
 
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
