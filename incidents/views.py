@@ -85,22 +85,11 @@ from .pdf_generation import get_pdf_report
 @check_user_is_correct
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
-
     user = request.user
     incidents = Incident.objects.filter(sector_regulation__isnull=False)
     sort_field = request.GET.get("sort_field", "last_update")
     sort_direction = request.GET.get("sort_direction", "desc")
-
-    incidents = sort_queryset_by_field(
-        incidents,
-        sort_field,
-        sort_direction,
-        "incident_last_update",
-        ALLOWED_SORT_FIELDS,
-    )
-
     html_view = "operator/incidents.html"
-
     search_value = request.GET.get("search", None)
 
     if "reset" in request.GET or search_value == "":
@@ -138,17 +127,22 @@ def get_incidents(request):
             )
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
-        incidents = (
-            user.observers.first().get_incidents().order_by("-incident_last_update")
-        )
-        f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
+        incidents = user.observers.first().get_incidents()
     elif is_user_operator(user):
         # OperatorAdmin/User can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
+
+    # Apply sorting
+    incidents = sort_queryset_by_field(
+        incidents,
+        sort_field,
+        sort_direction,
+        "incident_last_update",
+        ALLOWED_SORT_FIELDS,
+    )
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
     incident_list = f.qs
@@ -235,7 +229,7 @@ def get_incidents(request):
     is_filtered = {
         k: v
         for k, v in incidents_filter_params.items()
-        if k not in ["page", "per_page"]
+        if k not in ["page", "per_page", "sort_field", "sort_direction"]
     }
 
     return render(
