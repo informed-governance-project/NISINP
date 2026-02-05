@@ -43,6 +43,7 @@ from governanceplatform.helpers import (
     get_sectors_grouped,
     is_user_operator,
     is_user_regulator,
+    sort_queryset_by_field,
     user_in_group,
 )
 from governanceplatform.models import Company, CompanyUser, RegulatorUser, Sector
@@ -57,7 +58,7 @@ from .forms import (
     SecurityObjectiveStatusForm,
     SelectSOStandardForm,
 )
-from .globals import STANDARD_ANSWER_REVIEW_STATUS
+from .globals import ALLOWED_SORT_FIELDS, STANDARD_ANSWER_REVIEW_STATUS
 from .models import (
     LogStandardAnswer,
     MaturityLevel,
@@ -81,6 +82,9 @@ for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
 def get_security_objectives(request):
     user = request.user
     standard_answer_queryset = StandardAnswer.objects.none()
+    sort_field = request.GET.get("sort_field", "last_update")
+    sort_direction = request.GET.get("sort_direction", "desc")
+
     template = "operator/so_dashboard.html"
     if is_user_regulator(user):
         regulator = user.regulators.first()
@@ -113,6 +117,19 @@ def get_security_objectives(request):
         id__in=Subquery(latest_so_id)
     )
 
+    standard_answer_queryset = get_standard_answers_with_progress(
+        standard_answer_queryset
+    )
+
+    # Sort
+    standard_answer_queryset = sort_queryset_by_field(
+        standard_answer_queryset,
+        sort_field,
+        sort_direction,
+        "last_update",
+        ALLOWED_SORT_FIELDS,
+    )
+
     # Filter
     search_value = request.GET.get("search", None)
 
@@ -126,7 +143,7 @@ def get_security_objectives(request):
 
     so_filter_params = request.session.get("so_filter_params", request.GET)
     security_objective_filter = StandardAnswerFilter(
-        so_filter_params, queryset=standard_answer_queryset.order_by("-last_update")
+        so_filter_params, queryset=standard_answer_queryset
     )
 
     # Filter
@@ -136,7 +153,6 @@ def get_security_objectives(request):
     page_number = so_filter_params.get("page")
     paginator = Paginator(so_answer_list, per_page)
     page_obj = paginator.get_page(page_number)
-    page_obj.object_list = get_standard_answers_with_progress(page_obj.object_list)
 
     is_filtered = {
         k: v for k, v in so_filter_params.items() if k not in ["page", "per_page"]
