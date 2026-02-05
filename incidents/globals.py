@@ -107,6 +107,7 @@ ALLOWED_SORT_FIELDS = {
     "notification_date": "incident_notification_date",
     "company_identifier": "company__identifier",
     "company_name": "company__name",
+    "regulator": "sector_regulation__regulator__translations__name",
     "regulation": "sector_regulation__regulation__translations__label",
     "reference": "incident_id",
     "sectors": "affected_sectors__translations__name",
