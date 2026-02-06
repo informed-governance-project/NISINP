@@ -654,7 +654,10 @@ def delete_declaration(request, standard_answer_id: int):
         standard_answer = StandardAnswer.objects.get(pk=standard_answer_id)
         if not has_change_permission(request, standard_answer, "delete"):
             return redirect("securityobjectives")
+        group = standard_answer.group
         standard_answer.delete()
+        if group.standardanswer_set.count() == 0:
+            group.delete()
         messages.success(
             request, _("The security objectives declaration has been deleted.")
         )
