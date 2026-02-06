@@ -73,4 +73,5 @@ class StandardAnswerFilter(django_filters.FilterSet):
             | Q(submitter_company__name__icontains=value)
             | Q(year_of_submission__icontains=value)
             | Q(sectors__translations__name__icontains=value)
+            | Q(group__group_id__icontains=value)
         ).distinct()
