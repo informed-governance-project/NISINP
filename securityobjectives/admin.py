@@ -99,6 +99,12 @@ class DomainAdmin(
             return fields + ["creator"]
         return fields
 
+    # save by default the regulator
+    def save_model(self, request, obj, form, change):
+        user = request.user
+        obj.creator = user.regulators.first()
+        super().save_model(request, obj, form, change)
+
 
 for name, method in generate_display_methods(
     ["label"], [("standard", "label")]
@@ -308,6 +314,12 @@ class MaturityLevelAdmin(
         if obj:
             return fields + ["creator"]
         return fields
+
+    # save by default the regulator
+    def save_model(self, request, obj, form, change):
+        user = request.user
+        obj.creator = user.regulators.first()
+        super().save_model(request, obj, form, change)
 
 
 for name, method in generate_display_methods(
