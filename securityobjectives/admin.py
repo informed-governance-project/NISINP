@@ -483,6 +483,13 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         cached = self._row_cache.pop(id(row), {})
         standard = cached.get("standard")
         if standard and so:
+            # force to link to the correct domain
+            if row["domain_object"]:
+                domain = row["domain_object"]
+                so.domain = domain
+                so.save()
+                domain.standard = standard
+                domain.save()
             sois = SecurityObjectivesInStandard.objects.filter(
                 security_objective=so,
                 standard=standard,
@@ -497,10 +504,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             if row["position"] and row["position"] is not None:
                 sois.position = row["position"]
             sois.save()
-            # force to link to the correct domain
-            if row["domain_object"]:
-                so.domain = row["domain_object"]
-                so.save()
 
     def get_export_fields(self):
         fields = super().get_export_fields()
@@ -790,6 +793,7 @@ class SecurityMeasureAdmin(
     list_display = [
         "standard_display",
         "security_objective",
+        "maturity_level",
         "position",
         "description_display",
         "creator",
