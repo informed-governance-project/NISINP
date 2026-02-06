@@ -793,6 +793,7 @@ class SecurityMeasureAdmin(
     list_display = [
         "standard_display",
         "security_objective",
+        "maturity_level",
         "position",
         "description_display",
         "creator",
