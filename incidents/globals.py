@@ -102,11 +102,12 @@ REPORT_STATUS_MAP = {
 }
 
 ALLOWED_SORT_FIELDS = {
+    "status": "incident_status",
     "last_update": "incident_last_update",
     "notification_date": "incident_notification_date",
-    "status": "incident_status",
-    "company_name": "company__name",
     "company_identifier": "company__identifier",
+    "company_name": "company__name",
+    "regulator": "sector_regulation__regulator__translations__name",
     "regulation": "sector_regulation__regulation__translations__label",
     "reference": "incident_id",
     "sectors": "affected_sectors__translations__name",
