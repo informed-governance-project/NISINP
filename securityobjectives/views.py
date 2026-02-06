@@ -82,10 +82,35 @@ for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
 def get_security_objectives(request):
     user = request.user
     standard_answer_queryset = StandardAnswer.objects.none()
-    sort_field = request.GET.get("sort_field", "last_update")
-    sort_direction = request.GET.get("sort_direction", "desc")
-
     template = "operator/so_dashboard.html"
+    search_value = request.GET.get("search", None)
+
+    if "reset_sort" in request.GET:
+        request.session.pop("so_sort_params", None)
+        return redirect("securityobjectives")
+
+    if "reset" in request.GET or search_value == "":
+        request.session.pop("so_filter_params", None)
+        return redirect("securityobjectives")
+
+    # Save filter params in user's session
+    current_filter_params = request.session.get("so_filter_params", {}).copy()
+    current_sort_params = request.session.get("so_sort_params", {}).copy()
+
+    for key, values in request.GET.lists():
+        if key in ["sort_field", "sort_direction"]:
+            continue
+        current_filter_params[key] = values if key == "sectors" else values[0]
+
+    for key, value in request.GET.items():
+        if key in ("sort_field", "sort_direction"):
+            current_sort_params[key] = value
+
+    so_filter_params = current_filter_params
+    so_sort_params = current_sort_params
+    request.session["so_filter_params"] = so_filter_params
+    request.session["so_sort_params"] = so_sort_params
+
     if is_user_regulator(user):
         regulator = user.regulators.first()
         template = "regulator/so_dashboard.html"
@@ -121,7 +146,9 @@ def get_security_objectives(request):
         standard_answer_queryset
     )
 
-    # Sort
+    # Apply sorting
+    sort_field = so_sort_params.get("sort_field", "last_update")
+    sort_direction = so_sort_params.get("sort_direction", "desc")
     standard_answer_queryset = sort_queryset_by_field(
         standard_answer_queryset,
         sort_field,
@@ -130,25 +157,12 @@ def get_security_objectives(request):
         ALLOWED_SORT_FIELDS,
     )
 
-    # Filter
-    search_value = request.GET.get("search", None)
-
-    if "reset" in request.GET or search_value == "":
-        if "so_filter_params" in request.session:
-            del request.session["so_filter_params"]
-        return redirect("securityobjectives")
-
-    if request.GET:
-        request.session["so_filter_params"] = request.GET
-
-    so_filter_params = request.session.get("so_filter_params", request.GET)
     security_objective_filter = StandardAnswerFilter(
         so_filter_params, queryset=standard_answer_queryset
     )
 
     # Filter
     so_answer_list = security_objective_filter.qs
-
     per_page = so_filter_params.get("per_page", 10)
     page_number = so_filter_params.get("page")
     paginator = Paginator(so_answer_list, per_page)
@@ -161,6 +175,8 @@ def get_security_objectives(request):
     context = {
         "standard_answers": page_obj,
         "filter": security_objective_filter,
+        "sort_field": sort_field,
+        "sort_direction": sort_direction,
         "is_filtered": bool(is_filtered),
     }
 
