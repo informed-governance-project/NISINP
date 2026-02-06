@@ -471,6 +471,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                     domain.set_current_language(lang)
                     domain.label = row["domain"]
                     domain.save()
+                    row["domain_object"] = domain
 
         return super().before_import_row(row, **kwargs)
 
@@ -496,6 +497,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             if row["position"] and row["position"] is not None:
                 sois.position = row["position"]
             sois.save()
+            # force to link to the correct domain
+            if row["domain_object"]:
+                so.domain = row["domain_object"]
+                so.save()
 
     def get_export_fields(self):
         fields = super().get_export_fields()
