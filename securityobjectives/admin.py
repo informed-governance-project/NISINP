@@ -822,7 +822,7 @@ class SecurityMeasureAdmin(
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ("creator",)
+            return ("creator", "security_objective")
         return ()
 
     def get_fields(self, request, obj=None):
@@ -857,12 +857,28 @@ class SecurityMeasureAdmin(
                 )
 
         if db_field.name == "maturity_level":
-            # Regulator
+            # Regulator filter
             if is_user_regulator(user):
-                kwargs["queryset"] = MaturityLevel.objects.filter(
-                    creator__in=user.regulators.all()
-                )
+                qs = MaturityLevel.objects.filter(creator__in=user.regulators.all())
 
+                # in edition filter with the standard
+                object_id = request.resolver_match.kwargs.get("object_id")
+                if object_id:
+                    try:
+                        security_measure = SecurityMeasure.objects.select_related(
+                            "security_objective__standard_link__standard"
+                        ).get(pk=object_id)
+
+                        standard = (
+                            security_measure.security_objective.standard_link.standard
+                        )
+
+                        qs = qs.filter(standard=standard)
+
+                    except SecurityMeasure.DoesNotExist:
+                        pass
+
+                kwargs["queryset"] = qs
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
