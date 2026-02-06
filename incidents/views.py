@@ -1257,7 +1257,7 @@ class FormWizardView(SessionWizardView):
                         incident_notification_date__year=date.today().year
                     ).count()
                     if company
-                    else 0
+                    else 1
                 )
                 if self.is_regulator_incident:
                     incidents_per_company = (
@@ -1265,7 +1265,7 @@ class FormWizardView(SessionWizardView):
                             incident_notification_date__year=date.today().year
                         ).count()
                         if regulator
-                        else 0
+                        else 1
                     )
 
                 number_of_incident = f"{incidents_per_company:04}"
