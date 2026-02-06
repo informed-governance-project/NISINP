@@ -1429,8 +1429,9 @@ def create_standard_answer_group(company, sectors, standard):
             notification_date__year=date.today().year
         ).count()
         if company
-        else 0
+        else 1
     )
+    group_by_company += 1
     number_of_group = f"{group_by_company:04}"
     sag = StandardAnswerGroup.objects.create(
         company=company,
