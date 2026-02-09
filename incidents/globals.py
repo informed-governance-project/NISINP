@@ -102,13 +102,40 @@ REPORT_STATUS_MAP = {
 }
 
 ALLOWED_SORT_FIELDS = {
-    "status": "incident_status",
-    "last_update": "incident_last_update",
-    "notification_date": "incident_notification_date",
-    "company_identifier": "sort_company_or_regulator_acronym",
-    "company_name": "sort_company_or_regulator_name",
-    "regulator": "sector_regulation__regulator__translations__name",
-    "regulation": "sector_regulation__regulation__translations__label",
-    "reference": "incident_id",
-    "sectors": "affected_sectors__translations__name",
+    "status": {
+        "field": "incident_status",
+        "type": "string",
+    },
+    "last_update": {
+        "field": "incident_last_update",
+        "type": "datetime",
+    },
+    "notification_date": {
+        "field": "incident_notification_date",
+        "type": "datetime",
+    },
+    "company_identifier": {
+        "field": "sort_company_or_regulator_acronym",
+        "type": "string",
+    },
+    "company_name": {
+        "field": "sort_company_or_regulator_name",
+        "type": "string",
+    },
+    "regulator": {
+        "field": "sector_regulation__regulator__translations__name",
+        "type": "string",
+    },
+    "regulation": {
+        "field": "sector_regulation__regulation__translations__label",
+        "type": "string",
+    },
+    "reference": {
+        "field": "incident_id",
+        "type": "string",
+    },
+    "sectors": {
+        "field": "affected_sectors__translations__name",
+        "type": "string",
+    },
 }

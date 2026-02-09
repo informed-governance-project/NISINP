@@ -151,9 +151,17 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
 
 # check if the user is allowed to create an incident_workflow
 def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # if it's incident user
+    if (
+        user_in_group(user, "IncidentUser")
+        and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
+    ):
+        return True
+
     # if it's the incident of the user he can create
     if (
-        incident.contact_user == user
+        company_id
+        and incident.contact_user == user
         and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
     ):
         return True
@@ -170,7 +178,8 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
 
     # OperatorAdmin/User can create only incidents related to selected company.
     if (
-        is_user_operator(user)
+        company_id
+        and is_user_operator(user)
         and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
@@ -182,9 +191,17 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
 # check if the user is allowed to edit an incident_workflow
 # for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # if it's incident user
+    if (
+        user_in_group(user, "IncidentUser")
+        and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
+    ):
+        return True
+
     # if it's the incident of the user he can create
     if (
-        incident.contact_user == user
+        company_id
+        and incident.contact_user == user
         and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
     ):
         return True
@@ -201,7 +218,8 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
 
     # OperatorAdmin/User can edit only incidents related to selected company.
     if (
-        is_user_operator(user)
+        company_id
+        and is_user_operator(user)
         and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
@@ -625,10 +643,12 @@ def sort_queryset_by_field(
     allowed_sort_fields,
 ):
 
-    if sort_field not in allowed_sort_fields:
+    config_field = allowed_sort_fields.get(sort_field)
+    if not config_field:
         return qs.order_by(f"-{default_sort_field}")
 
-    field = allowed_sort_fields[sort_field]
+    field = config_field["field"]
+    is_string = config_field["type"] == "string"
 
     if "__translations__" in field:
         annotated_name = f"sort_{field.replace('__', '_')}"
@@ -641,10 +661,11 @@ def sort_queryset_by_field(
 
     ordering = []
 
-    if sort_direction == "desc":
-        ordering.append(f"-{field}")
+    if is_string:
+        expr = Lower(field)
+        ordering.append(expr.desc() if sort_direction == "desc" else expr.asc())
     else:
-        ordering.append(field)
+        ordering.append(f"-{field}" if sort_direction == "desc" else field)
 
     if field != default_sort_field:
         ordering.append(f"-{default_sort_field}")
