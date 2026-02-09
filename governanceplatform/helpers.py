@@ -562,10 +562,12 @@ def sort_queryset_by_field(
     allowed_sort_fields,
 ):
 
-    if sort_field not in allowed_sort_fields:
+    config_field = allowed_sort_fields.get(sort_field)
+    if not config_field:
         return qs.order_by(f"-{default_sort_field}")
 
-    field = allowed_sort_fields[sort_field]
+    field = config_field["field"]
+    is_string = config_field["type"] == "string"
 
     if "__translations__" in field:
         annotated_name = f"sort_{field.replace('__', '_')}"
@@ -578,10 +580,11 @@ def sort_queryset_by_field(
 
     ordering = []
 
-    if sort_direction == "desc":
-        ordering.append(f"-{field}")
+    if is_string:
+        expr = Lower(field)
+        ordering.append(expr.desc() if sort_direction == "desc" else expr.asc())
     else:
-        ordering.append(field)
+        ordering.append(f"-{field}" if sort_direction == "desc" else field)
 
     if field != default_sort_field:
         ordering.append(f"-{default_sort_field}")

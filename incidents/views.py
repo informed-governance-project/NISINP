@@ -152,7 +152,7 @@ def get_incidents(request):
     sort_direction = incidents_sort_params.get("sort_direction", "desc")
 
     if sort_field == "company_name":
-        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
         incidents = incidents.annotate(
             **{
                 annotated_name: Coalesce(
@@ -165,7 +165,7 @@ def get_incidents(request):
         )
 
     if sort_field == "company_identifier":
-        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
         incidents = incidents.annotate(
             **{
                 annotated_name: Coalesce(
