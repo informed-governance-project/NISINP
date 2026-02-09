@@ -866,6 +866,22 @@ class Incident(models.Model):
                             )
             return deadline
 
+    @property
+    def company_or_regulator_name(self):
+        if self.company:
+            return self.company.name
+        if self.regulator:
+            return self.regulator.full_name
+        return self.company_name
+
+    @property
+    def company_or_regulator_acronym(self):
+        if self.company:
+            return self.company.identifier
+        if self.regulator:
+            return self.regulator
+        return ""
+
     class meta:
         verbose_name_plural = _("Incident")
         verbose_name = _("Incidents")

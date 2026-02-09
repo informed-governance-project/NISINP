@@ -13,7 +13,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
-from django.db.models import OuterRef, Q, Subquery
+from django.db.models import CharField, F, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -149,6 +150,32 @@ def get_incidents(request):
     # Apply sorting
     sort_field = incidents_sort_params.get("sort_field", "last_update")
     sort_direction = incidents_sort_params.get("sort_direction", "desc")
+
+    if sort_field == "company_name":
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)
+        incidents = incidents.annotate(
+            **{
+                annotated_name: Coalesce(
+                    F("company__name"),
+                    F("regulator__translations__full_name"),
+                    F("company_name"),
+                    output_field=CharField(),
+                )
+            }
+        )
+
+    if sort_field == "company_identifier":
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)
+        incidents = incidents.annotate(
+            **{
+                annotated_name: Coalesce(
+                    F("company__identifier"),
+                    F("regulator__translations__name"),
+                    Value(""),
+                    output_field=CharField(),
+                )
+            }
+        )
 
     incidents = sort_queryset_by_field(
         incidents,
