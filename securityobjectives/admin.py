@@ -954,7 +954,11 @@ class SOEmailAdmin(
     def html_preview(self, obj):
         if not obj or not obj.content:
             return _("No preview yet")
-        html_content = markdown(text=obj.content, output_format="html")
+        html_content = markdown(
+            text=obj.content,
+            extensions=["extra", "sane_lists", "legacy_attrs", "nl2br"],
+            output_format="html",
+        )
         html_content = sanitize_html(html_content)
         return mark_safe(
             f"""
