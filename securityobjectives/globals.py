@@ -14,14 +14,44 @@ SO_EMAIL_VARIABLES = [
 ]
 
 ALLOWED_SORT_FIELDS = {
-    "status": "status",
-    "last_update": "last_update",
-    "submit_date": "submit_date",
-    "identifier": "group__group_id",
-    "framework": "standard__translations__label",
-    "company_name": "creator_company_name",
-    "creator": "creator_name",
-    "sectors": "sectors__translations__name",
-    "year": "year_of_submission",
-    "reviewed_percentage": "reviewed_percentage",
+    "status": {
+        "field": "status",
+        "type": "string",
+    },
+    "last_update": {
+        "field": "last_update",
+        "type": "datetime",
+    },
+    "submit_date": {
+        "field": "submit_date",
+        "type": "datetime",
+    },
+    "identifier": {
+        "field": "group__group_id",
+        "type": "string",
+    },
+    "framework": {
+        "field": "standard__translations__label",
+        "type": "string",
+    },
+    "company_name": {
+        "field": "creator_company_name",
+        "type": "string",
+    },
+    "creator": {
+        "field": "creator_name",
+        "type": "string",
+    },
+    "sectors": {
+        "field": "sectors__translations__name",
+        "type": "string",
+    },
+    "year": {
+        "field": "year_of_submission",
+        "type": "number",
+    },
+    "reviewed_percentage": {
+        "field": "reviewed_percentage",
+        "type": "number",
+    },
 }
