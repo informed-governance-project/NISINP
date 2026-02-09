@@ -12,13 +12,13 @@
 }
 
 .markdown-html-preview {
-    all: initial;
-    color:inherit;
-    background: inherit;
-    display: block;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    line-height: 1.4;
+    all: initial !important;
+    color:inherit !important;
+    background: inherit !important;
+    display: block !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
 }
 
 /* =========================
@@ -71,19 +71,19 @@
    Paragraphs & text styles
    ========================= */
 .markdown-html-preview p {
-    margin: 0 0 8px 0;
+    margin: 0 0 8px 0 !important;
 }
 
 .markdown-html-preview strong {
-    font-weight: bold;
+    font-weight: bold !important;
 }
 
 .markdown-html-preview em {
-    font-style: italic;
+    font-style: italic !important;
 }
 
 .markdown-html-preview del {
-    text-decoration: line-through;
+    text-decoration: line-through !important;
 }
 
 /* =========================
@@ -99,12 +99,20 @@
    ========================= */
 .markdown-html-preview ul,
 .markdown-html-preview ol {
-    margin: 0 0 8px 24px;
-    padding: 0;
+    margin: 0 0 8px 24px !important;
+    padding: 0 !important;
 }
 
 .markdown-html-preview li {
-    margin-bottom: 4px;
+    margin-bottom: 4px !important;
+}
+
+.markdown-html-preview ul > li {
+    list-style-type: disc !important;
+}
+
+.markdown-html-preview ol > li {
+    list-style-type: decimal !important;
 }
 
 /* =========================
