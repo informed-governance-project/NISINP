@@ -776,17 +776,17 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
             },
         ),
         (
-            "Content",
+            _("Content"),
             {
                 "fields": ("content", "html_preview"),
             },
         ),
     )
 
-    @admin.display(description="HTML preview")
+    @admin.display(description=_("HTML preview"))
     def html_preview(self, obj):
         if not obj or not obj.content:
-            return "No preview yet"
+            return _("No preview yet")
         html_content = markdown(text=obj.content, output_format="html")
         html_content = sanitize_html(html_content)
         return mark_safe(
