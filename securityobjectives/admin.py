@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
+from markdown import markdown
 from parler.forms import TranslatableModelForm
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
@@ -12,6 +14,7 @@ from governanceplatform.helpers import (
     can_change_or_delete_obj,
     generate_display_methods,
     is_user_regulator,
+    sanitize_html,
 )
 from governanceplatform.mixins import (
     FunctionalityMixin,
@@ -430,7 +433,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             original,
             row,
             import_validation_errors=import_validation_errors,
-            **kwargs
+            **kwargs,
         )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
@@ -681,7 +684,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
             original,
             row,
             import_validation_errors=import_validation_errors,
-            **kwargs
+            **kwargs,
         )
 
     def after_import_instance(self, instance, new, row_number=None, **kwargs):
@@ -928,10 +931,41 @@ class SOEmailAdmin(
         "creator__translations__name",
     ]
     translated_fields = ["subject", "content"]
-    fields = ("name", "subject", "content")
+    readonly_fields = ("html_preview",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("name", "subject"),
+            },
+        ),
+        (
+            _("Content"),
+            {
+                "fields": ("content", "html_preview"),
+            },
+        ),
+    )
     resource_class = SOEmailResource
     should_escape_html = False
     list_filter = ["name", "translations__subject", "creator"]
+
+    @admin.display(description=_("HTML preview"))
+    def html_preview(self, obj):
+        if not obj or not obj.content:
+            return _("No preview yet")
+        html_content = markdown(text=obj.content, output_format="html")
+        html_content = sanitize_html(html_content)
+        return mark_safe(
+            f"""
+            <div class="markdown-html-preview">
+                {html_content}
+            </div>
+            """
+        )
+
+    class Media:
+        css = {"all": ("admin/css/markdown_preview.css",)}
 
 
 for name, method in generate_display_methods(["subject", "content"]).items():
