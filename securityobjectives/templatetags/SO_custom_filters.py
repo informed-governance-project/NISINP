@@ -3,6 +3,7 @@ import json
 from django import template
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.translation import gettext_lazy as _
 
 from securityobjectives.globals import STANDARD_ANSWER_REVIEW_STATUS
 from securityobjectives.models import StandardAnswer
@@ -121,3 +122,15 @@ def status_tooltip(context, value):
 def split(value, delimiter=","):
     """Splits the string by delimiter."""
     return value.split(delimiter)
+
+
+@register.simple_tag(takes_context=True)
+def display_role(context, log):
+    is_regulator = context.get("is_regulator", False)
+    is_observer = context.get("is_observer", False)
+    if is_regulator or is_observer:
+        return log.role
+
+    if "User" in log.role:
+        return _("User")
+    return _("Administrator")
