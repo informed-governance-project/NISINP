@@ -233,9 +233,9 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
         )
 
         if duplicate_translations.exists():
-            error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exists."
-            )
+            error_message = _("This %(model)s already exists.") % {
+                "model": self.instance._meta.verbose_name.lower()
+            }
             self.add_error(
                 None,
                 ValidationError(error_message),
