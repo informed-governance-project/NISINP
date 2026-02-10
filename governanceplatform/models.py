@@ -193,7 +193,7 @@ class Company(models.Model):
             return False
 
         return self.standardanswer_set.filter(
-            year_of_submission=year, sectors__in=[sector.id], status="PASS"
+            year_of_submission=year, sectors__in=[sector.id], status="PASSM"
         ).exists()
 
     def risk_analysis_exists(self, year=None, sector=None):

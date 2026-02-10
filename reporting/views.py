@@ -597,11 +597,7 @@ def update_report_recommendation(request, report_rec_id):
 @otp_required
 def import_risk_analysis(request):
     user = request.user
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
+    sectors_queryset = Sector.objects.all()
 
     sector_list = get_sectors_grouped(sectors_queryset)
 
@@ -669,7 +665,7 @@ def import_risk_analysis(request):
                     return HttpResponseRedirect(request.headers.get("referer"))
 
                 company, sector, year = validate_result
-                company_sectors = company.get_queryset_sectors()
+                company_sectors = Sector.objects.all()
                 if sector not in company_sectors:
                     messages.error(
                         request,
