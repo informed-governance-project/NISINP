@@ -46,7 +46,7 @@ from governanceplatform.helpers import (
     sort_queryset_by_field,
     user_in_group,
 )
-from governanceplatform.models import Company, CompanyUser, RegulatorUser, Sector
+from governanceplatform.models import Company, Sector
 
 from .email import send_email
 from .filters import StandardAnswerFilter
@@ -1205,24 +1205,15 @@ def calculate_so_score(security_measure, standard_answer):
 
 
 def create_entry_log(user, standard_answer, action, request=None):
-    role = _("User")
+    role = user.groups.first().name if user.groups.exists() else ""
     entity_name = ""
 
     if is_user_operator(user) and request:
         active_company = get_active_company_from_session(request)
-        cu = CompanyUser.objects.filter(user=user, company=active_company).first()
-        if cu and cu.is_company_administrator:
-            role = _("Administrator")
-        entity_name = (
-            active_company.name if active_company else user.companies.first().name
-        )
-
+        entity_name = active_company.name if active_company else ""
     elif is_user_regulator(user):
         regulator = user.regulators.first()
-        ru = RegulatorUser.objects.filter(user=user, regulator=regulator).first()
-        if ru and ru.is_regulator_administrator:
-            role = _("Administrator")
-        entity_name = regulator.name
+        entity_name = regulator.name if regulator else ""
 
     log = LogStandardAnswer.objects.create(
         user=user,
