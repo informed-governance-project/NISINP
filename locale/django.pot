@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 14:27+0100\n"
+"POT-Creation-Date: 2026-02-10 14:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -242,8 +242,9 @@ msgid ""
 "add it before saving."
 msgstr ""
 
-#: governanceplatform/forms.py:237
-msgid "This {self.instance._meta.verbose_name.lower()} already exists."
+#: governanceplatform/forms.py:236
+#, python-format
+msgid "This %(model)s already exists."
 msgstr ""
 
 #: governanceplatform/forms.py:257

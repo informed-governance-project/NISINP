@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 14:27+0100\n"
+"POT-Creation-Date: 2026-02-10 14:30+0100\n"
 "PO-Revision-Date: 2026-01-20 16:27+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
@@ -252,9 +252,10 @@ msgstr ""
 "Die Standard-Sprachübersetzung (%(fallback_language_name)s) fehlt. Bitte "
 "fügen Sie sie vor dem Speichern hinzu."
 
-#: governanceplatform/forms.py:237
-msgid "This {self.instance._meta.verbose_name.lower()} already exists."
-msgstr "Diese {self.instance._meta.verbose_name.lower()} existiert bereits."
+#: governanceplatform/forms.py:236
+#, python-format
+msgid "This %(model)s already exists."
+msgstr ""
 
 #: governanceplatform/forms.py:257
 msgid "I agree that my personal data may be used for communication purposes."
