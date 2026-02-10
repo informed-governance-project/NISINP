@@ -41,10 +41,7 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.models import (
-    CompanyUser,
-    ObserverUser,
     Regulation,
-    RegulatorUser,
     Sector,
     User,
 )
@@ -1803,29 +1800,18 @@ def convert_to_utc(date, local_tz):
 
 
 def create_entry_log(user, incident, incident_report, action, request=None):
-    role = _("User")
+    role = user.groups.first().name if user.groups.exists() else ""
     entity_name = ""
 
     if is_user_operator(user) and request:
         active_company = get_active_company_from_session(request)
-        cu = CompanyUser.objects.filter(user=user, company=active_company).first()
-        if cu and cu.is_company_administrator:
-            role = _("Administrator")
-        entity_name = active_company.name
-
+        entity_name = active_company.name if active_company else ""
     elif is_user_regulator(user):
         regulator = user.regulators.first()
-        ru = RegulatorUser.objects.filter(user=user, regulator=regulator).first()
-        if ru and ru.is_regulator_administrator:
-            role = _("Administrator")
-        entity_name = regulator.name
-
+        entity_name = regulator.name if regulator else ""
     elif is_observer_user(user):
         observer = user.observers.first()
-        ou = ObserverUser.objects.filter(user=user, observer=observer).first()
-        if ou and ou.is_observer_administrator:
-            role = _("Administrator")
-        entity_name = observer.name
+        entity_name = observer.name if observer else ""
 
     log = LogReportRead.objects.create(
         user=user,
