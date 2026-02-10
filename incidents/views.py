@@ -28,6 +28,7 @@ from formtools.wizard.views import SessionWizardView
 from openpyxl import Workbook
 
 from governanceplatform.helpers import (
+    annotate_translated_field_from_related_models,
     can_access_incident,
     can_create_incident_report,
     can_edit_incident_report,
@@ -153,11 +154,16 @@ def get_incidents(request):
 
     if sort_field == "company_name":
         annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
+        incidents = annotate_translated_field_from_related_models(
+            incidents,
+            full_path="regulator__translations__full_name",
+            annotated_name="__regulator_name",
+        )
         incidents = incidents.annotate(
             **{
                 annotated_name: Coalesce(
                     F("company__name"),
-                    F("regulator__translations__full_name"),
+                    F("__regulator_name"),
                     F("company_name"),
                     output_field=CharField(),
                 )
@@ -166,11 +172,16 @@ def get_incidents(request):
 
     if sort_field == "company_identifier":
         annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
+        incidents = annotate_translated_field_from_related_models(
+            incidents,
+            full_path="regulator__translations__name",
+            annotated_name="__regulator_identifier",
+        )
         incidents = incidents.annotate(
             **{
                 annotated_name: Coalesce(
                     F("company__identifier"),
-                    F("regulator__translations__name"),
+                    F("__regulator_identifier"),
                     Value(""),
                     output_field=CharField(),
                 )

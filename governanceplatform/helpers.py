@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db import connection
 from django.db.models import F, Max, Q, Value
 from django.db.models.fields import TextField
-from django.db.models.functions import Coalesce, Lower
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils import translation
@@ -412,9 +412,8 @@ def annotate_translated_field_from_related_models(
     ).annotate(
         **{
             annotated_name: Coalesce(
-                lang_key,
-                default_key,
-                Value(""),
+                NullIf(lang_key, Value("")),
+                NullIf(default_key, Value("")),
                 output_field=TextField(),
             )
         }
