@@ -1295,14 +1295,30 @@ def get_completion_objective(security_objective, standard_answer):
     any_partially = partially_count > 0
 
     if all_completed and not any_partially:
-        first_level_security_measures_checked = SecurityMeasureAnswer.objects.filter(
+        first_checked = SecurityMeasureAnswer.objects.filter(
             security_measure__security_objective=security_objective,
             security_measure__maturity_level__level=first_maturity_level,
             is_implemented=True,
             standard_answer=standard_answer,
-        )
+        ).exists()
 
-        if first_level_security_measures_checked:
+        others_checked = (
+            SecurityMeasureAnswer.objects.filter(
+                security_measure__security_objective=security_objective,
+                is_implemented=True,
+                standard_answer=standard_answer,
+            ).exclude(security_measure__maturity_level__level=first_maturity_level)
+        ).count()
+
+        total_others = security_objective.securitymeasure_set.exclude(
+            maturity_level__level=first_maturity_level
+        ).count()
+
+        others_all_checked = total_others == others_checked
+
+        needs_actions = first_checked or not others_all_checked
+
+        if needs_actions:
             actions_planned = bool(so_status and so_status.actions)
             all_completed = actions_planned
             any_partially = not actions_planned
