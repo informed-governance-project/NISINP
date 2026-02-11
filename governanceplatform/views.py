@@ -194,7 +194,6 @@ def registration_view(request, *args, **kwargs):
             "form": form,
             "honeypot_field_name": request.session.get("honeypot_field_name"),
         }
-        print(context)
     return render(request, "registration/signup.html", context)
 
 

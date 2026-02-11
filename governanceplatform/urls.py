@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.contrib.auth.views import PasswordResetView
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog, set_language
@@ -23,6 +24,7 @@ from two_factor.views import LoginView
 
 from governanceplatform import views
 from governanceplatform.admin import admin_site
+from governanceplatform.forms import CustomPasswordResetForm
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 handler404 = "governanceplatform.views.custom_404_view"
@@ -38,6 +40,13 @@ urlpatterns = [
         "account/reset/<uidb64>/<token>/",
         views.CustomPasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
+    ),
+    path(
+        "account/password_reset/",
+        PasswordResetView.as_view(
+            form_class=CustomPasswordResetForm,
+        ),
+        name="password_reset",
     ),
     path("account/", include("django.contrib.auth.urls")),
     path("", include(tf_urls)),
