@@ -186,6 +186,7 @@ def registration_view(request, *args, **kwargs):
             context["form"] = form
 
     else:
+        form = RegistrationForm(request=request)
         context = {
             "form": form,
             "honeypot_field_name": request.session.get("honeypot_field_name"),
