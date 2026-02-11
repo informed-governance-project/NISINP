@@ -5,7 +5,7 @@ from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import PasswordResetForm, UserChangeForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
@@ -102,6 +102,16 @@ class SelectCompany(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields["select_company"].queryset = companies.order_by("name")
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    captcha = CaptchaField()
+    email = forms.EmailField(
+        label=_("Email"),
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
 
 
 class RegistrationForm(forms.ModelForm):
