@@ -71,15 +71,7 @@ for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
 def reporting(request):
     user = request.user
 
-    companies_queryset = (
-        Company.objects.filter(
-            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-        )
-        .distinct()
-        .order_by("id")
-        if user_in_group(user, "RegulatorUser")
-        else Company.objects.all().order_by("id")
-    )
+    companies_queryset = Company.objects.all().order_by("id")
 
     if "reset" in request.GET:
         request.session.pop("reporting_filter_params", None)
@@ -195,7 +187,7 @@ def reporting(request):
                     submitter_company=company,
                     sectors=sector,
                     year_of_submission=year,
-                    status="PASS",
+                    status="PASSM",
                 ).order_by("submit_date")
 
                 risk_analysis_stats = company.risk_analysis_exists(year, sector)

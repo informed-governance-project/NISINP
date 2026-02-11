@@ -33,7 +33,7 @@ def get_so_data(cleaned_data):
                 submitter_company=OuterRef("submitter_company"),
                 sectors__id__in=[sector["id"]],
                 year_of_submission=year,
-                status="PASS",
+                status="PASSM",
             )
             .order_by("-submit_date")
             .values("submit_date")[:1]
@@ -42,7 +42,7 @@ def get_so_data(cleaned_data):
         queryset = StandardAnswer.objects.filter(
             sectors__id__in=[sector["id"]],
             year_of_submission=year,
-            status="PASS",
+            status="PASSM",
             submit_date=Subquery(latest_submit_date),
         ).distinct()
 
@@ -113,9 +113,9 @@ def get_so_data(cleaned_data):
     sector_so_by_year_desc = OrderedDict()
     sector_so_by_year_asc = OrderedDict()
     bar_chart_data_by_level = defaultdict()
-    company_so_by_year = defaultdict(lambda: {})
-    company_so_by_domain = defaultdict(lambda: {})
-    company_so_by_priority = defaultdict(lambda: {})
+    company_so_by_year = defaultdict(dict)
+    company_so_by_domain = defaultdict(dict)
+    company_so_by_priority = defaultdict(dict)
     radar_chart_data_by_domain = defaultdict()
     radar_chart_data_by_year = defaultdict()
     so_data = defaultdict()
@@ -143,15 +143,11 @@ def get_so_data(cleaned_data):
         )
 
         sorted_company_queryset = floored_company_queryset.annotate(
-            min_position=Min(
-                "security_objective__securityobjectivesinstandard__position"
-            )
+            min_position=Min("security_objective__standard_link__position")
         )
 
         company_by_priority_queryset = floored_company_queryset.annotate(
-            min_priority=Min(
-                "security_objective__securityobjectivesinstandard__priority"
-            )
+            min_priority=Min("security_objective__standard_link__priority")
         ).order_by("score_value", "min_priority")
 
         aggregated_scores_queryset = floored_company_queryset.values(
@@ -174,9 +170,7 @@ def get_so_data(cleaned_data):
 
         sector_scores_queryset = sector_queryset.values("security_objective").annotate(
             score_value=Floor(Avg("score")),
-            min_position=Min(
-                "security_objective__securityobjectivesinstandard__position"
-            ),
+            min_position=Min("security_objective__standard_link__position"),
         )
 
         # Dictionaries
@@ -378,9 +372,9 @@ def get_risk_data(cleaned_data):
         if service_stat_queryset:
             service_stats[service][year] = model_to_dict(service_stat_queryset.first())
             service_stats[service][year]["total_high_risks_treated"] = total_high_risks
-            service_stats[service][year][
-                "avg_high_risks_treated"
-            ] = high_risks_by_company["max_risk_avg"]
+            service_stats[service][year]["avg_high_risks_treated"] = (
+                high_risks_by_company["max_risk_avg"]
+            )
         else:
             service_stats[service][year] = {}
 
@@ -716,12 +710,12 @@ def get_risk_data(cleaned_data):
     data_by_risk_average = defaultdict()
     data_by_high_risk_rate = defaultdict()
     data_by_high_risk_average = defaultdict()
-    data_evolution_highest_risks = defaultdict(lambda: [])
+    data_evolution_highest_risks = defaultdict(list)
     risks_top_ranking = OrderedDict()
     risks_top_ranking_ids = []
     service_stats = OrderedDict()
-    top_ranking_risks_items = defaultdict(lambda: [])
-    recommendations_evolution = defaultdict(lambda: {})
+    top_ranking_risks_items = defaultdict(list)
+    recommendations_evolution = defaultdict(dict)
     services_list = (
         AssetData.objects.filter(
             servicestat__company_reporting__id=company_reporting["id"]
