@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-02-10 14:30+0100\n"
-"PO-Revision-Date: 2026-01-20 16:27+0000\n"
+"PO-Revision-Date: 2026-02-12 08:27+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -255,7 +255,7 @@ msgstr ""
 #: governanceplatform/forms.py:236
 #, python-format
 msgid "This %(model)s already exists."
-msgstr ""
+msgstr "Das Modell %(model)s existiert."
 
 #: governanceplatform/forms.py:257
 msgid "I agree that my personal data may be used for communication purposes."
@@ -768,11 +768,11 @@ msgstr "Inhalt"
 
 #: incidents/admin.py:786 securityobjectives/admin.py:953
 msgid "HTML preview"
-msgstr ""
+msgstr "HTML-Vorschau"
 
 #: incidents/admin.py:789 securityobjectives/admin.py:956
 msgid "No preview yet"
-msgstr ""
+msgstr "Noch keine Vorschau"
 
 #: incidents/admin.py:840 incidents/admin.py:961
 #: securityobjectives/admin.py:213
