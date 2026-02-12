@@ -4,6 +4,7 @@ from cryptography.fernet import Fernet
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.db.models import Deferrable, Q
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +18,7 @@ from incidents.models import Incident
 from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
+from .validators import validate_rt_url
 
 
 class ApplicationConfig(models.Model):
@@ -285,6 +287,10 @@ class Observer(TranslatableModel):
         null=True,
         help_text="e.g., https://rt.exemple.com",
         verbose_name=_("URL"),
+        validators=[
+            URLValidator(),
+            validate_rt_url,
+        ],
     )
     _rt_token = models.CharField(
         db_column="rt_token",

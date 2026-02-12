@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from governanceplatform.helpers import render_to_string_multi_languages
 from governanceplatform.models import Observer, RegulatorUser
+from governanceplatform.validators import validate_rt_url
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
 from .models import RTTicket
@@ -193,6 +194,12 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
         incident=incident, observer=recipient
     ).exists()
     base_url = recipient.rt_url.rstrip("/")
+    try:
+        validate_rt_url(base_url)
+    except ValidationError:
+        logger.error(f"Blocked unsafe RT URL: {base_url}")
+        return None
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
