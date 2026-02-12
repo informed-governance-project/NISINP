@@ -113,6 +113,38 @@ class CustomPasswordResetForm(PasswordResetForm):
         widget=forms.EmailInput(attrs={"autocomplete": "email"}),
     )
 
+    honeypot_name = ""
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+        if self.request:
+            # get the name of the field
+            name = self.request.session.get("honeypot_field_name")
+
+            # if there is no name create a new one
+            if not name:
+                name = f"field_{secrets.token_hex(4)}"
+                self.request.session["honeypot_field_name"] = name
+
+            self.honeypot_name = name
+
+            self.fields[name] = forms.CharField(
+                required=False,
+                widget=forms.TextInput(),
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        value = cleaned_data.get(self.honeypot_name)
+
+        if value:
+            raise forms.ValidationError("Invalid submission.")
+
+        return cleaned_data
+
 
 class RegistrationForm(forms.ModelForm):
     captcha = CaptchaField()
