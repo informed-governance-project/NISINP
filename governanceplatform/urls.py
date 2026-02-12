@@ -15,7 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib.auth.views import PasswordResetView
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog, set_language
@@ -43,7 +42,7 @@ urlpatterns = [
     ),
     path(
         "account/password_reset/",
-        PasswordResetView.as_view(
+        views.CustomPasswordResetView.as_view(
             form_class=CustomPasswordResetForm,
         ),
         name="password_reset",

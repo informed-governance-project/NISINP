@@ -6,7 +6,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import Group
-from django.contrib.auth.views import PasswordResetConfirmView
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.core.mail import EmailMessage
 from django.db.models.functions import Now
 from django.shortcuts import redirect, render
@@ -317,3 +317,17 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             user.save(update_fields=["email_verified"])
 
         return response
+
+
+class CustomPasswordResetView(PasswordResetView):
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["honeypot_field_name"] = self.request.session.get("honeypot_field_name")
+
+        return context
