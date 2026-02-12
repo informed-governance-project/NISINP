@@ -1334,8 +1334,8 @@ msgid ""
 "{to_date}.)"
 msgstr ""
 "Insgesamt wurden {count} Vorfälle aus der Vorschrift {regulation} "
-"[{sectorregulation} - ({workflow})] innerhalb des Zeitraums "
-"({from_date} - {to_date})exportiert.)"
+"[{sectorregulation} - ({workflow})] innerhalb des Zeitraums ({from_date} - "
+"{to_date})exportiert.)"
 
 #: incidents/views.py:1019
 #, python-brace-format
