@@ -394,9 +394,11 @@ class StandardAnswer(models.Model):
         default=None,
         related_name="standardanswer",
     )
-    last_update = models.DateTimeField(
-        default=timezone.now, verbose_name=_("Last update")
+    creation_date = models.DateTimeField(
+        auto_now_add=True, verbose_name=_("Creation date")
     )
+
+    last_update = models.DateTimeField(auto_now=True, verbose_name=_("Last update"))
     submit_date = models.DateTimeField(
         blank=True, default=None, null=True, verbose_name=_("Submission date")
     )
