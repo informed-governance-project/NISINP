@@ -56,6 +56,8 @@ try:
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
         config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     )
+
+    # DATA RETENTION
     try:
         LOG_RETENTION_TIME_IN_DAY = config.LOG_RETENTION_TIME_IN_DAY
     except AttributeError:
@@ -64,6 +66,14 @@ try:
         INCIDENT_RETENTION_TIME_IN_DAY = config.INCIDENT_RETENTION_TIME_IN_DAY
     except AttributeError:
         INCIDENT_RETENTION_TIME_IN_DAY = 1825
+    try:
+        SECURITY_OBJECTIVE_RETENTION_TIME_IN_DAY = (
+            config.SECURITY_OBJECTIVE_RETENTION_TIME_IN_DAY
+        )
+    except AttributeError:
+        SECURITY_OBJECTIVE_RETENTION_TIME_IN_DAY = 1825
+
+    # TERMS OF USE
     try:
         TERMS_ACCEPTANCE_TIME_IN_DAYS = config.TERMS_ACCEPTANCE_TIME_IN_DAYS
     except AttributeError:
