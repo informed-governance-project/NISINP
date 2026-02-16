@@ -222,6 +222,12 @@ class StandardAdmin(
         ),
     ]
 
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super().get_inline_instances(request, obj)
+        if obj is None:
+            return []
+        return inline_instances
+
     def get_readonly_fields(self, request, obj=None):
         if obj:
             return ("regulator",)
