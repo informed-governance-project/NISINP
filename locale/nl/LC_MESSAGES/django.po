@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-02-12 16:39+0100\n"
-"PO-Revision-Date: 2026-02-12 15:46+0000\n"
+"PO-Revision-Date: 2026-02-16 10:26+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.14.3\n"
+"X-Generator: Weblate 5.15.2\n"
 
 #: governanceplatform/admin.py:72 governanceplatform/context_processors.py:30
 #: governanceplatform/views.py:98
@@ -1326,8 +1326,8 @@ msgid ""
 "{to_date}.)"
 msgstr ""
 "Er werden in totaal {count} incidenten geëxporteerd uit regelgeving "
-"{regelgeving} [{sectorregelgeving} - ({workflow})] binnen datumbereik "
-"({vanaf_datum} - {tot_datum}.)"
+"{regulation} [{sectorregulation} - ({workflow})] binnen datumbereik ("
+"{from_date} - {to_date}.)"
 
 #: incidents/views.py:1019
 #, python-brace-format
@@ -1649,7 +1649,7 @@ msgstr "Bestandsnaam"
 #: reporting/views.py:138
 #, python-format
 msgid "%(sector)s forbidden"
-msgstr "%(sector)en verboden"
+msgstr "%(sector)s verboden"
 
 #: reporting/views.py:158
 msgid "No reporting data"
@@ -1698,12 +1698,12 @@ msgstr "Aanbevelingen werden toegevoegd"
 #: reporting/views.py:514
 #, python-brace-format
 msgid "No recommendations from {last_year}"
-msgstr "Geen aanbevelingen van {vorig_jaar}"
+msgstr "Geen aanbevelingen van {last_year}"
 
 #: reporting/views.py:522
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
-msgstr "Aanbevelingen werden gekopieerd van {vorig_jaar}"
+msgstr "Aanbevelingen werden gekopieerd van {last_year}"
 
 #: reporting/views.py:555
 msgid "No report recommendation found"
