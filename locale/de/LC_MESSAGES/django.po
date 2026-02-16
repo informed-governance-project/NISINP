@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-12 16:39+0100\n"
+"POT-Creation-Date: 2026-02-16 11:33+0100\n"
 "PO-Revision-Date: 2026-02-12 15:46+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
@@ -111,19 +111,19 @@ msgstr "Beobachter Nutzer"
 msgid "Governance"
 msgstr "Verwaltung"
 
-#: governanceplatform/config.py:104 governanceplatform/config_dev.py:107
+#: governanceplatform/config.py:105 governanceplatform/config_dev.py:108
 msgid "Dutch"
 msgstr "Niederländisch"
 
-#: governanceplatform/config.py:128 governanceplatform/config_dev.py:131
+#: governanceplatform/config.py:129 governanceplatform/config_dev.py:132
 msgid "Cookie Notice"
 msgstr "Cookie-Hinweis"
 
-#: governanceplatform/config.py:132 governanceplatform/config_dev.py:135
+#: governanceplatform/config.py:133 governanceplatform/config_dev.py:136
 msgid "Essential"
 msgstr "Wesentlich"
 
-#: governanceplatform/config.py:134 governanceplatform/config_dev.py:137
+#: governanceplatform/config.py:135 governanceplatform/config_dev.py:138
 msgid ""
 "This website uses cookies and similar technologies essential for its "
 "operation.                 It does not process personal data. By clicking "
@@ -135,64 +135,64 @@ msgstr ""
 "findet nicht statt. Durch Klicken auf „Akzeptieren“ stimmen Sie der "
 "Verwendung von Cookies zu. Weitere Informationen finden Sie unter:"
 
-#: governanceplatform/config.py:142 governanceplatform/config_dev.py:145
+#: governanceplatform/config.py:143 governanceplatform/config_dev.py:146
 msgid "Cookie used to store the user’s consent to the use of cookies."
 msgstr ""
 "Cookie, das verwendet wird, um die Zustimmung des Benutzers zur Verwendung "
 "von Cookies zu speichern."
 
-#: governanceplatform/config.py:144 governanceplatform/config_dev.py:147
+#: governanceplatform/config.py:145 governanceplatform/config_dev.py:148
 msgid "The user’s cookie preferences."
 msgstr "Die bevorzugten Cookie-Einstellungen des Benutzers."
 
-#: governanceplatform/config.py:145 governanceplatform/config_dev.py:148
+#: governanceplatform/config.py:146 governanceplatform/config_dev.py:149
 msgid "6 months"
 msgstr "6 Monate"
 
-#: governanceplatform/config.py:150 governanceplatform/config_dev.py:153
+#: governanceplatform/config.py:151 governanceplatform/config_dev.py:154
 msgid "Cookie essential for maintaining user session options."
 msgstr ""
 "Für die Aufrechterhaltung der Benutzersitzungsoptionen erforderliches Cookie."
 
-#: governanceplatform/config.py:152 governanceplatform/config_dev.py:155
+#: governanceplatform/config.py:153 governanceplatform/config_dev.py:156
 msgid "Session ID"
 msgstr "Sitzungs-ID"
 
-#: governanceplatform/config.py:153 governanceplatform/config.py:161
-#: governanceplatform/config_dev.py:156 governanceplatform/config_dev.py:164
+#: governanceplatform/config.py:154 governanceplatform/config.py:162
+#: governanceplatform/config_dev.py:157 governanceplatform/config_dev.py:165
 msgid "15 minutes"
 msgstr "15 Minuten"
 
-#: governanceplatform/config.py:158 governanceplatform/config_dev.py:161
+#: governanceplatform/config.py:159 governanceplatform/config_dev.py:162
 msgid "Cookie used to prevent Cross-Site Request Forgery (CSRF) attacks."
 msgstr ""
 "Cookie zur Verhinderung von Cross-Site-Request-Forgery-Angriffen (CSRF)."
 
-#: governanceplatform/config.py:160 governanceplatform/config_dev.py:163
+#: governanceplatform/config.py:161 governanceplatform/config_dev.py:164
 #: governanceplatform/forms.py:338 governanceplatform/models.py:325
 msgid "Token"
 msgstr "Token"
 
-#: governanceplatform/config.py:165 governanceplatform/config_dev.py:168
+#: governanceplatform/config.py:166 governanceplatform/config_dev.py:169
 msgid "Cookie used to store user language preferences."
 msgstr "Cookie zum Speichern der bevorzugten Sprache des Nutzers."
 
-#: governanceplatform/config.py:166 governanceplatform/config_dev.py:169
+#: governanceplatform/config.py:167 governanceplatform/config_dev.py:170
 msgid "Language settings"
 msgstr "Spracheinstellungen"
 
-#: governanceplatform/config.py:167 governanceplatform/config.py:173
-#: governanceplatform/config_dev.py:170 governanceplatform/config_dev.py:176
+#: governanceplatform/config.py:168 governanceplatform/config.py:174
+#: governanceplatform/config_dev.py:171 governanceplatform/config_dev.py:177
 msgid "Session"
 msgstr "Sitzung"
 
-#: governanceplatform/config.py:171 governanceplatform/config_dev.py:174
+#: governanceplatform/config.py:172 governanceplatform/config_dev.py:175
 msgid "Cookie used to store user theme preferences."
 msgstr ""
 "Cookie zum Speichern der Benutzereinstellungen für das Thema der "
 "Benutzeroberfläche."
 
-#: governanceplatform/config.py:172 governanceplatform/config_dev.py:175
+#: governanceplatform/config.py:173 governanceplatform/config_dev.py:176
 msgid "Dark/light theme settings"
 msgstr "Einstellung für dunkles/helles Design"
 
@@ -225,7 +225,7 @@ msgid "Email address"
 msgstr "E-Mail-Adresse"
 
 #: governanceplatform/forms.py:43 incidents/models.py:1033
-#: securityobjectives/models.py:544
+#: securityobjectives/models.py:546
 msgid "Role"
 msgstr "Rolle"
 
@@ -306,7 +306,7 @@ msgstr "Exportieren"
 
 #: governanceplatform/globals.py:29 securityobjectives/models.py:181
 #: securityobjectives/models.py:299 securityobjectives/models.py:324
-#: securityobjectives/models.py:498
+#: securityobjectives/models.py:500
 msgid "Security Objective"
 msgstr "Sicherheitsziel"
 
@@ -377,7 +377,7 @@ msgstr "Akronym"
 #: incidents/models.py:233 incidents/models.py:283
 #: securityobjectives/models.py:24 securityobjectives/models.py:62
 #: securityobjectives/models.py:136 securityobjectives/models.py:212
-#: securityobjectives/models.py:340 securityobjectives/models.py:424
+#: securityobjectives/models.py:340 securityobjectives/models.py:426
 msgid "Creator name"
 msgstr "Ersteller Name"
 
@@ -401,7 +401,7 @@ msgstr "Sektor"
 #: reporting/admin.py:62 reporting/filters.py:44 reporting/filters.py:82
 #: reporting/forms.py:47 reporting/models.py:343
 #: securityobjectives/forms.py:143 securityobjectives/forms.py:191
-#: securityobjectives/forms.py:228 securityobjectives/models.py:442
+#: securityobjectives/forms.py:228 securityobjectives/models.py:444
 msgid "Sectors"
 msgstr "Sektoren"
 
@@ -514,7 +514,7 @@ msgstr "Benutzer"
 #: governanceplatform/models.py:643 governanceplatform/models.py:676
 #: incidents/models.py:1027 incidents/templatetags/custom_filters.py:88
 #: reporting/models.py:395 reporting/models.py:421
-#: securityobjectives/models.py:538
+#: securityobjectives/models.py:540
 #: securityobjectives/templatetags/SO_custom_filters.py:135
 msgid "User"
 msgstr "Benutzer"
@@ -594,7 +594,7 @@ msgstr "Vorfallregeln"
 #: governanceplatform/models.py:798 incidents/models.py:920
 #: incidents/models.py:1030 incidents/models.py:1078 incidents/models.py:1168
 #: reporting/models.py:398 reporting/models.py:430
-#: securityobjectives/models.py:541
+#: securityobjectives/models.py:543
 msgid "Timestamp"
 msgstr "Zeitstempel"
 
@@ -891,7 +891,7 @@ msgstr "Datum und Uhrzeit auswählen"
 
 #: incidents/forms.py:776 incidents/globals.py:45 incidents/globals.py:53
 #: incidents/globals.py:74 securityobjectives/globals.py:6
-#: securityobjectives/models.py:507
+#: securityobjectives/models.py:509
 msgid "Passed"
 msgstr "Bestanden"
 
@@ -1235,7 +1235,7 @@ msgstr "Zeitablauf"
 msgid "Full username"
 msgstr "Vollständiger Benutzername"
 
-#: incidents/models.py:1034 securityobjectives/models.py:545
+#: incidents/models.py:1034 securityobjectives/models.py:547
 msgid "Entity name"
 msgstr "Name der Entität"
 
@@ -1244,7 +1244,7 @@ msgid "Incident report processed"
 msgstr "Vorfallbericht bearbeitet"
 
 #: incidents/models.py:1050 reporting/models.py:407
-#: securityobjectives/models.py:552
+#: securityobjectives/models.py:554
 msgid "Action performed"
 msgstr "Aktion ausgeführt"
 
@@ -1614,7 +1614,7 @@ msgstr "Einstellungen"
 msgid "description"
 msgstr "Beschreibung"
 
-#: reporting/models.py:347
+#: reporting/models.py:347 securityobjectives/models.py:398
 msgid "Creation date"
 msgstr "Erstelldatum"
 
@@ -1646,7 +1646,7 @@ msgstr "Beobachtungsreihenfolge"
 msgid "Observation order"
 msgstr "Beobachtungsreihenfolge"
 
-#: reporting/models.py:400 securityobjectives/models.py:543
+#: reporting/models.py:400 securityobjectives/models.py:545
 msgid "User full name"
 msgstr "Vollständiger Name des Benutzers"
 
@@ -1860,11 +1860,11 @@ msgstr "Beweis"
 msgid "Security Measures"
 msgstr "Sicherheitsmaßnahmen"
 
-#: securityobjectives/models.py:360 securityobjectives/models.py:474
+#: securityobjectives/models.py:360 securityobjectives/models.py:476
 msgid "Security Measure"
 msgstr "Sicherheitsmaßnahme"
 
-#: securityobjectives/models.py:366 securityobjectives/models.py:461
+#: securityobjectives/models.py:366 securityobjectives/models.py:463
 msgid "Notification date"
 msgstr "Benachrichtigungsdatum"
 
@@ -1872,71 +1872,71 @@ msgstr "Benachrichtigungsdatum"
 msgid "Group ID"
 msgstr "Gruppen-ID"
 
-#: securityobjectives/models.py:398
+#: securityobjectives/models.py:401
 msgid "Last update"
 msgstr "Letzte Aktualisierung"
 
-#: securityobjectives/models.py:401
+#: securityobjectives/models.py:403
 msgid "Submission date"
 msgstr "Einreichungsdatum"
 
-#: securityobjectives/models.py:408 securityobjectives/models.py:512
+#: securityobjectives/models.py:410 securityobjectives/models.py:514
 msgid "Status"
 msgstr "Status"
 
-#: securityobjectives/models.py:414 securityobjectives/models.py:420
+#: securityobjectives/models.py:416 securityobjectives/models.py:422
 msgid "Submitter"
 msgstr "Einreicher"
 
-#: securityobjectives/models.py:431
+#: securityobjectives/models.py:433
 msgid "Company of creator"
 msgstr "Unternehmen des Erstellers"
 
-#: securityobjectives/models.py:439
+#: securityobjectives/models.py:441
 msgid "Year of submission"
 msgstr "Einreichungsjahr"
 
-#: securityobjectives/models.py:445 securityobjectives/models.py:483
+#: securityobjectives/models.py:447 securityobjectives/models.py:485
 msgid "Review comment"
 msgstr "Review Kommentar"
 
-#: securityobjectives/models.py:448
+#: securityobjectives/models.py:450
 msgid "Group"
 msgstr "Gruppe"
 
-#: securityobjectives/models.py:465
+#: securityobjectives/models.py:467
 msgid "Standard Answer"
 msgstr "Standardantwort"
 
-#: securityobjectives/models.py:481
+#: securityobjectives/models.py:483
 msgid "Justification"
 msgstr "Begründung"
 
-#: securityobjectives/models.py:482
+#: securityobjectives/models.py:484
 msgid "Implemented"
 msgstr "Implementiert"
 
-#: securityobjectives/models.py:490
+#: securityobjectives/models.py:492
 msgid "Security objectives statement"
 msgstr "Erklärung zu den Sicherheitszielen"
 
-#: securityobjectives/models.py:506
+#: securityobjectives/models.py:508
 msgid "Not reviewed"
 msgstr "Nicht überprüft"
 
-#: securityobjectives/models.py:508
+#: securityobjectives/models.py:510
 msgid "Fail"
 msgstr "Nicht bestanden"
 
-#: securityobjectives/models.py:516
+#: securityobjectives/models.py:518
 msgid "Score"
 msgstr "Gesamtwertung"
 
-#: securityobjectives/models.py:526
+#: securityobjectives/models.py:528
 msgid "Planned Measures"
 msgstr "Geplante Maßnahmen"
 
-#: securityobjectives/models.py:530
+#: securityobjectives/models.py:532
 msgid "It is completely filled out"
 msgstr "Es ist vollständig ausgefüllt"
 
