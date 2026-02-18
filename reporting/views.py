@@ -243,7 +243,7 @@ def reporting(request):
                 }
 
                 sector_name = sector.get_safe_translation()
-                extention = "pdf"
+                extention = "docx"
                 filename = urlquote(
                     f"{_('annual_report')}_{year}_{company.name}_{sector_name}.{extention}"
                 )
@@ -1126,7 +1126,7 @@ def get_report(
         generate_docx_task.s(),
     ]
 
-    if extention == "docx":
+    if extention == "pdf":
         steps.append(generate_pdf_task.s())
 
     steps.append(
