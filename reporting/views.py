@@ -1,13 +1,10 @@
 import datetime
 import json
-import logging
-import os
 import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
 from celery import chain, group
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -58,12 +55,13 @@ from .models import (
     ThreatData,
     VulnerabilityData,
 )
-from .tasks import generate_pdf_data, generate_pdf_task, save_pdf_task, zip_pdfs_task
-
-# Increasing weasyprint log level
-for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.ERROR)
+from .tasks import (
+    generate_data,
+    generate_docx_task,
+    generate_pdf_task,
+    save_file_task,
+    zip_files_task,
+)
 
 
 @login_required
@@ -124,7 +122,7 @@ def reporting(request):
             is_multiple_selected_companies = len(selected_companies) > 1
             error_messages = []
             errors = 0
-            pdf_tasks = []
+            report_generation_tasks = []
             run_id = (
                 datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 + "_"
@@ -244,22 +242,23 @@ def reporting(request):
                     "company_reporting": model_to_dict(company_reporting),
                 }
 
-                # try:
                 sector_name = sector.get_safe_translation()
+                extention = "pdf"
                 filename = urlquote(
-                    f"{_('annual_report')}_{year}_{company.name}_{sector_name}.pdf"
+                    f"{_('annual_report')}_{year}_{company.name}_{sector_name}.{extention}"
                 )
-                pdf_task = get_pdf_report(
+                task = get_report(
                     request,
                     report_data,
                     run_id,
                     company_reporting,
                     filename,
+                    extention,
                     is_multiple_selected_companies,
                 )
-                pdf_tasks.append(pdf_task)
+                report_generation_tasks.append(task)
 
-            if error_messages and not pdf_tasks:
+            if error_messages and not report_generation_tasks:
                 for error_message in error_messages:
                     messages.error(request, error_message)
                 rendered_messages = render_error_messages(request)
@@ -270,7 +269,10 @@ def reporting(request):
             )
 
             if is_multiple_selected_companies:
-                chain(group(pdf_tasks), zip_pdfs_task.s(user.id, error_messages))()
+                chain(
+                    group(report_generation_tasks),
+                    zip_files_task.s(user.id, error_messages),
+                )()
                 success_message = _(
                     "Reports are being generated. They will be available shortly in the Download Center."
                 )
@@ -1108,34 +1110,38 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             extract_risks(normalized_instance)
 
 
-def get_pdf_report(
+def get_report(
     request: HttpRequest,
     cleaned_data: dict,
     run_id,
     company_reporting,
     filename,
+    extention,
     is_multiple_files: bool,
 ):
     user = request.user
-    static_theme_dir = settings.STATIC_THEME_DIR
 
-    stylesheets = [
-        os.path.join(static_theme_dir, "css/custom.css"),
-        os.path.join(static_theme_dir, "css/report.css"),
+    steps = [
+        generate_data.s(cleaned_data),
+        generate_docx_task.s(),
     ]
 
-    # Send the pdf to celery
-    pdf_task = chain(
-        generate_pdf_data.s(cleaned_data),
-        generate_pdf_task.s(stylesheets),
-        save_pdf_task.s(
-            run_id, user.id, company_reporting.id, filename, is_multiple_files
-        ),
-    )
-    if not is_multiple_files:
-        return pdf_task.delay()
+    if extention == "docx":
+        steps.append(generate_pdf_task.s())
 
-    return pdf_task
+    steps.append(
+        save_file_task.s(
+            run_id,
+            user.id,
+            company_reporting.id,
+            filename,
+            is_multiple_files,
+        )
+    )
+
+    task_workflow = chain(*steps)
+
+    return task_workflow.delay() if not is_multiple_files else task_workflow
 
 
 def validate_json_file(file):
