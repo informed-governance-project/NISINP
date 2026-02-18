@@ -234,6 +234,10 @@ class RegistrationForm(forms.ModelForm):
         )
 
 
+class CustomTranslatableAdminFormWP(forms.ModelForm):
+    FALLBACK_LANGUAGE = settings.PARLER_DEFAULT_LANGUAGE_CODE
+
+
 class CustomTranslatableAdminForm(TranslatableModelForm):
     FALLBACK_LANGUAGE = settings.PARLER_DEFAULT_LANGUAGE_CODE
 

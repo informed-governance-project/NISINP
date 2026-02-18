@@ -4,10 +4,11 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Max, Model, Q, Value
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Count, Exists, Max, Model, OuterRef, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
+from django.forms.models import BaseInlineFormSet
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import path
@@ -24,7 +25,11 @@ from parler.admin import TranslatableAdmin, TranslatableTabularInline
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
 from incidents.email import send_html_email
 
-from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
+from .forms import (
+    CustomObserverAdminForm,
+    CustomTranslatableAdminForm,
+    CustomTranslatableAdminFormWP,
+)
 from .formset import CompanyUserInlineFormset
 from .helpers import (
     generate_display_methods,
@@ -51,6 +56,7 @@ from .models import (  # OperatorType,; Service,
     RegulatorUser,
     ScriptLogEntry,
     Sector,
+    SectorTranslation,
     User,
 )
 from .permissions import set_platform_admin_permissions
@@ -113,6 +119,107 @@ class CustomAdminSite(admin.AdminSite):
 
 
 admin_site = CustomAdminSite()
+
+
+class TranslationInline(admin.StackedInline):
+    extra = 0
+
+    def get_extra(self, request, obj=None, **kwargs):
+        return len(settings.LANGUAGES)
+
+
+class TranslationInlineFormSet(BaseInlineFormSet):
+
+    def clean(self):
+        super().clean()
+
+        fallback = settings.PARLER_DEFAULT_LANGUAGE_CODE
+        languages = []
+
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data"):
+                continue
+            if form.cleaned_data.get("DELETE", False):
+                continue
+
+            lang = form.cleaned_data.get("language_code")
+            if lang:
+                languages.append(lang)
+
+        if fallback not in languages:
+            raise ValidationError(f"Default language ({fallback}) is required.")
+
+
+class TranslatableAdminWP(admin.ModelAdmin):
+
+    def render_change_form(self, request, context, *args, **kwargs):
+        context["available_languages"] = [
+            lang["code"] for lang in settings.PARLER_LANGUAGES[1]
+        ]
+        return super().render_change_form(request, context, *args, **kwargs)
+
+    class Media:
+        css = {"all": ("admin/css/translation_tabs.css",)}
+
+
+class CustomTranslatableAdminWP(ShowReminderForTranslationsMixin, TranslatableAdminWP):
+    form = CustomTranslatableAdminFormWP
+
+    translated_fields = []
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(
+            request, queryset, search_term
+        )
+
+        lang = request.LANGUAGE_CODE
+
+        translation_exists = self.model.translations.rel.related_model.objects.filter(
+            language_code=lang,
+            master=OuterRef("pk"),
+        )
+
+        queryset = queryset.annotate(has_translation=Exists(translation_exists)).filter(
+            has_translation=True
+        )
+
+        return queryset, use_distinct
+
+    """
+    Automaticaly annotate field in translated_fields
+    Give sortable column via `_field`
+    Manage fallback if translation is not here
+    """
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        lang = getattr(request, "LANGUAGE_CODE", "en")
+        default_lang = PARLER_DEFAULT_LANGUAGE_CODE
+
+        annotations = {}
+
+        for f in self.translated_fields:
+            # Annotate value with the request lang and default one
+            annotations[f"_{f}_lang"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=lang)
+            )
+            annotations[f"_{f}_default"] = Max(
+                f"translations__{f}", filter=Q(translations__language_code=default_lang)
+            )
+
+        qs = qs.annotate(**annotations)
+
+        # Apply Coalesce for fallback (_field = _field_lang or _field_default or "")
+        final_annotations = {}
+        for f in self.translated_fields:
+            final_annotations[f"_{f}"] = Coalesce(
+                f"_{f}_lang",
+                f"_{f}_default",
+                Value(""),
+                output_field=TextField(),
+            )
+
+        return qs.annotate(**final_annotations)
 
 
 class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
@@ -246,15 +353,22 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
         exclude = ("creator", "creator_name")
 
 
+class SectorTranslationInline(TranslationInline):
+    model = SectorTranslation
+    fields = ("language_code", "name")
+    formset = TranslationInlineFormSet
+
+
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdminWP):
     list_display = ["acronym", "name_display", "parent"]
     list_display_links = ["acronym", "name_display"]
     search_fields = ["translations__name", "acronym", "parent__translations__name"]
     resource_class = SectorResource
-    fields = ("name", "parent", "acronym")
+    fields = ("parent", "acronym")
     ordering = ["id", "parent"]
     translated_fields = ["name"]
+    inlines = [SectorTranslationInline]
 
     def has_change_permission(self, request, obj=None):
         user = request.user

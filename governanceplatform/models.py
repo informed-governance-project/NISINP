@@ -18,6 +18,8 @@ from incidents.models import Incident
 from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
+from .translations import BaseTranslation
+from .translations import TranslatableModel as TranslatableModel2
 from .validators import validate_rt_url
 
 
@@ -31,8 +33,7 @@ class ApplicationConfig(models.Model):
 
 
 # sector
-class Sector(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
+class Sector(TranslatableModel2):
     parent = models.ForeignKey(
         "self",
         null=True,
@@ -78,6 +79,18 @@ class Sector(TranslatableModel):
     class Meta:
         verbose_name = _("Sector")
         verbose_name_plural = _("Sectors")
+
+
+class SectorTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Sector,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ("master", "language_code")
 
 
 # esssential services
