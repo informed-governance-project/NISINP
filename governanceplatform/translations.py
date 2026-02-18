@@ -18,14 +18,14 @@ class TranslatableModel(models.Model):
     ):
         language_code = language_code or get_language()
 
-        # 1️⃣ langue demandée
+        # asked language
         translation = self.get_translation(language_code)
         if translation:
             value = getattr(translation, field, None)
             if value:
                 return value
 
-        # 2️⃣ fallback parler-like
+        # fallback
         if any_language:
             for lang, _ in settings.LANGUAGES:
                 translation = self.get_translation(lang)

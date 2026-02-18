@@ -121,13 +121,6 @@ class CustomAdminSite(admin.AdminSite):
 admin_site = CustomAdminSite()
 
 
-class TranslationInline(admin.StackedInline):
-    extra = 0
-
-    def get_extra(self, request, obj=None, **kwargs):
-        return len(settings.LANGUAGES)
-
-
 class TranslationInlineFormSet(BaseInlineFormSet):
 
     def clean(self):
@@ -148,6 +141,11 @@ class TranslationInlineFormSet(BaseInlineFormSet):
 
         if fallback not in languages:
             raise ValidationError(f"Default language ({fallback}) is required.")
+
+
+class TranslationInline(admin.StackedInline):
+    extra = 0
+    formset = TranslationInlineFormSet
 
 
 class TranslatableAdminWP(admin.ModelAdmin):

@@ -5,16 +5,14 @@ window.addEventListener("load", function () {
     const languages = window.AVAILABLE_LANGUAGES || [];
     if (!languages.length) return;
 
-    // On récupère toutes les forms dynamiques (existantes)
     const forms = Array.from(fieldset.querySelectorAll(".inline-related.dynamic-translations:not(.empty-form)"));
 
-    // Création de l'objet langue → form
+    // Map language → form
     const langForms = {};
     languages.forEach(lang => {
         langForms[lang] = forms.find(f => f.querySelector("input[name$='language_code']").value === lang);
     });
 
-    // Si une langue n’a pas de form existante, on laisse null → l'utilisateur pourra l'ajouter
     const tabs = document.createElement("div");
     tabs.className = "translation-tabs";
 
@@ -34,15 +32,14 @@ window.addEventListener("load", function () {
         tabs.appendChild(button);
     });
 
-    // Insert tabs en haut du fieldset
     fieldset.insertBefore(tabs, fieldset.firstChild);
 
-    // Affiche la première langue
+    // show first lang
     const firstLang = languages[0];
     if (langForms[firstLang]) langForms[firstLang].style.display = "block";
     tabs.querySelector("button").classList.add("active");
 
-    // Cache les autres
+    // hide others
     languages.slice(1).forEach(lang => {
         if (langForms[lang]) langForms[lang].style.display = "none";
     });
