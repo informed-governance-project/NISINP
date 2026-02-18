@@ -5,15 +5,24 @@ import shutil
 import uuid
 import zipfile
 from io import BytesIO
+from pathlib import Path
 
 import plotly.colors as pc
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from docx.shared import Mm
+from docxtpl import DocxTemplate, InlineImage
 from weasyprint import CSS, HTML
 
-from .helpers import create_entry_log, get_charts, get_risk_data, get_so_data
+from .helpers import (
+    convert_docx_to_pdf,
+    create_entry_log,
+    get_charts,
+    get_risk_data,
+    get_so_data,
+)
 from .models import CompanyReporting, GeneratedReport
 
 # Increasing weasyprint log level
@@ -48,6 +57,23 @@ def generate_pdf_data(cleaned_data):
             "company_reporting": cleaned_data["company_reporting"],
         },
     )
+
+    tmp_dir = Path("tmp")
+    tmp_dir.mkdir(exist_ok=True)
+    generated_docx_path = tmp_dir / "generated_doc.docx"
+    template_path = tmp_dir / "template_fr.docx"
+    doc = DocxTemplate(template_path)
+    context = {
+        "operator_name": cleaned_data["company"]["name"],
+        "sector": cleaned_data["sector"]["name"],
+        "year": cleaned_data["year"],
+        "chart_1": InlineImage(doc, charts["security_measures_1"], width=Mm(160)),
+        "so_data": so_data,
+        "table": convert_so_data_for_docxtpl(so_data),
+    }
+    doc.render(context)
+    doc.save(generated_docx_path)
+    convert_docx_to_pdf(str(generated_docx_path))
     return rendered_data
 
 
@@ -130,3 +156,35 @@ def zip_pdfs_task(file_paths, user_id, error_messages):
     )
 
     return zip_path
+
+
+def convert_so_data_for_docxtpl(so_data):
+    # Sort years
+    years = sorted(so_data["years"])
+    data = []
+
+    for domain, data_by_year in so_data["company_so_by_domain"].items():
+        scores = []
+        evolutions = []
+        last_avgs = []
+
+        for year in years:
+            year_data = data_by_year.get(year, {})
+            score = float(year_data.get("score") or 0)
+            evo = year_data.get("evolution")
+            sector_avg = float(year_data.get("sector_avg") or 0)
+
+            scores.append(score)
+            evolutions.append(evo)
+            last_avgs.append(sector_avg)
+
+        data.append(
+            {
+                "domain": domain,
+                "years": scores,
+                "evolution": evolutions,
+                "last_avg": last_avgs,
+            }
+        )
+
+    return {"years": years, "data": data}
