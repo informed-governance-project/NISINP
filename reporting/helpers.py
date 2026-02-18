@@ -1,8 +1,11 @@
 import base64
+import shutil
+import subprocess
 import textwrap
 import uuid
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
+from pathlib import Path
 from statistics import mean
 from typing import List
 
@@ -964,7 +967,8 @@ def generate_bar_chart(data, labels, is_rate=False):
     if is_rate:
         fig.update_layout(yaxis_tickformat=".0%")
 
-    graph = convert_graph_to_base64(fig)
+    # graph = convert_graph_to_base64(fig)
+    graph = plotly_to_image_stream(fig)
 
     return graph
 
@@ -1198,3 +1202,58 @@ def convert_graph_to_base64(fig, export_format="svg"):
     graph = graph.decode("utf-8")
 
     return graph
+
+
+def plotly_to_image_stream(fig, export_format="png"):
+    buffer = BytesIO()
+
+    fig.write_image(
+        buffer,
+        format=export_format,
+        engine="kaleido",
+        scale=3,
+        width=650,
+        height=400,
+    )
+
+    buffer.seek(0)
+    return buffer
+
+
+def convert_docx_to_pdf(docx_path: str) -> str:
+    docx_path = Path(docx_path).resolve()
+    output_dir = docx_path.parent
+    pdf_path = output_dir / (docx_path.stem + ".pdf")
+
+    # unique profile per task (critical for Celery)
+    profile_dir = Path("/tmp") / f"lo-profile-{uuid.uuid4()}"
+    profile_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        subprocess.run(
+            [
+                "soffice",
+                f"-env:UserInstallation=file://{profile_dir}",
+                "--headless",
+                "--nologo",
+                "--nolockcheck",
+                "--nodefault",
+                "--nofirststartwizard",
+                "--convert-to",
+                "pdf:writer_pdf_Export",
+                "--outdir",
+                str(output_dir),
+                str(docx_path),
+            ],
+            check=True,
+            capture_output=True,
+        )
+
+        if not pdf_path.exists():
+            raise RuntimeError(f"PDF not created: {pdf_path}")
+
+    finally:
+        # optional: wait a bit before deleting
+        shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return pdf_path
