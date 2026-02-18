@@ -52,6 +52,8 @@ celery = "^5.5.1"
 redis = "^5.2.1"
 markdown = "^3.10.1"
 bleach = "^6.3.0"
+docxtpl = "^0.20.2"
+docxcompose = "^2.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
