@@ -65,7 +65,7 @@ def get_so_data(cleaned_data):
 
     def build_dict_scores(queryset, target_dict, key_func, year, sector_values=False):
         for item in queryset:
-            key = key_func(item)
+            key = str(key_func(item))
             score_field = "score_value"
 
             if isinstance(item, dict):
@@ -185,7 +185,7 @@ def get_so_data(cleaned_data):
             level = maturity_levels_queryset.filter(
                 level=int(score_data.score_value)
             ).first()
-            security_objective = score_data.security_objective
+            security_objective = str(score_data.security_objective)
             company_so_by_level[str(level)].append(security_objective)
 
         # by_domain
@@ -250,14 +250,14 @@ def get_so_data(cleaned_data):
 
         # Sector asc and desc lists by score
         sector_so_by_year_asc[year] = [
-            SecurityObjective.objects.get(pk=score["security_objective"])
+            str(SecurityObjective.objects.get(pk=score["security_objective"]))
             for score in sector_scores_queryset.order_by("score_value", "min_position")[
                 :top_ranking
             ]
         ]
 
         sector_so_by_year_desc[year] = [
-            SecurityObjective.objects.get(pk=score["security_objective"])
+            str(SecurityObjective.objects.get(pk=score["security_objective"]))
             for score in sector_scores_queryset.order_by(
                 "-score_value", "min_position"
             )[:top_ranking]
@@ -270,7 +270,10 @@ def get_so_data(cleaned_data):
         "years": years_list,
         "domains": [str(domain) for domain in company_so_by_domain.keys()],
         "maturity_levels": maturity_levels,
-        "unique_codes_list": [so.unique_code for so in company_so_by_year.keys()],
+        "unique_codes_list": [
+            so.security_objective.unique_code
+            for so in sorted_company_queryset.order_by("min_position")
+        ],
         "max_of_company_count": max(company_counts.values()),
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
         "company_so_by_level": dict(company_so_by_level),
@@ -371,9 +374,12 @@ def get_risk_data(cleaned_data):
         )
 
         # Stats by service data
+        service = str(service)
         service_stats.setdefault(service, {year: {}})
         if service_stat_queryset:
-            service_stats[service][year] = model_to_dict(service_stat_queryset.first())
+            service_stats[service][year] = model_to_dict(
+                service_stat_queryset.first(), exclude=["service", "company_reporting"]
+            )
             service_stats[service][year]["total_high_risks_treated"] = total_high_risks
             service_stats[service][year]["avg_high_risks_treated"] = (
                 high_risks_by_company["max_risk_avg"]
@@ -413,7 +419,16 @@ def get_risk_data(cleaned_data):
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
                     risks_top_ranking_ids.append(f"R{risk.id}")
-                    risks_top_ranking[uuid] = model_to_dict(risk)
+                    risks_top_ranking[uuid] = model_to_dict(
+                        risk,
+                        exclude=[
+                            "service",
+                            "asset",
+                            "threat",
+                            "vulnerability",
+                            "recommendations",
+                        ],
+                    )
                     risks_top_ranking[uuid][
                         "treatment"
                     ] = risk.get_risk_treatment_display()
@@ -600,12 +615,24 @@ def get_risk_data(cleaned_data):
 
         def append_top_ranking(data, sort_id_pairs, target_key):
             for index in range(top_ranking):
-                ranking_dict = {
-                    key: data[key][index]
-                    for key in sort_id_pairs.keys()
-                    if index < len(data[key])
-                }
-                top_ranking_risks_items[target_key].append(ranking_dict)
+                ranking_dict = {}
+                for key in sort_id_pairs.keys():
+                    if index < len(data[key]):
+                        temp_data = model_to_dict(
+                            data[key][index],
+                            exclude=[
+                                "service",
+                                "asset",
+                                "threat",
+                                "vulnerability",
+                                "recommendations",
+                            ],
+                        )
+                        temp_data["asset"] = str(data[key][index].asset)
+                        temp_data["threat"] = str(data[key][index].threat)
+                        temp_data["vulnerability"] = str(data[key][index].vulnerability)
+                        ranking_dict[key] = temp_data
+                top_ranking_risks_items[str(target_key)].append(ranking_dict)
 
         risk_data_reporting_queryset = (
             RiskData.objects.filter(
@@ -652,13 +679,25 @@ def get_risk_data(cleaned_data):
                 )
 
     def build_recommendations_data(company_reporting):
-        return (
+        recommendations_qs = (
             RecommendationData.objects.filter(
                 riskdata__service__company_reporting__id=company_reporting["id"]
             )
             .annotate(risk_count=Count("riskdata"))
             .order_by("-risk_count")[:top_ranking]
         )
+
+        recommendations_data = []
+
+        for rec in recommendations_qs:
+            rec_dict = model_to_dict(rec)
+            rec_dict["vulnerabilities"] = [
+                str(risk.vulnerability) for risk in rec.riskdata_set.all()
+            ]
+
+            recommendations_data.append(rec_dict)
+
+        return recommendations_data
 
     def build_evolution_recommendations_data():
         recommendations_by_year = RecommendationData.objects.filter(
