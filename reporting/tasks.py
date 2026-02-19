@@ -52,17 +52,18 @@ def generate_docx_task(data):
     generated_docx_path = tmp_dir / "generated_doc.docx"
     template_path = tmp_dir / "template_fr.docx"
     doc = DocxTemplate(template_path)
-    chart_bytes = {}
-    for chart_name, chart_data in data["charts"].items():
-        chart_bytes[chart_name] = BytesIO(base64.b64decode(chart_data))
+
     context = {
         "operator_name": data["company"],
         "sector": data["sector"],
         "year": data["year"],
-        "chart_1": InlineImage(doc, chart_bytes["security_measures_1"], width=Mm(160)),
         "so_data": data["so_data"],
         "table": convert_so_data_for_docxtpl(data["so_data"]),
     }
+    for chart_name, chart_data in data["charts"].items():
+        chart_bytes = BytesIO(base64.b64decode(chart_data))
+        context[chart_name] = InlineImage(doc, chart_bytes, width=Mm(170))
+
     doc.render(context)
     doc.save(generated_docx_path)
     return str(generated_docx_path)
