@@ -827,12 +827,12 @@ def get_charts(so_data, risk_data):
         "security_objectives_by_level": generate_bar_chart(
             so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
         ),
-        "security_measures_5a": generate_radar_chart(
+        "evolution_security_objectives_by_domain": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
             so_data["domains"],
             so_data["maturity_levels"],
         ),
-        "security_measures_5b": generate_radar_chart(
+        "evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
             so_data["maturity_levels"],
