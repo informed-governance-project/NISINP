@@ -824,8 +824,7 @@ def get_risk_data(cleaned_data):
 
 def get_charts(so_data, risk_data):
     charts = {
-        "colorbar": generate_colorbar(),
-        "security_measures_1": generate_bar_chart(
+        "security_objectives_by_level": generate_bar_chart(
             so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
         ),
         "security_measures_5a": generate_radar_chart(
@@ -1087,136 +1086,6 @@ def generate_radar_chart(data, labels, levels):
     return graph
 
 
-def generate_colorbar():
-    levels = [0, 0.5, 1, 1.5, 2, 2.5, 3]
-    labels = [
-        "no measure or N/A",
-        "",
-        "basic",
-        "",
-        "industry standard",
-        "",
-        "state of the art",
-    ]
-
-    fig = go.Figure(
-        data=go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(
-                size=0,
-                color=[-0.1, 3],
-                colorscale=[
-                    [0.0, "#F8696B"],
-                    [0.17, "#FA9473"],
-                    [0.33, "#FCBF7B"],
-                    [0.5, "#FFEB84"],
-                    [0.67, "#CCDD82"],
-                    [0.83, "#98CE7F"],
-                    [1.0, "#63BE7B"],
-                ],
-                colorbar=dict(
-                    outlinecolor="#FFFFFF",
-                    outlinewidth=0.5,
-                    tickvals=levels,
-                    ticktext=labels,
-                    orientation="h",
-                    x=0.5,
-                    y=0.5,
-                    xanchor="center",
-                    thickness=15,
-                    ypad=0,
-                ),
-            ),
-        )
-    )
-
-    annotations = [
-        dict(
-            x=0.02,
-            y="no measure or N/A",
-            text="0",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.19,
-            y="",
-            text="0.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.35,
-            y="basic",
-            text="1",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.5,
-            y="",
-            text="1.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.67,
-            y="industry standard",
-            text="2",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.83,
-            y="",
-            text="2.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.98,
-            y="state of the art",
-            text="3",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-    ]
-
-    fig.update_layout(annotations=annotations)
-
-    fig.update_layout(
-        xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
-        yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=40, r=40, t=200, b=15),
-        height=50,
-    )
-
-    fig.update_xaxes(visible=False)
-    fig.update_yaxes(visible=False)
-
-    graph = convert_graph_to_base64(fig)
-
-    return graph
-
-
 def text_wrap(text, max_line_length=20):
     if isinstance(text, list):
         text_wrapped = [
@@ -1236,8 +1105,6 @@ def convert_graph_to_base64(fig, export_format="png"):
         format=export_format,
         engine="kaleido",
         scale=3,
-        width=650,
-        height=400,
     )
     buffer.seek(0)
     image = buffer.getvalue()
