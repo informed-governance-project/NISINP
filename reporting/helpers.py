@@ -1,4 +1,5 @@
 import base64
+import copy
 import shutil
 import subprocess
 import textwrap
@@ -15,8 +16,11 @@ from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from parler.models import TranslationDoesNotExist
 
+from docx import Document
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -25,7 +29,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .globals import SECTOR_LEGEND
+from .globals import SECTOR_LEGEND, SO_COLOR_PALETTE
 from .models import AssetData, LogReporting, RecommendationData, RiskData, ServiceStat
 
 
@@ -56,7 +60,8 @@ def get_so_data(cleaned_data):
 
     def calculate_evolution(previous_data, current_score):
         if previous_data:
-            previous_score = previous_data["score"]
+            previous_score = round(previous_data["score"], 1)
+            current_score = round(current_score, 1)
             if previous_score > current_score:
                 return False
             elif previous_score < current_score:
@@ -1133,6 +1138,7 @@ def convert_docx_to_pdf(docx_path: str) -> str:
                 "--nologo",
                 "--nolockcheck",
                 "--nodefault",
+                "--norestore",
                 "--nofirststartwizard",
                 "--convert-to",
                 "pdf:writer_pdf_Export",
@@ -1151,3 +1157,108 @@ def convert_docx_to_pdf(docx_path: str) -> str:
         shutil.rmtree(profile_dir, ignore_errors=True)
 
     return pdf_path
+
+
+def merge_subdoc_into_placeholder(
+    main_docx_path, subdoc_path, placeholder, output_path
+):
+    main = Document(main_docx_path)
+    sub = Document(subdoc_path)
+
+    for _i, para in enumerate(main.paragraphs):
+        if placeholder in para.text:
+            parent = para._element.getparent()
+            idx = list(parent).index(para._element)
+
+            parent.remove(para._element)
+
+            _copy_styles(sub, main)
+
+            for j, block in enumerate(sub.element.body):
+                if block.tag == qn("w:sectPr"):
+                    continue
+                new_block = copy.deepcopy(block)
+
+                if new_block.tag == qn("w:tbl"):
+                    fix_table_widths(new_block)
+
+                parent.insert(idx + j, new_block)
+            break
+
+    main.save(output_path)
+
+
+def _copy_styles(source_doc, target_doc):
+    source_styles = {
+        s.element.get(qn("w:styleId")): s.element for s in source_doc.styles
+    }
+    target_style_ids = {s.element.get(qn("w:styleId")) for s in target_doc.styles}
+
+    for style_id, style_elem in source_styles.items():
+        if style_id and style_id not in target_style_ids:
+            target_doc.styles.element.append(copy.deepcopy(style_elem))
+
+
+def fix_table_widths(table_element):
+    tblPr = table_element.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        table_element.insert(0, tblPr)
+
+    tblLayout = tblPr.find(qn("w:tblLayout"))
+    if tblLayout is None:
+        tblLayout = OxmlElement("w:tblLayout")
+        tblPr.append(tblLayout)
+    tblLayout.set(qn("w:type"), "fixed")
+
+    for row in table_element.findall(qn("w:tr")):
+        for cell in row.findall(qn("w:tc")):
+            tcPr = cell.find(qn("w:tcPr"))
+            if tcPr is not None:
+                tcW = tcPr.find(qn("w:tcW"))
+                if tcW is not None:
+                    w_type = tcW.get(qn("w:type"))
+                    if w_type in (None, "auto", "nil"):
+                        tcW.set(qn("w:type"), "dxa")
+
+
+def get_report_translations():
+    return {
+        "domain": _("Domain"),
+        "evolution": _("Evolution"),
+        "sector_average": _("Sector average"),
+        "contact": _("Contact"),
+    }
+
+
+def hex_to_rgb(hex_color: str):
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))  # noqa E203
+
+
+def rgb_to_hex(rgb):
+    return "#{:02X}{:02X}{:02X}".format(*rgb)
+
+
+def interpolate_color(c1, c2, factor: float):
+    return tuple(round(a + (b - a) * factor) for a, b in zip(c1, c2))
+
+
+def get_gradient_color(value: float) -> str:
+    palette = sorted(SO_COLOR_PALETTE, key=lambda x: x[0])
+
+    if value <= palette[0][0]:
+        return palette[0][1]
+    if value >= palette[-1][0]:
+        return palette[-1][1]
+
+    # find segment
+    for (v1, c1), (v2, c2) in zip(palette, palette[1:]):
+        if v1 <= value <= v2:
+            ratio = (value - v1) / (v2 - v1)
+
+            rgb1 = hex_to_rgb(c1)
+            rgb2 = hex_to_rgb(c2)
+
+            mixed = interpolate_color(rgb1, rgb2, ratio)
+            return rgb_to_hex(mixed)
