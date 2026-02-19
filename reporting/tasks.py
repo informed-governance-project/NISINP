@@ -17,8 +17,10 @@ from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
     get_charts,
+    get_gradient_color,
     get_risk_data,
     get_so_data,
+    merge_subdoc_into_placeholder,
 )
 from .models import CompanyReporting, GeneratedReport
 
@@ -40,6 +42,7 @@ def generate_data(cleaned_data):
         "risk_data": risk_data,
         "nb_years": cleaned_data["nb_years"],
         "company_reporting": cleaned_data["company_reporting"],
+        "translations": cleaned_data["translations"],
     }
 
     return data
@@ -49,29 +52,65 @@ def generate_data(cleaned_data):
 def generate_docx_task(data):
     tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     tmp_dir.mkdir(exist_ok=True)
-    generated_docx_path = tmp_dir / "generated_doc.docx"
+    generated_docx_path = Path(tmp_dir / "generated_doc.docx")
     template_path = tmp_dir / "template_fr.docx"
-    doc = DocxTemplate(template_path)
+    merged_path = tmp_dir / "merged.docx"
+    rendered_subs_docs = {}
+    document_tables = {
+        "table_of_evolution_security_objectives_by_domain": {
+            "context": {
+                "table": convert_so_data_for_docxtpl(data["so_data"]),
+                "year": data["year"],
+            },
+        },
+    }
 
+    doc = DocxTemplate(template_path)
     context = {
         "operator_name": data["company"],
         "sector": data["sector"],
         "year": data["year"],
         "so_data": data["so_data"],
-        "table": convert_so_data_for_docxtpl(data["so_data"]),
     }
     for chart_name, chart_data in data["charts"].items():
         chart_bytes = BytesIO(base64.b64decode(chart_data))
         context[chart_name] = InlineImage(doc, chart_bytes, width=Mm(170))
 
+    for table_name, table_info in document_tables.items():
+        sub_template_path = tmp_dir / f"{table_name}_template.docx"
+        sub_rendered_path = tmp_dir / f"{table_name}_rendered.docx"
+        context[table_name] = str(table_name)
+        table_info["context"]["translations"] = data["translations"]
+        sub = DocxTemplate(sub_template_path)
+        sub.render(table_info["context"])
+        sub.save(sub_rendered_path)
+        rendered_subs_docs[table_name] = sub_rendered_path
+
     doc.render(context)
     doc.save(generated_docx_path)
-    return str(generated_docx_path)
+    current_doc = generated_docx_path
+
+    for placeholder, sub_rendered_path in rendered_subs_docs.items():
+        sub_rendered_path = Path(sub_rendered_path)
+        try:
+            merge_subdoc_into_placeholder(
+                main_docx_path=current_doc,
+                subdoc_path=sub_rendered_path,
+                placeholder=placeholder,
+                output_path=merged_path,
+            )
+            current_doc = merged_path
+        finally:
+            if sub_rendered_path.exists():
+                sub_rendered_path.unlink(missing_ok=True)
+
+    generated_docx_path.unlink(missing_ok=True)
+    return str(current_doc)
 
 
 @shared_task
-def generate_pdf_task(generated_docx_path):
-    docx_path = Path(generated_docx_path)
+def generate_pdf_task(docx_path):
+    docx_path = Path(docx_path)
 
     try:
         pdf_path = convert_docx_to_pdf(str(docx_path))
@@ -159,11 +198,16 @@ def convert_so_data_for_docxtpl(so_data):
         evolutions = []
         last_avgs = []
 
-        for year in years:
-            year_data = data_by_year.get(year, {})
-            score = float(year_data.get("score") or 0)
+        for year_index, year in enumerate(years):
+            year_data = data_by_year.get(str(year), {})
+            value = round(year_data.get("score") or 0, 1)
+            is_last = year_index == len(years) - 1
+            score = {
+                "value": value,
+                "color": get_gradient_color(value) if is_last else None,
+            }
             evo = year_data.get("evolution")
-            sector_avg = float(year_data.get("sector_avg") or 0)
+            sector_avg = round(year_data.get("sector_avg") or 0, 1)
 
             scores.append(score)
             evolutions.append(evo)
