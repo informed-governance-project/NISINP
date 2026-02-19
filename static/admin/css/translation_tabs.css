@@ -10,10 +10,32 @@
     background: #f5f5f5;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 13px;
 }
 
 .translation-tabs button.active {
     background: #417690;
     color: white;
     border-color: #417690;
+}
+
+/* tab without translations */
+.translation-tabs button.missing {
+    border-style: dashed;
+    color: #999;
+}
+
+.translation-add-row {
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.translation-add-row a {
+    color: #417690;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.translation-add-row a:hover {
+    text-decoration: underline;
 }
