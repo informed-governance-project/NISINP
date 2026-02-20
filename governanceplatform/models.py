@@ -95,7 +95,6 @@ class SectorTranslation(BaseTranslation):
 
 # esssential services
 class Service(TranslatableModel):
-    translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
     sector = models.ForeignKey(
         Sector, verbose_name=_("Sector"), on_delete=models.CASCADE
     )
@@ -110,11 +109,19 @@ class Service(TranslatableModel):
         verbose_name_plural = _("Services")
 
 
-class Functionality(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(verbose_name=_("Name"), max_length=100)
+class ServiceTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Service,
+        related_name="translations",
+        on_delete=models.CASCADE,
     )
+    name = models.CharField(_("Name"), max_length=100)
 
+    class Meta:
+        unique_together = ("master", "language_code")
+
+
+class Functionality(TranslatableModel):
     type = models.CharField(
         verbose_name=_("Type"),
         max_length=100,
@@ -139,11 +146,20 @@ class Functionality(TranslatableModel):
         verbose_name_plural = _("Functionalities")
 
 
+class FunctionalityTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Functionality,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(_("Name"), max_length=100)
+
+    class Meta:
+        unique_together = ("master", "language_code")
+
+
 # operator has type (critical, essential, etc.) who give access to functionalities
 class OperatorType(TranslatableModel):
-    translations = TranslatedFields(
-        type=models.CharField(verbose_name=_("Type"), max_length=100)
-    )
     functionalities = models.ManyToManyField(
         Functionality,
         verbose_name=_("Functionalities"),
@@ -152,6 +168,18 @@ class OperatorType(TranslatableModel):
     def __str__(self):
         type_translation = self.safe_translation_getter("type", any_language=True)
         return type_translation or ""
+
+
+class OperatorTypeTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        OperatorType,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    type = models.CharField(verbose_name=_("Type"), max_length=100)
+
+    class Meta:
+        unique_together = ("master", "language_code")
 
 
 # operator are companies
@@ -225,15 +253,6 @@ class Company(models.Model):
 
 # Regulator
 class Regulator(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(max_length=64, verbose_name=_("Name")),
-        full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Full name")
-        ),
-        description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Description")
-        ),
-    )
     country = models.CharField(
         max_length=200,
         null=True,
@@ -262,17 +281,26 @@ class Regulator(TranslatableModel):
         verbose_name_plural = _("Regulators")
 
 
+class RegulatorTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Regulator,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=64, verbose_name=_("Name"))
+    full_name = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("Full name")
+    )
+    description = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("Description")
+    )
+
+    class Meta:
+        unique_together = ("master", "language_code")
+
+
 # Observer
 class Observer(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(default="", max_length=64, verbose_name=_("Name")),
-        full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Full name")
-        ),
-        description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Description")
-        ),
-    )
     country = models.CharField(
         max_length=200,
         null=True,
@@ -439,6 +467,24 @@ class Observer(TranslatableModel):
     class Meta:
         verbose_name = _("Observer")
         verbose_name_plural = _("Observers")
+
+
+class ObserverTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Observer,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=64, verbose_name=_("Name"))
+    full_name = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("Full name")
+    )
+    description = models.TextField(
+        blank=True, default="", null=True, verbose_name=_("Description")
+    )
+
+    class Meta:
+        unique_together = ("master", "language_code")
 
 
 # define an abstract class which make  the difference between operator and regulator
@@ -719,14 +765,23 @@ class Regulation(TranslatableModel):
         verbose_name = _("Regulation")
 
 
-# To categorize the operator, used for the observers to see or not the incident
-class EntityCategory(TranslatableModel):
-    translations = TranslatedFields(
-        label=models.CharField(
-            max_length=255,
-            verbose_name=_("Label"),
-        )
+class RegulationTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        Regulation,
+        related_name="translations",
+        on_delete=models.CASCADE,
     )
+    label = models.CharField(
+        max_length=255,
+        verbose_name=_("Label"),
+    )
+
+    class Meta:
+        unique_together = ("master", "language_code")
+
+
+# To categorize the operator, used for the observers to see or not the incident
+class EntityCategory(TranslatableModel2):
     code = models.CharField(
         max_length=255,
         verbose_name=_("Code"),
@@ -742,6 +797,21 @@ class EntityCategory(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Entity categories")
         verbose_name = _("Entity category")
+
+
+class EntityCategoryTranslation(BaseTranslation):
+    master = models.ForeignKey(
+        EntityCategory,
+        related_name="translations",
+        on_delete=models.CASCADE,
+    )
+    label = models.CharField(
+        max_length=255,
+        verbose_name=_("Label"),
+    )
+
+    class Meta:
+        unique_together = ("master", "language_code")
 
 
 # link between the observers and the regulation

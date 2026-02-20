@@ -19,7 +19,6 @@
     border-color: #417690;
 }
 
-/* tab without translations */
 .translation-tabs button.missing {
     border-style: dashed;
     color: #999;
@@ -38,4 +37,10 @@
 
 .translation-add-row a:hover {
     text-decoration: underline;
+}
+
+.translation-missing-notice {
+    color: #999;
+    font-style: italic;
+    font-size: 13px;
 }

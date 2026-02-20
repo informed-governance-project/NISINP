@@ -42,11 +42,12 @@ from .helpers import (
     user_in_group,
 )
 from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
-from .models import (  # OperatorType,; Service,
+from .models import (  # OperatorType,; Service,; FunctionalityTranslation,
     ApplicationConfig,
     Company,
     CompanyUser,
     EntityCategory,
+    EntityCategoryTranslation,
     Functionality,
     Observer,
     ObserverRegulation,
@@ -146,6 +147,36 @@ class TranslationInlineFormSet(BaseInlineFormSet):
 class TranslationInline(admin.StackedInline):
     extra = 0
     formset = TranslationInlineFormSet
+
+    def _parent_admin(self, request):
+        """Retrieves the parent admin by deducing the parent template from the inline template name.."""
+        model_name = self.model.__name__  # ex: "EntityCategoryTranslation"
+        parent_model_name = model_name.removesuffix(
+            "Translation"
+        )  # ex: "EntityCategory"
+
+        # Search if the name correspond
+        for model_class in admin_site._registry:
+            if model_class.__name__ == parent_model_name:
+                return admin_site._registry[model_class]
+
+        return None
+
+    def has_add_permission(self, request, obj=None):
+        parent = self._parent_admin(request)
+        return parent.has_add_permission(request) if parent else False
+
+    def has_change_permission(self, request, obj=None):
+        parent = self._parent_admin(request)
+        return parent.has_change_permission(request) if parent else False
+
+    def has_delete_permission(self, request, obj=None):
+        parent = self._parent_admin(request)
+        return parent.has_delete_permission(request) if parent else False
+
+    def get_readonly_fields(self, request, obj=None):
+        parent = self._parent_admin(request)
+        return parent.get_readonly_fields(request) if parent else []
 
 
 class TranslatableAdminWP(admin.ModelAdmin):
@@ -466,18 +497,29 @@ class EntityCategoryResource(resources.ModelResource):
         model = EntityCategory
 
 
+class EntityCategoryTranslationInline(TranslationInline):
+    model = EntityCategoryTranslation
+    fields = ("language_code", "label")
+    formset = TranslationInlineFormSet
+
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+        if not user_in_group(user, "PlatformAdmin"):
+            return [f.name for f in self.model._meta.get_fields()]
+        else:
+            return []
+
+
 @admin.register(EntityCategory, site=admin_site)
-class EntityCategoryAdmin(CustomTranslatableAdmin):
+class EntityCategoryAdmin(CustomTranslatableAdminWP):
     resource_class = EntityCategoryResource
 
     list_display = ["code", "label_display"]
     search_fields = ["translations__label", "code"]
     order_list = ["code"]
-    fields = (
-        "label",
-        "code",
-    )
+    fields = ("code",)
     translated_fields = ["label"]
+    inlines = [EntityCategoryTranslationInline]
 
     # Only accessible for platform admin
     def has_add_permission(self, request, obj=None):
@@ -490,7 +532,9 @@ class EntityCategoryAdmin(CustomTranslatableAdmin):
     def has_change_permission(self, request, obj=None):
         user = request.user
 
-        if user_in_group(user, "PlatformAdmin"):
+        if user_in_group(user, "PlatformAdmin") or user_in_group(
+            user, "RegulatorAdmin"
+        ):
             return True
         return False
 
@@ -500,6 +544,14 @@ class EntityCategoryAdmin(CustomTranslatableAdmin):
         if user_in_group(user, "PlatformAdmin"):
             return True
         return False
+
+    def get_readonly_fields(self, request, obj=None):
+        user = request.user
+        if user_in_group(user, "PlatformAdmin"):
+            return []
+        else:
+            print(self.model)
+            return [f.name for f in self.model._meta.get_fields()]
 
 
 for name, method in generate_display_methods(["label"]).items():
