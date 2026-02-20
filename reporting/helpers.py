@@ -1179,9 +1179,6 @@ def merge_subdoc_into_placeholder(
                     continue
                 new_block = copy.deepcopy(block)
 
-                if new_block.tag == qn("w:tbl"):
-                    fix_table_widths(new_block)
-
                 parent.insert(idx + j, new_block)
             break
 
@@ -1197,29 +1194,6 @@ def _copy_styles(source_doc, target_doc):
     for style_id, style_elem in source_styles.items():
         if style_id and style_id not in target_style_ids:
             target_doc.styles.element.append(copy.deepcopy(style_elem))
-
-
-def fix_table_widths(table_element):
-    tblPr = table_element.find(qn("w:tblPr"))
-    if tblPr is None:
-        tblPr = OxmlElement("w:tblPr")
-        table_element.insert(0, tblPr)
-
-    tblLayout = tblPr.find(qn("w:tblLayout"))
-    if tblLayout is None:
-        tblLayout = OxmlElement("w:tblLayout")
-        tblPr.append(tblLayout)
-    tblLayout.set(qn("w:type"), "fixed")
-
-    for row in table_element.findall(qn("w:tr")):
-        for cell in row.findall(qn("w:tc")):
-            tcPr = cell.find(qn("w:tcPr"))
-            if tcPr is not None:
-                tcW = tcPr.find(qn("w:tcW"))
-                if tcW is not None:
-                    w_type = tcW.get(qn("w:type"))
-                    if w_type in (None, "auto", "nil"):
-                        tcW.set(qn("w:type"), "dxa")
 
 
 def get_report_translations():
@@ -1265,3 +1239,113 @@ def get_gradient_color(value: float) -> str:
 
             mixed = interpolate_color(rgb1, rgb2, ratio)
             return rgb_to_hex(mixed)
+
+
+def _get_page_content_width_dxa(doc: Document) -> int:
+    section = doc.sections[0]
+    page_width = section.page_width
+    left_margin = section.left_margin
+    right_margin = section.right_margin
+
+    content_width_emu = page_width - left_margin - right_margin
+    content_width_dxa = int(content_width_emu * 1440 / 914400)
+
+    return content_width_dxa
+
+
+def _get_table_total_width(table, doc) -> int:
+    DEFAULT_WIDTH_DXA = _get_page_content_width_dxa(doc)
+
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    w_type = tblW.get(qn("w:type"))
+    w_val = tblW.get(qn("w:w"))
+
+    if w_type == "dxa" and w_val:
+        return int(w_val)
+
+    if w_type == "pct" and w_val:
+        ratio = int(w_val) / 5000
+        width = int(DEFAULT_WIDTH_DXA * ratio)
+        _set_table_total_width(table, width)
+        return width
+
+    if w_type in ("auto", "nil") or w_val == "0":
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+    return DEFAULT_WIDTH_DXA
+
+
+def _set_table_total_width(table, width_dxa: int):
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        table._element.insert(0, tblPr)
+
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        tblW = OxmlElement("w:tblW")
+        tblPr.append(tblW)
+
+    tblW.set(qn("w:w"), str(width_dxa))
+    tblW.set(qn("w:type"), "dxa")
+
+
+def redistribute_column_widths_proportional(table, proportions, doc):
+    total_width = _get_table_total_width(table, doc)
+    if total_width is None:
+        return
+
+    first_row_tcs = table.rows[0]._tr.findall(qn("w:tc"))
+    num_cols = len(first_row_tcs)
+
+    if proportions is None:
+        proportions = [1 / num_cols] * num_cols
+
+    total = sum(proportions)
+    proportions = [p / total for p in proportions]
+    col_widths = [int(total_width * p) for p in proportions]
+    col_widths[-1] = total_width - sum(col_widths[:-1])
+
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        table._element.insert(0, tblPr)
+    tblLayout = tblPr.find(qn("w:tblLayout"))
+    if tblLayout is None:
+        tblLayout = OxmlElement("w:tblLayout")
+        tblPr.append(tblLayout)
+    tblLayout.set(qn("w:type"), "fixed")
+
+    for row in table.rows:
+        tcs = row._tr.findall(qn("w:tc"))
+        for i, tc in enumerate(tcs):
+            if i >= len(col_widths):
+                continue
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                tcPr = OxmlElement("w:tcPr")
+                tc.insert(0, tcPr)
+            tcW = tcPr.find(qn("w:tcW"))
+            if tcW is None:
+                tcW = OxmlElement("w:tcW")
+                tcPr.insert(0, tcW)
+            tcW.set(qn("w:w"), str(col_widths[i]))
+            tcW.set(qn("w:type"), "dxa")
+
+    tblGrid = table._element.find(qn("w:tblGrid"))
+    if tblGrid is not None:
+        gridCols = tblGrid.findall(qn("w:gridCol"))
+        for i, gridCol in enumerate(gridCols):
+            if i < len(col_widths):
+                gridCol.set(qn("w:w"), str(col_widths[i]))

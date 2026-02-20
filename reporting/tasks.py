@@ -10,6 +10,7 @@ from pathlib import Path
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from docx import Document
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
 
@@ -22,6 +23,7 @@ from .helpers import (
     get_risk_data,
     get_so_data,
     merge_subdoc_into_placeholder,
+    redistribute_column_widths_proportional,
 )
 from .models import CompanyReporting, GeneratedReport
 
@@ -63,6 +65,9 @@ def generate_docx_task(data):
                 "table": convert_so_data_for_docxtpl(data["so_data"]),
                 "year": data["year"],
             },
+            "column_proportions": [0.4]
+            + [0.1] * len(data["so_data"]["years"])
+            + [0.15] * 2,
         },
         "table_legend": {
             "context": {
@@ -92,6 +97,14 @@ def generate_docx_task(data):
         sub = DocxTemplate(sub_template_path)
         sub.render(table_info["context"])
         sub.save(sub_rendered_path)
+        if "column_proportions" in table_info:
+            main_doc = Document(template_path)
+            template = Document(sub_rendered_path)
+            for table in template.tables:
+                redistribute_column_widths_proportional(
+                    table, table_info["column_proportions"], main_doc
+                )
+            template.save(sub_rendered_path)
         rendered_subs_docs[table_name] = sub_rendered_path
 
     doc.render(context)
