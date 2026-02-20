@@ -317,7 +317,7 @@ class ContactForm(forms.Form):
             self.fields["phone"].initial = user.phone_number
 
 
-class CustomObserverAdminForm(CustomTranslatableAdminForm):
+class CustomObserverAdminForm(CustomTranslatableAdminFormWP):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")

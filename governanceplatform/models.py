@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Deferrable, Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from parler.models import TranslatableModel, TranslatedFields
+from parler.models import TranslatableModel
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
@@ -121,7 +121,7 @@ class ServiceTranslation(BaseTranslation):
         unique_together = ("master", "language_code")
 
 
-class Functionality(TranslatableModel):
+class Functionality(TranslatableModel2):
     type = models.CharField(
         verbose_name=_("Type"),
         max_length=100,
@@ -252,7 +252,7 @@ class Company(models.Model):
 
 
 # Regulator
-class Regulator(TranslatableModel):
+class Regulator(TranslatableModel2):
     country = models.CharField(
         max_length=200,
         null=True,
@@ -300,7 +300,7 @@ class RegulatorTranslation(BaseTranslation):
 
 
 # Observer
-class Observer(TranslatableModel):
+class Observer(TranslatableModel2):
     country = models.CharField(
         max_length=200,
         null=True,
@@ -735,13 +735,7 @@ class ObserverUser(models.Model):
 
 
 # Different regulation like NIS etc.
-class Regulation(TranslatableModel):
-    translations = TranslatedFields(
-        label=models.CharField(
-            max_length=255,
-            verbose_name=_("Label"),
-        )
-    )
+class Regulation(TranslatableModel2):
     regulators = models.ManyToManyField(
         Regulator,
         default=None,

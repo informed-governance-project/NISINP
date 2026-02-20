@@ -49,11 +49,15 @@ from .models import (  # OperatorType,; Service,; FunctionalityTranslation,
     EntityCategory,
     EntityCategoryTranslation,
     Functionality,
+    FunctionalityTranslation,
     Observer,
     ObserverRegulation,
+    ObserverTranslation,
     ObserverUser,
     Regulation,
+    RegulationTranslation,
     Regulator,
+    RegulatorTranslation,
     RegulatorUser,
     ScriptLogEntry,
     Sector,
@@ -550,7 +554,6 @@ class EntityCategoryAdmin(CustomTranslatableAdminWP):
         if user_in_group(user, "PlatformAdmin"):
             return []
         else:
-            print(self.model)
             return [f.name for f in self.model._meta.get_fields()]
 
 
@@ -1691,13 +1694,20 @@ class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
 
+class FunctionalityTranslationInline(TranslationInline):
+    model = FunctionalityTranslation
+    fields = ("language_code", "name")
+    formset = TranslationInlineFormSet
+
+
 @admin.register(Functionality, site=admin_site)
-class FunctionalityAdmin(CustomTranslatableAdmin):
+class FunctionalityAdmin(CustomTranslatableAdminWP):
     list_display = ["type", "name_display"]
     search_fields = ["translations__name"]
     order_list = ["type"]
     translated_fields = ["name"]
     resource_class = FunctionalityResource
+    inlines = [FunctionalityTranslationInline]
 
     def has_add_permission(self, request, obj=None):
         user = request.user
@@ -1761,8 +1771,14 @@ class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
         model = Regulator
 
 
+class RegulatorTranslationInline(TranslationInline):
+    model = RegulatorTranslation
+    fields = ("language_code", "name", "full_name", "description")
+    formset = TranslationInlineFormSet
+
+
 @admin.register(Regulator, site=admin_site)
-class RegulatorAdmin(CustomTranslatableAdmin):
+class RegulatorAdmin(CustomTranslatableAdminWP):
     list_display = ["name_display", "full_name_display", "description_display"]
     search_fields = [
         "translations__name",
@@ -1771,9 +1787,6 @@ class RegulatorAdmin(CustomTranslatableAdmin):
     ]
     resource_class = RegulatorResource
     fields = (
-        "name",
-        "full_name",
-        "description",
         "country",
         "address",
         "email_for_notification",
@@ -1794,7 +1807,10 @@ class RegulatorAdmin(CustomTranslatableAdmin):
 
         return readonly_fields
 
-    inlines = (userRegulatorMultipleInline,)
+    inlines = (
+        RegulatorTranslationInline,
+        userRegulatorMultipleInline,
+    )
 
     def has_add_permission(self, request, obj=None):
         user = request.user
@@ -1920,8 +1936,14 @@ class ObserverUserInline(admin.TabularInline):
         return readonly_fields
 
 
+class ObserverTranslationInline(TranslationInline):
+    model = ObserverTranslation
+    fields = ("language_code", "name", "full_name", "description")
+    formset = TranslationInlineFormSet
+
+
 @admin.register(Observer, site=admin_site)
-class ObserverAdmin(CustomTranslatableAdmin):
+class ObserverAdmin(CustomTranslatableAdminWP):
     form = CustomObserverAdminForm
     list_display = [
         "name_display",
@@ -1941,6 +1963,7 @@ class ObserverAdmin(CustomTranslatableAdmin):
     translated_fields = ["name", "description", "full_name"]
 
     inlines = (
+        ObserverTranslationInline,
         ObserverUserInline,
         ObserverRegulationInline,
     )
@@ -1951,9 +1974,6 @@ class ObserverAdmin(CustomTranslatableAdmin):
                 None,
                 {
                     "fields": [
-                        "name",
-                        "full_name",
-                        "description",
                         "country",
                         "address",
                         "email_for_notification",
@@ -2035,19 +2055,23 @@ class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
         model = Regulation
 
 
+class RegulationTranslationInline(TranslationInline):
+    model = RegulationTranslation
+    fields = ("language_code", "label")
+    formset = TranslationInlineFormSet
+
+
 @admin.register(Regulation, site=admin_site)
-class RegulationAdmin(CustomTranslatableAdmin):
+class RegulationAdmin(CustomTranslatableAdminWP):
     list_display = ["label_display", "get_regulators"]
     search_fields = ["translations__label", "regulators__translations__name"]
     resource_class = RegulationResource
-    fields = (
-        "label",
-        "regulators",
-    )
+    fields = ("regulators",)
     filter_horizontal = [
         "regulators",
     ]
     translated_fields = ["label"]
+    inlines = [RegulationTranslationInline]
 
     def has_add_permission(self, request, obj=None):
         user = request.user
