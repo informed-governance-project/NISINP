@@ -9,7 +9,6 @@ from django.db import models
 from django.db.models import Deferrable, Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from parler.models import TranslatableModel
 from phonenumber_field.modelfields import PhoneNumberField
 
 import governanceplatform
@@ -94,7 +93,7 @@ class SectorTranslation(BaseTranslation):
 
 
 # esssential services
-class Service(TranslatableModel):
+class Service(TranslatableModel2):
     sector = models.ForeignKey(
         Sector, verbose_name=_("Sector"), on_delete=models.CASCADE
     )
@@ -159,7 +158,7 @@ class FunctionalityTranslation(BaseTranslation):
 
 
 # operator has type (critical, essential, etc.) who give access to functionalities
-class OperatorType(TranslatableModel):
+class OperatorType(TranslatableModel2):
     functionalities = models.ManyToManyField(
         Functionality,
         verbose_name=_("Functionalities"),

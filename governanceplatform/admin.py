@@ -451,50 +451,6 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdminWP):
 for name, method in generate_display_methods(["name"]).items():
     setattr(SectorAdmin, name, method)
 
-# class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
-#     id = fields.Field(
-#         column_name="id",
-#         attribute="id",
-#     )
-
-#     name = fields.Field(
-#         column_name="name",
-#         attribute="name",
-#     )
-
-#     acronym = fields.Field(
-#         column_name="acronym",
-#         attribute="acronym",
-#     )
-
-#     sector = fields.Field(
-#         column_name="sector",
-#         attribute="sector",
-#         widget=TranslatedNameWidget(Sector, field="name"),
-#     )
-
-#     class Meta:
-#         model = Service
-#         export_order = ["sector"]
-
-
-# @admin.register(Service, site=admin_site)
-# class ServiceAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
-#     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
-#     list_display_links = ["acronym", "name"]
-#     search_fields = ["translations__name"]
-#     resource_class = ServiceResource
-#     fields = ("name", "acronym", "sector")
-#     ordering = ["sector"]
-
-#     @admin.display(description="Sector")
-#     def get_sector_name(self, obj):
-#         return obj.sector.name if not obj.sector.parent else obj.sector.parent
-
-#     @admin.display(description="Sub-sector")
-#     def get_subsector_name(self, obj):
-#         return obj.sector.name if obj.sector.parent else None
-
 
 class EntityCategoryResource(resources.ModelResource):
     class Meta:
@@ -1730,35 +1686,6 @@ class FunctionalityAdmin(CustomTranslatableAdminWP):
 
 for name, method in generate_display_methods(["name"]).items():
     setattr(FunctionalityAdmin, name, method)
-
-# class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
-#     id = fields.Field(
-#         column_name="id",
-#         attribute="id",
-#     )
-
-#     type = fields.Field(
-#         column_name="type",
-#         attribute="type",
-#     )
-
-#     functionalities = fields.Field(
-#         column_name="functionalities",
-#         attribute="functionalities",
-#         widget=ForeignKeyWidget(Functionality, field="name"),
-#     )
-
-#     class Meta:
-#         model = Functionality
-
-
-# @admin.register(OperatorType, site=admin_site)
-# class OperatorTypeAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
-#     list_display = ["type"]
-#     search_fields = ["translations__type"]
-#     resource_class = OperatorTypeResource
-#     fields = ("type", "functionalities")
-#     filter_horizontal = ["functionalities"]
 
 
 class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
