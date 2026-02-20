@@ -16,11 +16,11 @@ from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
+from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from parler.models import TranslationDoesNotExist
 
-from docx import Document
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -1228,6 +1228,9 @@ def get_report_translations():
         "evolution": _("Evolution"),
         "sector_average": _("Sector average"),
         "contact": _("Contact"),
+        "downward": _("Downward"),
+        "stable": _("Stable"),
+        "upward": _("Upward"),
     }
 
 

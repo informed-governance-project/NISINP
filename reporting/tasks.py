@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
 
+from .globals import SO_COLOR_PALETTE
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
@@ -61,6 +62,13 @@ def generate_docx_task(data):
             "context": {
                 "table": convert_so_data_for_docxtpl(data["so_data"]),
                 "year": data["year"],
+            },
+        },
+        "table_legend": {
+            "context": {
+                "maturity_levels": get_maturity_level_context(
+                    data["so_data"]["maturity_levels"]
+                ),
             },
         },
     }
@@ -189,7 +197,6 @@ def zip_files_task(file_paths, user_id, error_messages):
 
 
 def convert_so_data_for_docxtpl(so_data):
-    # Sort years
     years = sorted(so_data["years"])
     data = []
 
@@ -204,7 +211,7 @@ def convert_so_data_for_docxtpl(so_data):
             is_last = year_index == len(years) - 1
             score = {
                 "value": value,
-                "color": get_gradient_color(value) if is_last else None,
+                "color": get_gradient_color(value) if is_last else "#FFFFFF",
             }
             evo = year_data.get("evolution")
             sector_avg = round(year_data.get("sector_avg") or 0, 1)
@@ -223,3 +230,16 @@ def convert_so_data_for_docxtpl(so_data):
         )
 
     return {"years": years, "data": data}
+
+
+def get_maturity_level_context(maturity_levels):
+    context = []
+    for index, maturity_level in enumerate(maturity_levels):
+        data = {
+            "index": index,
+            "color": SO_COLOR_PALETTE[index][1],
+            "label": maturity_level,
+        }
+        context.append(data)
+
+    return context
