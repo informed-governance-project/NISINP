@@ -855,15 +855,15 @@ def get_risk_data(cleaned_data):
 
 def get_charts(so_data, risk_data):
     charts = {
-        "security_objectives_by_level": generate_bar_chart(
+        "chart_security_objectives_by_level": generate_bar_chart(
             so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
         ),
-        "evolution_security_objectives_by_domain": generate_radar_chart(
+        "chart_evolution_security_objectives_by_domain": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
             so_data["domains"],
             so_data["maturity_levels"],
         ),
-        "evolution_security_objectives": generate_radar_chart(
+        "chart_evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
             so_data["maturity_levels"],
