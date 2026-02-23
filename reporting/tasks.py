@@ -54,6 +54,9 @@ def generate_data(cleaned_data):
 @shared_task
 def generate_docx_task(data):
     tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    subdocs_templates_dir = Path(
+        os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
+    )
     tmp_dir.mkdir(exist_ok=True)
     generated_docx_path = Path(tmp_dir / "generated_doc.docx")
     template_path = tmp_dir / "template_fr.docx"
@@ -102,7 +105,7 @@ def generate_docx_task(data):
         context[chart_name] = InlineImage(doc, chart_bytes, width=Mm(170))
 
     for table_name, table_info in document_tables.items():
-        sub_template_path = tmp_dir / f"{table_name}_template.docx"
+        sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
         sub_rendered_path = tmp_dir / f"{table_name}_rendered.docx"
         context[table_name] = str(table_name)
         table_info["context"]["translations"] = data["translations"]
