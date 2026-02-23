@@ -1205,6 +1205,9 @@ def get_report_translations():
         "downward": _("Downward"),
         "stable": _("Stable"),
         "upward": _("Upward"),
+        "sector_ranking": _("Sector ranking"),
+        "sector_scores": _("Sector scores"),
+        "operator_scores": _("Operator scores"),
     }
 
 
