@@ -19,7 +19,6 @@ from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
     get_charts,
-    get_gradient_color,
     get_risk_data,
     get_so_data,
     merge_subdoc_into_placeholder,
@@ -65,7 +64,7 @@ def generate_docx_task(data):
     document_tables = {
         "table_of_evolution_security_objectives_by_domain": {
             "context": {
-                "table": convert_so_data_for_docxtpl(data["so_data"]),
+                "table": data["so_data"]["company_so_by_domain"],
                 "year": data["year"],
             },
             "column_proportions": [0.4]
@@ -222,42 +221,6 @@ def zip_files_task(file_paths, user_id, error_messages):
     )
 
     return zip_path
-
-
-def convert_so_data_for_docxtpl(so_data):
-    years = sorted(so_data["years"])
-    data = []
-
-    for domain, data_by_year in so_data["company_so_by_domain"].items():
-        scores = []
-        evolutions = []
-        last_avgs = []
-
-        for year_index, year in enumerate(years):
-            year_data = data_by_year.get(str(year), {})
-            value = round(year_data.get("score") or 0, 1)
-            is_last = year_index == len(years) - 1
-            score = {
-                "value": value,
-                "color": get_gradient_color(value) if is_last else "#FFFFFF",
-            }
-            evo = year_data.get("evolution")
-            sector_avg = round(year_data.get("sector_avg") or 0, 1)
-
-            scores.append(score)
-            evolutions.append(evo)
-            last_avgs.append(sector_avg)
-
-        data.append(
-            {
-                "domain": domain,
-                "years": scores,
-                "evolution": evolutions,
-                "last_avg": last_avgs,
-            }
-        )
-
-    return {"years": years, "data": data}
 
 
 def get_maturity_level_context(maturity_levels):
