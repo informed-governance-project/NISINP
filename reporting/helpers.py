@@ -6,6 +6,7 @@ import textwrap
 import uuid
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
+from itertools import groupby
 from pathlib import Path
 from statistics import mean
 from typing import List
@@ -108,6 +109,43 @@ def get_so_data(cleaned_data):
         levels_count = maturity_levels_queryset.count()
         score_list = [counts.get(level, 0) for level in range(levels_count)]
         bar_chart_data_by_level[label] = score_list
+
+    def get_grouped_scores(order="asc") -> dict:
+        scores = sector_scores_queryset.order_by("score_value", "min_position")
+        so_ids = scores.values_list("security_objective", flat=True)
+        so_map = {
+            so.pk: str(so) for so in SecurityObjective.objects.filter(pk__in=so_ids)
+        }
+        company_scores_map = (
+            {
+                fs.security_objective_id: fs.score_value
+                for fs in floored_company_queryset.filter(security_objective__in=so_ids)
+            }
+            if floored_company_queryset
+            else {}
+        )
+
+        grouped_scores = {
+            str(round(score_value, 1)): [
+                {
+                    "name": so_map[s["security_objective"]],
+                    "score_sector": round(score_value, 1),
+                    "score_company": round(
+                        company_scores_map.get(s["security_objective"], 0), 1
+                    ),
+                }
+                for s in group
+            ]
+            for score_value, group in groupby(scores, key=lambda s: s["score_value"])
+        }
+
+        reverse = order == "desc"
+        sorted_keys = sorted(
+            grouped_scores.keys(), key=lambda x: float(x), reverse=reverse
+        )
+        sliced_keys = sorted_keys[:top_ranking]
+
+        return {key: grouped_scores[key] for key in sliced_keys}
 
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
@@ -254,23 +292,11 @@ def get_so_data(cleaned_data):
         )
 
         # Sector asc and desc lists by score
-        sector_so_by_year_asc[year] = [
-            str(SecurityObjective.objects.get(pk=score["security_objective"]))
-            for score in sector_scores_queryset.order_by("score_value", "min_position")[
-                :top_ranking
-            ]
-        ]
-
-        sector_so_by_year_desc[year] = [
-            str(SecurityObjective.objects.get(pk=score["security_objective"]))
-            for score in sector_scores_queryset.order_by(
-                "-score_value", "min_position"
-            )[:top_ranking]
-        ]
+        sector_so_by_year_asc[year] = get_grouped_scores(order="asc")
+        sector_so_by_year_desc[year] = get_grouped_scores(order="desc")
 
     radar_chart_data_by_domain = build_radar_data(company_so_by_domain, "sector_avg")
     radar_chart_data_by_year = build_radar_data(company_so_by_year)
-
     so_data = {
         "years": years_list,
         "domains": [str(domain) for domain in company_so_by_domain.keys()],
