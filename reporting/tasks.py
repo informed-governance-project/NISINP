@@ -83,6 +83,14 @@ def generate_docx_task(data):
                 "year": data["year"],
             },
         },
+        "table_of_evolution_of_the_weakest_security_objectives": {
+            "context": {
+                "table": data["so_data"]["company_so_by_priority"],
+            },
+            "column_proportions": [0.4]
+            + [0.15] * len(data["so_data"]["years"])
+            + [0.15],
+        },
         "maturity_level_legend": {
             "context": {
                 "maturity_levels": get_maturity_level_context(
