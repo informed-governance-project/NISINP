@@ -1191,22 +1191,22 @@ def merge_subdoc_into_placeholder(
     main = Document(main_docx_path)
     sub = Document(subdoc_path)
 
-    for _i, para in enumerate(main.paragraphs):
-        if placeholder in para.text:
-            parent = para._element.getparent()
-            idx = list(parent).index(para._element)
+    _copy_styles(sub, main)
 
-            parent.remove(para._element)
+    paragraphs_to_replace = [
+        para for para in main.paragraphs if placeholder in para.text
+    ]
 
-            _copy_styles(sub, main)
+    for para in paragraphs_to_replace:
+        parent = para._element.getparent()
+        idx = list(parent).index(para._element)
+        parent.remove(para._element)
 
-            for j, block in enumerate(sub.element.body):
-                if block.tag == qn("w:sectPr"):
-                    continue
-                new_block = copy.deepcopy(block)
-
-                parent.insert(idx + j, new_block)
-            break
+        for j, block in enumerate(sub.element.body):
+            if block.tag == qn("w:sectPr"):
+                continue
+            new_block = copy.deepcopy(block)
+            parent.insert(idx + j, new_block)
 
     main.save(output_path)
 
