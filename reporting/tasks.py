@@ -69,7 +69,19 @@ def generate_docx_task(data):
             + [0.1] * len(data["so_data"]["years"])
             + [0.15] * 2,
         },
-        "table_legend": {
+        "table_of_highest_security_objectives_in_the_sector": {
+            "context": {
+                "table": data["so_data"]["sector_so_by_year_desc"][str(data["year"])],
+                "year": data["year"],
+            },
+        },
+        "table_of_lowest_security_objectives_in_the_sector": {
+            "context": {
+                "table": data["so_data"]["sector_so_by_year_asc"][str(data["year"])],
+                "year": data["year"],
+            },
+        },
+        "maturity_level_legend": {
             "context": {
                 "maturity_levels": get_maturity_level_context(
                     data["so_data"]["maturity_levels"]
