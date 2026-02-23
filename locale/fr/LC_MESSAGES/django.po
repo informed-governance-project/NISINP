@@ -4,14 +4,14 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-02-16 11:33+0100\n"
-"PO-Revision-Date: 2026-02-12 15:46+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"PO-Revision-Date: 2026-02-25 08:37+0000\n"
+"Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.14.3\n"
+"X-Generator: Weblate 5.15.2\n"
 
 #: governanceplatform/admin.py:72 governanceplatform/context_processors.py:30
 #: governanceplatform/views.py:98
@@ -629,19 +629,19 @@ msgstr ""
 
 #: governanceplatform/validators.py:45
 msgid "Only HTTPS allowed"
-msgstr ""
+msgstr "Uniquement HTTPS autorisé"
 
 #: governanceplatform/validators.py:48
 msgid "Credentials in URL are not allowed"
-msgstr ""
+msgstr "Informations d'identification dans URL pas autorisées"
 
 #: governanceplatform/validators.py:53
 msgid "Invalid host"
-msgstr ""
+msgstr "Hôte invalide"
 
 #: governanceplatform/validators.py:62
 msgid "Internal addresses are not allowed"
-msgstr ""
+msgstr "Adresses internes ne sont pas autorisées"
 
 #: governanceplatform/views.py:53
 msgid "The account has successfully been saved."
