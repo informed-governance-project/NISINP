@@ -147,6 +147,41 @@ def get_so_data(cleaned_data):
 
         return {key: grouped_scores[key] for key in sliced_keys}
 
+    def convert_data_for_docxtpl(data, ndigits=0):
+        years = years_list
+        converted_data = []
+
+        for label, data_by_year in data.items():
+            scores = []
+            evolutions = []
+            last_avgs = []
+
+            for year_index, year in enumerate(years):
+                year_data = data_by_year.get(year, {})
+                value = round(year_data.get("score") or 0, ndigits)
+                is_last = year_index == len(years) - 1
+                score = {
+                    "value": value,
+                    "color": get_gradient_color(value) if is_last else "#FFFFFF",
+                }
+                evo = year_data.get("evolution")
+                sector_avg = round(year_data.get("sector_avg") or 0, ndigits)
+
+                scores.append(score)
+                evolutions.append(evo)
+                last_avgs.append(sector_avg)
+
+            converted_data.append(
+                {
+                    "label": label,
+                    "years": scores,
+                    "evolution": evolutions,
+                    "last_avg": last_avgs,
+                }
+            )
+
+        return {"years": years, "data": converted_data}
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
@@ -308,9 +343,9 @@ def get_so_data(cleaned_data):
         "max_of_company_count": max(company_counts.values()),
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
         "company_so_by_level": dict(company_so_by_level),
-        "company_so_by_domain": dict(company_so_by_domain),
+        "company_so_by_domain": convert_data_for_docxtpl(company_so_by_domain, 1),
         "company_so_by_year": dict(company_so_by_year),
-        "company_so_by_priority": dict(company_so_by_priority),
+        "company_so_by_priority": convert_data_for_docxtpl(company_so_by_priority),
         "sector_so_by_year_desc": dict(sector_so_by_year_desc),
         "sector_so_by_year_asc": dict(sector_so_by_year_asc),
         "radar_chart_data_by_domain": radar_chart_data_by_domain,
