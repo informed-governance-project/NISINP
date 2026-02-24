@@ -102,6 +102,13 @@ def generate_docx_task(data):
             + [0.15] * len(data["so_data"]["years"])
             + [0.15],
         },
+        "table_of_security_objectives_by_maturity_level": {
+            "context": {
+                "table": data["so_data"]["company_so_by_level"],
+            },
+            "column_proportions": [0.25]
+            * len(data["so_data"]["company_so_by_level"]["headers"]),
+        },
         "maturity_level_legend": {
             "context": {
                 "maturity_levels": get_maturity_level_context(
