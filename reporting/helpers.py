@@ -6,7 +6,7 @@ import textwrap
 import uuid
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
-from itertools import groupby
+from itertools import groupby, zip_longest
 from pathlib import Path
 from statistics import mean
 from typing import List
@@ -257,14 +257,28 @@ def get_so_data(cleaned_data):
         # Dictionaries
 
         # by_level
+        levels_map = {
+            ml.level: f"{ml.level} ({str(ml)})" for ml in maturity_levels_queryset
+        }
         for score_data in sorted_company_queryset.order_by(
             "score_value", "min_position"
         ):
-            level = maturity_levels_queryset.filter(
-                level=int(score_data.score_value)
-            ).first()
+            level = levels_map.get(int(score_data.score_value), "Unknown")
             security_objective = str(score_data.security_objective)
-            company_so_by_level[str(level)].append(security_objective)
+            company_so_by_level[level].append(security_objective)
+
+        headers = list(company_so_by_level.keys())
+        columns = list(company_so_by_level.values())
+
+        rows = [
+            {headers[i]: cell or "" for i, cell in enumerate(row)}
+            for row in zip_longest(*columns, fillvalue="")
+        ]
+
+        company_so_by_level = {
+            "headers": headers,
+            "rows": rows,
+        }
 
         # by_domain
         build_dict_scores(
@@ -345,7 +359,7 @@ def get_so_data(cleaned_data):
         ],
         "max_of_company_count": max(company_counts.values()),
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
-        "company_so_by_level": dict(company_so_by_level),
+        "company_so_by_level": company_so_by_level,
         "company_so_by_domain": convert_data_for_docxtpl(company_so_by_domain, 1),
         "company_so_by_year": convert_data_for_docxtpl(company_so_by_year),
         "company_so_by_priority": convert_data_for_docxtpl(company_so_by_priority),
