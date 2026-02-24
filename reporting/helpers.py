@@ -30,7 +30,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .globals import SECTOR_LEGEND, SO_COLOR_PALETTE
+from .globals import CHARTS_COLOR_PALETTE, SECTOR_LEGEND, SO_COLOR_PALETTE
 from .models import AssetData, LogReporting, RecommendationData, RiskData, ServiceStat
 
 
@@ -1017,8 +1017,12 @@ def create_entry_log(user, reporting, action):
 def generate_bar_chart(data, labels, is_rate=False):
     fig = go.Figure()
     labels = text_wrap(labels)
-    bar_colors_palette = pc.qualitative.Pastel1
-    average_colors_palette = pc.qualitative.Set1
+    bar_colors_palette = [
+        item[0] for item in CHARTS_COLOR_PALETTE
+    ] + pc.qualitative.Set1
+    average_colors_palette = [
+        item[1] for item in CHARTS_COLOR_PALETTE
+    ] + pc.qualitative.Pastel1
     avg_index = 0
     bar_index = 0
 
@@ -1102,8 +1106,12 @@ def generate_bar_chart(data, labels, is_rate=False):
 def generate_radar_chart(data, labels, levels):
     fig = go.Figure()
     labels = text_wrap(labels)
-    line_colors_palette = pc.qualitative.Pastel1
-    marker_colors_palette = pc.qualitative.Set1
+    line_colors_palette = [
+        item[0] for item in CHARTS_COLOR_PALETTE
+    ] + pc.qualitative.Set1
+    marker_colors_palette = [
+        item[1] for item in CHARTS_COLOR_PALETTE
+    ] + pc.qualitative.Pastel1
     index = 0
 
     for name, values in data.items():
