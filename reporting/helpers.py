@@ -330,7 +330,10 @@ def get_so_data(cleaned_data):
         sector_so_by_year_asc[year] = get_grouped_scores(order="asc")
         sector_so_by_year_desc[year] = get_grouped_scores(order="desc")
 
-    radar_chart_data_by_domain = build_radar_data(company_so_by_domain, "sector_avg")
+    radar_chart_data_by_domain_with_sector_avg = build_radar_data(
+        company_so_by_domain, "sector_avg"
+    )
+    radar_chart_data_by_domain = build_radar_data(company_so_by_domain)
     radar_chart_data_by_year = build_radar_data(company_so_by_year)
     so_data = {
         "years": years_list,
@@ -344,11 +347,12 @@ def get_so_data(cleaned_data):
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
         "company_so_by_level": dict(company_so_by_level),
         "company_so_by_domain": convert_data_for_docxtpl(company_so_by_domain, 1),
-        "company_so_by_year": dict(company_so_by_year),
+        "company_so_by_year": convert_data_for_docxtpl(company_so_by_year),
         "company_so_by_priority": convert_data_for_docxtpl(company_so_by_priority),
         "sector_so_by_year_desc": dict(sector_so_by_year_desc),
         "sector_so_by_year_asc": dict(sector_so_by_year_asc),
         "radar_chart_data_by_domain": radar_chart_data_by_domain,
+        "radar_chart_data_by_domain_with_sector_avg": radar_chart_data_by_domain_with_sector_avg,
         "radar_chart_data_by_year": radar_chart_data_by_year,
     }
 
@@ -898,6 +902,11 @@ def get_charts(so_data, risk_data):
             so_data["domains"],
             so_data["maturity_levels"],
         ),
+        "chart_evolution_security_objectives_by_domain_with_sector_avg": generate_radar_chart(
+            so_data["radar_chart_data_by_domain_with_sector_avg"],
+            so_data["domains"],
+            so_data["maturity_levels"],
+        ),
         "chart_evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
@@ -1125,6 +1134,7 @@ def generate_radar_chart(data, labels, levels):
                 tickangle=90,
             ),
             angularaxis=dict(
+                showgrid=False,
                 gridcolor="lightgrey",
                 tickmode="array",
                 linecolor="lightgrey",
