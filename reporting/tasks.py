@@ -18,6 +18,7 @@ from .globals import SO_COLOR_PALETTE
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
+    fix_outer_column_borders,
     get_charts,
     get_risk_data,
     get_so_data,
@@ -57,9 +58,9 @@ def generate_docx_task(data):
         os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
     )
     tmp_dir.mkdir(exist_ok=True)
-    generated_docx_path = Path(tmp_dir / "generated_doc.docx")
+    main_docx_path = Path(tmp_dir / "main_doc.docx")
     template_path = tmp_dir / "template_fr.docx"
-    merged_path = tmp_dir / "merged.docx"
+    tmp_output_path = tmp_dir / "tmp_doc.docx"
     rendered_subs_docs = {}
     document_tables = {
         "table_of_evolution_security_objectives": {
@@ -118,7 +119,9 @@ def generate_docx_task(data):
         },
     }
 
-    doc = DocxTemplate(template_path)
+    main_doc_template = DocxTemplate(template_path)
+    main_doc = Document(template_path)
+
     context = {
         "operator_name": data["company"],
         "sector": data["sector"],
@@ -127,29 +130,29 @@ def generate_docx_task(data):
     }
     for chart_name, chart_data in data["charts"].items():
         chart_bytes = BytesIO(base64.b64decode(chart_data))
-        context[chart_name] = InlineImage(doc, chart_bytes, width=Mm(170))
+        context[chart_name] = InlineImage(main_doc_template, chart_bytes, width=Mm(170))
 
     for table_name, table_info in document_tables.items():
         sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
         sub_rendered_path = tmp_dir / f"{table_name}_rendered.docx"
         context[table_name] = str(table_name)
         table_info["context"]["translations"] = data["translations"]
-        sub = DocxTemplate(sub_template_path)
-        sub.render(table_info["context"])
-        sub.save(sub_rendered_path)
-        if "column_proportions" in table_info:
-            main_doc = Document(template_path)
-            template = Document(sub_rendered_path)
-            for table in template.tables:
+        sub_doc_template = DocxTemplate(sub_template_path)
+        sub_doc_template.render(table_info["context"])
+        sub_doc_template.save(sub_rendered_path)
+        sub_doc = Document(sub_rendered_path)
+        for table in sub_doc.tables:
+            if "column_proportions" in table_info:
                 redistribute_column_widths_proportional(
                     table, table_info["column_proportions"], main_doc
                 )
-            template.save(sub_rendered_path)
+            fix_outer_column_borders(table._element)
+        sub_doc.save(sub_rendered_path)
         rendered_subs_docs[table_name] = sub_rendered_path
 
-    doc.render(context)
-    doc.save(generated_docx_path)
-    current_doc = generated_docx_path
+    main_doc_template.render(context)
+    main_doc_template.save(main_docx_path)
+    current_doc = main_docx_path
 
     for placeholder, sub_rendered_path in rendered_subs_docs.items():
         sub_rendered_path = Path(sub_rendered_path)
@@ -158,14 +161,14 @@ def generate_docx_task(data):
                 main_docx_path=current_doc,
                 subdoc_path=sub_rendered_path,
                 placeholder=placeholder,
-                output_path=merged_path,
+                output_path=tmp_output_path,
             )
-            current_doc = merged_path
+            current_doc = tmp_output_path
         finally:
             if sub_rendered_path.exists():
                 sub_rendered_path.unlink(missing_ok=True)
 
-    generated_docx_path.unlink(missing_ok=True)
+    main_docx_path.unlink(missing_ok=True)
     return str(current_doc)
 
 

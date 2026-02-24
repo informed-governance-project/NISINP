@@ -1446,3 +1446,37 @@ def redistribute_column_widths_proportional(table, proportions, doc):
         for i, gridCol in enumerate(gridCols):
             if i < len(col_widths):
                 gridCol.set(qn("w:w"), str(col_widths[i]))
+
+
+def fix_outer_column_borders(table_element, color: str = "FFFFFF"):
+    for row in table_element.findall(qn("w:tr")):
+        tcs = row.findall(qn("w:tc"))
+        if not tcs:
+            continue
+
+        cells_sides = [
+            (tcs[0], "left"),
+            (tcs[-1], "right"),
+        ]
+
+        for tc, side in cells_sides:
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                tcPr = OxmlElement("w:tcPr")
+                tc.insert(0, tcPr)
+
+            tcBorders = tcPr.find(qn("w:tcBorders"))
+            if tcBorders is None:
+                tcBorders = OxmlElement("w:tcBorders")
+                tcPr.append(tcBorders)
+
+            existing = tcBorders.find(qn(f"w:{side}"))
+            if existing is not None:
+                tcBorders.remove(existing)
+
+            border = OxmlElement(f"w:{side}")
+            border.set(qn("w:val"), "single")
+            border.set(qn("w:sz"), "4")
+            border.set(qn("w:space"), "0")
+            border.set(qn("w:color"), color)
+            tcBorders.append(border)
