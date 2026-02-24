@@ -1270,7 +1270,6 @@ def get_report_translations():
         "sector_scores": _("Sector scores"),
         "operator_scores": _("Operator scores"),
         "objective": _("Objective"),
-        "evaluation": _("Evaluation"),
     }
 
 
