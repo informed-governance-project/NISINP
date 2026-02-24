@@ -62,6 +62,15 @@ def generate_docx_task(data):
     merged_path = tmp_dir / "merged.docx"
     rendered_subs_docs = {}
     document_tables = {
+        "table_of_evolution_security_objectives": {
+            "context": {
+                "table": data["so_data"]["company_so_by_year"],
+                "year": data["year"],
+            },
+            "column_proportions": [0.4]
+            + [0.1] * len(data["so_data"]["years"])
+            + [0.15],
+        },
         "table_of_evolution_security_objectives_by_domain": {
             "context": {
                 "table": data["so_data"]["company_so_by_domain"],
@@ -76,12 +85,14 @@ def generate_docx_task(data):
                 "table": data["so_data"]["sector_so_by_year_desc"][str(data["year"])],
                 "year": data["year"],
             },
+            "column_proportions": [0.05] + [0.65] + [0.15] * 2,
         },
         "table_of_lowest_security_objectives_in_the_sector": {
             "context": {
                 "table": data["so_data"]["sector_so_by_year_asc"][str(data["year"])],
                 "year": data["year"],
             },
+            "column_proportions": [0.05] + [0.65] + [0.15] * 2,
         },
         "table_of_evolution_of_the_weakest_security_objectives": {
             "context": {
