@@ -62,6 +62,20 @@ def generate_docx_task(data):
     template_path = tmp_dir / "template_fr.docx"
     tmp_output_path = tmp_dir / "tmp_doc.docx"
     rendered_subs_docs = {}
+    document_charts = {
+        "chart_average_risk_level": {
+            "width": Mm(140),
+        },
+        "chart_high_risk_rate": {
+            "width": Mm(140),
+        },
+        "chart_average_high_risk_level": {
+            "width": Mm(140),
+        },
+        "chart_evolution_highest_risks": {
+            "width": Mm(140),
+        },
+    }
     document_tables = {
         "table_of_evolution_security_objectives": {
             "context": {
@@ -130,7 +144,10 @@ def generate_docx_task(data):
     }
     for chart_name, chart_data in data["charts"].items():
         chart_bytes = BytesIO(base64.b64decode(chart_data))
-        context[chart_name] = InlineImage(main_doc_template, chart_bytes, width=Mm(170))
+        chart_with = document_charts.get(chart_name, {}).get("width", Mm(170))
+        context[chart_name] = InlineImage(
+            main_doc_template, chart_bytes, width=chart_with
+        )
 
     for table_name, table_info in document_tables.items():
         sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"

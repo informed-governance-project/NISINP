@@ -926,17 +926,17 @@ def get_charts(so_data, risk_data):
             so_data["unique_codes_list"],
             so_data["maturity_levels"],
         ),
-        "risks_1": generate_bar_chart(
+        "chart_average_risk_level": generate_bar_chart(
             risk_data["data_by_risk_average"], risk_data["operator_services_with_all"]
         ),
-        "risks_2": generate_bar_chart(
+        "chart_high_risk_rate": generate_bar_chart(
             risk_data["data_by_high_risk_rate"], risk_data["operator_services"], True
         ),
-        "risks_3": generate_bar_chart(
+        "chart_average_high_risk_level": generate_bar_chart(
             risk_data["data_by_high_risk_average"],
             risk_data["operator_services_with_all"],
         ),
-        "risks_4": generate_bar_chart(
+        "chart_evolution_highest_risks": generate_bar_chart(
             risk_data["data_evolution_highest_risks"],
             risk_data["risks_top_ranking_ids"],
         ),
