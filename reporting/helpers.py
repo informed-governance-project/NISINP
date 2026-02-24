@@ -1239,7 +1239,7 @@ def merge_subdoc_into_placeholder(
     _copy_styles(sub, main)
 
     paragraphs_to_replace = [
-        para for para in main.paragraphs if placeholder in para.text
+        para for para in main.paragraphs if para.text.strip() == placeholder
     ]
 
     for para in paragraphs_to_replace:
