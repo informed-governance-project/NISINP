@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # running as www-data, we need homedir and PATH for --user installed pip modules
 RUN mkdir -p /app /var/www && chown www-data: /app /var/www
 ENV PATH="${PATH}:/var/www/.local/bin"
+ENV HOME=/var/www
 USER www-data
 
 # because package.json scripts.postinstall tries to be smart
