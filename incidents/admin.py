@@ -10,10 +10,12 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
+from markdown import markdown
 from parler.models import TranslatableModel
 
 from governanceplatform.admin import (
@@ -24,6 +26,7 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
+    sanitize_html,
     set_creator,
     translated_queryset,
     user_in_group,
@@ -132,6 +135,23 @@ class LogEntryAdmin(admin.ModelAdmin):
         "user",
         "content_type",
         "_action_flag",
+    ]
+
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": [
+                    "user",
+                    "action_time",
+                    "content_type",
+                    "object_id",
+                    "object_repr",
+                    "_action_flag",
+                    "change_message",
+                ],
+            },
+        ),
     ]
 
     def has_add_permission(self, request):
@@ -460,15 +480,26 @@ class QuestionAdmin(
         "creator__translations__name",
         "predefinedanswer__translations__predefined_answer",
     ]
-    resource_class = QuestionResource
     fields = [
         "question_type",
         "reference",
         "label",
         "tooltip",
     ]
+    resource_class = QuestionResource
     inlines = [PredefinedAnswerInline]
     list_filter = [QuestionTypeListFilter]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj:
+            return fields + ["creator"]
+        return fields
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -730,10 +761,48 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "subject",
         "content",
     ]
+
     search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
-    fields = ("name", "subject", "content")
     resource_class = EmailResource
+
+    readonly_fields = ("html_preview",)
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("name", "subject"),
+            },
+        ),
+        (
+            _("Content"),
+            {
+                "fields": ("content", "html_preview"),
+            },
+        ),
+    )
+
+    @admin.display(description=_("HTML preview"))
+    def html_preview(self, obj):
+        if not obj or not obj.content:
+            return _("No preview yet")
+        html_content = markdown(
+            text=obj.content,
+            extensions=["extra", "sane_lists", "legacy_attrs", "nl2br"],
+            output_format="html",
+        )
+        html_content = sanitize_html(html_content)
+        return mark_safe(
+            f"""
+            <div class="markdown-html-preview">
+                {html_content}
+            </div>
+            """
+        )
+
+    class Media:
+        css = {"all": ("admin/css/markdown_preview.css",)}
 
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
@@ -758,7 +827,7 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     ]
     inlines = (QuestionOptionsInline,)
     save_as = True
-    exclude = ["creator_name", "creator"]
+    exclude = ["creator_name"]
     fieldsets = [
         (
             _("General"),
@@ -777,6 +846,24 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
             },
         ),
     ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("creator",)
+        return ()
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = list(super().get_fieldsets(request, obj))
+
+        title, opts = fieldsets[0]
+        opts = opts.copy()
+        opts["fields"] = list(opts["fields"])
+
+        if obj:
+            opts["fields"].append("creator")
+
+        fieldsets[0] = (title, opts)
+        return fieldsets
 
     # give the parent object to the inlines
     def get_inline_instances(self, request, obj=None):

@@ -5,7 +5,7 @@ from captcha.fields import CaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import PasswordResetForm, UserChangeForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
@@ -94,7 +94,7 @@ class CustomUserChangeForm(UserChangeForm):
 
 class SelectCompany(forms.Form):
     select_company = forms.ModelChoiceField(
-        queryset=None, required=False, label="Company"
+        queryset=None, required=True, label="Company"
     )
 
     def __init__(self, *args, **kwargs):
@@ -102,6 +102,48 @@ class SelectCompany(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields["select_company"].queryset = companies.order_by("name")
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    captcha = CaptchaField()
+    email = forms.EmailField(
+        label=_("Email"),
+        max_length=254,
+        required=True,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+
+    honeypot_name = ""
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+        if self.request:
+            # get the name of the field
+            name = self.request.session.get("honeypot_field_name")
+
+            # if there is no name create a new one
+            if not name:
+                name = f"field_{secrets.token_hex(4)}"
+                self.request.session["honeypot_field_name"] = name
+
+            self.honeypot_name = name
+
+            self.fields[name] = forms.CharField(
+                required=False,
+                widget=forms.TextInput(),
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        value = cleaned_data.get(self.honeypot_name)
+
+        if value:
+            raise forms.ValidationError("Invalid submission.")
+
+        return cleaned_data
 
 
 class RegistrationForm(forms.ModelForm):
@@ -233,9 +275,9 @@ class CustomTranslatableAdminForm(TranslatableModelForm):
         )
 
         if duplicate_translations.exists():
-            error_message = _(
-                f"This {self.instance._meta.verbose_name.lower()} already exists."
-            )
+            error_message = _("This %(model)s already exists.") % {
+                "model": self.instance._meta.verbose_name.lower()
+            }
             self.add_error(
                 None,
                 ValidationError(error_message),

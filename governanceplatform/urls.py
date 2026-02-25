@@ -23,6 +23,7 @@ from two_factor.views import LoginView
 
 from governanceplatform import views
 from governanceplatform.admin import admin_site
+from governanceplatform.forms import CustomPasswordResetForm
 from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
 
 handler404 = "governanceplatform.views.custom_404_view"
@@ -38,6 +39,13 @@ urlpatterns = [
         "account/reset/<uidb64>/<token>/",
         views.CustomPasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
+    ),
+    path(
+        "account/password_reset/",
+        views.CustomPasswordResetView.as_view(
+            form_class=CustomPasswordResetForm,
+        ),
+        name="password_reset",
     ),
     path("account/", include("django.contrib.auth.urls")),
     path("", include(tf_urls)),

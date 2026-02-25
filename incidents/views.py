@@ -13,7 +13,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
-from django.db.models import OuterRef, Q, Subquery
+from django.db.models import CharField, F, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -27,6 +28,7 @@ from formtools.wizard.views import SessionWizardView
 from openpyxl import Workbook
 
 from governanceplatform.helpers import (
+    annotate_translated_field_from_related_models,
     can_access_incident,
     can_create_incident_report,
     can_edit_incident_report,
@@ -34,12 +36,12 @@ from governanceplatform.helpers import (
     is_observer_user,
     is_user_operator,
     is_user_regulator,
+    render_to_string_multi_languages,
+    sort_queryset_by_field,
     user_in_group,
 )
 from governanceplatform.models import (
-    CompanyUser,
     Regulation,
-    RegulatorUser,
     Sector,
     User,
 )
@@ -51,10 +53,15 @@ from governanceplatform.settings import (
 )
 
 from .decorators import check_user_is_correct, regulator_role_required
-from .email import render_to_string_multi_languages, send_email, send_html_email
+from .email import send_email, send_html_email
 from .filters import IncidentFilter
 from .forms import ContactForm, ExportIncidentsForm, IncidentStatusForm, get_forms_list
-from .globals import REGIONAL_AREA, REPORT_STATUS_MAP, WORKFLOW_REVIEW_STATUS
+from .globals import (
+    ALLOWED_SORT_FIELDS,
+    REGIONAL_AREA,
+    REPORT_STATUS_MAP,
+    WORKFLOW_REVIEW_STATUS,
+)
 from .helpers import get_workflow_categories, is_deadline_exceeded
 from .models import (
     Answer,
@@ -78,12 +85,13 @@ from .pdf_generation import get_pdf_report
 def get_incidents(request):
     """Returns the list of incidents depending on the account type."""
     user = request.user
-    incidents = Incident.objects.filter(sector_regulation__isnull=False).order_by(
-        "-incident_notification_date"
-    )
+    incidents = Incident.objects.filter(sector_regulation__isnull=False)
     html_view = "operator/incidents.html"
-
     search_value = request.GET.get("search", None)
+
+    if "reset_sort" in request.GET:
+        request.session.pop("incidents_sort_params", None)
+        return redirect("incidents")
 
     if "reset" in request.GET or search_value == "":
         request.session.pop("incidents_filter_params", None)
@@ -91,12 +99,21 @@ def get_incidents(request):
 
     # Save filter params in user's session
     current_params = request.session.get("incidents_filter_params", {}).copy()
+    current_sort_params = request.session.get("incidents_sort_params", {}).copy()
 
     for key, values in request.GET.lists():
+        if key in ["sort_field", "sort_direction"]:
+            continue
         current_params[key] = values if key == "affected_sectors" else values[0]
 
+    for key, value in request.GET.items():
+        if key in ("sort_field", "sort_direction"):
+            current_sort_params[key] = value
+
     incidents_filter_params = current_params
+    incidents_sort_params = current_sort_params
     request.session["incidents_filter_params"] = incidents_filter_params
+    request.session["incidents_sort_params"] = incidents_sort_params
 
     if is_user_regulator(user):
         html_view = "regulator/incidents.html"
@@ -120,19 +137,61 @@ def get_incidents(request):
             )
     elif is_observer_user(user):
         html_view = "observer/incidents.html"
-        incidents = (
-            user.observers.first()
-            .get_incidents()
-            .order_by("-incident_notification_date")
-        )
-        f = IncidentFilter(incidents_filter_params, queryset=incidents.order_by("id"))
+        incidents = user.observers.first().get_incidents()
     elif is_user_operator(user):
         # OperatorAdmin/User can see all the reports of the selected company.
         incidents = incidents.filter(company__id=request.session.get("company_in_use"))
-        f = IncidentFilter(incidents_filter_params, queryset=incidents)
     else:
         # IncidentUser can see only their reports.
         incidents = incidents.filter(contact_user=user)
+
+    # Apply sorting
+    sort_field = incidents_sort_params.get("sort_field", "last_update")
+    sort_direction = incidents_sort_params.get("sort_direction", "desc")
+
+    if sort_field == "company_name":
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
+        incidents = annotate_translated_field_from_related_models(
+            incidents,
+            full_path="regulator__translations__full_name",
+            annotated_name="__regulator_name",
+        )
+        incidents = incidents.annotate(
+            **{
+                annotated_name: Coalesce(
+                    F("company__name"),
+                    F("__regulator_name"),
+                    F("company_name"),
+                    output_field=CharField(),
+                )
+            }
+        )
+
+    if sort_field == "company_identifier":
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
+        incidents = annotate_translated_field_from_related_models(
+            incidents,
+            full_path="regulator__translations__name",
+            annotated_name="__regulator_identifier",
+        )
+        incidents = incidents.annotate(
+            **{
+                annotated_name: Coalesce(
+                    F("company__identifier"),
+                    F("__regulator_identifier"),
+                    Value(""),
+                    output_field=CharField(),
+                )
+            }
+        )
+
+    incidents = sort_queryset_by_field(
+        incidents,
+        sort_field,
+        sort_direction,
+        "incident_last_update",
+        ALLOWED_SORT_FIELDS,
+    )
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
     incident_list = f.qs
@@ -219,7 +278,7 @@ def get_incidents(request):
     is_filtered = {
         k: v
         for k, v in incidents_filter_params.items()
-        if k not in ["page", "per_page"]
+        if k not in ["page", "per_page", "sort_field", "sort_direction"]
     }
 
     return render(
@@ -228,6 +287,8 @@ def get_incidents(request):
         context={
             "site_name": SITE_NAME,
             "filter": f,
+            "sort_field": sort_field,
+            "sort_direction": sort_direction,
             "incidents": page_obj,
             "is_filtered": bool(is_filtered),
             "is_regulator_incidents": request.session.get(
@@ -604,6 +665,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
 @login_required
 @otp_required
 @check_user_is_correct
+@require_http_methods(["POST"])
 def delete_incident(request, incident_id: int):
     user = request.user
     company_id = request.session.get("company_in_use")
@@ -1230,7 +1292,7 @@ class FormWizardView(SessionWizardView):
                         incident_notification_date__year=date.today().year
                     ).count()
                     if company
-                    else 0
+                    else 1
                 )
                 if self.is_regulator_incident:
                     incidents_per_company = (
@@ -1238,7 +1300,7 @@ class FormWizardView(SessionWizardView):
                             incident_notification_date__year=date.today().year
                         ).count()
                         if regulator
-                        else 0
+                        else 1
                     )
 
                 number_of_incident = f"{incidents_per_company:04}"
@@ -1738,22 +1800,18 @@ def convert_to_utc(date, local_tz):
 
 
 def create_entry_log(user, incident, incident_report, action, request=None):
-    role = _("User")
+    role = user.groups.first().name if user.groups.exists() else ""
     entity_name = ""
 
     if is_user_operator(user) and request:
         active_company = get_active_company_from_session(request)
-        cu = CompanyUser.objects.filter(user=user, company=active_company).first()
-        if cu and cu.is_company_administrator:
-            role = _("Administrator")
-        entity_name = active_company.name
-
+        entity_name = active_company.name if active_company else ""
     elif is_user_regulator(user):
         regulator = user.regulators.first()
-        ru = RegulatorUser.objects.filter(user=user, regulator=regulator).first()
-        if ru and ru.is_regulator_administrator:
-            role = _("Administrator")
-        entity_name = regulator.name
+        entity_name = regulator.name if regulator else ""
+    elif is_observer_user(user):
+        observer = user.observers.first()
+        entity_name = observer.name if observer else ""
 
     log = LogReportRead.objects.create(
         user=user,

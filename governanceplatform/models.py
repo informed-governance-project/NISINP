@@ -4,8 +4,9 @@ from cryptography.fernet import Fernet
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
-from django.db.models import Deferrable
+from django.db.models import Deferrable, Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from parler.models import TranslatableModel, TranslatedFields
@@ -17,6 +18,7 @@ from incidents.models import Incident
 from .globals import ACTION_FLAG_CHOICES, get_functionality_choices
 from .managers import CustomUserManager
 from .settings import RT_SECRET_KEY
+from .validators import validate_rt_url
 
 
 class ApplicationConfig(models.Model):
@@ -285,6 +287,10 @@ class Observer(TranslatableModel):
         null=True,
         help_text="e.g., https://rt.exemple.com",
         verbose_name=_("URL"),
+        validators=[
+            URLValidator(),
+            validate_rt_url,
+        ],
     )
     _rt_token = models.CharField(
         db_column="rt_token",
@@ -325,54 +331,88 @@ class Observer(TranslatableModel):
     )
 
     def get_incidents(self):
+        base_qs = Incident.objects.exclude(sector_regulation__isnull=True)
+
         if self.is_receiving_all_incident:
-            return (
-                Incident.objects.all()
-                .order_by("-incident_notification_date")
-                .exclude(sector_regulation__isnull=True)
-            )
+            return base_qs
 
         observer_regulations = self.observerregulation_set.all()
-
         if not observer_regulations:
             return Incident.objects.none()
 
-        querysets = []
+        final_q = Q()
+
         for observer_regulation in observer_regulations:
-            filter_conditions = observer_regulation.incident_rule
             regulation = observer_regulation.regulation
-            query = Incident.objects.filter(
-                sector_regulation__regulation=regulation
-            ).exclude(sector_regulation__isnull=True)
+            filter_conditions = observer_regulation.incident_rule
             conditions = filter_conditions.get("conditions", [])
+
+            regulation_q = Q(sector_regulation__regulation=regulation)
+
             if conditions:
                 for condition in conditions:
-                    include_entity_categories = condition.get("include", [])
-                    exclude_entity_categories = condition.get("exclude", [])
-                    query_filtered = query
-                    if include_entity_categories:
-                        for entity_category_code in include_entity_categories:
-                            query_filtered = query_filtered.filter(
-                                company__entity_categories__code=entity_category_code
-                            )
+                    condition_q = Q()
 
-                    if exclude_entity_categories:
-                        for entity_category_code in exclude_entity_categories:
-                            query_filtered = query_filtered.exclude(
-                                company__entity_categories__code=entity_category_code
-                            )
-                    querysets.append(query_filtered)
+                    for code in condition.get("include", []):
+                        condition_q &= Q(company__entity_categories__code=code)
+
+                    for code in condition.get("exclude", []):
+                        condition_q &= ~Q(company__entity_categories__code=code)
+
+                    final_q |= regulation_q & condition_q
             else:
-                querysets.append(query)
+                final_q |= regulation_q
 
-        if querysets:
-            combined_queryset = querysets[0]
-            for qs in querysets[1:]:
-                combined_queryset = combined_queryset.union(qs)
-        else:
-            combined_queryset = Incident.objects.none()
+        return base_qs.filter(final_q).distinct()
 
-        return combined_queryset
+    # def get_incidents(self):
+    #     if self.is_receiving_all_incident:
+    #         return (
+    #             Incident.objects.all()
+    #             .exclude(sector_regulation__isnull=True)
+    #         )
+
+    #     observer_regulations = self.observerregulation_set.all()
+
+    #     if not observer_regulations:
+    #         return Incident.objects.none()
+
+    #     querysets = []
+    #     for observer_regulation in observer_regulations:
+    #         filter_conditions = observer_regulation.incident_rule
+    #         regulation = observer_regulation.regulation
+    #         query = Incident.objects.filter(
+    #             sector_regulation__regulation=regulation
+    #         ).exclude(sector_regulation__isnull=True)
+    #         conditions = filter_conditions.get("conditions", [])
+    #         if conditions:
+    #             for condition in conditions:
+    #                 include_entity_categories = condition.get("include", [])
+    #                 exclude_entity_categories = condition.get("exclude", [])
+    #                 query_filtered = query
+    #                 if include_entity_categories:
+    #                     for entity_category_code in include_entity_categories:
+    #                         query_filtered = query_filtered.filter(
+    #                             company__entity_categories__code=entity_category_code
+    #                         )
+
+    #                 if exclude_entity_categories:
+    #                     for entity_category_code in exclude_entity_categories:
+    #                         query_filtered = query_filtered.exclude(
+    #                             company__entity_categories__code=entity_category_code
+    #                         )
+    #                 querysets.append(query_filtered)
+    #         else:
+    #             querysets.append(query)
+
+    #     if querysets:
+    #         combined_queryset = querysets[0]
+    #         for qs in querysets[1:]:
+    #             combined_queryset = combined_queryset.union(qs)
+    #     else:
+    #         combined_queryset = Incident.objects.none()
+
+    #     return combined_queryset
 
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
@@ -445,28 +485,32 @@ class User(AbstractUser, PermissionsMixin):
 
     @admin.display(description=_("Companies"))
     def get_companies(self):
-        return [company.name for company in self.companies.all().distinct()]
+        return ", ".join([company.name for company in self.companies.all().distinct()])
 
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, op_admin):
         companies = (
             self.companies.all().distinct() & op_admin.companies.all().distinct()
         )
-        return [company.name for company in companies.all().distinct()]
+        return ", ".join([company.name for company in companies.all().distinct()])
 
-    @admin.display(description=_("Regulators"))
+    @admin.display(description=_("Regulator"))
     def get_regulators(self):
-        return [
-            regulator.safe_translation_getter("name", any_language=True)
-            for regulator in self.regulators.all()
-        ]
+        return ", ".join(
+            [
+                regulator.safe_translation_getter("name", any_language=True)
+                for regulator in self.regulators.all()
+            ]
+        )
 
-    @admin.display(description=_("Observers"))
+    @admin.display(description=_("Observer"))
     def get_observers(self):
-        return [
-            observer.safe_translation_getter("name", any_language=True)
-            for observer in self.observers.all()
-        ]
+        return ", ".join(
+            [
+                observer.safe_translation_getter("name", any_language=True)
+                for observer in self.observers.all()
+            ]
+        )
 
     @admin.display(description=_("Roles"))
     def get_permissions_groups(self):

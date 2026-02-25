@@ -68,3 +68,22 @@ def settings_value(name):
 @register.filter
 def range_list(value):
     return range(1, int(value) + 1)
+
+
+@register.filter
+def splitlines(value):
+    if not value:
+        return []
+    return value.splitlines()
+
+
+@register.simple_tag(takes_context=True)
+def display_role(context, log):
+    is_regulator = context.get("is_regulator", False)
+    is_observer = context.get("is_observer", False)
+    if is_regulator or is_observer:
+        return log.role
+
+    if "User" in log.role:
+        return _("User")
+    return _("Administrator")

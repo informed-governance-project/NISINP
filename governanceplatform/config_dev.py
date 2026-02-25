@@ -1,3 +1,5 @@
+# This configuration is for illustrative purposes only.
+# Please do not use it as is in production.
 import os
 
 from django.utils.translation import gettext_lazy as _
@@ -187,9 +189,20 @@ SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = False  # redirect HTTP to HTTPS
 SESSION_COOKIE_SECURE = False  # Cookies are sent via HTTPS
 CSRF_COOKIE_SECURE = False  # Secure CSRF via HTTPS
+LANGUAGE_COOKIE_SECURE = False  # Secure language cookie via HTTPS
 SECURE_PROXY_SSL_HEADER = (
     None  # SSL proxy used e.g: ("HTTP_X_FORWARDED_PROTO", "https")
 )
+
+# Cookies configuration for HTTPONLY
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+LANGUAGE_COOKIE_HTTPONLY = True
+
+# samesite configuration for cookies
+SESSION_COOKIE_SAMESITE = "Strict"
+CSRF_COOKIE_SAMESITE = "Strict"
+LANGUAGE_COOKIE_SAMESITE = "Strict"
 
 # password reset link timeout
 PASSWORD_RESET_TIMEOUT = 1800
@@ -207,3 +220,12 @@ EMAIL_FOR_CONTACT = REGULATOR_CONTACT["contact_email"]
 EMAIL_CONTACT_FROM = "test@mail.localhost"
 # Captcha settings
 CAPTCHA_FONT_SIZE = 30
+
+# Clickjacking
+X_FRAME_OPTIONS = "DENY"
+
+# MIME sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True  # => X-Content-Type-Options: nosniff
+
+# Referrer Policy
+REFERRER_POLICY = "strict-origin-when-cross-origin"

@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 
+DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
-    from governanceplatform import config  # type: ignore
-except ImportError:  # pragma: no cover
-    from governanceplatform import config_dev as config
+    import governanceplatform.config as config  # type: ignore
+except ModuleNotFoundError as exc:  # pragma: no cover
+    if DJANGO_CI:
+        import governanceplatform.config_dev as config  # type: ignore
+    else:
+        raise ImportError("The configuration file cannot be found") from exc
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +48,24 @@ try:
     EMAIL_PORT = config.EMAIL_PORT
     EMAIL_SENDER = config.EMAIL_SENDER
     DEFAULT_FROM_EMAIL = config.EMAIL_SENDER
+
+    # Optional SMTP authentication information for EMAIL_HOST.
+    try:
+        EMAIL_HOST_USER = config.EMAIL_HOST_USER
+        EMAIL_HOST_PASSWORD = config.EMAIL_HOST_PASSWORD
+        EMAIL_USE_TLS = config.EMAIL_USE_TLS
+        EMAIL_USE_SSL = config.EMAIL_USE_SSL
+        EMAIL_SSL_CERTFILE = config.EMAIL_SSL_CERTFILE
+        EMAIL_SSL_KEYFILE = config.EMAIL_SSL_KEYFILE
+        EMAIL_TIMEOUT = config.EMAIL_TIMEOUT
+    except AttributeError:
+        EMAIL_HOST_USER = ""
+        EMAIL_HOST_PASSWORD = ""
+        EMAIL_USE_TLS = False
+        EMAIL_USE_SSL = False
+        EMAIL_SSL_CERTFILE = None
+        EMAIL_SSL_KEYFILE = None
+        EMAIL_TIMEOUT = None
 
     API_ENABLED = config.API_ENABLED
 
@@ -255,6 +277,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 12,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -455,6 +480,45 @@ try:
     CSRF_COOKIE_SECURE = config.CSRF_COOKIE_SECURE
 except AttributeError:
     CSRF_COOKIE_SECURE = False
+# Secure Cookie language via HTTPS
+try:
+    LANGUAGE_COOKIE_SECURE = config.LANGUAGE_COOKIE_SECURE
+except AttributeError:
+    LANGUAGE_COOKIE_SECURE = False
+
+# Secure cookie session
+try:
+    SESSION_COOKIE_HTTPONLY = config.SESSION_COOKIE_HTTPONLY
+except AttributeError:
+    SESSION_COOKIE_HTTPONLY = False
+
+# Secure CSRF cookie
+try:
+    CSRF_COOKIE_HTTPONLY = config.CSRF_COOKIE_HTTPONLY
+except AttributeError:
+    CSRF_COOKIE_HTTPONLY = False
+
+# Secure Language cookie
+try:
+    LANGUAGE_COOKIE_HTTPONLY = config.LANGUAGE_COOKIE_HTTPONLY
+except AttributeError:
+    LANGUAGE_COOKIE_HTTPONLY = False
+
+# Samesite attribute for cookies
+try:
+    SESSION_COOKIE_SAMESITE = config.SESSION_COOKIE_SAMESITE
+except AttributeError:
+    SESSION_COOKIE_SAMESITE = "Lax"
+
+try:
+    CSRF_COOKIE_SAMESITE = config.CSRF_COOKIE_SAMESITE
+except AttributeError:
+    CSRF_COOKIE_SAMESITE = "Lax"
+
+try:
+    LANGUAGE_COOKIE_SAMESITE = config.LANGUAGE_COOKIE_SAMESITE
+except AttributeError:
+    LANGUAGE_COOKIE_SAMESITE = "Lax"
 
 # SSL proxy config
 try:
@@ -520,26 +584,142 @@ try:
 except AttributeError:
     DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = 90
 
-# variable visible in admin
+# variable unvisible in admin
 try:
-    ADMIN_VISIBLE_VARIABLES = config.ADMIN_VISIBLE_VARIABLES
+    ADMIN_UNVISIBLE_VARIABLES = config.ADMIN_UNVISIBLE_VARIABLES
 except AttributeError:
-    ADMIN_VISIBLE_VARIABLES = [
-        "COOKIEBANNER",
-        "COUNTRIES_FIRST",
-        "DEBUG",
-        "EMAIL_FOR_CONTACT",
-        "EMAIL_CONTACT_FROM",
-        "LANGUAGES",
-        "LOG_RETENTION_TIME_IN_DAY",
-        "INCIDENT_RETENTION_TIME_IN_DAY",
-        "TERMS_ACCEPTANCE_TIME_IN_DAYS",
-        "MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER",
-        "PARLER_LANGUAGES",
-        "PARLER_DEFAULT_LANGUAGE_CODE",
-        "PASSWORD_RESET_TIMEOUT",
-        "REGULATOR_CONTACT",
-        "TERMS_ACCEPTANCE_TIME_IN_DAYS",
-        "TIME_ZONE",
-        "DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT",
+    ADMIN_UNVISIBLE_VARIABLES = [
+        "ABSOLUTE_URL_OVERRIDES",
+        "ADMINS",
+        "APPEND_SLASH",
+        "AUTHENTICATION_BACKENDS",
+        "AUTH_PASSWORD_VALIDATORS",
+        "AUTH_USER_MODEL",
+        "BASE_DIR",
+        "BOOTSTRAP5",
+        "CACHES",
+        "CACHE_MIDDLEWARE_ALIAS",
+        "CACHE_MIDDLEWARE_KEY_PREFIX",
+        "CACHE_MIDDLEWARE_SECONDS",
+        "CSRF_COOKIE_DOMAIN",
+        "CSRF_FAILURE_VIEW",
+        "CSRF_TRUSTED_ORIGINS",
+        "DATABASES",
+        "DATABASE_ROUTERS",
+        "DATA_UPLOAD_MAX_MEMORY_SIZE",
+        "DATA_UPLOAD_MAX_NUMBER_FIELDS",
+        "DATA_UPLOAD_MAX_NUMBER_FILES",
+        "DEBUG_PROPAGATE_EXCEPTIONS",
+        "DEBUG_TOOLBAR_CONFIG",
+        "DEFAULT_EXCEPTION_REPORTER",
+        "DEFAULT_EXCEPTION_REPORTER_FILTER",
+        "DEFAULT_FROM_EMAIL",
+        "DEFAULT_INDEX_TABLESPACE",
+        "DEFAULT_TABLESPACE",
+        "DISALLOWED_USER_AGENTS",
+        "DJANGO_CI",
+        "EMAIL_BACKEND",
+        "EMAIL_FILE_PATH",
+        "EMAIL_HOST_PASSWORD",
+        "EMAIL_HOST_USER",
+        "EMAIL_SSL_CERTFILE",
+        "EMAIL_SSL_KEYFILE",
+        "EMAIL_SUBJECT_PREFIX",
+        "EMAIL_TIMEOUT",
+        "EMAIL_USE_LOCALTIME",
+        "FILE_UPLOAD_DIRECTORY_PERMISSIONS",
+        "FILE_UPLOAD_HANDLERS",
+        "FILE_UPLOAD_MAX_MEMORY_SIZE",
+        "FILE_UPLOAD_PERMISSIONS",
+        "FILE_UPLOAD_TEMP_DIR",
+        "FIXTURE_DIRS",
+        "FORCE_SCRIPT_NAME",
+        "FORMAT_MODULE_PATH",
+        "FORMS_URLFIELD_ASSUME_HTTPS",
+        "FORM_RENDERER",
+        "GRAPH_MODELS",
+        "HASH_KEY",
+        "IGNORABLE_404_URLS",
+        "IMPORT_EXPORT_ESCAPE_FORMULAE_ON_EXPORT",
+        "IMPORT_EXPORT_ESCAPE_HTML_ON_EXPORT",
+        "IMPORT_EXPORT_EXPORT_PERMISSION_CODE",
+        "IMPORT_EXPORT_IMPORT_PERMISSION_CODE",
+        "INTERNAL_IPS",
+        "LANGUAGES_BIDI",
+        "LANGUAGE_COOKIE_DOMAIN",
+        "LOCALE_PATHS",
+        "LOGGING_CONFIG",
+        "LOGIN_REDIRECT_URL",
+        "LOGIN_URL",
+        "LOGOUT_REDIRECT_URL",
+        "MANAGERS",
+        "MEDIA_ROOT",
+        "MEDIA_URL",
+        "MESSAGE_STORAGE",
+        "MIDDLEWARE",
+        "MIGRATION_MODULES",
+        "NUMBER_GROUPING",
+        "PASSWORD_HASHERS",
+        "PREPEND_WWW",
+        "PROJECT_ROOT",
+        "REFERRER_POLICY",
+        "REST_FRAMEWORK",
+        "ROOT_URLCONF",
+        "RT_SECRET_KEY",
+        "SECRET_KEY",
+        "SECRET_KEY_FALLBACKS",
+        "SECURE_CROSS_ORIGIN_OPENER_POLICY",
+        "SECURE_SSL_HOST",
+        "SECURE_SSL_REDIRECT",
+        "SERVER_EMAIL",
+        "SESSION_CACHE_ALIAS",
+        "SESSION_COOKIE_DOMAIN",
+        "SESSION_ENGINE",
+        "SESSION_EXPIRE_AT_BROWSER_CLOSE",
+        "SESSION_FILE_PATH",
+        "SESSION_SAVE_EVERY_REQUEST",
+        "SESSION_SERIALIZER",
+        "SETTINGS_MODULE",
+        "SHORT_DATETIME_FORMAT",
+        "SHORT_DATE_FORMAT",
+        "SIGNING_BACKEND",
+        "SILENCED_SYSTEM_CHECKS",
+        "SITE_ID",
+        "SPECTACULAR_SETTINGS",
+        "STATICFILES_DIRS",
+        "STATICFILES_FINDERS",
+        "STATIC_DIR",
+        "STATIC_ROOT",
+        "STATIC_THEME_DIR",
+        "STATIC_URL",
+        "STORAGES",
+        "TEMPLATES",
+        "TEST_NON_SERIALIZED_APPS",
+        "TEST_RUNNER",
+        "THOUSAND_SEPARATOR",
+        "TIME_FORMAT",
+        "TIME_INPUT_FORMATS",
+        "USE_THOUSAND_SEPARATOR",
+        "USE_X_FORWARDED_HOST",
+        "USE_X_FORWARDED_PORT",
+        "WSGI_APPLICATION",
+        "X_FRAME_OPTIONS",
     ]
+
+# Clickjacking
+try:
+    X_FRAME_OPTIONS = config.X_FRAME_OPTIONS
+except AttributeError:
+    X_FRAME_OPTIONS = "DENY"
+
+# MIME sniffing
+try:
+    SECURE_CONTENT_TYPE_NOSNIFF = config.SECURE_CONTENT_TYPE_NOSNIFF
+except AttributeError:
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # => X-Content-Type-Options: nosniff
+
+# Referrer Policy
+try:
+    REFERRER_POLICY = config.REFERRER_POLICY
+except AttributeError:
+    REFERRER_POLICY = "strict-origin-when-cross-origin"

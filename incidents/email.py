@@ -6,11 +6,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
-from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils import timezone, translation
+from django.utils import timezone
 
+from governanceplatform.helpers import render_to_string_multi_languages
 from governanceplatform.models import Observer, RegulatorUser
+from governanceplatform.validators import validate_rt_url
 from incidents.globals import INCIDENT_EMAIL_VARIABLES
 
 from .models import RTTicket
@@ -156,8 +157,9 @@ def send_email(email, incident, send_to_observers=False):
             "technical_contact_firstname": incident.technical_firstname,
             "technical_contact_lastname": incident.technical_lastname,
         },
+        replace_email_variables,
         content=email,
-        incident=incident,
+        object=incident,
     )
     recipient_list = get_recipient_list(incident)
 
@@ -192,6 +194,12 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
         incident=incident, observer=recipient
     ).exists()
     base_url = recipient.rt_url.rstrip("/")
+    try:
+        validate_rt_url(base_url)
+    except ValidationError:
+        logger.error(f"Blocked unsafe RT URL: {base_url}")
+        return None
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -259,48 +267,3 @@ def check_rt_config(observer):
     except requests.RequestException as e:
         logger.error(f"Error connecting to RT API: {e}")
         return False
-
-
-def render_to_string_multi_languages(
-    template_name, context, content=None, incident=None
-):
-    """
-    Render a template in multiple languages.
-    - 'content' and 'incident' are ONLY used to replace variables
-        in the content context in send_email() function.
-    """
-    parts = []
-
-    with translation.override(settings.LANGUAGE_CODE):
-        if content and incident:
-            context["content"] = replace_email_variables(
-                content.safe_translation_getter(
-                    "content", language_code=settings.LANGUAGE_CODE
-                ),
-                incident,
-            )
-        baseline = render_to_string(template_name, context)
-
-    for lang_code, lang_name in settings.LANGUAGES:
-        with translation.override(lang_code):
-            if content and incident:
-                context["content"] = replace_email_variables(
-                    content.safe_translation_getter("content", language_code=lang_code),
-                    incident,
-                )
-
-            rendered = render_to_string(template_name, context)
-
-            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
-                continue
-
-            parts.append(
-                f"""
-                <h3>{translation.gettext(lang_name)} ({lang_code})</h3>
-                {rendered}
-                """.strip()
-            )
-    if not parts:
-        return baseline
-
-    return "<hr>".join(parts)

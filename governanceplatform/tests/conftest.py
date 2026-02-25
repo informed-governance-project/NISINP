@@ -6,6 +6,7 @@ from django.utils.translation import activate
 from conftest import import_from_json
 from governanceplatform.models import (
     Company,
+    CompanyUser,
     EntityCategory,
     Functionality,
     Observer,
@@ -95,4 +96,7 @@ def link_entity_user(raw_data, created_users):
                     if "identifier" in c:
                         company_db = Company.objects.get(identifier=c["identifier"])
                         user_db.companies.add(company_db)
-                user_db.save()
+                        user_db.save()
+                        cu = CompanyUser.objects.get(user=user_db, company=company_db)
+                        cu.approved = c["approved"] if "approved" in c else True
+                        cu.save()

@@ -1,14 +1,20 @@
 import secrets
 from typing import Any, Optional
 
+import bleach
+from bleach.css_sanitizer import CSSSanitizer
+from django.conf import settings
 from django.contrib import messages
 from django.db import connection
 from django.db.models import F, Max, Q, Value
 from django.db.models.fields import TextField
-from django.db.models.functions import Coalesce, Lower
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.http import HttpRequest
+from django.template.loader import render_to_string
+from django.utils import translation
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from markdown import markdown
 
 from incidents.models import (
     Answer,
@@ -111,6 +117,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     # OperatorAdmin/User can access only incidents related to selected company.
     if (
         is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
@@ -133,8 +140,19 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
 
 # check if the user is allowed to create an incident_workflow
 def can_create_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # if it's incident user
+    if (
+        user_in_group(user, "IncidentUser")
+        and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
+    ):
+        return True
+
     # if it's the incident of the user he can create
-    if incident.contact_user == user:
+    if (
+        company_id
+        and incident.contact_user == user
+        and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
+    ):
         return True
 
     # if it's regulator incident
@@ -147,26 +165,34 @@ def can_create_incident_report(user: User, incident: Incident, company_id=-1) ->
     ):
         return True
 
-    # if it's in his sector and user of the company
+    # OperatorAdmin/User can create only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorUser")
+        company_id
+        and is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # if he is admin of the company he can create
-    if (
-        user_in_group(user, "OperatorAdmin")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
+
     return False
 
 
 # check if the user is allowed to edit an incident_workflow
 # for regulators to add message
 def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> bool:
+    # if it's incident user
+    if (
+        user_in_group(user, "IncidentUser")
+        and Incident.objects.filter(pk=incident.id, contact_user=user).exists()
+    ):
+        return True
+
     # if it's the incident of the user he can create
-    if incident.contact_user == user:
+    if (
+        company_id
+        and incident.contact_user == user
+        and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
+    ):
         return True
 
     # if it's regulator incident
@@ -179,18 +205,15 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
     ):
         return True
 
-    # if it's in his sector and user of the company
+    # OperatorAdmin/User can edit only incidents related to selected company.
     if (
-        user_in_group(user, "OperatorUser")
+        company_id
+        and is_user_operator(user)
+        and user.companyuser_set.filter(company__id=company_id, approved=True).exists()
         and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
     ):
         return True
-    # if he is admin of the company he can create
-    if (
-        user_in_group(user, "OperatorAdmin")
-        and Incident.objects.filter(pk=incident.id, company__id=company_id).exists()
-    ):
-        return True
+
     # if he is the regulator admin of the incident need to be link to his regulator
     if (
         user_in_group(user, "RegulatorAdmin")
@@ -360,8 +383,47 @@ def translated_queryset(
     return qs
 
 
-def generate_display_methods(translated_fields):
-    """ "
+def annotate_translated_field_from_related_models(
+    qs,
+    *,
+    full_path,
+    annotated_name,
+):
+    default_lang = settings.PARLER_DEFAULT_LANGUAGE_CODE
+    lang = translation.get_language()
+    relation_path, translated_field = full_path.rsplit("__translations__", 1)
+
+    lang_key = f"_{translated_field}_lang"
+    default_key = f"_{translated_field}_default"
+
+    qs = qs.annotate(
+        **{
+            lang_key: Max(
+                f"{relation_path}__translations__{translated_field}",
+                filter=Q(**{f"{relation_path}__translations__language_code": lang}),
+            ),
+            default_key: Max(
+                f"{relation_path}__translations__{translated_field}",
+                filter=Q(
+                    **{f"{relation_path}__translations__language_code": default_lang}
+                ),
+            ),
+        }
+    ).annotate(
+        **{
+            annotated_name: Coalesce(
+                NullIf(lang_key, Value("")),
+                NullIf(default_key, Value("")),
+                output_field=TextField(),
+            )
+        }
+    )
+
+    return qs
+
+
+def generate_display_methods(translated_fields, related_fields=None):
+    """
     Dynamically generates display methods for translated fields.
     Example: for “label” → creates label_display() with
     - admin_order_field = “_label”
@@ -381,4 +443,171 @@ def generate_display_methods(translated_fields):
             return _method
 
         methods[f"{field}_display"] = make_method(field)
+
+    if related_fields:
+        for related_attr, translated_field in related_fields:
+
+            def make_related_method(rel_attr, trans_field):
+                def _method(self, obj):
+                    related_obj = getattr(obj, rel_attr, None)
+                    if not related_obj:
+                        return "-"
+                    # safe_translation_getter for Parler
+                    return getattr(
+                        related_obj,
+                        "safe_translation_getter",
+                        lambda f, any_language=True: "-",
+                    )(trans_field, any_language=True)
+
+                _method.short_description = _(rel_attr.replace("_", " ").capitalize())
+                _method.admin_order_field = f"{rel_attr}__translations__{trans_field}"
+                return _method
+
+            methods[f"{related_attr}_display"] = make_related_method(
+                related_attr, translated_field
+            )
+
     return methods
+
+
+def render_to_string_multi_languages(
+    template_name,
+    context,
+    replace_email_variables=None,
+    content=None,
+    object=None,
+):
+    """
+    Render a template in multiple languages.
+    - 'content' and 'object' are ONLY used to replace variables
+        in the content context in send_email() function.
+    replace_email_variables is a function to be given depending of the module sending email,
+    object is an object (incident, standard_answer) to be given depending of the module,
+    """
+    parts = []
+
+    with translation.override(settings.LANGUAGE_CODE):
+        if content and object and replace_email_variables:
+            context["content"] = replace_email_variables(
+                content.safe_translation_getter(
+                    "content", language_code=settings.LANGUAGE_CODE
+                ),
+                object,
+            )
+        baseline = render_to_string(template_name, context)
+
+    for lang_code, lang_name in settings.LANGUAGES:
+        with translation.override(lang_code):
+            if content and object and replace_email_variables:
+                context["content"] = replace_email_variables(
+                    content.safe_translation_getter("content", language_code=lang_code),
+                    object,
+                )
+            context["content"] = markdown(text=context["content"], output_format="html")
+            context["content"] = sanitize_html(context["content"])
+            rendered = render_to_string(template_name, context)
+
+            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
+                continue
+
+            parts.append(
+                f"""
+                <h3>{translation.gettext(lang_name)} ({lang_code})</h3>
+                {rendered}
+                """.strip()
+            )
+    if not parts:
+        return baseline
+    return "<hr>".join(parts)
+
+
+def sanitize_html(html, tags=None, attributes=None, styles=None):
+    """
+    Docstring for sanitize_html with bleach
+    :param html: The HTML to sanitize
+    :param tags: allowed tags in a set []
+    :param attributes: allowed attributes in a dict {"key":["attribute1", "attribute2"]}
+    :param styles: allowed styles in a set []
+    """
+    if tags is None:
+        tags = [
+            "p",
+            "pre",
+            "code",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "hr",
+            "table",
+            "thead",
+            "strong",
+            "em",
+            "del",
+            "tr",
+            "th",
+            "td",
+            "ul",
+            "ol",
+            "li",
+            "br",
+            "a",
+            "abbr",
+        ]
+    if attributes is None:
+        attributes = {
+            "a": ["href", "title"],
+            "abbr": ["title"],
+            "*": ["class", "style"],
+        }
+    if styles is None:
+        styles = ["color", "font-weight", "font-style", "text-decoration"]
+    css_sanitizer = CSSSanitizer(allowed_css_properties=styles)
+
+    return bleach.clean(
+        html,
+        tags=tags,
+        attributes=attributes,
+        strip=True,
+        css_sanitizer=css_sanitizer,
+    )
+
+
+def sort_queryset_by_field(
+    qs,
+    sort_field,
+    sort_direction,
+    default_sort_field,
+    allowed_sort_fields,
+):
+
+    config_field = allowed_sort_fields.get(sort_field)
+    if not config_field:
+        return qs.order_by(f"-{default_sort_field}")
+
+    field = config_field["field"]
+    is_string = config_field["type"] == "string"
+
+    if "__translations__" in field:
+        annotated_name = f"sort_{field.replace('__', '_')}"
+        qs = annotate_translated_field_from_related_models(
+            qs,
+            full_path=field,
+            annotated_name=annotated_name,
+        )
+        field = annotated_name
+
+    ordering = []
+
+    if is_string:
+        expr = Lower(field)
+        ordering.append(expr.desc() if sort_direction == "desc" else expr.asc())
+    else:
+        ordering.append(f"-{field}" if sort_direction == "desc" else field)
+
+    if field != default_sort_field:
+        ordering.append(f"-{default_sort_field}")
+
+    return qs.order_by(*ordering)

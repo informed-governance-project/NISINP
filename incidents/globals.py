@@ -100,3 +100,42 @@ REPORT_STATUS_MAP = {
         "tooltip": _("The report has not been submitted yet."),
     },
 }
+
+ALLOWED_SORT_FIELDS = {
+    "status": {
+        "field": "incident_status",
+        "type": "string",
+    },
+    "last_update": {
+        "field": "incident_last_update",
+        "type": "datetime",
+    },
+    "notification_date": {
+        "field": "incident_notification_date",
+        "type": "datetime",
+    },
+    "company_identifier": {
+        "field": "sort_company_or_regulator_acronym",
+        "type": "string",
+    },
+    "company_name": {
+        "field": "sort_company_or_regulator_name",
+        "type": "string",
+    },
+    "regulator": {
+        "field": "sector_regulation__regulator__translations__name",
+        "type": "string",
+    },
+    "regulation": {
+        "field": "sector_regulation__regulation__translations__label",
+        "type": "string",
+    },
+    "reference": {
+        "field": "incident_id",
+        "type": "string",
+    },
+    "sectors": {
+        "field": "affected_sectors__translations__name",
+        "type": "string",
+    },
+}

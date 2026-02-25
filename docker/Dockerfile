@@ -8,7 +8,7 @@ COPY package-lock.json /app
 RUN npm ci
 RUN npm install
 
-FROM python:3.11-bullseye
+FROM python:3.12-bullseye
 
 ARG APP_VERSION
 ARG GUNICORN_VERSION=23.0
