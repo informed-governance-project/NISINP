@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "governanceplatform"
-version = "0.5.11+reporting-rc1"
+version = "0.5.12+reporting"
 description = "Governance Platform - NISINP"
 authors = [
     "Cédric Bonhomme <cedric.bonhomme@nc3.lu>",
