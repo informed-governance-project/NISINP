@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-16 11:33+0100\n"
+"POT-Creation-Date: 2026-02-25 09:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -753,15 +753,15 @@ msgid "Email type"
 msgstr ""
 
 #: incidents/admin.py:779 incidents/models.py:220
-#: securityobjectives/admin.py:943 securityobjectives/models.py:205
+#: securityobjectives/admin.py:949 securityobjectives/models.py:205
 msgid "Content"
 msgstr ""
 
-#: incidents/admin.py:786 securityobjectives/admin.py:953
+#: incidents/admin.py:786 securityobjectives/admin.py:959
 msgid "HTML preview"
 msgstr ""
 
-#: incidents/admin.py:789 securityobjectives/admin.py:956
+#: incidents/admin.py:789 securityobjectives/admin.py:962
 msgid "No preview yet"
 msgstr ""
 
@@ -1707,13 +1707,13 @@ msgstr ""
 msgid "Invalid year. Please provide a valid year."
 msgstr ""
 
-#: securityobjectives/admin.py:589 securityobjectives/admin.py:843
+#: securityobjectives/admin.py:595 securityobjectives/admin.py:849
 #: securityobjectives/models.py:57 securityobjectives/models.py:293
 #: securityobjectives/models.py:390
 msgid "Standard"
 msgstr ""
 
-#: securityobjectives/admin.py:777
+#: securityobjectives/admin.py:783
 msgid "Standard of security objective and maturity level must be the same"
 msgstr ""
 
