@@ -1179,22 +1179,6 @@ def _copy_styles(source_doc, target_doc):
             target_doc.styles.element.append(copy.deepcopy(style_elem))
 
 
-def get_report_translations():
-    return {
-        "domain": _("Domain"),
-        "evolution": _("Evolution"),
-        "sector_average": _("Sector average"),
-        "contact": _("Contact"),
-        "downward": _("Downward"),
-        "stable": _("Stable"),
-        "upward": _("Upward"),
-        "sector_ranking": _("Sector ranking"),
-        "sector_scores": _("Sector scores"),
-        "operator_scores": _("Operator scores"),
-        "objective": _("Objective"),
-    }
-
-
 def hex_to_rgb(hex_color: str):
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))  # noqa E203

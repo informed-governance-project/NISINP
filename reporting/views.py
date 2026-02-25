@@ -39,7 +39,8 @@ from .forms import (
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
-from .helpers import create_entry_log, generate_combined_uuid, get_report_translations
+from .globals import TRANSLATIONS_CONTEXT
+from .helpers import create_entry_log, generate_combined_uuid
 from .models import (
     AssetData,
     CompanyReporting,
@@ -240,7 +241,7 @@ def reporting(request):
                         for rec in report_recommendations
                     ],
                     "company_reporting": model_to_dict(company_reporting),
-                    "translations": get_report_translations(),
+                    "translations": TRANSLATIONS_CONTEXT,
                 }
 
                 sector_name = sector.get_safe_translation()
