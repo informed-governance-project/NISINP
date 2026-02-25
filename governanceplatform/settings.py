@@ -49,6 +49,24 @@ try:
     EMAIL_SENDER = config.EMAIL_SENDER
     DEFAULT_FROM_EMAIL = config.EMAIL_SENDER
 
+    # Optional SMTP authentication information for EMAIL_HOST.
+    try:
+        EMAIL_HOST_USER = config.EMAIL_HOST_USER
+        EMAIL_HOST_PASSWORD = config.EMAIL_HOST_PASSWORD
+        EMAIL_USE_TLS = config.EMAIL_USE_TLS
+        EMAIL_USE_SSL = config.EMAIL_USE_SSL
+        EMAIL_SSL_CERTFILE = config.EMAIL_SSL_CERTFILE
+        EMAIL_SSL_KEYFILE = config.EMAIL_SSL_KEYFILE
+        EMAIL_TIMEOUT = config.EMAIL_TIMEOUT
+    except AttributeError:
+        EMAIL_HOST_USER = ""
+        EMAIL_HOST_PASSWORD = ""
+        EMAIL_USE_TLS = False
+        EMAIL_USE_SSL = False
+        EMAIL_SSL_CERTFILE = None
+        EMAIL_SSL_KEYFILE = None
+        EMAIL_TIMEOUT = None
+
     API_ENABLED = config.API_ENABLED
 
     COOKIEBANNER = config.COOKIEBANNER
