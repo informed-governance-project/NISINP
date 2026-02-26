@@ -139,6 +139,12 @@ def generate_docx_task(data):
             "column_proportions": [0.1, 0.25, 0.25, 0.3]
             + [0.1] * len(data["risk_data"]["years"]),
         },
+        "table_of_treatment_of_the_highest_risks": {
+            "context": {
+                "table": data["risk_data"]["data_risks_top_ranking"],
+            },
+            "column_proportions": [0.08, 0.18, 0.18, 0.25, 0.13, 0.17, 0.13],
+        },
     }
 
     main_doc_template = DocxTemplate(template_path)
