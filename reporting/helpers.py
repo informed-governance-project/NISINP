@@ -561,13 +561,7 @@ def get_risk_data(cleaned_data):
 
             past_year += 1
 
-    def get_top_by_occurrence(
-        model,
-        *,
-        company_id,
-        year,
-        sector_id,
-    ):
+    def get_top_by_occurrence(model):
         qs = (
             model.objects.filter(
                 **{
@@ -595,27 +589,6 @@ def get_risk_data(cleaned_data):
             key=lambda x: x[0],
             reverse=True,
         )[:top_ranking]
-
-    def build_recommendations_data(company_reporting):
-        recommendations_qs = (
-            RecommendationData.objects.filter(
-                riskdata__service__company_reporting__id=company_reporting["id"]
-            )
-            .annotate(risk_count=Count("riskdata"))
-            .order_by("-risk_count")[:top_ranking]
-        )
-
-        recommendations_data = []
-
-        for rec in recommendations_qs:
-            rec_dict = model_to_dict(rec)
-            rec_dict["vulnerabilities"] = [
-                str(risk.vulnerability) for risk in rec.riskdata_set.all()
-            ]
-
-            recommendations_data.append(rec_dict)
-
-        return recommendations_data
 
     def build_evolution_recommendations_data():
         recommendations_by_year = RecommendationData.objects.filter(
@@ -674,7 +647,6 @@ def get_risk_data(cleaned_data):
     risks_top_ranking = OrderedDict()
     risks_top_ranking_ids = []
     risks_stats_by_year = OrderedDict()
-    top_ranking_risks_items = defaultdict(list)
     recommendations_evolution = defaultdict(dict)
     services_list = (
         AssetData.objects.filter(
@@ -746,25 +718,18 @@ def get_risk_data(cleaned_data):
 
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
-            most_recommendations_used = build_recommendations_data(company_reporting)
-            # Top of threats by occurence
 
+            # Top of threats by occurence
             top_threats = get_top_by_occurrence(
                 ThreatData,
-                company_id=company_id,
-                year=year,
-                sector_id=sector_id,
             )
 
             # Top of vulnerabilities by occurence
             top_vulnerabilities = get_top_by_occurrence(
                 VulnerabilityData,
-                company_id=company_id,
-                year=year,
-                sector_id=sector_id,
             )
 
-        build_evolution_recommendations_data()
+            build_evolution_recommendations_data()
 
     risk_data = {
         "years": years_list,
@@ -782,8 +747,6 @@ def get_risk_data(cleaned_data):
         "risks_stats_by_year": dict(risks_stats_by_year),
         "top_threats": dict(top_threats),
         "top_vulnerabilities": dict(top_vulnerabilities),
-        "top_ranking_risks_items": dict(top_ranking_risks_items),
-        "most_recommendations_used": most_recommendations_used,
         "recommendations_evolution": dict(recommendations_evolution),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
