@@ -145,6 +145,14 @@ def generate_docx_task(data):
             },
             "column_proportions": [0.08, 0.18, 0.18, 0.25, 0.13, 0.17, 0.13],
         },
+        "table_of_risk_summary": {
+            "context": {
+                "table": data["risk_data"]["risks_stats_by_year"],
+                "years": data["risk_data"]["years"],
+            },
+            "column_proportions": [0.7] + [0.15] * len(data["risk_data"]["years"]),
+            "table_width_dxa": 7380,
+        },
     }
 
     main_doc_template = DocxTemplate(template_path)
@@ -173,9 +181,13 @@ def generate_docx_task(data):
         sub_doc_template.save(sub_rendered_path)
         sub_doc = Document(sub_rendered_path)
         for table in sub_doc.tables:
+            table_width_dxa = None
+            if "table_width_dxa" in table_info:
+                # 1dxa = 1cm * 28.346 * 20
+                table_width_dxa = table_info["table_width_dxa"]
             if "column_proportions" in table_info:
                 redistribute_column_widths_proportional(
-                    table, table_info["column_proportions"], main_doc
+                    table, table_info["column_proportions"], main_doc, table_width_dxa
                 )
             fix_outer_column_borders(table._element)
         sub_doc.save(sub_rendered_path)

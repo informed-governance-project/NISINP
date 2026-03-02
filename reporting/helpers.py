@@ -457,20 +457,6 @@ def get_risk_data(cleaned_data):
             round_value(high_risks_average_by_sector["max_risk_avg"])
         )
 
-        # Stats by service data
-        service = str(service)
-        service_stats.setdefault(service, {year: {}})
-        if service_stat_queryset:
-            service_stats[service][year] = model_to_dict(
-                service_stat_queryset.first(), exclude=["service", "company_reporting"]
-            )
-            service_stats[service][year]["total_high_risks_treated"] = total_high_risks
-            service_stats[service][year]["avg_high_risks_treated"] = (
-                high_risks_by_company["max_risk_avg"]
-            )
-        else:
-            service_stats[service][year] = {}
-
     def build_evolution_highest_risks_data(company_reporting):
         risks_data = (
             RiskData.objects.filter(
@@ -729,7 +715,7 @@ def get_risk_data(cleaned_data):
     data_evolution_highest_risks = defaultdict(list)
     risks_top_ranking = OrderedDict()
     risks_top_ranking_ids = []
-    service_stats = OrderedDict()
+    risks_stats_by_year = OrderedDict()
     top_ranking_risks_items = defaultdict(list)
     recommendations_evolution = defaultdict(dict)
     services_list = (
@@ -766,6 +752,44 @@ def get_risk_data(cleaned_data):
                 0, round_value(mean(data_by_high_risk_average[label]))
             )
 
+        # Stats by year data
+        risks_stats_by_year.setdefault(year, {})
+        service_stat_by_year_qs = ServiceStat.objects.filter(
+            company_reporting__year=year,
+            company_reporting__company__id=company_id,
+            company_reporting__sector__id=sector_id,
+        )
+        total_high_risks_qs = (
+            RiskData.objects.filter(
+                service__company_reporting__company__id=company_id,
+                service__company_reporting__year=year,
+                service__company_reporting__sector__id=sector_id,
+                max_risk__gt=threshold_for_high_risk,
+            )
+            .exclude(risk_treatment="UNTRE")
+            .aggregate(count=Count("id"), max_risk_avg=Avg("max_risk"))
+        )
+        if service_stat_by_year_qs:
+            risks_stats_by_year[year] = model_to_dict(
+                service_stat_by_year_qs.first(),
+                exclude=["service", "company_reporting"],
+            )
+            risks_stats_by_year[year]["total_high_risks_treated"] = total_high_risks_qs[
+                "count"
+            ]
+            risks_stats_by_year[year]["avg_high_risks_treated"] = total_high_risks_qs[
+                "max_risk_avg"
+            ]
+
+            for key in [
+                "avg_current_risks",
+                "avg_residual_risks",
+                "avg_high_risks_treated",
+            ]:
+                risks_stats_by_year[year][key] = round_value(
+                    risks_stats_by_year[year][key]
+                )
+
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
             most_recommendations_used = build_recommendations_data(company_reporting)
@@ -785,7 +809,7 @@ def get_risk_data(cleaned_data):
             values for uuid, values in risks_top_ranking.items()
         ),
         "risks_top_ranking_ids": risks_top_ranking_ids,
-        "service_stats": dict(service_stats),
+        "risks_stats_by_year": dict(risks_stats_by_year),
         "top_ranking_risks_items": dict(top_ranking_risks_items),
         "most_recommendations_used": most_recommendations_used,
         "recommendations_evolution": dict(recommendations_evolution),
@@ -1272,8 +1296,15 @@ def _set_table_total_width(table, width_dxa: int):
     tblW.set(qn("w:type"), "dxa")
 
 
-def redistribute_column_widths_proportional(table, proportions, doc):
-    total_width = _get_table_total_width(table, doc)
+def redistribute_column_widths_proportional(
+    table, proportions, doc, table_widht_dxa=None
+):
+    if table_widht_dxa is not None:
+        total_width = table_widht_dxa
+        _set_table_total_width(table, total_width)
+    else:
+        total_width = _get_table_total_width(table, doc)
+
     if total_width is None:
         return
 
