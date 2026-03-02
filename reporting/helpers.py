@@ -590,8 +590,6 @@ def get_risk_data(cleaned_data):
         for obj in qs:
             grouped.setdefault(obj.occurrences, []).append(str(obj))
 
-        print(grouped)
-
         return sorted(
             grouped.items(),
             key=lambda x: x[0],
