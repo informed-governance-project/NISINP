@@ -151,7 +151,21 @@ def generate_docx_task(data):
                 "years": data["risk_data"]["years"],
             },
             "column_proportions": [0.7] + [0.15] * len(data["risk_data"]["years"]),
-            "table_width_dxa": 7380,
+            "table_width_dxa": 7380,  # 13cm
+        },
+        "table_of_top_threats_by_occurrence": {
+            "context": {
+                "table": data["risk_data"]["top_threats"],
+            },
+            "column_proportions": [0.1, 0.9],
+            "table_width_dxa": 8504,  # 15cm
+        },
+        "table_of_top_vulnerabilities_by_occurrence": {
+            "context": {
+                "table": data["risk_data"]["top_vulnerabilities"],
+            },
+            "column_proportions": [0.1, 0.9],
+            "table_width_dxa": 8504,  # 15cm
         },
     }
 

@@ -13,7 +13,7 @@ from typing import List
 
 import plotly.colors as pc
 import plotly.graph_objects as go
-from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
+from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
@@ -31,7 +31,15 @@ from securityobjectives.models import (
 )
 
 from .globals import CHARTS_COLOR_PALETTE, SECTOR_LEGEND, SO_COLOR_PALETTE
-from .models import AssetData, LogReporting, RecommendationData, RiskData, ServiceStat
+from .models import (
+    AssetData,
+    LogReporting,
+    RecommendationData,
+    RiskData,
+    ServiceStat,
+    ThreatData,
+    VulnerabilityData,
+)
 
 
 def get_so_data(cleaned_data):
@@ -553,90 +561,42 @@ def get_risk_data(cleaned_data):
 
             past_year += 1
 
-    def build_top_ranking_risk_items(service, is_last=False):
-        def get_distinct_sorted(data, sort_key, id_key):
-            seen = set()
-            return [
-                item
-                for item in sorted(
-                    data, key=lambda x: get_nested_attr(x, sort_key), reverse=True
-                )
-                if not (
-                    get_nested_attr(item, id_key) in seen
-                    or seen.add(get_nested_attr(item, id_key))
-                )
-            ]
-
-        def get_sorted_data(data, sort_id_pairs):
-            return {
-                name: get_distinct_sorted(data, sort_key=key, id_key=id)
-                for name, (key, id) in sort_id_pairs.items()
-            }
-
-        def append_top_ranking(data, sort_id_pairs, target_key):
-            for index in range(top_ranking):
-                ranking_dict = {}
-                for key in sort_id_pairs.keys():
-                    if index < len(data[key]):
-                        temp_data = model_to_dict(
-                            data[key][index],
-                            exclude=[
-                                "service",
-                                "asset",
-                                "threat",
-                                "vulnerability",
-                                "recommendations",
-                            ],
-                        )
-                        temp_data["asset"] = str(data[key][index].asset)
-                        temp_data["threat"] = str(data[key][index].threat)
-                        temp_data["vulnerability"] = str(data[key][index].vulnerability)
-                        ranking_dict[key] = temp_data
-                top_ranking_risks_items[str(target_key)].append(ranking_dict)
-
-        risk_data_reporting_queryset = (
-            RiskData.objects.filter(
-                service__company_reporting__year=year,
-                service__company_reporting__sector__id=sector_id,
-                service__company_reporting__company__id=company_id,
+    def get_top_by_occurrence(
+        model,
+        *,
+        company_id,
+        year,
+        sector_id,
+    ):
+        qs = (
+            model.objects.filter(
+                **{
+                    "riskdata__service__company_reporting__company__id": company_id,
+                    "riskdata__service__company_reporting__year": year,
+                    "riskdata__service__company_reporting__sector__id": sector_id,
+                }
             )
-            .exclude(risk_treatment="UNTRE")
-            .annotate(total_impact=F("impact_c") + F("impact_i") + F("impact_a"))
-        )
-
-        risk_data_service_queryset = risk_data_reporting_queryset.filter(
-            service__service=service
-        )
-
-        data = list(risk_data_service_queryset)
-        if not data:
-            return
-
-        sort_id_pairs = {
-            "threat_by_max_risk": ("max_risk", "threat_id"),
-            "vulnerability_by_max_risk": ("max_risk", "vulnerability_id"),
-            "asset_by_max_risk": ("max_risk", "asset.name"),
-            "threat_by_residual_risk": ("residual_risk", "threat_id"),
-            "vulnerability_by_residual_risk": (
-                "residual_risk",
-                "vulnerability_id",
-            ),
-            "asset_by_residual_risk": ("residual_risk", "asset.name"),
-            "by_threat": ("threat_value", "threat_id"),
-            "by_vulnerability": ("vulnerability_value", "vulnerability_id"),
-            "by_asset": ("total_impact", "asset.name"),
-        }
-
-        sorted_data = get_sorted_data(data, sort_id_pairs)
-        append_top_ranking(sorted_data, sort_id_pairs, service)
-
-        if is_last:
-            all_data = list(risk_data_reporting_queryset)
-            if all_data:
-                all_service_sorted_data = get_sorted_data(all_data, sort_id_pairs)
-                append_top_ranking(
-                    all_service_sorted_data, sort_id_pairs, _("All services")
+            .annotate(
+                occurrences=Count(
+                    "riskdata",
+                    filter=~Q(riskdata__risk_treatment="UNTRE"),
                 )
+            )
+            .order_by("-occurrences")
+        )
+
+        grouped = OrderedDict()
+
+        for obj in qs:
+            grouped.setdefault(obj.occurrences, []).append(str(obj))
+
+        print(grouped)
+
+        return sorted(
+            grouped.items(),
+            key=lambda x: x[0],
+            reverse=True,
+        )[:top_ranking]
 
     def build_recommendations_data(company_reporting):
         recommendations_qs = (
@@ -735,13 +695,9 @@ def get_risk_data(cleaned_data):
         sector_label = f"{SECTOR_LEGEND} {year}"
         labels = [company_label, sector_label]
 
-        for index, service in enumerate(services_list):
+        for service in services_list:
             build_risk_average_data(service)
             build_high_risk_data(service)
-
-            if year == current_year:
-                is_last = index == len(services_list) - 1
-                build_top_ranking_risk_items(service, is_last)
 
         # Score mean for all services
         for label in labels:
@@ -793,6 +749,22 @@ def get_risk_data(cleaned_data):
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
             most_recommendations_used = build_recommendations_data(company_reporting)
+            # Top of threats by occurence
+
+            top_threats = get_top_by_occurrence(
+                ThreatData,
+                company_id=company_id,
+                year=year,
+                sector_id=sector_id,
+            )
+
+            # Top of vulnerabilities by occurence
+            top_vulnerabilities = get_top_by_occurrence(
+                VulnerabilityData,
+                company_id=company_id,
+                year=year,
+                sector_id=sector_id,
+            )
 
         build_evolution_recommendations_data()
 
@@ -810,6 +782,8 @@ def get_risk_data(cleaned_data):
         ),
         "risks_top_ranking_ids": risks_top_ranking_ids,
         "risks_stats_by_year": dict(risks_stats_by_year),
+        "top_threats": dict(top_threats),
+        "top_vulnerabilities": dict(top_vulnerabilities),
         "top_ranking_risks_items": dict(top_ranking_risks_items),
         "most_recommendations_used": most_recommendations_used,
         "recommendations_evolution": dict(recommendations_evolution),
