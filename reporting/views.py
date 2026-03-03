@@ -22,7 +22,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import activate, deactivate_all, gettext
+from django.utils.translation import activate, deactivate_all, get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
@@ -39,7 +39,6 @@ from .forms import (
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
-from .globals import TRANSLATIONS_CONTEXT
 from .helpers import create_entry_log, generate_combined_uuid
 from .models import (
     AssetData,
@@ -241,7 +240,7 @@ def reporting(request):
                         for rec in report_recommendations
                     ],
                     "company_reporting": model_to_dict(company_reporting),
-                    "translations": TRANSLATIONS_CONTEXT,
+                    "language": get_language(),
                 }
 
                 sector_name = sector.get_safe_translation()

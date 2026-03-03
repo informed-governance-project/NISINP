@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn

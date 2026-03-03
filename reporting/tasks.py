@@ -10,11 +10,12 @@ from pathlib import Path
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.translation import activate
 from docx import Document
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage
 
-from .globals import SO_COLOR_PALETTE
+from .globals import SO_COLOR_PALETTE, TRANSLATIONS_CONTEXT
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
@@ -30,6 +31,7 @@ from .models import CompanyReporting, GeneratedReport
 
 @shared_task
 def generate_data(cleaned_data):
+    activate(cleaned_data.get("language", "en"))
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
     charts = get_charts(so_data, risk_data)
@@ -45,7 +47,7 @@ def generate_data(cleaned_data):
         "risk_data": risk_data,
         "nb_years": cleaned_data["nb_years"],
         "company_reporting": cleaned_data["company_reporting"],
-        "translations": cleaned_data["translations"],
+        "translations": TRANSLATIONS_CONTEXT,
     }
 
     return data
