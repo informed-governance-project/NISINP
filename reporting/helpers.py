@@ -1099,6 +1099,7 @@ def convert_docx_to_pdf(docx_path: str) -> str:
             ],
             check=True,
             capture_output=True,
+            timeout=60,
         )
 
         if not pdf_path.exists():
