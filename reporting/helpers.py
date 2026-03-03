@@ -892,6 +892,7 @@ def generate_bar_chart(data, labels, is_rate=False):
         group_name = str(name)[-4:]
 
         if str(_("average")) in str(name):
+            marker_color = average_colors_palette[avg_index]
             fig.add_trace(
                 go.Scatter(
                     x=labels,
@@ -901,7 +902,7 @@ def generate_bar_chart(data, labels, is_rate=False):
                     marker=dict(
                         size=12,
                         symbol="diamond",
-                        color=average_colors_palette[avg_index],
+                        color=marker_color,
                     ),
                     offsetgroup=group_name,
                     legendgroup=group_name,
@@ -910,12 +911,13 @@ def generate_bar_chart(data, labels, is_rate=False):
             avg_index += 1
 
         else:
+            marker_color = bar_colors_palette[bar_index]
             fig.add_trace(
                 go.Bar(
                     x=labels,
                     y=values,
                     name=str(name),
-                    marker_color=bar_colors_palette[bar_index],
+                    marker_color=marker_color,
                     text=rate_labels if is_rate else values,
                     textposition="outside",
                     offsetgroup=group_name,
