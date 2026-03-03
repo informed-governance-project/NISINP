@@ -167,6 +167,12 @@ def generate_docx_task(data):
             "column_proportions": [0.1, 0.9],
             "table_width_dxa": 8504,  # 15cm
         },
+        "table_of_recommendations": {
+            "context": {
+                "table": data["risk_data"]["recommendations_evolution"],
+            },
+            "column_proportions": [0.7, 0.15, 0.15],
+        },
     }
 
     main_doc_template = DocxTemplate(template_path)

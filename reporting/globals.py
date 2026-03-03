@@ -53,4 +53,7 @@ TRANSLATIONS_CONTEXT = {
     "rejected_risks": _("Rejected risks"),
     "accepted_risks": _("Accepted risks"),
     "shared_risks": _("Shared risks"),
+    "recommendation": _("Recommendation"),
+    "deadline": _("Deadline"),
+    "status": _("Status"),
 }

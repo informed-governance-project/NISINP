@@ -599,6 +599,7 @@ def get_risk_data(cleaned_data):
 
         if recommendations_by_year:
             for recommendation in recommendations_by_year:
+                color = "#FFFFFF"
                 recommendation_key = generate_combined_uuid(
                     [recommendation.code, recommendation.description]
                 )
@@ -607,6 +608,7 @@ def get_risk_data(cleaned_data):
                     {
                         "code": recommendation.code,
                         "description": recommendation.description,
+                        "due_date": recommendation.due_date.strftime("%d/%m/%Y"),
                     },
                 )
 
@@ -617,15 +619,20 @@ def get_risk_data(cleaned_data):
 
                 if previous_due_date:
                     status = _("Postponed")
+                    color = "#FFC000"
                     if (
                         previous_due_date == recommendation.due_date
                         and recommendation.due_date.year == previous_year
                     ):
                         status = _("To check")
                 else:
-                    status = _("Open") if year == current_year else _("Closed")
-
+                    if year == current_year:
+                        status = _("New")
+                    else:
+                        status = _("Closed")
+                        color = "#00B050"
                 recommendations_evolution[recommendation_key]["status"] = status
+                recommendations_evolution[recommendation_key]["color"] = color
                 recommendations_evolution[recommendation_key][
                     year
                 ] = recommendation.due_date
@@ -729,7 +736,7 @@ def get_risk_data(cleaned_data):
                 VulnerabilityData,
             )
 
-            build_evolution_recommendations_data()
+        build_evolution_recommendations_data()
 
     risk_data = {
         "years": years_list,
@@ -741,13 +748,15 @@ def get_risk_data(cleaned_data):
             sort_legends(data_evolution_highest_risks)
         ),
         "data_risks_top_ranking": list(
-            values for uuid, values in risks_top_ranking.items()
+            values for _uuid, values in risks_top_ranking.items()
         ),
         "risks_top_ranking_ids": risks_top_ranking_ids,
         "risks_stats_by_year": dict(risks_stats_by_year),
         "top_threats": dict(top_threats),
         "top_vulnerabilities": dict(top_vulnerabilities),
-        "recommendations_evolution": dict(recommendations_evolution),
+        "recommendations_evolution": list(
+            reco for _uuid, reco in recommendations_evolution.items()
+        ),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
