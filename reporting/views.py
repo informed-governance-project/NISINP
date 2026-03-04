@@ -233,10 +233,7 @@ def reporting(request):
                     "nb_years": nb_years,
                     "so_excluded": [model_to_dict(so) for so in so_excluded],
                     "report_recommendations": [
-                        {
-                            **model_to_dict(rec, exclude=["sectors"]),
-                            "description": rec.observation_recommendation.description,
-                        }
+                        rec.observation_recommendation.description
                         for rec in report_recommendations
                     ],
                     "company_reporting": model_to_dict(company_reporting),

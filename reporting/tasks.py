@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import activate
 from docx import Document
 from docx.shared import Mm
-from docxtpl import DocxTemplate, InlineImage
+from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
 
 from .globals import SO_COLOR_PALETTE, TRANSLATIONS_CONTEXT
 from .helpers import (
@@ -40,6 +40,7 @@ def generate_data(cleaned_data):
         "company": cleaned_data["company"]["name"],
         "year": cleaned_data["year"],
         "sector": cleaned_data["sector"]["name"],
+        "threshold_for_high_risk": cleaned_data["threshold_for_high_risk"],
         "top_ranking": cleaned_data["top_ranking"],
         "report_recommendations": cleaned_data["report_recommendations"],
         "charts": charts,
@@ -180,11 +181,18 @@ def generate_docx_task(data):
     main_doc_template = DocxTemplate(template_path)
     main_doc = Document(template_path)
 
+    report_recommendations = RichTextParagraph()
+    for rec in data["report_recommendations"]:
+        report_recommendations.add(rec, parastyle="CircleBullet")
+
     context = {
         "operator_name": data["company"],
         "sector": data["sector"],
         "year": data["year"],
-        "so_data": data["so_data"],
+        "threshold_for_high_risk": data["threshold_for_high_risk"],
+        "top_ranking": data["top_ranking"],
+        "report_recommendations": report_recommendations,
+        "report_observations": data["company_reporting"]["comment"],
     }
     for chart_name, chart_data in data["charts"].items():
         chart_bytes = BytesIO(base64.b64decode(chart_data))
