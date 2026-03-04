@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.db import models
 from django.db.models import Deferrable
 from django.utils import timezone
@@ -18,6 +19,11 @@ class MaturityLevel(TranslatableModel):
     standard = models.ForeignKey(
         "Standard",
         on_delete=models.CASCADE,
+    )
+    color = ColorField(
+        default="#FFFFFF",
+        verbose_name=_("Color"),
+        help_text=_("Color used in reporting module (hexadecimal format)"),
     )
     # name of the regulator who create the object
     creator_name = models.CharField(

@@ -311,11 +311,16 @@ class MaturityLevelAdmin(
         "standard",
         "label",
         "level",
+        "color",
     ]
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ("creator",)
+            return (
+                "standard",
+                "level",
+                "creator",
+            )
         return ()
 
     def get_fields(self, request, obj=None):

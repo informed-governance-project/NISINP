@@ -974,6 +974,21 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-colorfield"
+version = "0.14.0"
+description = "color field for django models with a nice color-picker in the admin."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "django_colorfield-0.14.0-py3-none-any.whl", hash = "sha256:f169c4e7ad8f336e51d4ea81f866346e7d4f336f3766e54e144cd16ea7d84a0e"},
+    {file = "django_colorfield-0.14.0.tar.gz", hash = "sha256:478dbd3975a88f2ea2a9afc325faaca05c54ebf04ec985ce130f6dea39dfb899"},
+]
+
+[package.dependencies]
+Pillow = ">=9.0.0"
+
+[[package]]
 name = "django-cookiebanner"
 version = "0.2.8"
 description = ""
@@ -4128,4 +4143,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "559c6e24bece6215acd5d97972c4622e3790baf371ee24a71054cf7b157b14d7"
+content-hash = "d101434bd5d336fa076e52c70aadf179d360d7b061f2f43f2f7add9043a74d89"
