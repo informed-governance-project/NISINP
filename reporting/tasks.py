@@ -15,7 +15,7 @@ from docx import Document
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
 
-from .globals import SO_COLOR_PALETTE, TRANSLATIONS_CONTEXT
+from .globals import TRANSLATIONS_CONTEXT
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
@@ -129,9 +129,7 @@ def generate_docx_task(data):
         },
         "maturity_level_legend": {
             "context": {
-                "maturity_levels": get_maturity_level_context(
-                    data["so_data"]["maturity_levels"]
-                ),
+                "maturity_levels": data["so_data"]["maturity_levels"],
             },
         },
         "table_of_evolution_of_the_highest_risks": {
@@ -323,16 +321,3 @@ def zip_files_task(file_paths, user_id, error_messages):
     )
 
     return zip_path
-
-
-def get_maturity_level_context(maturity_levels):
-    context = []
-    for index, maturity_level in enumerate(maturity_levels):
-        data = {
-            "index": index,
-            "color": SO_COLOR_PALETTE[index][1],
-            "label": maturity_level,
-        }
-        context.append(data)
-
-    return context

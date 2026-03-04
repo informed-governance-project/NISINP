@@ -30,7 +30,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .globals import CHARTS_COLOR_PALETTE, SECTOR_LEGEND, SO_COLOR_PALETTE
+from .globals import CHARTS_COLOR_PALETTE, SECTOR_LEGEND
 from .models import (
     AssetData,
     LogReporting,
@@ -197,7 +197,11 @@ def get_so_data(cleaned_data):
     so_excluded = cleaned_data["so_excluded"]
     top_ranking = cleaned_data["top_ranking"]
     maturity_levels_queryset = MaturityLevel.objects.order_by("level")
-    maturity_levels = [str(level) for level in maturity_levels_queryset]
+    maturity_levels = [
+        {"level": ml.level, "label": str(ml), "color": ml.color}
+        for ml in maturity_levels_queryset
+    ]
+    maturity_levels_labels = [str(ml) for ml in maturity_levels_queryset]
     years_list = []
     sector_so_by_year_desc = OrderedDict()
     sector_so_by_year_asc = OrderedDict()
@@ -361,6 +365,7 @@ def get_so_data(cleaned_data):
         "years": years_list,
         "domains": [str(domain) for domain in company_so_by_domain.keys()],
         "maturity_levels": maturity_levels,
+        "maturity_levels_labels": maturity_levels_labels,
         "unique_codes_list": [
             so.security_objective.unique_code
             for so in sorted_company_queryset.order_by("min_position")
@@ -767,22 +772,22 @@ def get_risk_data(cleaned_data):
 def get_charts(so_data, risk_data):
     charts = {
         "chart_security_objectives_by_level": generate_bar_chart(
-            so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
+            so_data["bar_chart_data_by_level"], so_data["maturity_levels_labels"]
         ),
         "chart_evolution_security_objectives_by_domain": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
             so_data["domains"],
-            so_data["maturity_levels"],
+            so_data["maturity_levels_labels"],
         ),
         "chart_evolution_security_objectives_by_domain_with_sector_avg": generate_radar_chart(
             so_data["radar_chart_data_by_domain_with_sector_avg"],
             so_data["domains"],
-            so_data["maturity_levels"],
+            so_data["maturity_levels_labels"],
         ),
         "chart_evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
-            so_data["maturity_levels"],
+            so_data["maturity_levels_labels"],
         ),
         "chart_average_risk_level": generate_bar_chart(
             risk_data["data_by_risk_average"], risk_data["operator_services_with_all"]
@@ -1164,15 +1169,17 @@ def interpolate_color(c1, c2, factor: float):
 
 
 def get_gradient_color(value: float) -> str:
-    palette = sorted(SO_COLOR_PALETTE, key=lambda x: x[0])
+    so_color_palette = list(
+        MaturityLevel.objects.order_by("level").values_list("level", "color")
+    )
 
-    if value <= palette[0][0]:
-        return palette[0][1]
-    if value >= palette[-1][0]:
-        return palette[-1][1]
+    if value <= so_color_palette[0][0]:
+        return so_color_palette[0][1]
+    if value >= so_color_palette[-1][0]:
+        return so_color_palette[-1][1]
 
     # find segment
-    for (v1, c1), (v2, c2) in zip(palette, palette[1:]):
+    for (v1, c1), (v2, c2) in zip(so_color_palette, so_color_palette[1:]):
         if v1 <= value <= v2:
             ratio = (value - v1) / (v2 - v1)
 
