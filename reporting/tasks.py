@@ -26,15 +26,20 @@ from .helpers import (
     merge_subdoc_into_placeholder,
     redistribute_column_widths_proportional,
 )
-from .models import CompanyReporting, GeneratedReport
+from .models import CompanyReporting, Configuration, GeneratedReport, Template
 
 
 @shared_task
 def generate_data(cleaned_data):
     activate(cleaned_data.get("language", "en"))
+    report_configuration_id = cleaned_data["report_configuration_id"]
+    colors = Configuration.objects.get(pk=report_configuration_id).colors.values_list(
+        "color"
+    )
+    template_id = cleaned_data["template_id"]
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
-    charts = get_charts(so_data, risk_data)
+    charts = get_charts(so_data, risk_data, colors)
 
     data = {
         "company": cleaned_data["company"]["name"],
@@ -49,6 +54,7 @@ def generate_data(cleaned_data):
         "nb_years": cleaned_data["nb_years"],
         "company_reporting": cleaned_data["company_reporting"],
         "translations": TRANSLATIONS_CONTEXT,
+        "template_id": template_id,
     }
 
     return data
@@ -62,7 +68,9 @@ def generate_docx_task(data):
     )
     tmp_dir.mkdir(exist_ok=True)
     main_docx_path = Path(tmp_dir / "main_doc.docx")
-    template_path = tmp_dir / "template_fr.docx"
+    template_id = data["template_id"]
+    template_file = Template.objects.get(pk=template_id).template_file
+    template_path = BytesIO(bytes(template_file))
     tmp_output_path = tmp_dir / "tmp_doc.docx"
     rendered_subs_docs = {}
     document_charts = {

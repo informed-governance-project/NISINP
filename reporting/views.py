@@ -52,6 +52,7 @@ from .models import (
     RiskData,
     SectorReportConfiguration,
     ServiceStat,
+    Template,
     ThreatData,
     VulnerabilityData,
 )
@@ -128,6 +129,22 @@ def reporting(request):
                 + "_"
                 + str(uuid.uuid4())[:8]
             )
+
+            try:
+                template = Template.objects.select_related("configuration").get(
+                    configuration__regulator=user.regulators.first(),
+                    configuration__regulation_id=1,
+                    language=get_language(),
+                )
+                report_configuration_id = template.configuration.pk
+            except Template.DoesNotExist:
+                messages.error(
+                    request,
+                    _("No report template"),
+                )
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
             for select_company in selected_companies:
                 company = select_company.get("company")
                 sector = select_company.get("sector")
@@ -238,6 +255,8 @@ def reporting(request):
                     ],
                     "company_reporting": model_to_dict(company_reporting),
                     "language": get_language(),
+                    "template_id": template.pk,
+                    "report_configuration_id": report_configuration_id,
                 }
 
                 sector_name = sector.get_safe_translation()

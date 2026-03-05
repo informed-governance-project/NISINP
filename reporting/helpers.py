@@ -30,7 +30,7 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .globals import CHARTS_COLOR_PALETTE, SECTOR_LEGEND
+from .globals import TRANSLATIONS_CONTEXT
 from .models import (
     AssetData,
     LogReporting,
@@ -107,9 +107,9 @@ def get_so_data(cleaned_data):
                 radar_data.setdefault(year_label, []).append(values[score_field])
 
                 if sector_avg_field and year == current_year:
-                    radar_data.setdefault(f"{SECTOR_LEGEND} {current_year}", []).append(
-                        values[sector_avg_field]
-                    )
+                    radar_data.setdefault(
+                        f"{sector_avg_translation} {current_year}", []
+                    ).append(values[sector_avg_field])
 
         return dict(radar_data)
 
@@ -212,6 +212,7 @@ def get_so_data(cleaned_data):
     radar_chart_data_by_domain = defaultdict()
     radar_chart_data_by_year = defaultdict()
     so_data = defaultdict()
+    sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
@@ -349,7 +350,7 @@ def get_so_data(cleaned_data):
 
         build_bar_chart_by_level_data(
             counts=sector_counts,
-            label=f"{SECTOR_LEGEND} {year}",
+            label=f"{sector_avg_translation} {year}",
         )
 
         # Sector asc and desc lists by score
@@ -674,7 +675,8 @@ def get_risk_data(cleaned_data):
         year = current_year - nb_years + offset + 1
         years_list.append(str(year))
         company_label = f"{company['name']} {year}"
-        sector_label = f"{SECTOR_LEGEND} {year}"
+        sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
+        sector_label = f"{sector_avg_translation} {year}"
         labels = [company_label, sector_label]
 
         for service in services_list:
@@ -769,39 +771,51 @@ def get_risk_data(cleaned_data):
     return risk_data
 
 
-def get_charts(so_data, risk_data):
+def get_charts(so_data, risk_data, colors):
     charts = {
         "chart_security_objectives_by_level": generate_bar_chart(
-            so_data["bar_chart_data_by_level"], so_data["maturity_levels_labels"]
+            so_data["bar_chart_data_by_level"],
+            so_data["maturity_levels_labels"],
+            colors,
         ),
         "chart_evolution_security_objectives_by_domain": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
             so_data["domains"],
             so_data["maturity_levels_labels"],
+            colors,
         ),
         "chart_evolution_security_objectives_by_domain_with_sector_avg": generate_radar_chart(
             so_data["radar_chart_data_by_domain_with_sector_avg"],
             so_data["domains"],
             so_data["maturity_levels_labels"],
+            colors,
         ),
         "chart_evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
             so_data["maturity_levels_labels"],
+            colors,
         ),
         "chart_average_risk_level": generate_bar_chart(
-            risk_data["data_by_risk_average"], risk_data["operator_services_with_all"]
+            risk_data["data_by_risk_average"],
+            risk_data["operator_services_with_all"],
+            colors,
         ),
         "chart_high_risk_rate": generate_bar_chart(
-            risk_data["data_by_high_risk_rate"], risk_data["operator_services"], True
+            risk_data["data_by_high_risk_rate"],
+            risk_data["operator_services"],
+            colors,
+            True,
         ),
         "chart_average_high_risk_level": generate_bar_chart(
             risk_data["data_by_high_risk_average"],
             risk_data["operator_services_with_all"],
+            colors,
         ),
         "chart_evolution_highest_risks": generate_bar_chart(
             risk_data["data_evolution_highest_risks"],
             risk_data["risks_top_ranking_ids"],
+            colors,
         ),
     }
 
@@ -811,7 +825,7 @@ def get_charts(so_data, risk_data):
 def sort_legends(data):
     return sorted(
         data.items(),
-        key=lambda x: (x[0] != SECTOR_LEGEND, x[0]),
+        key=lambda x: (x[0] != TRANSLATIONS_CONTEXT["sector_average"], x[0]),
     )
 
 
@@ -877,15 +891,10 @@ def create_entry_log(user, reporting, action):
     log.save()
 
 
-def generate_bar_chart(data, labels, is_rate=False):
+def generate_bar_chart(data, labels, colors, is_rate=False):
     fig = go.Figure()
     labels = text_wrap(labels)
-    bar_colors_palette = [
-        item[0] for item in CHARTS_COLOR_PALETTE
-    ] + pc.qualitative.Set1
-    average_colors_palette = [
-        item[1] for item in CHARTS_COLOR_PALETTE
-    ] + pc.qualitative.Pastel1
+    bar_colors_palette = get_chart_color_palette(colors)
     avg_index = 0
     bar_index = 0
 
@@ -896,19 +905,15 @@ def generate_bar_chart(data, labels, is_rate=False):
 
         group_name = str(name)[-4:]
 
-        if str(_("average")) in str(name):
-            marker_color = average_colors_palette[avg_index]
+        if str(_("average")) in str(name).lower():
+            marker_color = lighten_color(bar_colors_palette[avg_index])
             fig.add_trace(
                 go.Scatter(
                     x=labels,
                     y=values,
                     name=str(name),
                     mode="markers",
-                    marker=dict(
-                        size=12,
-                        symbol="diamond",
-                        color=marker_color,
-                    ),
+                    marker=dict(size=12, symbol="diamond", color=marker_color),
                     offsetgroup=group_name,
                     legendgroup=group_name,
                 ),
@@ -968,24 +973,19 @@ def generate_bar_chart(data, labels, is_rate=False):
     return graph
 
 
-def generate_radar_chart(data, labels, levels):
+def generate_radar_chart(data, labels, levels, colors):
     fig = go.Figure()
     labels = text_wrap(labels)
-    line_colors_palette = [
-        item[0] for item in CHARTS_COLOR_PALETTE
-    ] + pc.qualitative.Set1
-    marker_colors_palette = [
-        item[1] for item in CHARTS_COLOR_PALETTE
-    ] + pc.qualitative.Pastel1
+    line_colors_palette = get_chart_color_palette(colors)
     index = 0
 
     for name, values in data.items():
         line_style = "solid"
         line_color = line_colors_palette[index]
-        marker_color = marker_colors_palette[index]
+        marker_color = lighten_color(line_colors_palette[index])
         symbol = "circle"
 
-        if str(_("average")) in name:
+        if str(_("average")) in str(name).lower():
             line_style = "dash"
             line_color = "#666666"
             marker_color = "#222A2A"
@@ -1155,39 +1155,43 @@ def _copy_styles(source_doc, target_doc):
             target_doc.styles.element.append(copy.deepcopy(style_elem))
 
 
-def hex_to_rgb(hex_color: str):
-    hex_color = hex_color.lstrip("#")
-    return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))  # noqa E203
-
-
 def rgb_to_hex(rgb):
-    return "#{:02X}{:02X}{:02X}".format(*rgb)
+    r, g, b = pc.unlabel_rgb(str(rgb))
+    hex_color = f"#{int(r):02x}{int(g):02x}{int(b):02x}"
+    return hex_color
 
 
-def interpolate_color(c1, c2, factor: float):
-    return tuple(round(a + (b - a) * factor) for a, b in zip(c1, c2))
+def lighten_color(rgb_base: str, factor: float = 0.5) -> str:
+    rgb_lighter = pc.find_intermediate_color(
+        rgb_base, "(255, 255, 255)", factor, colortype="rgb"
+    )
+    return rgb_to_hex(rgb_lighter)
 
 
-def get_gradient_color(value: float) -> str:
+def get_gradient_color(value):
     so_color_palette = list(
         MaturityLevel.objects.order_by("level").values_list("level", "color")
     )
 
-    if value <= so_color_palette[0][0]:
-        return so_color_palette[0][1]
-    if value >= so_color_palette[-1][0]:
-        return so_color_palette[-1][1]
+    palette = [(float(v), c) for v, c in so_color_palette]
 
-    # find segment
-    for (v1, c1), (v2, c2) in zip(so_color_palette, so_color_palette[1:]):
-        if v1 <= value <= v2:
-            ratio = (value - v1) / (v2 - v1)
+    min_v = palette[0][0]
+    max_v = palette[-1][0]
 
-            rgb1 = hex_to_rgb(c1)
-            rgb2 = hex_to_rgb(c2)
+    normalized = (float(value) - min_v) / (max_v - min_v)
 
-            mixed = interpolate_color(rgb1, rgb2, ratio)
-            return rgb_to_hex(mixed)
+    colorscale = [[(v - min_v) / (max_v - min_v), c] for v, c in palette]
+
+    rgb = pc.sample_colorscale(colorscale, [normalized])[0]
+
+    return rgb_to_hex(rgb)
+
+
+def get_chart_color_palette(colors):
+    regulator_palette = [str(f"rgb{pc.hex_to_rgb(color[0])}") for color in colors]
+    default_palette = pc.qualitative.Set1 + pc.qualitative.Set2
+    chart_color_palette = regulator_palette + default_palette
+    return chart_color_palette
 
 
 def _get_page_content_width_dxa(doc: Document) -> int:

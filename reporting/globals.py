@@ -8,14 +8,6 @@ RISK_TREATMENT = [
     ("UNTRE", _("Untreated")),
 ]
 
-SECTOR_LEGEND = _("Sector average")
-
-CHARTS_COLOR_PALETTE = [
-    ("#023255", "#0063B2"),
-    ("#EF7D00", "#F3BC3E"),
-    ("#00827D", "#00B796"),
-]
-
 TRANSLATIONS_CONTEXT = {
     "domain": _("Domain"),
     "evolution": _("Evolution"),

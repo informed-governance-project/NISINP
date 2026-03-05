@@ -91,12 +91,12 @@ class TemplateInline(admin.TabularInline):
 class ConfigurationAdmin(FunctionalityMixin, admin.ModelAdmin):
     inlines = [TemplateInline, ColorInline]
     list_display = ("regulation", "regulator")
-    fields = ["regulator", "regulation"]
+    fields = ["regulation"]
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
-        if not obj:
-            fields.remove("regulator")
+        if obj:
+            return fields + ["regulator"]
         return fields
 
     def get_readonly_fields(self, request, obj=None):
