@@ -6,10 +6,11 @@ from import_export.admin import ImportExportModelAdmin
 
 from governanceplatform.admin import CustomTranslatableAdmin, admin_site
 from governanceplatform.mixins import FunctionalityMixin, TranslationUpdateMixin
-from governanceplatform.models import Sector
+from governanceplatform.models import Regulation, Sector
 from governanceplatform.widgets import TranslatedNameM2MWidget
 
-from .models import ObservationRecommendation
+from .forms import TemplateAdminForm
+from .models import Color, Configuration, ObservationRecommendation, Template
 
 
 class ObservationRecommendationResource(
@@ -71,3 +72,47 @@ class ObservationRecommendationAdmin(
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+class ColorInline(admin.TabularInline):
+    model = Color
+    extra = 0
+    fields = ("position", "color")
+
+
+class TemplateInline(admin.TabularInline):
+    model = Template
+    form = TemplateAdminForm
+    extra = 0
+    fields = ("language", "template_file")
+
+
+@admin.register(Configuration, site=admin_site)
+class ConfigurationAdmin(FunctionalityMixin, admin.ModelAdmin):
+    inlines = [TemplateInline, ColorInline]
+    list_display = ("regulation", "regulator")
+    fields = ["regulator", "regulation"]
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if not obj:
+            fields.remove("regulator")
+        return fields
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ("regulator",)
+        return ()
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "regulation":
+            regulator = request.user.regulators.first()
+            kwargs["queryset"] = Regulation.objects.filter(
+                regulators=regulator
+            ).distinct()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        user = request.user
+        obj.regulator = user.regulators.first()
+        super().save_model(request, obj, form, change)

@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 
 import pytz
+from colorfield.fields import ColorField
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -436,3 +437,60 @@ class GeneratedReport(models.Model):
         return os.path.join(
             settings.PATH_FOR_REPORTING_PDF, str(self.user.id), str(self.file_uuid)
         )
+
+
+class Configuration(models.Model):
+    regulator = models.ForeignKey(
+        "governanceplatform.regulator",
+        verbose_name=_("Regulator"),
+        on_delete=models.CASCADE,
+    )
+    regulation = models.ForeignKey(
+        "governanceplatform.regulation",
+        verbose_name=_("Regulation"),
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name_plural = _("Configurations")
+        verbose_name = _("Configuration")
+        unique_together = ("regulator", "regulation")
+
+
+class Color(models.Model):
+    configuration = models.ForeignKey(
+        Configuration,
+        on_delete=models.CASCADE,
+        related_name="colors",
+    )
+    color = ColorField(default="#FFFFFF", verbose_name=_("Color"))
+    position = models.PositiveIntegerField(default=0, verbose_name=_("Position"))
+
+    class Meta:
+        verbose_name_plural = _("Colors")
+        verbose_name = _("Color")
+        ordering = ["position"]
+
+
+class Template(models.Model):
+    configuration = models.ForeignKey(
+        Configuration,
+        on_delete=models.CASCADE,
+        related_name="templates",
+    )
+    language = models.CharField(max_length=2, verbose_name=_("Language"))
+
+    template_file = models.BinaryField(
+        verbose_name=_("File"),
+        editable=True,
+    )
+
+    class Meta:
+        verbose_name_plural = _("Templates DOCX")
+        verbose_name = _("Template DOCX")
+        unique_together = ("configuration", "language")
+        ordering = ["language"]
+
+    def __str__(self):
+        languages = dict(settings.LANGUAGES)
+        return languages.get(self.language, self.language)
