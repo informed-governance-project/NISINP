@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -12,6 +13,7 @@ from .models import (
     ObservationRecommendation,
     ObservationRecommendationThrough,
     SectorReportConfiguration,
+    Template,
 )
 
 
@@ -214,3 +216,33 @@ class ObservationRecommendationOrderForm(forms.ModelForm):
     class Meta:
         model = ObservationRecommendationThrough
         fields = ["order"]
+
+
+class TemplateAdminForm(forms.ModelForm):
+    template_file = forms.FileField(
+        required=True,
+        widget=forms.FileInput(attrs={"accept": ".docx"}),
+    )
+
+    class Meta:
+        model = Template
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["language"] = forms.ChoiceField(
+            choices=settings.LANGUAGES,
+        )
+
+    def clean_template_file(self):
+        file = self.cleaned_data.get("template_file")
+        if isinstance(file, (memoryview, bytes)):
+            return bytes(file)
+        if file:
+            if not file.name.endswith(".docx"):
+                raise forms.ValidationError(_("Only .docx files are allowed."))
+            return file.read()
+        existing = self.instance.template_file
+        if existing:
+            return bytes(existing)
+        return None

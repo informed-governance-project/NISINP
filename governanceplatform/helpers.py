@@ -318,9 +318,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
     # [MaturityLevel] Check if obj is already in use
     if isinstance(obj, MaturityLevel):
-        in_use = SecurityMeasureAnswer.objects.filter(
-            security_measure__maturity_level=obj
-        ).exists()
+        in_use = False
 
     # [Domain] Check if obj is already in use
     if isinstance(obj, Domain):

@@ -1,17 +1,25 @@
 import base64
+import copy
+import shutil
+import subprocess
 import textwrap
 import uuid
 from collections import Counter, OrderedDict, defaultdict
 from io import BytesIO
+from itertools import groupby, zip_longest
+from pathlib import Path
 from statistics import mean
 from typing import List
 
 import plotly.colors as pc
 import plotly.graph_objects as go
-from django.db.models import Avg, Count, F, Min, OuterRef, Subquery
+from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
+from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from parler.models import TranslationDoesNotExist
 
 from securityobjectives.models import (
@@ -22,8 +30,16 @@ from securityobjectives.models import (
     StandardAnswer,
 )
 
-from .globals import SECTOR_LEGEND
-from .models import AssetData, LogReporting, RecommendationData, RiskData, ServiceStat
+from .globals import TRANSLATIONS_CONTEXT
+from .models import (
+    AssetData,
+    LogReporting,
+    RecommendationData,
+    RiskData,
+    ServiceStat,
+    ThreatData,
+    VulnerabilityData,
+)
 
 
 def get_so_data(cleaned_data):
@@ -53,7 +69,8 @@ def get_so_data(cleaned_data):
 
     def calculate_evolution(previous_data, current_score):
         if previous_data:
-            previous_score = previous_data["score"]
+            previous_score = round(previous_data["score"], 1)
+            current_score = round(current_score, 1)
             if previous_score > current_score:
                 return False
             elif previous_score < current_score:
@@ -62,7 +79,7 @@ def get_so_data(cleaned_data):
 
     def build_dict_scores(queryset, target_dict, key_func, year, sector_values=False):
         for item in queryset:
-            key = key_func(item)
+            key = str(key_func(item))
             score_field = "score_value"
 
             if isinstance(item, dict):
@@ -90,9 +107,9 @@ def get_so_data(cleaned_data):
                 radar_data.setdefault(year_label, []).append(values[score_field])
 
                 if sector_avg_field and year == current_year:
-                    radar_data.setdefault(f"{SECTOR_LEGEND} {current_year}", []).append(
-                        values[sector_avg_field]
-                    )
+                    radar_data.setdefault(
+                        f"{sector_avg_translation} {current_year}", []
+                    ).append(values[sector_avg_field])
 
         return dict(radar_data)
 
@@ -101,6 +118,78 @@ def get_so_data(cleaned_data):
         score_list = [counts.get(level, 0) for level in range(levels_count)]
         bar_chart_data_by_level[label] = score_list
 
+    def get_grouped_scores(order="asc") -> dict:
+        scores = sector_scores_queryset.order_by("score_value", "min_position")
+        so_ids = scores.values_list("security_objective", flat=True)
+        so_map = {
+            so.pk: str(so) for so in SecurityObjective.objects.filter(pk__in=so_ids)
+        }
+        company_scores_map = (
+            {
+                fs.security_objective_id: fs.score_value
+                for fs in floored_company_queryset.filter(security_objective__in=so_ids)
+            }
+            if floored_company_queryset
+            else {}
+        )
+
+        grouped_scores = {
+            str(round(score_value, 1)): [
+                {
+                    "name": so_map[s["security_objective"]],
+                    "score_sector": round(score_value, 1),
+                    "score_company": round(
+                        company_scores_map.get(s["security_objective"], 0), 1
+                    ),
+                }
+                for s in group
+            ]
+            for score_value, group in groupby(scores, key=lambda s: s["score_value"])
+        }
+
+        reverse = order == "desc"
+        sorted_keys = sorted(
+            grouped_scores.keys(), key=lambda x: float(x), reverse=reverse
+        )
+        sliced_keys = sorted_keys[:top_ranking]
+
+        return {key: grouped_scores[key] for key in sliced_keys}
+
+    def convert_data_for_docxtpl(data, ndigits=0):
+        years = years_list
+        converted_data = []
+
+        for label, data_by_year in data.items():
+            scores = []
+            evolutions = []
+            last_avgs = []
+
+            for year_index, year in enumerate(years):
+                year_data = data_by_year.get(year, {})
+                value = round(year_data.get("score") or 0, ndigits)
+                is_last = year_index == len(years) - 1
+                score = {
+                    "value": value,
+                    "color": get_gradient_color(value) if is_last else "#FFFFFF",
+                }
+                evo = year_data.get("evolution")
+                sector_avg = round(year_data.get("sector_avg") or 0, ndigits)
+
+                scores.append(score)
+                evolutions.append(evo)
+                last_avgs.append(sector_avg)
+
+            converted_data.append(
+                {
+                    "label": label,
+                    "years": scores,
+                    "evolution": evolutions,
+                    "last_avg": last_avgs,
+                }
+            )
+
+        return {"years": years, "data": converted_data}
+
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
     current_year = cleaned_data["year"]
@@ -108,7 +197,11 @@ def get_so_data(cleaned_data):
     so_excluded = cleaned_data["so_excluded"]
     top_ranking = cleaned_data["top_ranking"]
     maturity_levels_queryset = MaturityLevel.objects.order_by("level")
-    maturity_levels = [str(level) for level in maturity_levels_queryset]
+    maturity_levels = [
+        {"level": ml.level, "label": str(ml), "color": ml.color}
+        for ml in maturity_levels_queryset
+    ]
+    maturity_levels_labels = [str(ml) for ml in maturity_levels_queryset]
     years_list = []
     sector_so_by_year_desc = OrderedDict()
     sector_so_by_year_asc = OrderedDict()
@@ -119,6 +212,7 @@ def get_so_data(cleaned_data):
     radar_chart_data_by_domain = defaultdict()
     radar_chart_data_by_year = defaultdict()
     so_data = defaultdict()
+    sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
@@ -176,14 +270,28 @@ def get_so_data(cleaned_data):
         # Dictionaries
 
         # by_level
+        levels_map = {
+            ml.level: f"{ml.level} ({str(ml)})" for ml in maturity_levels_queryset
+        }
         for score_data in sorted_company_queryset.order_by(
             "score_value", "min_position"
         ):
-            level = maturity_levels_queryset.filter(
-                level=int(score_data.score_value)
-            ).first()
-            security_objective = score_data.security_objective
-            company_so_by_level[str(level)].append(security_objective)
+            level = levels_map.get(int(score_data.score_value), "Unknown")
+            security_objective = str(score_data.security_objective)
+            company_so_by_level[level].append(security_objective)
+
+        headers = list(company_so_by_level.keys())
+        columns = list(company_so_by_level.values())
+
+        rows = [
+            {headers[i]: cell or "" for i, cell in enumerate(row)}
+            for row in zip_longest(*columns, fillvalue="")
+        ]
+
+        company_so_by_level = {
+            "headers": headers,
+            "rows": rows,
+        }
 
         # by_domain
         build_dict_scores(
@@ -242,41 +350,37 @@ def get_so_data(cleaned_data):
 
         build_bar_chart_by_level_data(
             counts=sector_counts,
-            label=f"{SECTOR_LEGEND} {year}",
+            label=f"{sector_avg_translation} {year}",
         )
 
         # Sector asc and desc lists by score
-        sector_so_by_year_asc[year] = [
-            SecurityObjective.objects.get(pk=score["security_objective"])
-            for score in sector_scores_queryset.order_by("score_value", "min_position")[
-                :top_ranking
-            ]
-        ]
+        sector_so_by_year_asc[year] = get_grouped_scores(order="asc")
+        sector_so_by_year_desc[year] = get_grouped_scores(order="desc")
 
-        sector_so_by_year_desc[year] = [
-            SecurityObjective.objects.get(pk=score["security_objective"])
-            for score in sector_scores_queryset.order_by(
-                "-score_value", "min_position"
-            )[:top_ranking]
-        ]
-
-    radar_chart_data_by_domain = build_radar_data(company_so_by_domain, "sector_avg")
+    radar_chart_data_by_domain_with_sector_avg = build_radar_data(
+        company_so_by_domain, "sector_avg"
+    )
+    radar_chart_data_by_domain = build_radar_data(company_so_by_domain)
     radar_chart_data_by_year = build_radar_data(company_so_by_year)
-
     so_data = {
         "years": years_list,
         "domains": [str(domain) for domain in company_so_by_domain.keys()],
         "maturity_levels": maturity_levels,
-        "unique_codes_list": [so.unique_code for so in company_so_by_year.keys()],
+        "maturity_levels_labels": maturity_levels_labels,
+        "unique_codes_list": [
+            so.security_objective.unique_code
+            for so in sorted_company_queryset.order_by("min_position")
+        ],
         "max_of_company_count": max(company_counts.values()),
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
-        "company_so_by_level": dict(company_so_by_level),
-        "company_so_by_domain": dict(company_so_by_domain),
-        "company_so_by_year": dict(company_so_by_year),
-        "company_so_by_priority": dict(company_so_by_priority),
+        "company_so_by_level": company_so_by_level,
+        "company_so_by_domain": convert_data_for_docxtpl(company_so_by_domain, 1),
+        "company_so_by_year": convert_data_for_docxtpl(company_so_by_year),
+        "company_so_by_priority": convert_data_for_docxtpl(company_so_by_priority),
         "sector_so_by_year_desc": dict(sector_so_by_year_desc),
         "sector_so_by_year_asc": dict(sector_so_by_year_asc),
         "radar_chart_data_by_domain": radar_chart_data_by_domain,
+        "radar_chart_data_by_domain_with_sector_avg": radar_chart_data_by_domain_with_sector_avg,
         "radar_chart_data_by_year": radar_chart_data_by_year,
     }
 
@@ -367,17 +471,6 @@ def get_risk_data(cleaned_data):
             round_value(high_risks_average_by_sector["max_risk_avg"])
         )
 
-        # Stats by service data
-        service_stats.setdefault(service, {year: {}})
-        if service_stat_queryset:
-            service_stats[service][year] = model_to_dict(service_stat_queryset.first())
-            service_stats[service][year]["total_high_risks_treated"] = total_high_risks
-            service_stats[service][year]["avg_high_risks_treated"] = (
-                high_risks_by_company["max_risk_avg"]
-            )
-        else:
-            service_stats[service][year] = {}
-
     def build_evolution_highest_risks_data(company_reporting):
         risks_data = (
             RiskData.objects.filter(
@@ -410,7 +503,16 @@ def get_risk_data(cleaned_data):
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
                     risks_top_ranking_ids.append(f"R{risk.id}")
-                    risks_top_ranking[uuid] = model_to_dict(risk)
+                    risks_top_ranking[uuid] = model_to_dict(
+                        risk,
+                        exclude=[
+                            "service",
+                            "asset",
+                            "threat",
+                            "vulnerability",
+                            "recommendations",
+                        ],
+                    )
                     risks_top_ranking[uuid][
                         "treatment"
                     ] = risk.get_risk_treatment_display()
@@ -418,40 +520,12 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid]["asset"] = str(risk.asset)
                     risks_top_ranking[uuid]["threat"] = str(risk.threat)
                     risks_top_ranking[uuid]["vulnerability"] = str(risk.vulnerability)
-                    risks_top_ranking[uuid]["impacts"] = {
-                        current_year: {
-                            "c": (
-                                {"value": risk.impact_c if risk.impact_c > -1 else None}
-                            ),
-                            "i": (
-                                {"value": risk.impact_i if risk.impact_i > -1 else None}
-                            ),
-                            "a": (
-                                {"value": risk.impact_a if risk.impact_a > -1 else None}
-                            ),
-                        }
-                    }
-                    risks_top_ranking[uuid]["threat_values"] = {
-                        current_year: {
-                            "value": (
-                                risk.threat_value if risk.threat_value > -1 else None
-                            )
-                        }
-                    }
-                    risks_top_ranking[uuid]["vulnerability_values"] = {
-                        current_year: {
-                            "value": (
-                                risk.vulnerability_value
-                                if risk.vulnerability_value > -1
-                                else None
-                            )
-                        }
-                    }
                     risks_top_ranking[uuid]["risks_values"] = {
                         current_year: {
                             "c": ({"value": risk.risk_c if risk.risk_c > -1 else None}),
                             "i": ({"value": risk.risk_i if risk.risk_i > -1 else None}),
                             "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
+                            "max": risk.max_risk or "-",
                         }
                     }
 
@@ -469,104 +543,22 @@ def get_risk_data(cleaned_data):
 
                     max_risk = risk.max_risk
 
-                    impacts_dict = {
-                        "c": ({"value": risk.impact_c if risk.impact_c > -1 else None}),
-                        "i": ({"value": risk.impact_i if risk.impact_i > -1 else None}),
-                        "a": ({"value": risk.impact_a if risk.impact_a > -1 else None}),
-                    }
-
-                    threat_value = {
-                        "value": risk.threat_value if risk.threat_value > -1 else None
-                    }
-
-                    vulnerability_value = {
-                        "value": (
-                            risk.vulnerability_value
-                            if risk.vulnerability_value > -1
-                            else None
-                        )
-                    }
-
                     risk_values_dict = {
                         "c": ({"value": risk.risk_c if risk.risk_c > -1 else None}),
                         "i": ({"value": risk.risk_i if risk.risk_i > -1 else None}),
                         "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
+                        "max": max_risk or "-",
                     }
-
-                    if past_year == current_year - 1:
-                        values_changed = False
-                        current_ranking = risks_top_ranking[uuid]
-
-                        # Compare impacts
-                        current_year_impacts = current_ranking["impacts"][current_year]
-                        for key, impact in current_year_impacts.items():
-                            impact_changed = (
-                                impacts_dict[key]["value"] != impact["value"]
-                            )
-                            impact["changed"] = impact_changed
-                            values_changed = values_changed or impact_changed
-
-                        # Compare threat
-                        current_year_threat = current_ranking["threat_values"][
-                            current_year
-                        ]
-                        threat_changed = (
-                            risk.threat_value != current_year_threat["value"]
-                        )
-                        current_year_threat["changed"] = threat_changed
-                        values_changed = values_changed or threat_changed
-
-                        # Compare vulnerability
-                        current_year_vulnerability = current_ranking[
-                            "vulnerability_values"
-                        ][current_year]
-                        vulnerability_changed = (
-                            risk.vulnerability_value
-                            != current_year_vulnerability["value"]
-                        )
-                        current_year_vulnerability["changed"] = vulnerability_changed
-                        values_changed = values_changed or vulnerability_changed
-
-                        # Compare risks if any previous value is different
-                        if values_changed:
-                            current_year_risks = current_ranking["risks_values"][
-                                current_year
-                            ]
-                            filtered_values = [
-                                item["value"]
-                                for item in current_year_risks.values()
-                                if item["value"] is not None
-                            ]
-                            current_max_value = max(filtered_values, default=None)
-
-                            for key, risk_item in current_year_risks.items():
-                                risk_values_dict[key]["changed"] = (
-                                    risk_values_dict[key]["value"] == max_risk
-                                )
-                                risk_item["changed"] = (
-                                    risk_item["value"] == current_max_value
-                                )
 
                 except RiskData.DoesNotExist:
                     max_risk = 0
-                    impacts_dict = {
-                        "c": None,
-                        "i": None,
-                        "a": None,
-                    }
-                    threat_value = None
-                    vulnerability_value = None
                     risk_values_dict = {
                         "c": None,
                         "i": None,
                         "a": None,
+                        "max": "-",
                     }
 
-                risks_top_ranking[uuid]["impacts"][past_year] = impacts_dict
-                risks_top_ranking[uuid]["threat_values"][past_year] = threat_value
-                risks_top_ranking[uuid]["vulnerability_values"][
-                    past_year
-                ] = vulnerability_value
                 risks_top_ranking[uuid]["risks_values"][past_year] = risk_values_dict
 
                 data_evolution_highest_risks[f"{company['name']} {past_year}"].append(
@@ -575,87 +567,34 @@ def get_risk_data(cleaned_data):
 
             past_year += 1
 
-    def build_top_ranking_risk_items(service, is_last=False):
-        def get_distinct_sorted(data, sort_key, id_key):
-            seen = set()
-            return [
-                item
-                for item in sorted(
-                    data, key=lambda x: get_nested_attr(x, sort_key), reverse=True
-                )
-                if not (
-                    get_nested_attr(item, id_key) in seen
-                    or seen.add(get_nested_attr(item, id_key))
-                )
-            ]
-
-        def get_sorted_data(data, sort_id_pairs):
-            return {
-                name: get_distinct_sorted(data, sort_key=key, id_key=id)
-                for name, (key, id) in sort_id_pairs.items()
-            }
-
-        def append_top_ranking(data, sort_id_pairs, target_key):
-            for index in range(top_ranking):
-                ranking_dict = {
-                    key: data[key][index]
-                    for key in sort_id_pairs.keys()
-                    if index < len(data[key])
+    def get_top_by_occurrence(model):
+        qs = (
+            model.objects.filter(
+                **{
+                    "riskdata__service__company_reporting__company__id": company_id,
+                    "riskdata__service__company_reporting__year": year,
+                    "riskdata__service__company_reporting__sector__id": sector_id,
                 }
-                top_ranking_risks_items[target_key].append(ranking_dict)
-
-        risk_data_reporting_queryset = (
-            RiskData.objects.filter(
-                service__company_reporting__year=year,
-                service__company_reporting__sector__id=sector_id,
-                service__company_reporting__company__id=company_id,
             )
-            .exclude(risk_treatment="UNTRE")
-            .annotate(total_impact=F("impact_c") + F("impact_i") + F("impact_a"))
-        )
-
-        risk_data_service_queryset = risk_data_reporting_queryset.filter(
-            service__service=service
-        )
-
-        data = list(risk_data_service_queryset)
-        if not data:
-            return
-
-        sort_id_pairs = {
-            "threat_by_max_risk": ("max_risk", "threat_id"),
-            "vulnerability_by_max_risk": ("max_risk", "vulnerability_id"),
-            "asset_by_max_risk": ("max_risk", "asset.name"),
-            "threat_by_residual_risk": ("residual_risk", "threat_id"),
-            "vulnerability_by_residual_risk": (
-                "residual_risk",
-                "vulnerability_id",
-            ),
-            "asset_by_residual_risk": ("residual_risk", "asset.name"),
-            "by_threat": ("threat_value", "threat_id"),
-            "by_vulnerability": ("vulnerability_value", "vulnerability_id"),
-            "by_asset": ("total_impact", "asset.name"),
-        }
-
-        sorted_data = get_sorted_data(data, sort_id_pairs)
-        append_top_ranking(sorted_data, sort_id_pairs, service)
-
-        if is_last:
-            all_data = list(risk_data_reporting_queryset)
-            if all_data:
-                all_service_sorted_data = get_sorted_data(all_data, sort_id_pairs)
-                append_top_ranking(
-                    all_service_sorted_data, sort_id_pairs, _("All services")
+            .annotate(
+                occurrences=Count(
+                    "riskdata",
+                    filter=~Q(riskdata__risk_treatment="UNTRE"),
                 )
-
-    def build_recommendations_data(company_reporting):
-        return (
-            RecommendationData.objects.filter(
-                riskdata__service__company_reporting__id=company_reporting["id"]
             )
-            .annotate(risk_count=Count("riskdata"))
-            .order_by("-risk_count")[:top_ranking]
+            .order_by("-occurrences")
         )
+
+        grouped = OrderedDict()
+
+        for obj in qs:
+            grouped.setdefault(obj.occurrences, []).append(str(obj))
+
+        return sorted(
+            grouped.items(),
+            key=lambda x: x[0],
+            reverse=True,
+        )[:top_ranking]
 
     def build_evolution_recommendations_data():
         recommendations_by_year = RecommendationData.objects.filter(
@@ -666,6 +605,7 @@ def get_risk_data(cleaned_data):
 
         if recommendations_by_year:
             for recommendation in recommendations_by_year:
+                color = "#FFFFFF"
                 recommendation_key = generate_combined_uuid(
                     [recommendation.code, recommendation.description]
                 )
@@ -674,6 +614,7 @@ def get_risk_data(cleaned_data):
                     {
                         "code": recommendation.code,
                         "description": recommendation.description,
+                        "due_date": recommendation.due_date.strftime("%d/%m/%Y"),
                     },
                 )
 
@@ -684,15 +625,20 @@ def get_risk_data(cleaned_data):
 
                 if previous_due_date:
                     status = _("Postponed")
+                    color = "#FFC000"
                     if (
                         previous_due_date == recommendation.due_date
                         and recommendation.due_date.year == previous_year
                     ):
                         status = _("To check")
                 else:
-                    status = _("Open") if year == current_year else _("Closed")
-
+                    if year == current_year:
+                        status = _("New")
+                    else:
+                        status = _("Closed")
+                        color = "#00B050"
                 recommendations_evolution[recommendation_key]["status"] = status
+                recommendations_evolution[recommendation_key]["color"] = color
                 recommendations_evolution[recommendation_key][
                     year
                 ] = recommendation.due_date
@@ -713,8 +659,7 @@ def get_risk_data(cleaned_data):
     data_evolution_highest_risks = defaultdict(list)
     risks_top_ranking = OrderedDict()
     risks_top_ranking_ids = []
-    service_stats = OrderedDict()
-    top_ranking_risks_items = defaultdict(list)
+    risks_stats_by_year = OrderedDict()
     recommendations_evolution = defaultdict(dict)
     services_list = (
         AssetData.objects.filter(
@@ -728,18 +673,15 @@ def get_risk_data(cleaned_data):
 
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
-        years_list.append(year)
+        years_list.append(str(year))
         company_label = f"{company['name']} {year}"
-        sector_label = f"{SECTOR_LEGEND} {year}"
+        sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
+        sector_label = f"{sector_avg_translation} {year}"
         labels = [company_label, sector_label]
 
-        for index, service in enumerate(services_list):
+        for service in services_list:
             build_risk_average_data(service)
             build_high_risk_data(service)
-
-            if year == current_year:
-                is_last = index == len(services_list) - 1
-                build_top_ranking_risk_items(service, is_last)
 
         # Score mean for all services
         for label in labels:
@@ -750,9 +692,56 @@ def get_risk_data(cleaned_data):
                 0, round_value(mean(data_by_high_risk_average[label]))
             )
 
+        # Stats by year data
+        risks_stats_by_year.setdefault(year, {})
+        service_stat_by_year_qs = ServiceStat.objects.filter(
+            company_reporting__year=year,
+            company_reporting__company__id=company_id,
+            company_reporting__sector__id=sector_id,
+        )
+        total_high_risks_qs = (
+            RiskData.objects.filter(
+                service__company_reporting__company__id=company_id,
+                service__company_reporting__year=year,
+                service__company_reporting__sector__id=sector_id,
+                max_risk__gt=threshold_for_high_risk,
+            )
+            .exclude(risk_treatment="UNTRE")
+            .aggregate(count=Count("id"), max_risk_avg=Avg("max_risk"))
+        )
+        if service_stat_by_year_qs:
+            risks_stats_by_year[year] = model_to_dict(
+                service_stat_by_year_qs.first(),
+                exclude=["service", "company_reporting"],
+            )
+            risks_stats_by_year[year]["total_high_risks_treated"] = total_high_risks_qs[
+                "count"
+            ]
+            risks_stats_by_year[year]["avg_high_risks_treated"] = total_high_risks_qs[
+                "max_risk_avg"
+            ]
+
+            for key in [
+                "avg_current_risks",
+                "avg_residual_risks",
+                "avg_high_risks_treated",
+            ]:
+                risks_stats_by_year[year][key] = round_value(
+                    risks_stats_by_year[year][key]
+                )
+
         if year == current_year:
             build_evolution_highest_risks_data(company_reporting)
-            most_recommendations_used = build_recommendations_data(company_reporting)
+
+            # Top of threats by occurence
+            top_threats = get_top_by_occurrence(
+                ThreatData,
+            )
+
+            # Top of vulnerabilities by occurence
+            top_vulnerabilities = get_top_by_occurrence(
+                VulnerabilityData,
+            )
 
         build_evolution_recommendations_data()
 
@@ -766,13 +755,15 @@ def get_risk_data(cleaned_data):
             sort_legends(data_evolution_highest_risks)
         ),
         "data_risks_top_ranking": list(
-            values for uuid, values in risks_top_ranking.items()
+            values for _uuid, values in risks_top_ranking.items()
         ),
         "risks_top_ranking_ids": risks_top_ranking_ids,
-        "service_stats": dict(service_stats),
-        "top_ranking_risks_items": dict(top_ranking_risks_items),
-        "most_recommendations_used": most_recommendations_used,
-        "recommendations_evolution": dict(recommendations_evolution),
+        "risks_stats_by_year": dict(risks_stats_by_year),
+        "top_threats": dict(top_threats),
+        "top_vulnerabilities": dict(top_vulnerabilities),
+        "recommendations_evolution": list(
+            reco for _uuid, reco in recommendations_evolution.items()
+        ),
         "operator_services": operator_services,
         "operator_services_with_all": operator_services_with_all,
     }
@@ -780,35 +771,51 @@ def get_risk_data(cleaned_data):
     return risk_data
 
 
-def get_charts(so_data, risk_data):
+def get_charts(so_data, risk_data, colors):
     charts = {
-        "colorbar": generate_colorbar(),
-        "security_measures_1": generate_bar_chart(
-            so_data["bar_chart_data_by_level"], so_data["maturity_levels"]
+        "chart_security_objectives_by_level": generate_bar_chart(
+            so_data["bar_chart_data_by_level"],
+            so_data["maturity_levels_labels"],
+            colors,
         ),
-        "security_measures_5a": generate_radar_chart(
+        "chart_evolution_security_objectives_by_domain": generate_radar_chart(
             so_data["radar_chart_data_by_domain"],
             so_data["domains"],
-            so_data["maturity_levels"],
+            so_data["maturity_levels_labels"],
+            colors,
         ),
-        "security_measures_5b": generate_radar_chart(
+        "chart_evolution_security_objectives_by_domain_with_sector_avg": generate_radar_chart(
+            so_data["radar_chart_data_by_domain_with_sector_avg"],
+            so_data["domains"],
+            so_data["maturity_levels_labels"],
+            colors,
+        ),
+        "chart_evolution_security_objectives": generate_radar_chart(
             so_data["radar_chart_data_by_year"],
             so_data["unique_codes_list"],
-            so_data["maturity_levels"],
+            so_data["maturity_levels_labels"],
+            colors,
         ),
-        "risks_1": generate_bar_chart(
-            risk_data["data_by_risk_average"], risk_data["operator_services_with_all"]
+        "chart_average_risk_level": generate_bar_chart(
+            risk_data["data_by_risk_average"],
+            risk_data["operator_services_with_all"],
+            colors,
         ),
-        "risks_2": generate_bar_chart(
-            risk_data["data_by_high_risk_rate"], risk_data["operator_services"], True
+        "chart_high_risk_rate": generate_bar_chart(
+            risk_data["data_by_high_risk_rate"],
+            risk_data["operator_services"],
+            colors,
+            True,
         ),
-        "risks_3": generate_bar_chart(
+        "chart_average_high_risk_level": generate_bar_chart(
             risk_data["data_by_high_risk_average"],
             risk_data["operator_services_with_all"],
+            colors,
         ),
-        "risks_4": generate_bar_chart(
+        "chart_evolution_highest_risks": generate_bar_chart(
             risk_data["data_evolution_highest_risks"],
             risk_data["risks_top_ranking_ids"],
+            colors,
         ),
     }
 
@@ -818,7 +825,7 @@ def get_charts(so_data, risk_data):
 def sort_legends(data):
     return sorted(
         data.items(),
-        key=lambda x: (x[0] != SECTOR_LEGEND, x[0]),
+        key=lambda x: (x[0] != TRANSLATIONS_CONTEXT["sector_average"], x[0]),
     )
 
 
@@ -884,11 +891,10 @@ def create_entry_log(user, reporting, action):
     log.save()
 
 
-def generate_bar_chart(data, labels, is_rate=False):
+def generate_bar_chart(data, labels, colors, is_rate=False):
     fig = go.Figure()
     labels = text_wrap(labels)
-    bar_colors_palette = pc.qualitative.Pastel1
-    average_colors_palette = pc.qualitative.Set1
+    bar_colors_palette = get_chart_color_palette(colors)
     avg_index = 0
     bar_index = 0
 
@@ -899,18 +905,15 @@ def generate_bar_chart(data, labels, is_rate=False):
 
         group_name = str(name)[-4:]
 
-        if str(_("average")) in str(name):
+        if str(_("average")) in str(name).lower():
+            marker_color = lighten_color(bar_colors_palette[avg_index])
             fig.add_trace(
                 go.Scatter(
                     x=labels,
                     y=values,
                     name=str(name),
                     mode="markers",
-                    marker=dict(
-                        size=12,
-                        symbol="diamond",
-                        color=average_colors_palette[avg_index],
-                    ),
+                    marker=dict(size=12, symbol="diamond", color=marker_color),
                     offsetgroup=group_name,
                     legendgroup=group_name,
                 ),
@@ -918,12 +921,13 @@ def generate_bar_chart(data, labels, is_rate=False):
             avg_index += 1
 
         else:
+            marker_color = bar_colors_palette[bar_index]
             fig.add_trace(
                 go.Bar(
                     x=labels,
                     y=values,
                     name=str(name),
-                    marker_color=bar_colors_palette[bar_index],
+                    marker_color=marker_color,
                     text=rate_labels if is_rate else values,
                     textposition="outside",
                     offsetgroup=group_name,
@@ -969,20 +973,19 @@ def generate_bar_chart(data, labels, is_rate=False):
     return graph
 
 
-def generate_radar_chart(data, labels, levels):
+def generate_radar_chart(data, labels, levels, colors):
     fig = go.Figure()
     labels = text_wrap(labels)
-    line_colors_palette = pc.qualitative.Pastel1
-    marker_colors_palette = pc.qualitative.Set1
+    line_colors_palette = get_chart_color_palette(colors)
     index = 0
 
     for name, values in data.items():
         line_style = "solid"
         line_color = line_colors_palette[index]
-        marker_color = marker_colors_palette[index]
+        marker_color = lighten_color(line_colors_palette[index])
         symbol = "circle"
 
-        if str(_("average")) in name:
+        if str(_("average")) in str(name).lower():
             line_style = "dash"
             line_color = "#666666"
             marker_color = "#222A2A"
@@ -1018,6 +1021,7 @@ def generate_radar_chart(data, labels, levels):
                 tickangle=90,
             ),
             angularaxis=dict(
+                showgrid=False,
                 gridcolor="lightgrey",
                 tickmode="array",
                 linecolor="lightgrey",
@@ -1045,136 +1049,6 @@ def generate_radar_chart(data, labels, levels):
     return graph
 
 
-def generate_colorbar():
-    levels = [0, 0.5, 1, 1.5, 2, 2.5, 3]
-    labels = [
-        "no measure or N/A",
-        "",
-        "basic",
-        "",
-        "industry standard",
-        "",
-        "state of the art",
-    ]
-
-    fig = go.Figure(
-        data=go.Scatter(
-            x=[None],
-            y=[None],
-            mode="markers",
-            marker=dict(
-                size=0,
-                color=[-0.1, 3],
-                colorscale=[
-                    [0.0, "#F8696B"],
-                    [0.17, "#FA9473"],
-                    [0.33, "#FCBF7B"],
-                    [0.5, "#FFEB84"],
-                    [0.67, "#CCDD82"],
-                    [0.83, "#98CE7F"],
-                    [1.0, "#63BE7B"],
-                ],
-                colorbar=dict(
-                    outlinecolor="#FFFFFF",
-                    outlinewidth=0.5,
-                    tickvals=levels,
-                    ticktext=labels,
-                    orientation="h",
-                    x=0.5,
-                    y=0.5,
-                    xanchor="center",
-                    thickness=15,
-                    ypad=0,
-                ),
-            ),
-        )
-    )
-
-    annotations = [
-        dict(
-            x=0.02,
-            y="no measure or N/A",
-            text="0",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.19,
-            y="",
-            text="0.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.35,
-            y="basic",
-            text="1",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.5,
-            y="",
-            text="1.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.67,
-            y="industry standard",
-            text="2",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.83,
-            y="",
-            text="2.5",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-        dict(
-            x=0.98,
-            y="state of the art",
-            text="3",
-            showarrow=False,
-            xref="paper",
-            yref="paper",
-            xanchor="center",
-        ),
-    ]
-
-    fig.update_layout(annotations=annotations)
-
-    fig.update_layout(
-        xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
-        yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, range=[0, 1]),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=40, r=40, t=200, b=15),
-        height=50,
-    )
-
-    fig.update_xaxes(visible=False)
-    fig.update_yaxes(visible=False)
-
-    graph = convert_graph_to_base64(fig, "png")
-
-    return graph
-
-
 def text_wrap(text, max_line_length=20):
     if isinstance(text, list):
         text_wrapped = [
@@ -1187,14 +1061,285 @@ def text_wrap(text, max_line_length=20):
     return text_wrapped
 
 
-def convert_graph_to_base64(fig, export_format="svg"):
+def convert_graph_to_base64(fig, export_format="png"):
     buffer = BytesIO()
-    fig.write_image(buffer, format=export_format, engine="kaleido", scale=3)
+    fig.write_image(
+        buffer,
+        format=export_format,
+        engine="kaleido",
+        scale=3,
+    )
     buffer.seek(0)
-    image_svg = buffer.getvalue()
+    image = buffer.getvalue()
     buffer.close()
 
-    graph = base64.b64encode(image_svg)
+    graph = base64.b64encode(image)
     graph = graph.decode("utf-8")
 
     return graph
+
+
+def convert_docx_to_pdf(docx_path: str) -> str:
+    docx_path = Path(docx_path).resolve()
+    output_dir = docx_path.parent
+    pdf_path = output_dir / (docx_path.stem + ".pdf")
+
+    profile_dir = Path("/tmp") / f"lo-profile-{uuid.uuid4()}"
+    profile_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        subprocess.run(
+            [
+                "soffice",
+                f"-env:UserInstallation=file://{profile_dir}",
+                "--headless",
+                "--nologo",
+                "--nolockcheck",
+                "--nodefault",
+                "--norestore",
+                "--nofirststartwizard",
+                "--convert-to",
+                "pdf:writer_pdf_Export",
+                "--outdir",
+                str(output_dir),
+                str(docx_path),
+            ],
+            check=True,
+            capture_output=True,
+            timeout=60,
+        )
+
+        if not pdf_path.exists():
+            raise RuntimeError(f"PDF not created: {pdf_path}")
+
+    finally:
+        shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return pdf_path
+
+
+def merge_subdoc_into_placeholder(
+    main_docx_path, subdoc_path, placeholder, output_path
+):
+    main = Document(main_docx_path)
+    sub = Document(subdoc_path)
+
+    _copy_styles(sub, main)
+
+    paragraphs_to_replace = [
+        para for para in main.paragraphs if para.text.strip() == placeholder
+    ]
+
+    for para in paragraphs_to_replace:
+        parent = para._element.getparent()
+        idx = list(parent).index(para._element)
+        parent.remove(para._element)
+
+        for j, block in enumerate(sub.element.body):
+            if block.tag == qn("w:sectPr"):
+                continue
+            new_block = copy.deepcopy(block)
+            parent.insert(idx + j, new_block)
+
+    main.save(output_path)
+
+
+def _copy_styles(source_doc, target_doc):
+    source_styles = {
+        s.element.get(qn("w:styleId")): s.element for s in source_doc.styles
+    }
+    target_style_ids = {s.element.get(qn("w:styleId")) for s in target_doc.styles}
+
+    for style_id, style_elem in source_styles.items():
+        if style_id and style_id not in target_style_ids:
+            target_doc.styles.element.append(copy.deepcopy(style_elem))
+
+
+def rgb_to_hex(rgb):
+    r, g, b = pc.unlabel_rgb(str(rgb))
+    hex_color = f"#{int(r):02x}{int(g):02x}{int(b):02x}"
+    return hex_color
+
+
+def lighten_color(rgb_base: str, factor: float = 0.5) -> str:
+    rgb_lighter = pc.find_intermediate_color(
+        rgb_base, "(255, 255, 255)", factor, colortype="rgb"
+    )
+    return rgb_to_hex(rgb_lighter)
+
+
+def get_gradient_color(value):
+    so_color_palette = list(
+        MaturityLevel.objects.order_by("level").values_list("level", "color")
+    )
+
+    palette = [(float(v), c) for v, c in so_color_palette]
+
+    min_v = palette[0][0]
+    max_v = palette[-1][0]
+
+    normalized = (float(value) - min_v) / (max_v - min_v)
+
+    colorscale = [[(v - min_v) / (max_v - min_v), c] for v, c in palette]
+
+    rgb = pc.sample_colorscale(colorscale, [normalized])[0]
+
+    return rgb_to_hex(rgb)
+
+
+def get_chart_color_palette(colors):
+    regulator_palette = [str(f"rgb{pc.hex_to_rgb(color[0])}") for color in colors]
+    default_palette = pc.qualitative.Set1 + pc.qualitative.Set2
+    chart_color_palette = regulator_palette + default_palette
+    return chart_color_palette
+
+
+def _get_page_content_width_dxa(doc: Document) -> int:
+    section = doc.sections[0]
+    page_width = section.page_width
+    left_margin = section.left_margin
+    right_margin = section.right_margin
+
+    content_width_emu = page_width - left_margin - right_margin
+    content_width_dxa = int(content_width_emu * 1440 / 914400)
+
+    return content_width_dxa
+
+
+def _get_table_total_width(table, doc) -> int:
+    DEFAULT_WIDTH_DXA = _get_page_content_width_dxa(doc)
+
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    w_type = tblW.get(qn("w:type"))
+    w_val = tblW.get(qn("w:w"))
+
+    if w_type == "dxa" and w_val:
+        return int(w_val)
+
+    if w_type == "pct" and w_val:
+        ratio = int(w_val) / 5000
+        width = int(DEFAULT_WIDTH_DXA * ratio)
+        _set_table_total_width(table, width)
+        return width
+
+    if w_type in ("auto", "nil") or w_val == "0":
+        _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+        return DEFAULT_WIDTH_DXA
+
+    _set_table_total_width(table, DEFAULT_WIDTH_DXA)
+    return DEFAULT_WIDTH_DXA
+
+
+def _set_table_total_width(table, width_dxa: int):
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        table._element.insert(0, tblPr)
+
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        tblW = OxmlElement("w:tblW")
+        tblPr.append(tblW)
+
+    tblW.set(qn("w:w"), str(width_dxa))
+    tblW.set(qn("w:type"), "dxa")
+
+
+def redistribute_column_widths_proportional(
+    table, proportions, doc, table_widht_dxa=None
+):
+    if table_widht_dxa is not None:
+        total_width = table_widht_dxa
+        _set_table_total_width(table, total_width)
+    else:
+        total_width = _get_table_total_width(table, doc)
+
+    if total_width is None:
+        return
+
+    first_row_tcs = table.rows[0]._tr.findall(qn("w:tc"))
+    num_cols = len(first_row_tcs)
+
+    if proportions is None:
+        proportions = [1 / num_cols] * num_cols
+
+    total = sum(proportions)
+    proportions = [p / total for p in proportions]
+    col_widths = [int(total_width * p) for p in proportions]
+    col_widths[-1] = total_width - sum(col_widths[:-1])
+
+    tblPr = table._element.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        table._element.insert(0, tblPr)
+    tblLayout = tblPr.find(qn("w:tblLayout"))
+    if tblLayout is None:
+        tblLayout = OxmlElement("w:tblLayout")
+        tblPr.append(tblLayout)
+    tblLayout.set(qn("w:type"), "fixed")
+
+    for row in table.rows:
+        tcs = row._tr.findall(qn("w:tc"))
+        for i, tc in enumerate(tcs):
+            if i >= len(col_widths):
+                continue
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                tcPr = OxmlElement("w:tcPr")
+                tc.insert(0, tcPr)
+            tcW = tcPr.find(qn("w:tcW"))
+            if tcW is None:
+                tcW = OxmlElement("w:tcW")
+                tcPr.insert(0, tcW)
+            tcW.set(qn("w:w"), str(col_widths[i]))
+            tcW.set(qn("w:type"), "dxa")
+
+    tblGrid = table._element.find(qn("w:tblGrid"))
+    if tblGrid is not None:
+        gridCols = tblGrid.findall(qn("w:gridCol"))
+        for i, gridCol in enumerate(gridCols):
+            if i < len(col_widths):
+                gridCol.set(qn("w:w"), str(col_widths[i]))
+
+
+def fix_outer_column_borders(table_element, color: str = "FFFFFF"):
+    for row in table_element.findall(qn("w:tr")):
+        tcs = row.findall(qn("w:tc"))
+        if not tcs:
+            continue
+
+        cells_sides = [
+            (tcs[0], "left"),
+            (tcs[-1], "right"),
+        ]
+
+        for tc, side in cells_sides:
+            tcPr = tc.find(qn("w:tcPr"))
+            if tcPr is None:
+                tcPr = OxmlElement("w:tcPr")
+                tc.insert(0, tcPr)
+
+            tcBorders = tcPr.find(qn("w:tcBorders"))
+            if tcBorders is None:
+                tcBorders = OxmlElement("w:tcBorders")
+                tcPr.append(tcBorders)
+
+            existing = tcBorders.find(qn(f"w:{side}"))
+            if existing is not None:
+                tcBorders.remove(existing)
+
+            border = OxmlElement(f"w:{side}")
+            border.set(qn("w:val"), "single")
+            border.set(qn("w:sz"), "4")
+            border.set(qn("w:space"), "0")
+            border.set(qn("w:color"), color)
+            tcBorders.append(border)
