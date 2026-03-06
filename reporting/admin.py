@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
@@ -84,7 +86,19 @@ class TemplateInline(admin.TabularInline):
     model = Template
     form = TemplateAdminForm
     extra = 0
-    fields = ("language", "template_file")
+    fields = ("language", "template_file", "download_link")
+    readonly_fields = ("download_link",)
+
+    @admin.display(description=_("Current file"))
+    def download_link(self, obj):
+        if obj.pk and obj.template_file:
+            url = reverse("reporting_template_download", args=[obj.pk])
+            return format_html(
+                '<a class="viewlink" href="{}" download>{}</a>',
+                url,
+                _("Download"),
+            )
+        return "—"
 
 
 @admin.register(Configuration, site=admin_site)

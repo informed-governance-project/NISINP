@@ -6,7 +6,7 @@ from urllib.parse import quote as urlquote
 
 from celery import chain, group
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count
@@ -15,6 +15,7 @@ from django.http import (
     FileResponse,
     Http404,
     HttpRequest,
+    HttpResponse,
     HttpResponseRedirect,
     JsonResponse,
 )
@@ -817,6 +818,21 @@ def download_report(request, file_uuid):
         )
     except (GeneratedReport.DoesNotExist, FileNotFoundError):
         raise Http404("Report not found.")
+
+
+@login_required
+@otp_required
+@permission_required("reporting.view_template")
+def download_template(request, pk):
+    template = Template.objects.get(pk=pk)
+    response = HttpResponse(
+        bytes(template.template_file),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="template_{template.language}.docx"'
+    )
+    return response
 
 
 def parsing_risk_data_json(json_file, company_reporting_obj):

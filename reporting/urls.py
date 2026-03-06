@@ -8,6 +8,7 @@ from .views import (
     delete_report_recommendation,
     download_center,
     download_report,
+    download_template,
     edit_report_configuration,
     import_risk_analysis,
     report_configuration,
@@ -69,4 +70,10 @@ urlpatterns = [
     # Download center
     path("download-center/", download_center, name="download_center"),
     path("download/<uuid:file_uuid>/", download_report, name="download_report"),
+    # Current template download
+    path(
+        "admin/reporting/template/<int:pk>/download/",
+        download_template,
+        name="reporting_template_download",
+    ),
 ]
