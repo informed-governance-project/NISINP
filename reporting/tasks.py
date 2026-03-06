@@ -10,6 +10,7 @@ from pathlib import Path
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import formats
 from django.utils.translation import activate
 from docx import Document
 from docx.shared import Mm
@@ -199,6 +200,7 @@ def generate_docx_task(data):
         "top_ranking": data["top_ranking"],
         "report_recommendations": report_recommendations,
         "report_observations": data["company_reporting"]["comment"],
+        "publication_date": formats.date_format(datetime.date.today(), format="d F Y"),
     }
     for chart_name, chart_data in data["charts"].items():
         chart_bytes = BytesIO(base64.b64decode(chart_data))
