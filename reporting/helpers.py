@@ -897,6 +897,9 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
     bar_colors_palette = get_chart_color_palette(colors)
     avg_index = 0
     bar_index = 0
+    legend_orientation = "h"
+    legend_x = 0.5
+    legend_xanchor = "center"
 
     for name, values in data.items():
         if is_rate:
@@ -904,8 +907,12 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
             values = values["rate_values"]
 
         group_name = str(name)[-4:]
+        is_avg = str(_("average")) in str(name).lower()
 
-        if str(_("average")) in str(name).lower():
+        if is_avg:
+            legend_orientation = "v"
+            legend_x = 0
+            legend_xanchor = "left"
             marker_color = lighten_color(bar_colors_palette[avg_index])
             fig.add_trace(
                 go.Scatter(
@@ -916,6 +923,7 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
                     marker=dict(size=12, symbol="diamond", color=marker_color),
                     offsetgroup=group_name,
                     legendgroup=group_name,
+                    legend="legend2",
                 ),
             )
             avg_index += 1
@@ -932,6 +940,7 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
                     textposition="outside",
                     offsetgroup=group_name,
                     legendgroup=group_name,
+                    legend="legend",
                 ),
             )
             bar_index += 1
@@ -953,16 +962,26 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,
         legend=dict(
-            orientation="h",
-            x=0.5,
-            y=-0.2,
-            xanchor="center",
+            orientation=legend_orientation,
+            x=legend_x,
+            y=-0.10,
+            xanchor=legend_xanchor,
             yanchor="top",
             traceorder="normal",
             itemwidth=70,
             valign="middle",
         ),
-        margin=dict(l=0, r=0, t=0, b=50),
+        legend2=dict(
+            orientation="v",
+            x=0.5,
+            y=-0.10,
+            xanchor="left",
+            yanchor="top",
+            traceorder="normal",
+            itemwidth=70,
+            valign="middle",
+        ),
+        margin=dict(l=0, r=0, t=0, b=80),
     )
 
     if is_rate:
