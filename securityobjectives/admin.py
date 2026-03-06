@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
@@ -303,7 +304,13 @@ class MaturityLevelAdmin(
         "level",
         "standard__translations__label",
     ]
-    list_display = ["standard_display", "level", "label_display", "creator"]
+    list_display = [
+        "standard_display",
+        "level",
+        "color_preview",
+        "label_display",
+        "creator",
+    ]
     list_filter = ["standard", "level", "creator"]
     translated_fields = ["label"]
     related_fields = [("standard", "label")]
@@ -313,6 +320,15 @@ class MaturityLevelAdmin(
         "level",
         "color",
     ]
+
+    @admin.display(description=_("Color"))
+    def color_preview(self, obj):
+        return format_html(
+            '<span style="display:inline-block; width:16px; height:16px; '
+            'background:{}; border:1px solid #ccc;"></span> {}',
+            obj.color,
+            obj.color,
+        )
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
