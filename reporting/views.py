@@ -354,6 +354,80 @@ def create_report_project(request):
 
 @login_required
 @otp_required
+def edit_report_project(request, report_project_id: int):
+    user = request.user
+    regulator = user.regulators.first()
+
+    regulation_list = [
+        (regulation.id, str(regulation))
+        for regulation in Regulation.objects.filter(regulators=regulator)
+    ]
+
+    sectors_queryset = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
+    sector_list = get_sectors_grouped(sectors_queryset)
+
+    choices = {
+        "regulations": regulation_list,
+        "sectors": sector_list,
+    }
+
+    if request.method == "POST":
+        form = CreateProjectForm(
+            request.POST,
+            choices=choices,
+        )
+        if form.is_valid():
+            return HttpResponseRedirect(request.headers.get("referer"))
+
+    form = CreateProjectForm(choices=choices)
+    context = {"form": form, "is_edit": True}
+    return render(request, "modals/create_report_project.html", context=context)
+
+
+@login_required
+@otp_required
+def copy_report_project(request, report_project_id: int):
+    user = request.user
+    regulator = user.regulators.first()
+
+    regulation_list = [
+        (regulation.id, str(regulation))
+        for regulation in Regulation.objects.filter(regulators=regulator)
+    ]
+
+    sectors_queryset = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
+    sector_list = get_sectors_grouped(sectors_queryset)
+
+    choices = {
+        "regulations": regulation_list,
+        "sectors": sector_list,
+    }
+
+    if request.method == "POST":
+        form = CreateProjectForm(
+            request.POST,
+            choices=choices,
+        )
+        if form.is_valid():
+            return HttpResponseRedirect(request.headers.get("referer"))
+
+    form = CreateProjectForm(choices=choices, copy=True)
+    context = {"form": form, "is_copy": True}
+    return render(request, "modals/create_report_project.html", context=context)
+
+
+@login_required
+@otp_required
 def report_configuration(request):
     user = request.user
     report_configuration_queryset = (

@@ -278,8 +278,12 @@ class CreateProjectForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop("choices", {})
+        is_copy = kwargs.pop("copy", False)
         super().__init__(*args, **kwargs)
 
         if choices.get("regulations") and choices.get("sectors"):
             self.fields["regulation"].choices = choices["regulations"]
             self.fields["sectors"].choices = choices["sectors"]
+        if is_copy:
+            for field_name in ["regulation", "year", "sectors"]:
+                self.fields[field_name].disabled = True

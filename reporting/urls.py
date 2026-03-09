@@ -4,6 +4,7 @@ from .views import (
     access_log,
     add_report_configuration,
     add_report_recommendations,
+    copy_report_project,
     copy_report_recommendations,
     create_report_project,
     delete_report_recommendation,
@@ -11,6 +12,7 @@ from .views import (
     download_report,
     download_template,
     edit_report_configuration,
+    edit_report_project,
     import_risk_analysis,
     report_configuration,
     report_recommendations,
@@ -24,6 +26,16 @@ urlpatterns = [
     path("", reporting, name="reporting"),
     # Report project
     path("project/create", create_report_project, name="create_report_project"),
+    path(
+        "project/copy/<int:report_project_id>",
+        copy_report_project,
+        name="copy_report_project",
+    ),
+    path(
+        "project/edit/<int:report_project_id>",
+        edit_report_project,
+        name="edit_report_project",
+    ),
     # Configuration
     path("configuration", report_configuration, name="report_configuration"),
     path(
