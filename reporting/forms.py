@@ -246,3 +246,40 @@ class TemplateAdminForm(forms.ModelForm):
         if existing:
             return bytes(existing)
         return None
+
+
+class CreateProjectForm(forms.Form):
+    project_name = forms.CharField(
+        required=True,
+        label=_("Project name"),
+    )
+
+    regulation = forms.ChoiceField(
+        widget=forms.Select(),
+        required=True,
+        label=_("Regulation"),
+    )
+
+    year = forms.MultipleChoiceField(
+        widget=DropdownCheckboxSelectMultiple(),
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 10, timezone.now().year + 2)
+        ],
+        required=True,
+        label=_("Year"),
+    )
+
+    sectors = forms.MultipleChoiceField(
+        required=True,
+        widget=DropdownCheckboxSelectMultiple(),
+        label=_("Sectors"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        choices = kwargs.pop("choices", {})
+        super().__init__(*args, **kwargs)
+
+        if choices.get("regulations") and choices.get("sectors"):
+            self.fields["regulation"].choices = choices["regulations"]
+            self.fields["sectors"].choices = choices["sectors"]

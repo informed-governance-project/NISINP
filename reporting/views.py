@@ -28,13 +28,14 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.decorators import otp_required
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
-from governanceplatform.models import Company, Sector
+from governanceplatform.models import Company, Regulation, Sector
 from securityobjectives.models import StandardAnswer
 
 from .filters import CompanyFilter, RecommendationFilter
 from .forms import (
     CompanySelectFormSet,
     ConfigurationReportForm,
+    CreateProjectForm,
     ImportRiskAnalysisForm,
     ObservationRecommendationOrderForm,
     RecommendationsSelectFormSet,
@@ -312,6 +313,34 @@ def reporting(request):
     }
 
     return render(request, "reporting/dashboard.html", context)
+
+
+@login_required
+@otp_required
+def create_report_project(request):
+    user = request.user
+    regulator = user.regulators.first()
+    regulation_list = [
+        (regulation.id, str(regulation))
+        for regulation in Regulation.objects.filter(regulators=regulator)
+    ]
+    sectors_queryset = Sector.objects.all()
+    sector_list = get_sectors_grouped(sectors_queryset)
+    choices = {
+        "regulations": regulation_list,
+        "sectors": sector_list,
+    }
+    if request.method == "POST":
+        form = CreateProjectForm(
+            request.POST,
+            choices=choices,
+        )
+        if form.is_valid():
+            return HttpResponseRedirect(request.headers.get("referer"))
+
+    form = CreateProjectForm(choices=choices)
+    context = {"form": form}
+    return render(request, "modals/create_report_project.html", context=context)
 
 
 @login_required

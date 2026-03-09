@@ -5,6 +5,7 @@ from .views import (
     add_report_configuration,
     add_report_recommendations,
     copy_report_recommendations,
+    create_report_project,
     delete_report_recommendation,
     download_center,
     download_report,
@@ -21,6 +22,9 @@ from .views import (
 urlpatterns = [
     # Report generation
     path("", reporting, name="reporting"),
+    # Report project
+    path("project/create", create_report_project, name="create_report_project"),
+    # Configuration
     path("configuration", report_configuration, name="report_configuration"),
     path(
         "configuration/add", add_report_configuration, name="add_report_configuration"
