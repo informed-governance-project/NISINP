@@ -553,7 +553,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email",
         "phone_number",
     ]
-    filter_horizontal = ["entity_categories"]
+    filter_horizontal = ["entity_categories", "sectors"]
     search_fields = [
         "name",
         "address",
@@ -590,6 +590,15 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 "classes": ["extrapretty"],
                 "fields": [
                     "entity_categories",
+                ],
+            },
+        ),
+        (
+            _("Sectors"),
+            {
+                "classes": ["extrapretty"],
+                "fields": [
+                    "sectors",
                 ],
             },
         ),
