@@ -44,6 +44,8 @@ class CompanyFilter(django_filters.FilterSet):
         label=_("Sectors"),
     )
 
+    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
+
     class Meta:
         model = Company
         fields = [
@@ -51,6 +53,9 @@ class CompanyFilter(django_filters.FilterSet):
         ]
 
     def filter_by_sector(self, queryset, name, value):
+        return queryset
+
+    def filter_search(self, queryset, name, value):
         return queryset
 
 
