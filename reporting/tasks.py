@@ -92,6 +92,7 @@ def generate_docx_task(data):
         "table_of_evolution_security_objectives": {
             "context": {
                 "table": data["so_data"]["company_so_by_year"],
+                "years": data["so_data"]["years"],
                 "year": data["year"],
             },
             "column_proportions": [0.4]
@@ -101,6 +102,7 @@ def generate_docx_task(data):
         "table_of_evolution_security_objectives_by_domain": {
             "context": {
                 "table": data["so_data"]["company_so_by_domain"],
+                "years": data["so_data"]["years"],
                 "year": data["year"],
             },
             "column_proportions": [0.4]
@@ -124,6 +126,7 @@ def generate_docx_task(data):
         "table_of_evolution_of_the_weakest_security_objectives": {
             "context": {
                 "table": data["so_data"]["company_so_by_priority"],
+                "years": data["so_data"]["years"],
             },
             "column_proportions": [0.4]
             + [0.15] * len(data["so_data"]["years"])

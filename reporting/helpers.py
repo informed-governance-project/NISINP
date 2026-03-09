@@ -67,9 +67,9 @@ def get_so_data(cleaned_data):
 
         return queryset
 
-    def calculate_evolution(previous_data, current_score):
-        if previous_data:
-            previous_score = round(previous_data["score"], 1)
+    def calculate_evolution(previous_score, current_score):
+        if previous_score:
+            previous_score = round(previous_score, 1)
             current_score = round(current_score, 1)
             if previous_score > current_score:
                 return False
@@ -77,39 +77,56 @@ def get_so_data(cleaned_data):
                 return True
         return None
 
-    def build_dict_scores(queryset, target_dict, key_func, year, sector_values=False):
-        for item in queryset:
-            key = str(key_func(item))
-            score_field = "score_value"
+    def build_dict_scores(
+        queryset, *, target_dict, key_func, year, sector_values=False, ndigits=0
+    ):
+        is_last = year == current_year
+        score_field = "score_value"
 
-            if isinstance(item, dict):
-                score = item[score_field]
-            else:
-                score = getattr(item, score_field)
+        for item in queryset.iterator():
+            key = str(key_func(item))
+            entry = target_dict.setdefault(
+                key,
+                {
+                    "label": key,
+                    "score": [],
+                    "evolution": [],
+                    "sector_avg": [],
+                },
+            )
+
+            value = (
+                item[score_field]
+                if isinstance(item, dict)
+                else getattr(item, score_field)
+            )
+            score = round(value or 0, ndigits)
 
             if sector_values:
-                target_dict[key][year]["sector_avg"] = score
-            else:
-                previous_year = year - 1
-                previous_data = target_dict[key].get(previous_year)
-                evolution = calculate_evolution(previous_data, score)
-                target_dict[key][year] = {
-                    "score": score,
-                    "evolution": evolution,
+                entry["sector_avg"].append(score)
+                continue
+
+            previous_score = entry["score"][-1]["value"] if entry["score"] else None
+            evolution = calculate_evolution(previous_score, score)
+            entry["score"].append(
+                {
+                    "value": score,
+                    "color": get_gradient_color(score) if is_last else "#FFFFFF",
                 }
+            )
+            entry["evolution"].append(evolution)
 
     def build_radar_data(data_dict, sector_avg_field=None):
-        radar_data = defaultdict()
+        radar_data = defaultdict(list)
         score_field = "score"
-        for __key, years in data_dict.items():
-            for year, values in years.items():
-                year_label = f"{company['name']} {year}"
-                radar_data.setdefault(year_label, []).append(values[score_field])
+        for index, year in enumerate(years_list):
+            for __key, values in data_dict.items():
+                year_label = f"{year}"
+                radar_data[year_label].append(values[score_field][index]["value"])
 
                 if sector_avg_field and year == current_year:
-                    radar_data.setdefault(
-                        f"{sector_avg_translation} {current_year}", []
-                    ).append(values[sector_avg_field])
+                    sector_label = f"{sector_avg_translation} {current_year}"
+                    radar_data[sector_label].append(values[sector_avg_field][index])
 
         return dict(radar_data)
 
@@ -154,41 +171,6 @@ def get_so_data(cleaned_data):
         sliced_keys = sorted_keys[:top_ranking]
 
         return {key: grouped_scores[key] for key in sliced_keys}
-
-    def convert_data_for_docxtpl(data, ndigits=0):
-        years = years_list
-        converted_data = []
-
-        for label, data_by_year in data.items():
-            scores = []
-            evolutions = []
-            last_avgs = []
-
-            for year_index, year in enumerate(years):
-                year_data = data_by_year.get(year, {})
-                value = round(year_data.get("score") or 0, ndigits)
-                is_last = year_index == len(years) - 1
-                score = {
-                    "value": value,
-                    "color": get_gradient_color(value) if is_last else "#FFFFFF",
-                }
-                evo = year_data.get("evolution")
-                sector_avg = round(year_data.get("sector_avg") or 0, ndigits)
-
-                scores.append(score)
-                evolutions.append(evo)
-                last_avgs.append(sector_avg)
-
-            converted_data.append(
-                {
-                    "label": label,
-                    "years": scores,
-                    "evolution": evolutions,
-                    "last_avg": last_avgs,
-                }
-            )
-
-        return {"years": years, "data": converted_data}
 
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
@@ -296,34 +278,36 @@ def get_so_data(cleaned_data):
         # by_domain
         build_dict_scores(
             so_domain_company_queryset,
-            company_so_by_domain,
-            lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
-            year,
+            target_dict=company_so_by_domain,
+            key_func=lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
+            year=year,
+            ndigits=1,
         )
 
         # by_domain [sector]
         build_dict_scores(
             sector_score_by_domain_queryset,
-            company_so_by_domain,
-            lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
-            year,
-            True,
+            target_dict=company_so_by_domain,
+            key_func=lambda x: Domain.objects.get(pk=x["security_objective__domain"]),
+            year=year,
+            sector_values=True,
+            ndigits=1,
         )
 
         # by_year
         build_dict_scores(
             sorted_company_queryset.order_by("min_position"),
-            company_so_by_year,
-            lambda x: x.security_objective,
-            year,
+            target_dict=company_so_by_year,
+            key_func=lambda x: x.security_objective,
+            year=year,
         )
 
         # by_priority
         build_dict_scores(
             company_by_priority_queryset,
-            company_so_by_priority,
-            lambda x: x.security_objective,
-            year,
+            target_dict=company_so_by_priority,
+            key_func=lambda x: x.security_objective,
+            year=year,
         )
 
         # Bar chart by level
@@ -345,7 +329,7 @@ def get_so_data(cleaned_data):
 
         build_bar_chart_by_level_data(
             counts=company_counts,
-            label=f"{company['name']} {year}",
+            label=f"{year}",
         )
 
         build_bar_chart_by_level_data(
@@ -374,9 +358,9 @@ def get_so_data(cleaned_data):
         "max_of_company_count": max(company_counts.values()),
         "bar_chart_data_by_level": dict(sort_legends(bar_chart_data_by_level)),
         "company_so_by_level": company_so_by_level,
-        "company_so_by_domain": convert_data_for_docxtpl(company_so_by_domain, 1),
-        "company_so_by_year": convert_data_for_docxtpl(company_so_by_year),
-        "company_so_by_priority": convert_data_for_docxtpl(company_so_by_priority),
+        "company_so_by_domain": [item for item in company_so_by_domain.values()],
+        "company_so_by_year": [item for item in company_so_by_year.values()],
+        "company_so_by_priority": [item for item in company_so_by_priority.values()],
         "sector_so_by_year_desc": dict(sector_so_by_year_desc),
         "sector_so_by_year_asc": dict(sector_so_by_year_asc),
         "radar_chart_data_by_domain": radar_chart_data_by_domain,
@@ -491,7 +475,7 @@ def get_risk_data(cleaned_data):
             risks_data, top_ranking
         )
 
-        data_evolution_highest_risks[f"{company['name']} {current_year}"] = [
+        data_evolution_highest_risks[f"{current_year}"] = [
             round_value(risk.max_risk) for risk in top_ranking_distinct_risks
         ]
 
@@ -561,7 +545,7 @@ def get_risk_data(cleaned_data):
 
                 risks_top_ranking[uuid]["risks_values"][past_year] = risk_values_dict
 
-                data_evolution_highest_risks[f"{company['name']} {past_year}"].append(
+                data_evolution_highest_risks[f"{past_year}"].append(
                     round_value(max_risk)
                 )
 
@@ -674,7 +658,7 @@ def get_risk_data(cleaned_data):
     for offset in range(nb_years):
         year = current_year - nb_years + offset + 1
         years_list.append(str(year))
-        company_label = f"{company['name']} {year}"
+        company_label = f"{year}"
         sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
         sector_label = f"{sector_avg_translation} {year}"
         labels = [company_label, sector_label]
