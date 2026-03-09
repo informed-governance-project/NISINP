@@ -320,16 +320,25 @@ def reporting(request):
 def create_report_project(request):
     user = request.user
     regulator = user.regulators.first()
+
     regulation_list = [
         (regulation.id, str(regulation))
         for regulation in Regulation.objects.filter(regulators=regulator)
     ]
-    sectors_queryset = Sector.objects.all()
+
+    sectors_queryset = (
+        user.get_sectors().all()
+        if user_in_group(user, "RegulatorUser")
+        else Sector.objects.all()
+    )
+
     sector_list = get_sectors_grouped(sectors_queryset)
+
     choices = {
         "regulations": regulation_list,
         "sectors": sector_list,
     }
+
     if request.method == "POST":
         form = CreateProjectForm(
             request.POST,
