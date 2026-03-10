@@ -322,14 +322,9 @@ def create_report_project(request):
     regulator = user.regulators.first()
 
     regulation_qs = Regulation.objects.filter(regulators=regulator)
-    regulation_list = [(regulation.id, str(regulation)) for regulation in regulation_qs]
-
-    standard_list = [
-        (standard.id, str(standard))
-        for standard in Standard.objects.filter(
-            regulator=regulator, regulation__in=regulation_qs
-        )
-    ]
+    standard_qs = Standard.objects.filter(
+        regulator=regulator, regulation__in=regulation_qs
+    )
 
     sectors_queryset = (
         user.get_sectors().all()
@@ -340,9 +335,9 @@ def create_report_project(request):
     sector_list = get_sectors_grouped(sectors_queryset)
 
     choices = {
-        "regulations": regulation_list,
+        "regulations": regulation_qs,
         "sectors": sector_list,
-        "standards": standard_list,
+        "standards": standard_qs,
     }
 
     if request.method == "POST":
@@ -364,10 +359,10 @@ def edit_report_project(request, report_project_id: int):
     user = request.user
     regulator = user.regulators.first()
 
-    regulation_list = [
-        (regulation.id, str(regulation))
-        for regulation in Regulation.objects.filter(regulators=regulator)
-    ]
+    regulation_qs = Regulation.objects.filter(regulators=regulator)
+    standard_qs = Standard.objects.filter(
+        regulator=regulator, regulation__in=regulation_qs
+    )
 
     sectors_queryset = (
         user.get_sectors().all()
@@ -378,8 +373,9 @@ def edit_report_project(request, report_project_id: int):
     sector_list = get_sectors_grouped(sectors_queryset)
 
     choices = {
-        "regulations": regulation_list,
+        "regulations": regulation_qs,
         "sectors": sector_list,
+        "standards": standard_qs,
     }
 
     if request.method == "POST":
@@ -401,10 +397,10 @@ def copy_report_project(request, report_project_id: int):
     user = request.user
     regulator = user.regulators.first()
 
-    regulation_list = [
-        (regulation.id, str(regulation))
-        for regulation in Regulation.objects.filter(regulators=regulator)
-    ]
+    regulation_qs = Regulation.objects.filter(regulators=regulator)
+    standard_qs = Standard.objects.filter(
+        regulator=regulator, regulation__in=regulation_qs
+    )
 
     sectors_queryset = (
         user.get_sectors().all()
@@ -415,8 +411,9 @@ def copy_report_project(request, report_project_id: int):
     sector_list = get_sectors_grouped(sectors_queryset)
 
     choices = {
-        "regulations": regulation_list,
+        "regulations": regulation_qs,
         "sectors": sector_list,
+        "standards": standard_qs,
     }
 
     if request.method == "POST":

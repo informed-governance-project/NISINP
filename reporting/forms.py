@@ -5,8 +5,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 
-from governanceplatform.models import Company, Sector
+from governanceplatform.models import Company, Regulation, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
+from securityobjectives.models import Standard
 
 from .models import (
     CompanyReporting,
@@ -254,14 +255,14 @@ class CreateProjectForm(forms.Form):
         label=_("Project name"),
     )
 
-    regulation = forms.ChoiceField(
-        widget=forms.Select(),
+    regulation = forms.ModelChoiceField(
+        queryset=Regulation.objects.none(),
         required=True,
         label=_("Regulation"),
     )
 
-    standard = forms.ChoiceField(
-        widget=forms.Select(),
+    standard = forms.ModelChoiceField(
+        queryset=Standard.objects.none(),
         required=True,
         label=_("Standard"),
     )
@@ -287,13 +288,13 @@ class CreateProjectForm(forms.Form):
         is_copy = kwargs.pop("copy", False)
         super().__init__(*args, **kwargs)
 
-        regulation_choices = choices.get("regulations", [])
+        regulation_qs = choices.get("regulations", Regulation.objects.none())
         sector_choices = choices.get("sectors", [])
-        standard_choices = choices.get("standards", [])
+        standard_qs = choices.get("standards", Standard.objects.none())
 
-        self.fields["regulation"].choices = regulation_choices
+        self.fields["regulation"].queryset = regulation_qs
         self.fields["sectors"].choices = sector_choices
-        self.fields["standard"].choices = standard_choices
+        self.fields["standard"].queryset = standard_qs
 
         if is_copy:
             for field_name in ["regulation", "year", "sectors", "standard"]:
