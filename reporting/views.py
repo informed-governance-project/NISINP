@@ -135,7 +135,6 @@ def reporting(request):
             try:
                 template = Template.objects.select_related("configuration").get(
                     configuration__regulator=user.regulators.first(),
-                    configuration__regulation_id=1,
                     language=get_language(),
                 )
                 report_configuration_id = template.configuration.pk
