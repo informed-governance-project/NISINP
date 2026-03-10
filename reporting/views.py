@@ -29,7 +29,7 @@ from django_otp.decorators import otp_required
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
 from governanceplatform.models import Company, Regulation, Sector
-from securityobjectives.models import StandardAnswer
+from securityobjectives.models import Standard, StandardAnswer
 
 from .filters import CompanyFilter, RecommendationFilter
 from .forms import (
@@ -321,9 +321,14 @@ def create_report_project(request):
     user = request.user
     regulator = user.regulators.first()
 
-    regulation_list = [
-        (regulation.id, str(regulation))
-        for regulation in Regulation.objects.filter(regulators=regulator)
+    regulation_qs = Regulation.objects.filter(regulators=regulator)
+    regulation_list = [(regulation.id, str(regulation)) for regulation in regulation_qs]
+
+    standard_list = [
+        (standard.id, str(standard))
+        for standard in Standard.objects.filter(
+            regulator=regulator, regulation__in=regulation_qs
+        )
     ]
 
     sectors_queryset = (
@@ -337,6 +342,7 @@ def create_report_project(request):
     choices = {
         "regulations": regulation_list,
         "sectors": sector_list,
+        "standards": standard_list,
     }
 
     if request.method == "POST":

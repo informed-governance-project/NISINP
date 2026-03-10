@@ -260,6 +260,12 @@ class CreateProjectForm(forms.Form):
         label=_("Regulation"),
     )
 
+    standard = forms.ChoiceField(
+        widget=forms.Select(),
+        required=True,
+        label=_("Standard"),
+    )
+
     year = forms.MultipleChoiceField(
         widget=DropdownCheckboxSelectMultiple(),
         choices=[
@@ -281,9 +287,14 @@ class CreateProjectForm(forms.Form):
         is_copy = kwargs.pop("copy", False)
         super().__init__(*args, **kwargs)
 
-        if choices.get("regulations") and choices.get("sectors"):
-            self.fields["regulation"].choices = choices["regulations"]
-            self.fields["sectors"].choices = choices["sectors"]
+        regulation_choices = choices.get("regulations", [])
+        sector_choices = choices.get("sectors", [])
+        standard_choices = choices.get("standards", [])
+
+        self.fields["regulation"].choices = regulation_choices
+        self.fields["sectors"].choices = sector_choices
+        self.fields["standard"].choices = standard_choices
+
         if is_copy:
-            for field_name in ["regulation", "year", "sectors"]:
+            for field_name in ["regulation", "year", "sectors", "standard"]:
                 self.fields[field_name].disabled = True
