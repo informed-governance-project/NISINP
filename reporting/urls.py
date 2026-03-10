@@ -7,6 +7,7 @@ from .views import (
     copy_report_project,
     copy_report_recommendations,
     create_report_project,
+    delete_report_project,
     delete_report_recommendation,
     download_center,
     download_report,
@@ -35,6 +36,11 @@ urlpatterns = [
         "project/edit/<int:report_project_id>",
         edit_report_project,
         name="edit_report_project",
+    ),
+    path(
+        "delete/<int:report_project_id>",
+        delete_report_project,
+        name="delete_report_project",
     ),
     # Configuration
     path("configuration", report_configuration, name="report_configuration"),

@@ -25,6 +25,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import activate, deactivate_all, get_language, gettext
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
 
 from governanceplatform.helpers import get_sectors_grouped, user_in_group
@@ -435,6 +436,13 @@ def copy_report_project(request, report_project_id: int):
     form = CreateProjectForm(choices=choices, copy=True)
     context = {"form": form, "is_copy": True}
     return render(request, "modals/create_report_project.html", context=context)
+
+
+@login_required
+@otp_required
+@require_http_methods(["POST"])
+def delete_report_project(request, report_project_id: int):
+    return redirect("reporting")
 
 
 @login_required
