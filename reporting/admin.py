@@ -111,6 +111,7 @@ class ConfigurationAdmin(FunctionalityMixin, admin.ModelAdmin):
     def display_regulation(self, obj):
         if obj.pk and obj.standard:
             return str(obj.standard.regulation)
+        return "-"
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
