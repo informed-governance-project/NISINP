@@ -323,7 +323,8 @@ def create_report_project(request):
 
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
-    )
+    ).distinct()
+
     standard_qs = Standard.objects.filter(
         regulator=regulator, regulation__in=regulation_qs
     )
@@ -363,7 +364,8 @@ def edit_report_project(request, report_project_id: int):
 
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
-    )
+    ).distinct()
+
     standard_qs = Standard.objects.filter(
         regulator=regulator, regulation__in=regulation_qs
     )
@@ -403,7 +405,8 @@ def copy_report_project(request, report_project_id: int):
 
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
-    )
+    ).distinct()
+
     standard_qs = Standard.objects.filter(
         regulator=regulator, regulation__in=regulation_qs
     )
