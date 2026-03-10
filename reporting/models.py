@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 from colorfield.fields import ColorField
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import get_default_timezone, is_naive, make_aware
@@ -459,6 +460,18 @@ class Configuration(models.Model):
 
     def __str__(self):
         return f"{self.standard.regulation} - {self.standard}"
+
+    def clean(self):
+        if (
+            Configuration.objects.filter(
+                regulator=self.standard.regulator, standard=self.standard
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise ValidationError(
+                _("This regulator already has this standard configured.")
+            )
 
 
 class Color(models.Model):
