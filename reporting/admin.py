@@ -104,8 +104,13 @@ class TemplateInline(admin.TabularInline):
 @admin.register(Configuration, site=admin_site)
 class ConfigurationAdmin(FunctionalityMixin, admin.ModelAdmin):
     inlines = [TemplateInline, ColorInline]
-    list_display = ("regulation", "regulator")
-    fields = ["regulation"]
+    list_display = ("display_regulation", "standard", "regulator")
+    fields = ["standard"]
+
+    @admin.display(description=_("Regulation"))
+    def display_regulation(self, obj):
+        if obj.pk and obj.standard:
+            return str(obj.standard.regulation)
 
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)

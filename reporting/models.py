@@ -445,16 +445,20 @@ class Configuration(models.Model):
         verbose_name=_("Regulator"),
         on_delete=models.CASCADE,
     )
-    regulation = models.ForeignKey(
-        "governanceplatform.regulation",
-        verbose_name=_("Regulation"),
+
+    standard = models.ForeignKey(
+        "securityobjectives.standard",
+        verbose_name=_("Standard"),
         on_delete=models.CASCADE,
     )
 
     class Meta:
         verbose_name_plural = _("Configurations")
         verbose_name = _("Configuration")
-        unique_together = ("regulator", "regulation")
+        unique_together = ("regulator", "standard")
+
+    def __str__(self):
+        return f"{self.standard.regulation} - {self.standard}"
 
 
 class Color(models.Model):
@@ -470,6 +474,9 @@ class Color(models.Model):
         verbose_name_plural = _("Colors")
         verbose_name = _("Color")
         ordering = ["position"]
+
+    def __str__(self):
+        return self.color
 
 
 class Template(models.Model):
