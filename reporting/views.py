@@ -289,18 +289,24 @@ def reporting(request):
             )
 
             if is_multiple_selected_companies:
-                chain(
+                result = chain(
                     group(report_generation_tasks),
                     zip_files_task.s(user.id, error_messages),
-                )()
+                ).delay()
+                task_id = result.id
+
                 success_message = _(
                     "Reports are being generated. They will be available shortly in the Download Center."
                 )
+            else:
+                task_id = report_generation_tasks[0].id
 
             messages.success(request, success_message)
             rendered_messages = render_error_messages(request)
 
-            return JsonResponse({"messages": rendered_messages}, status=202)
+            return JsonResponse(
+                {"messages": rendered_messages, "task_id": task_id}, status=202
+            )
 
     formset = CompanySelectFormSet(
         queryset=page_obj.object_list, year=year, sectors_filter=sectors_filters
@@ -455,6 +461,20 @@ def copy_report_project(request, report_project_id: int):
 @require_http_methods(["POST"])
 def delete_report_project(request, report_project_id: int):
     return redirect("reporting")
+
+
+@login_required
+@otp_required
+def report_generation_status(request, report_project_id: int):
+    status = "running"
+    return JsonResponse({"status": status})
+
+
+@login_required
+@otp_required
+def cancel_report_generation(request, report_project_id: int):
+    status = "cancelled"
+    return JsonResponse({"report_project_id": report_project_id, "status": status})
 
 
 @login_required
@@ -1317,7 +1337,11 @@ def get_report(
 
     task_workflow = chain(*steps)
 
-    return task_workflow.delay() if not is_multiple_files else task_workflow
+    if not is_multiple_files:
+        result = task_workflow.delay()
+        return result
+    else:
+        return task_workflow
 
 
 def validate_json_file(file):
