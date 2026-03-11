@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 from colorfield.fields import ColorField
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -514,3 +515,51 @@ class Template(models.Model):
     def __str__(self):
         languages = dict(settings.LANGUAGES)
         return languages.get(self.language, self.language)
+
+
+class Project(models.Model):
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Created at"),
+    )
+    updated_at = models.DateTimeField(verbose_name=_("Updated at"))
+    author = models.ForeignKey(
+        "governanceplatform.User",
+        verbose_name=_("Author"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+    )
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=255,
+        blank=True,
+        default=None,
+        null=True,
+    )
+    standard = models.ForeignKey(
+        "securityobjectives.standard",
+        verbose_name=_("Standard"),
+        on_delete=models.CASCADE,
+    )
+    sectors = models.ManyToManyField(
+        "governanceplatform.Sector",
+        verbose_name=_("Sectors"),
+        blank=True,
+    )
+    years = ArrayField(models.IntegerField(), verbose_name=_("Years"))
+    threshold_for_high_risk = models.IntegerField(
+        verbose_name=_("High risk rate threshold"),
+        null=True,
+    )
+
+    top_ranking = models.PositiveSmallIntegerField(
+        verbose_name=_("Ranking"),
+        choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
+        null=True,
+    )
+
+    class Meta:
+        verbose_name_plural = _("Projects")
+        verbose_name = _("Project")

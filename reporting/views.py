@@ -51,6 +51,7 @@ from .models import (
     Observation,
     ObservationRecommendation,
     ObservationRecommendationThrough,
+    Project,
     RecommendationData,
     RiskData,
     SectorReportConfiguration,
@@ -355,6 +356,17 @@ def create_report_project(request):
             choices=choices,
         )
         if form.is_valid():
+            user = request.user
+            data = form.cleaned_data
+            project = Project.objects.create(
+                updated_at=timezone.now(),
+                author=user,
+                name=data["project_name"],
+                standard=data["standard"],
+                years=data["year"],
+            )
+            if project and data["sectors"]:
+                project.sectors.set(data["sectors"])
             return HttpResponseRedirect(request.headers.get("referer"))
 
     form = CreateProjectForm(choices=choices)
