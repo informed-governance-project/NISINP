@@ -4,7 +4,8 @@ import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
-from celery import chain, group
+from celery import Celery, chain, group
+from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -61,6 +62,7 @@ from .models import (
     VulnerabilityData,
 )
 from .tasks import (
+    cleanup_tmp_files,
     generate_data,
     generate_docx_task,
     generate_pdf_task,
@@ -473,7 +475,22 @@ def report_generation_status(request, report_project_id: int):
 @login_required
 @otp_required
 def cancel_report_generation(request, report_project_id: int):
-    status = "cancelled"
+    app = Celery("governanceplatform")
+    project = Project.objects.get(id=report_project_id)
+    task_id = project.task_id
+    status = "ABORT"
+    if not task_id:
+        status = "FAIL"
+        return JsonResponse({"report_project_id": report_project_id, "status": status})
+
+    result = AsyncResult(task_id, app=app)
+    result.revoke(terminate=True, signal="SIGTERM")
+
+    cleanup_tmp_files.apply_async(
+        kwargs={"task_id": task_id},
+        countdown=5,
+    )
+
     return JsonResponse({"report_project_id": report_project_id, "status": status})
 
 

@@ -334,3 +334,15 @@ def zip_files_task(file_paths, user_id, error_messages):
     )
 
     return zip_path
+
+
+@shared_task(ignore_result=True)
+def cleanup_tmp_files(task_id):
+    tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+
+    for tmp_file in ["main_doc.docx", "tmp_doc.docx"]:
+        (tmp_dir / tmp_file).unlink(missing_ok=True)
+
+    run_dir = tmp_dir / task_id
+    if run_dir.exists():
+        shutil.rmtree(run_dir)
