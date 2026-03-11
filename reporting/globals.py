@@ -42,3 +42,10 @@ TRANSLATIONS_CONTEXT = {
     "deadline": _("Deadline"),
     "status": _("Status"),
 }
+
+CELERY_TASK_STATUS = [
+    ("FAIL", _("Failed")),
+    ("DONE", _("Successed")),
+    ("ABORT", _("Aborted")),
+    ("RUNNING", _("Running")),
+]

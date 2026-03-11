@@ -13,7 +13,7 @@ from django.utils.timezone import get_default_timezone, is_naive, make_aware
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
-from .globals import RISK_TREATMENT
+from .globals import CELERY_TASK_STATUS, RISK_TREATMENT
 
 
 # Store company and year of submission risk analysis data
@@ -518,6 +518,14 @@ class Template(models.Model):
 
 
 class Project(models.Model):
+    task_id = models.UUIDField(blank=True, null=True)
+    task_status = models.CharField(
+        max_length=10,
+        verbose_name=_("Task Status"),
+        choices=CELERY_TASK_STATUS,
+        null=True,
+        default=CELERY_TASK_STATUS[1][0],
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Created at"),
@@ -559,6 +567,12 @@ class Project(models.Model):
         choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
         null=True,
     )
+
+    def get_root_sectors(self):
+        return list({sector.parent for sector in self.sectors.all()})
+
+    def get_no_childrens_sectors(self):
+        return list(self.sectors.filter(parent__isnull=True))
 
     class Meta:
         verbose_name_plural = _("Projects")
