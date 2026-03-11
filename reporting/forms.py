@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 
+from governanceplatform.helpers import get_sectors_grouped
 from governanceplatform.models import Company, Regulation, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
 from securityobjectives.models import Standard
@@ -13,6 +14,7 @@ from .models import (
     CompanyReporting,
     ObservationRecommendation,
     ObservationRecommendationThrough,
+    Project,
     SectorReportConfiguration,
     Template,
 )
@@ -249,8 +251,8 @@ class TemplateAdminForm(forms.ModelForm):
         return None
 
 
-class CreateProjectForm(forms.Form):
-    project_name = forms.CharField(
+class CreateProjectForm(forms.ModelForm):
+    name = forms.CharField(
         required=True,
         label=_("Project name"),
     )
@@ -267,7 +269,7 @@ class CreateProjectForm(forms.Form):
         label=_("Standard"),
     )
 
-    year = forms.MultipleChoiceField(
+    years = forms.MultipleChoiceField(
         widget=DropdownCheckboxSelectMultiple(),
         choices=[
             (year, year)
@@ -283,19 +285,37 @@ class CreateProjectForm(forms.Form):
         label=_("Sectors"),
     )
 
+    class Meta:
+        model = Project
+        fields = ["years", "name", "standard", "years", "sectors"]
+
+    def clean_years(self):
+        data = self.cleaned_data["years"]
+        # convert str to int
+        return [int(y) for y in data]
+
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop("choices", {})
-        is_copy = kwargs.pop("copy", False)
         super().__init__(*args, **kwargs)
 
-        regulation_qs = choices.get("regulations", Regulation.objects.none())
-        sector_choices = choices.get("sectors", [])
-        standard_qs = choices.get("standards", Standard.objects.none())
+        regulation_qs = choices.get("regulations", Regulation.objects.all())
+        standard_qs = choices.get("standards", Standard.objects.all())
+        sector_choices = get_sectors_grouped(Sector.objects.all())
 
         self.fields["regulation"].queryset = regulation_qs
-        self.fields["sectors"].choices = sector_choices
         self.fields["standard"].queryset = standard_qs
+        self.fields["sectors"].choices = sector_choices
 
-        if is_copy:
-            for field_name in ["regulation", "year", "sectors", "standard"]:
+        if self.instance and self.instance.pk:
+            project = self.instance
+
+            self.initial["name"] = project.name
+            self.initial["regulation"] = project.standard.regulation
+            self.initial["standard"] = project.standard
+            self.initial["years"] = [str(y) for y in project.years]
+
+            # M2M sectors
+            self.initial["sectors"] = list(project.sectors.values_list("id", flat=True))
+
+            for field_name in ["regulation", "standard"]:
                 self.fields[field_name].disabled = True
