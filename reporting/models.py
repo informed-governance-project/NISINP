@@ -530,7 +530,7 @@ class Project(models.Model):
         auto_now_add=True,
         verbose_name=_("Created at"),
     )
-    updated_at = models.DateTimeField(verbose_name=_("Updated at"))
+    updated_at = models.DateTimeField(verbose_name=_("Updated at"), auto_now=True)
     author = models.ForeignKey(
         "governanceplatform.User",
         verbose_name=_("Author"),
