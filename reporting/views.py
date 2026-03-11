@@ -360,7 +360,6 @@ def create_report_project(request):
             user = request.user
             data = form.cleaned_data
             project = Project.objects.create(
-                updated_at=timezone.now(),
                 author=user,
                 name=data["project_name"],
                 standard=data["standard"],
