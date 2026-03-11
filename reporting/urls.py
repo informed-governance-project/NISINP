@@ -4,6 +4,7 @@ from .views import (
     access_log,
     add_report_configuration,
     add_report_recommendations,
+    cancel_report_generation,
     copy_report_project,
     copy_report_recommendations,
     create_report_project,
@@ -16,6 +17,7 @@ from .views import (
     edit_report_project,
     import_risk_analysis,
     report_configuration,
+    report_generation_status,
     report_recommendations,
     reporting,
     review_comment_report,
@@ -41,6 +43,18 @@ urlpatterns = [
         "delete/<int:report_project_id>",
         delete_report_project,
         name="delete_report_project",
+    ),
+    # Report generation status
+    path(
+        "generation_status/<int:report_project_id>",
+        report_generation_status,
+        name="report_generation_status",
+    ),
+    # Cancel Report generation
+    path(
+        "cancel_generation/<int:report_project_id>",
+        cancel_report_generation,
+        name="cancel_report_generation",
     ),
     # Configuration
     path("configuration", report_configuration, name="report_configuration"),

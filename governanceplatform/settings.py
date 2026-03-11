@@ -552,6 +552,8 @@ except AttributeError:
     EMAIL_FOR_CONTACT = ""
 
 # CELERY configuration
+CELERY_TASK_TRACK_STARTED = True
+
 try:
     CELERY_BROKER_URL = config.CELERY_BROKER_URL
     CELERY_RESULT_BACKEND = config.CELERY_RESULT_BACKEND
