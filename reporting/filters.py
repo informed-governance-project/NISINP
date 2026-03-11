@@ -3,10 +3,10 @@ from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from governanceplatform.models import Company, Sector
+from governanceplatform.models import Company, Sector, User
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import ObservationRecommendation
+from .models import ObservationRecommendation, Project
 
 
 class YearChoiceFilter(django_filters.ChoiceFilter):
@@ -98,3 +98,53 @@ class RecommendationFilter(django_filters.FilterSet):
         sector_ids = [sector.id for sector in value]
 
         return queryset.filter(Q(sectors__in=sector_ids) | Q(sectors=None)).distinct()
+
+
+class ProjectFilter(django_filters.FilterSet):
+    year_of_submission = YearChoiceFilter()
+    sectors = django_filters.ModelMultipleChoiceFilter(
+        queryset=Sector.objects.filter(
+            ~Q(
+                id__in=Sector.objects.exclude(parent=None).values_list(
+                    "parent_id", flat=True
+                )
+            )
+            | Q(id=F("parent_id"))
+        ).order_by("parent"),
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 2"}
+        ),
+    )
+    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
+
+    class Meta:
+        model = Project
+        fields = [
+            "standard",
+            "sectors",
+            "author",
+            "name",
+            # "years",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        queryset = kwargs.get("queryset", Project.objects.none())
+        super().__init__(*args, **kwargs)
+        submitter_user_ids = set(queryset.values_list("author", flat=True))
+
+        self.filters["author"].queryset = User.objects.filter(id__in=submitter_user_ids)
+
+        # years = set(self.queryset.values_list("years", flat=True))
+        # self.filters["years"].extra["choices"] = [
+        #     (year, year) for year in sorted(years)
+        # ]
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(standard__translations__label__icontains=value)
+            | Q(standard__translations__description__icontains=value)
+            | Q(author__icontains=value)
+            # | Q(years__icontains=value)
+            | Q(sectors__translations__name__icontains=value)
+            | Q(name__icontains=value)
+        ).distinct()
