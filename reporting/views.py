@@ -33,7 +33,7 @@ from governanceplatform.helpers import get_sectors_grouped, user_in_group
 from governanceplatform.models import Company, Regulation, Sector
 from securityobjectives.models import Standard, StandardAnswer
 
-from .filters import CompanyFilter, RecommendationFilter
+from .filters import ProjectFilter, RecommendationFilter
 from .forms import (
     CompanySelectFormSet,
     ConfigurationReportForm,
@@ -76,7 +76,7 @@ from .tasks import (
 def reporting(request):
     user = request.user
 
-    companies_queryset = Company.objects.all().order_by("id")
+    project_queryset = Project.objects.all().order_by("-updated_at")
 
     if "reset" in request.GET:
         request.session.pop("reporting_filter_params", None)
@@ -94,13 +94,13 @@ def reporting(request):
 
     sectors_filters = reporting_filter_params.get("sectors", [])
 
-    company_filter = CompanyFilter(reporting_filter_params, queryset=companies_queryset)
+    project_filter = ProjectFilter(reporting_filter_params, queryset=project_queryset)
 
-    company_filter_list = company_filter.qs
+    project_filter_list = project_filter.qs
 
     per_page = reporting_filter_params.get("per_page", 10)
     page_number = reporting_filter_params.get("page")
-    paginator = Paginator(company_filter_list, per_page)
+    paginator = Paginator(project_filter_list, per_page)
     page_obj = paginator.get_page(page_number)
 
     is_filtered = {
@@ -112,7 +112,7 @@ def reporting(request):
     if request.method == "POST":
         formset = CompanySelectFormSet(
             request.POST,
-            queryset=company_filter.qs,
+            queryset=project_filter.qs,
             year=year,
             sectors_filter=sectors_filters,
         )
@@ -315,10 +315,9 @@ def reporting(request):
     )
 
     context = {
-        "formset": formset,
-        "filter": company_filter,
+        "filter": project_filter,
         "is_filtered": bool(is_filtered),
-        "pagination_data": page_obj,
+        "projects": page_obj,
     }
 
     return render(request, "reporting/dashboard.html", context)
