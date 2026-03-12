@@ -4,7 +4,7 @@ import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
-from celery import Celery, chain, group
+from celery import chain, chord, group
 from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -39,7 +39,6 @@ from securityobjectives.models import Standard, StandardAnswer
 
 from .filters import ProjectFilter, RecommendationFilter
 from .forms import (
-    CompanySelectFormSet,
     ConfigurationReportForm,
     CreateProjectForm,
     ImportRiskAnalysisForm,
@@ -47,6 +46,7 @@ from .forms import (
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
+from .globals import CELERY_TASK_STATUS
 from .helpers import create_entry_log, generate_combined_uuid
 from .models import (
     AssetData,
@@ -123,8 +123,6 @@ def reporting(request):
 
     year = int(reporting_filter_params.get("year") or timezone.now().year)
 
-    sectors_filters = reporting_filter_params.get("sectors", [])
-
     project_filter = ProjectFilter(reporting_filter_params, queryset=project_queryset)
 
     project_filter_list = project_filter.qs
@@ -141,209 +139,212 @@ def reporting(request):
     }
 
     if request.method == "POST":
-        formset = CompanySelectFormSet(
-            request.POST,
-            queryset=project_filter.qs,
-            year=year,
-            sectors_filter=sectors_filters,
+        project_id = 1
+        user_sectors = user.get_sectors().all()
+        selected_companies = [
+            {
+                "company": Company.objects.get(id=46),
+                "sector": Sector.objects.get(id=3),
+            },
+            {
+                "company": Company.objects.get(id=46),
+                "sector": Sector.objects.get(id=3),
+            },
+            {
+                "company": Company.objects.get(id=46),
+                "sector": Sector.objects.get(id=3),
+            },
+            {
+                "company": Company.objects.get(id=46),
+                "sector": Sector.objects.get(id=3),
+            },
+            {
+                "company": Company.objects.get(id=46),
+                "sector": Sector.objects.get(id=3),
+            },
+        ]
+        is_multiple_selected_companies = len(selected_companies) > 1
+        error_messages = []
+        errors = 0
+        report_generation_tasks = []
+        run_id = (
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            + "_"
+            + str(uuid.uuid4())[:8]
         )
-        if formset.is_valid():
-            user_sectors = user.get_sectors().all()
-            selected_companies = [
-                {
-                    "company": form.cleaned_data.get("id"),
-                    "sector": form.cleaned_data.get("sector"),
-                }
-                for form in formset
-                if form.cleaned_data.get("selected")
-            ]
-            is_multiple_selected_companies = len(selected_companies) > 1
-            error_messages = []
-            errors = 0
-            report_generation_tasks = []
-            run_id = (
-                datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                + "_"
-                + str(uuid.uuid4())[:8]
+
+        try:
+            template = Template.objects.select_related("configuration").get(
+                configuration__regulator=user.regulators.first(),
+                language=get_language(),
             )
+            report_configuration_id = template.configuration.pk
+        except Template.DoesNotExist:
+            messages.error(
+                request,
+                _("No report template"),
+            )
+            rendered_messages = render_error_messages(request)
+            return JsonResponse({"messages": rendered_messages}, status=400)
 
-            try:
-                template = Template.objects.select_related("configuration").get(
-                    configuration__regulator=user.regulators.first(),
-                    language=get_language(),
-                )
-                report_configuration_id = template.configuration.pk
-            except Template.DoesNotExist:
-                messages.error(
-                    request,
-                    _("No report template"),
-                )
-                rendered_messages = render_error_messages(request)
-                return JsonResponse({"messages": rendered_messages}, status=400)
-
-            for select_company in selected_companies:
-                company = select_company.get("company")
-                sector = select_company.get("sector")
-                if sector not in user_sectors:
-                    if is_multiple_selected_companies:
-                        error_message = _("%(sector)s forbidden") % {"sector": sector}
-                        error_messages.append(error_message)
-                        continue
-                    else:
-                        messages.error(request, _("Forbidden"))
-                        rendered_messages = render_error_messages(request)
-                        return JsonResponse({"messages": rendered_messages}, status=400)
-
-                try:
-                    company_reporting = CompanyReporting.objects.get(
-                        company=company, year=year, sector=sector
-                    )
-                except CompanyReporting.DoesNotExist:
-                    if is_multiple_selected_companies:
-                        error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
-                        error_messages.append(error_message)
-                        continue
-                    else:
-                        messages.error(
-                            request,
-                            _("No reporting data"),
-                        )
-                        rendered_messages = render_error_messages(request)
-                        return JsonResponse({"messages": rendered_messages}, status=400)
-
-                try:
-                    sector_configuration = SectorReportConfiguration.objects.get(
-                        sector=sector
-                    )
-                    nb_years = sector_configuration.number_of_year
-                    threshold_for_high_risk = (
-                        sector_configuration.threshold_for_high_risk
-                    )
-                    top_ranking = sector_configuration.top_ranking
-                    so_excluded = sector_configuration.so_excluded.all()
-                except SectorReportConfiguration.DoesNotExist:
-                    if is_multiple_selected_companies:
-                        error_message = gettext("No configuration for sector")
-                        error_messages.append(error_message)
-                        continue
-                    else:
-                        messages.error(
-                            request,
-                            _("No configuration for sector"),
-                        )
-                        rendered_messages = render_error_messages(request)
-                        return JsonResponse({"messages": rendered_messages}, status=400)
-
-                security_objectives_declaration = StandardAnswer.objects.filter(
-                    submitter_company=company,
-                    sectors=sector,
-                    year_of_submission=year,
-                    status="PASSM",
-                ).order_by("submit_date")
-
-                risk_analysis_stats = company.risk_analysis_exists(year, sector)
-
-                if not security_objectives_declaration:
-                    if is_multiple_selected_companies:
-                        error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
-                        error_messages.append(error_message)
-                        continue
-                    else:
-                        errors += 1
-                        messages.error(
-                            request,
-                            _("No data found for security objectives report"),
-                        )
-
-                if not risk_analysis_stats:
-                    if is_multiple_selected_companies:
-                        error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
-                        error_messages.append(error_message)
-                        continue
-                    else:
-                        errors += 1
-                        messages.error(
-                            request,
-                            _("No data found for risk report"),
-                        )
-
-                if errors > 0:
+        for select_company in selected_companies:
+            company = select_company.get("company")
+            sector = select_company.get("sector")
+            if sector not in user_sectors:
+                if is_multiple_selected_companies:
+                    error_message = _("%(sector)s forbidden") % {"sector": sector}
+                    error_messages.append(error_message)
+                    continue
+                else:
+                    messages.error(request, _("Forbidden"))
                     rendered_messages = render_error_messages(request)
                     return JsonResponse({"messages": rendered_messages}, status=400)
 
-                report_recommendations = company.get_report_recommandations(
-                    year, sector
+            try:
+                company_reporting = CompanyReporting.objects.get(
+                    company=company, year=year, sector=sector
                 )
+            except CompanyReporting.DoesNotExist:
+                if is_multiple_selected_companies:
+                    error_message = f"No reporting data found in sector: {str(sector)} and year: {year}"
+                    error_messages.append(error_message)
+                    continue
+                else:
+                    messages.error(
+                        request,
+                        _("No reporting data"),
+                    )
+                    rendered_messages = render_error_messages(request)
+                    return JsonResponse({"messages": rendered_messages}, status=400)
 
-                report_data = {
-                    "company": model_to_dict(
-                        company, exclude=["phone_number", "entity_categories"]
-                    ),
-                    "sector": {**model_to_dict(sector), "name": str(sector)},
-                    "year": year,
-                    "threshold_for_high_risk": threshold_for_high_risk,
-                    "top_ranking": top_ranking,
-                    "nb_years": nb_years,
-                    "so_excluded": [model_to_dict(so) for so in so_excluded],
-                    "report_recommendations": [
-                        rec.observation_recommendation.description
-                        for rec in report_recommendations
-                    ],
-                    "company_reporting": model_to_dict(company_reporting),
-                    "language": get_language(),
-                    "template_id": template.pk,
-                    "report_configuration_id": report_configuration_id,
-                }
-
-                sector_name = sector.get_safe_translation()
-                extention = "docx"
-                filename = urlquote(
-                    f"{_('annual_report')}_{year}_{company.name}_{sector_name}.{extention}"
+            try:
+                sector_configuration = SectorReportConfiguration.objects.get(
+                    sector=sector
                 )
-                task = get_report(
-                    request,
-                    report_data,
-                    run_id,
-                    company_reporting,
-                    filename,
-                    extention,
-                    is_multiple_selected_companies,
-                )
-                report_generation_tasks.append(task)
+                nb_years = sector_configuration.number_of_year
+                threshold_for_high_risk = sector_configuration.threshold_for_high_risk
+                top_ranking = sector_configuration.top_ranking
+                so_excluded = sector_configuration.so_excluded.all()
+            except SectorReportConfiguration.DoesNotExist:
+                if is_multiple_selected_companies:
+                    error_message = gettext("No configuration for sector")
+                    error_messages.append(error_message)
+                    continue
+                else:
+                    messages.error(
+                        request,
+                        _("No configuration for sector"),
+                    )
+                    rendered_messages = render_error_messages(request)
+                    return JsonResponse({"messages": rendered_messages}, status=400)
 
-            if error_messages and not report_generation_tasks:
-                for error_message in error_messages:
-                    messages.error(request, error_message)
+            security_objectives_declaration = StandardAnswer.objects.filter(
+                submitter_company=company,
+                sectors=sector,
+                year_of_submission=year,
+                status="PASSM",
+            ).order_by("submit_date")
+
+            risk_analysis_stats = company.risk_analysis_exists(year, sector)
+
+            if not security_objectives_declaration:
+                if is_multiple_selected_companies:
+                    error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
+                    error_messages.append(error_message)
+                    continue
+                else:
+                    errors += 1
+                    messages.error(
+                        request,
+                        _("No data found for security objectives report"),
+                    )
+
+            if not risk_analysis_stats:
+                if is_multiple_selected_companies:
+                    error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
+                    error_messages.append(error_message)
+                    continue
+                else:
+                    errors += 1
+                    messages.error(
+                        request,
+                        _("No data found for risk report"),
+                    )
+
+            if errors > 0:
                 rendered_messages = render_error_messages(request)
                 return JsonResponse({"messages": rendered_messages}, status=400)
 
-            success_message = _(
-                "Report is being generated. It will be available shortly in the Download Center."
+            report_recommendations = company.get_report_recommandations(year, sector)
+
+            report_data = {
+                "company": model_to_dict(
+                    company, exclude=["phone_number", "entity_categories"]
+                ),
+                "sector": {**model_to_dict(sector), "name": str(sector)},
+                "year": year,
+                "threshold_for_high_risk": threshold_for_high_risk,
+                "top_ranking": top_ranking,
+                "nb_years": nb_years,
+                "so_excluded": [model_to_dict(so) for so in so_excluded],
+                "report_recommendations": [
+                    rec.observation_recommendation.description
+                    for rec in report_recommendations
+                ],
+                "company_reporting": model_to_dict(company_reporting),
+                "language": get_language(),
+                "template_id": template.pk,
+                "project_id": 1,
+                "report_configuration_id": report_configuration_id,
+            }
+
+            sector_name = sector.get_safe_translation()
+            extention = "docx"
+            filename = urlquote(
+                f"{_('annual_report')}_{year}_{company.name}_{sector_name}.{extention}"
             )
+            task = get_report(
+                request,
+                report_data,
+                run_id,
+                filename,
+                extention,
+                is_multiple_selected_companies,
+            )
+            report_generation_tasks.append(task)
 
-            if is_multiple_selected_companies:
-                result = chain(
-                    group(report_generation_tasks),
-                    zip_files_task.s(user.id, error_messages),
-                ).delay()
-                task_id = result.id
-
-                success_message = _(
-                    "Reports are being generated. They will be available shortly in the Download Center."
-                )
-            else:
-                task_id = report_generation_tasks[0].id
-
-            messages.success(request, success_message)
+        if error_messages and not report_generation_tasks:
+            for error_message in error_messages:
+                messages.error(request, error_message)
             rendered_messages = render_error_messages(request)
+            return JsonResponse({"messages": rendered_messages}, status=400)
 
-            return JsonResponse(
-                {"messages": rendered_messages, "task_id": task_id}, status=202
+        success_message = _(
+            "Report is being generated. It will be available shortly in the Download Center."
+        )
+
+        if is_multiple_selected_companies:
+            result = chord(group(report_generation_tasks))(
+                zip_files_task.s(error_messages)
             )
+            task_id = result.id
 
-    formset = CompanySelectFormSet(
-        queryset=page_obj.object_list, year=year, sectors_filter=sectors_filters
-    )
+            success_message = _(
+                "Reports are being generated. They will be available shortly in the Download Center."
+            )
+        else:
+            task_id = report_generation_tasks[0].id
+
+        Project.objects.filter(id=project_id).update(
+            task_id=task_id, task_status=CELERY_TASK_STATUS[3][0]
+        )
+
+        messages.success(request, success_message)
+        rendered_messages = render_error_messages(request)
+
+        return JsonResponse(
+            {"messages": rendered_messages, "task_id": task_id}, status=202
+        )
 
     context = {
         "filter": project_filter,
@@ -488,30 +489,59 @@ def delete_report_project(request, report_project_id: int):
 @login_required
 @otp_required
 def report_generation_status(request, report_project_id: int):
-    status = "running"
-    return JsonResponse({"status": status})
+    project = Project.objects.get(id=report_project_id)
+    success_status = CELERY_TASK_STATUS[1][0]
+    task_id = str(project.task_id)
+    reponse = {"project_id": project.id, "status": project.task_status}
+
+    if project.task_status == success_status:
+        generated_report = GeneratedReport.objects.get(project=project)
+        reponse["download_uuid"] = generated_report.file_uuid
+        return JsonResponse(reponse)
+
+    result = AsyncResult(task_id)
+
+    if result.status == "SUCCESS":
+        generated_report = GeneratedReport.objects.get(project=project)
+        reponse["download_uuid"] = generated_report.file_uuid
+        project.task_status = success_status
+        project.save()
+        return JsonResponse(reponse)
+
+    if result.status in "REVOKED":
+        project.task_status = CELERY_TASK_STATUS[2][0]
+        project.save()
+        return JsonResponse(reponse)
+
+    if result.status in "FAILURE":
+        project.task_status = CELERY_TASK_STATUS[0][0]
+        project.save()
+        return JsonResponse(reponse)
+
+    return JsonResponse(reponse)
 
 
 @login_required
 @otp_required
 def cancel_report_generation(request, report_project_id: int):
-    app = Celery("governanceplatform")
     project = Project.objects.get(id=report_project_id)
-    task_id = project.task_id
-    status = "ABORT"
-    if not task_id:
-        status = "FAIL"
-        return JsonResponse({"report_project_id": report_project_id, "status": status})
+    task_id = str(project.task_id)
+    reponse = {"project_id": project.id, "status": project.task_status}
 
-    result = AsyncResult(task_id, app=app)
-    result.revoke(terminate=True, signal="SIGTERM")
+    if not task_id:
+        project.task_status = "FAIL"
+        project.save()
+        return JsonResponse(reponse)
+
+    project.task_status = "ABORT"
+    project.save()
 
     cleanup_tmp_files.apply_async(
-        kwargs={"task_id": task_id},
+        kwargs={"project_id": str(report_project_id)},
         countdown=5,
     )
 
-    return JsonResponse({"report_project_id": report_project_id, "status": status})
+    return JsonResponse(reponse)
 
 
 @login_required
@@ -1011,7 +1041,7 @@ def download_center(request):
 @otp_required
 def download_report(request, file_uuid):
     try:
-        report = GeneratedReport.objects.get(file_uuid=file_uuid, user=request.user)
+        report = GeneratedReport.objects.get(file_uuid=file_uuid)
         file_path = report.get_file_path()
         return FileResponse(
             open(file_path, "rb"), as_attachment=True, filename=report.filename
@@ -1347,7 +1377,6 @@ def get_report(
     request: HttpRequest,
     cleaned_data: dict,
     run_id,
-    company_reporting,
     filename,
     extention,
     is_multiple_files: bool,
@@ -1366,7 +1395,6 @@ def get_report(
         save_file_task.s(
             run_id,
             user.id,
-            company_reporting.id,
             filename,
             is_multiple_files,
         )

@@ -30,29 +30,29 @@ urlpatterns = [
     # Report project
     path("project/create", create_report_project, name="create_report_project"),
     path(
-        "project/copy/<int:report_project_id>",
+        "project/<int:report_project_id>/copy",
         copy_report_project,
         name="copy_report_project",
     ),
     path(
-        "project/edit/<int:report_project_id>",
+        "project/<int:report_project_id>/edit",
         edit_report_project,
         name="edit_report_project",
     ),
     path(
-        "delete/<int:report_project_id>",
+        "project/<int:report_project_id>/delete",
         delete_report_project,
         name="delete_report_project",
     ),
     # Report generation status
     path(
-        "generation_status/<int:report_project_id>",
+        "project/<int:report_project_id>/report/status",
         report_generation_status,
         name="report_generation_status",
     ),
     # Cancel Report generation
     path(
-        "cancel_generation/<int:report_project_id>",
+        "project/<int:report_project_id>/report/cancel",
         cancel_report_generation,
         name="cancel_report_generation",
     ),
