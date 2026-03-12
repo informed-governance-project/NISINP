@@ -276,7 +276,6 @@ def reporting(request):
                 request,
                 report_data,
                 run_id,
-                company_reporting,
                 filename,
                 extention,
                 is_multiple_selected_companies,
@@ -1334,7 +1333,6 @@ def get_report(
     request: HttpRequest,
     cleaned_data: dict,
     run_id,
-    company_reporting,
     filename,
     extention,
     is_multiple_files: bool,
@@ -1353,7 +1351,6 @@ def get_report(
         save_file_task.s(
             run_id,
             user.id,
-            company_reporting.id,
             filename,
             is_multiple_files,
         )

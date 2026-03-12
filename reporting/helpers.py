@@ -866,10 +866,10 @@ def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
     return str(new_uuid)
 
 
-def create_entry_log(user, reporting, action):
+def create_entry_log(user, project, action):
     log = LogReporting.objects.create(
         user=user,
-        reporting=reporting,
+        project=project,
         action=action,
     )
     log.save()

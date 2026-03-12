@@ -27,7 +27,7 @@ from .helpers import (
     merge_subdoc_into_placeholder,
     redistribute_column_widths_proportional,
 )
-from .models import CompanyReporting, Configuration, GeneratedReport, Project, Template
+from .models import Configuration, GeneratedReport, Project, Template
 
 
 @shared_task
@@ -284,13 +284,12 @@ def generate_pdf_task(data):
 
 
 @shared_task
-def save_file_task(
-    data, run_id, user_id, company_reporting_id, filename, is_multiple_files
-):
+def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     if not data:
         return
     project_id = data["project_id"]
-    if Project.objects.get(id=project_id).task_status == "ABORT":
+    project = Project.objects.get(id=project_id)
+    if project.task_status == "ABORT":
         return
     temp_file_path = data["file_path"]
     file_uuid = uuid.uuid4()
@@ -314,8 +313,7 @@ def save_file_task(
     shutil.move(temp_file_path, file_path)
     parent_dir = Path(temp_file_path).parent
     shutil.rmtree(parent_dir)
-    company_reporting = CompanyReporting.objects.get(id=company_reporting_id)
-    create_entry_log(user, company_reporting, "GENERATE REPORT")
+    create_entry_log(user, project, "GENERATE REPORT")
 
     return {"file_path": str(file_path), "project_id": project_id}
 
