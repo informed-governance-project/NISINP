@@ -474,7 +474,6 @@ def copy_report_project(request, report_project_id):
 @otp_required
 @require_http_methods(["POST"])
 def delete_report_project(request, report_project_id: int):
-    print(report_project_id)
     try:
         project = Project.objects.get(pk=report_project_id)
         if not has_change_permission(request, project, "delete"):
