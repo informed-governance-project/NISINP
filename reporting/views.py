@@ -4,7 +4,7 @@ import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
-from celery import Celery, chain, chord, group
+from celery import chain, chord, group
 from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -468,30 +468,55 @@ def delete_report_project(request, report_project_id: int):
 @login_required
 @otp_required
 def report_generation_status(request, report_project_id: int):
-    status = "running"
-    return JsonResponse({"status": status})
+    project = Project.objects.get(id=report_project_id)
+    success_status = CELERY_TASK_STATUS[1][0]
+    task_id = str(project.task_id)
+    reponse = {"project_id": project.id, "status": project.task_status}
+
+    if project.task_status == success_status:
+        return JsonResponse(reponse)
+
+    result = AsyncResult(task_id)
+
+    if result.status == "SUCCESS":
+        project.task_status = success_status
+        project.save()
+        return JsonResponse(reponse)
+
+    if result.status in "REVOKED":
+        project.task_status = CELERY_TASK_STATUS[2][0]
+        project.save()
+        return JsonResponse(reponse)
+
+    if result.status in "FAILURE":
+        project.task_status = CELERY_TASK_STATUS[0][0]
+        project.save()
+        return JsonResponse(reponse)
+
+    return JsonResponse(reponse)
 
 
 @login_required
 @otp_required
 def cancel_report_generation(request, report_project_id: int):
-    app = Celery("governanceplatform")
     project = Project.objects.get(id=report_project_id)
-    task_id = project.task_id
-    status = "ABORT"
-    if not task_id:
-        status = "FAIL"
-        return JsonResponse({"report_project_id": report_project_id, "status": status})
+    task_id = str(project.task_id)
+    reponse = {"project_id": project.id, "status": project.task_status}
 
-    result = AsyncResult(task_id, app=app)
-    result.revoke(terminate=True, signal="SIGTERM")
+    if not task_id:
+        project.task_status = "FAIL"
+        project.save()
+        return JsonResponse(reponse)
+
+    project.task_status = "ABORT"
+    project.save()
 
     cleanup_tmp_files.apply_async(
-        kwargs={"task_id": task_id},
+        kwargs={"project_id": str(report_project_id)},
         countdown=5,
     )
 
-    return JsonResponse({"report_project_id": report_project_id, "status": status})
+    return JsonResponse(reponse)
 
 
 @login_required
