@@ -27,11 +27,14 @@ from .helpers import (
     merge_subdoc_into_placeholder,
     redistribute_column_widths_proportional,
 )
-from .models import CompanyReporting, Configuration, GeneratedReport, Template
+from .models import CompanyReporting, Configuration, GeneratedReport, Project, Template
 
 
 @shared_task
 def generate_data(cleaned_data):
+    project_id = cleaned_data["project_id"]
+    if Project.objects.get(id=project_id).task_status == "ABORT":
+        return
     activate(cleaned_data.get("language", "en"))
     report_configuration_id = cleaned_data["report_configuration_id"]
     colors = Configuration.objects.get(pk=report_configuration_id).colors.values_list(
@@ -56,23 +59,31 @@ def generate_data(cleaned_data):
         "company_reporting": cleaned_data["company_reporting"],
         "translations": TRANSLATIONS_CONTEXT,
         "template_id": template_id,
+        "project_id": project_id,
     }
 
     return data
 
 
-@shared_task
-def generate_docx_task(data):
-    tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+@shared_task(bind=True)
+def generate_docx_task(self, data):
+    if not data:
+        return
+    project_id = data["project_id"]
+    if Project.objects.get(id=project_id).task_status == "ABORT":
+        return
+    tmp_id = str(self.request.id)
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / tmp_id
     subdocs_templates_dir = Path(
         os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
     )
-    tmp_dir.mkdir(exist_ok=True)
-    main_docx_path = Path(tmp_dir / "main_doc.docx")
+    task_tmp_dir.mkdir(parents=True, exist_ok=True)
+    main_docx_path = Path(task_tmp_dir / "main_doc.docx")
     template_id = data["template_id"]
     template_file = Template.objects.get(pk=template_id).template_file
     template_path = BytesIO(bytes(template_file))
-    tmp_output_path = tmp_dir / "tmp_doc.docx"
+    tmp_output_path = task_tmp_dir / "tmp_doc.docx"
     rendered_subs_docs = {}
     document_charts = {
         "chart_average_risk_level": {
@@ -214,7 +225,7 @@ def generate_docx_task(data):
 
     for table_name, table_info in document_tables.items():
         sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
-        sub_rendered_path = tmp_dir / f"{table_name}_rendered.docx"
+        sub_rendered_path = task_tmp_dir / f"{table_name}_rendered.docx"
         context[table_name] = str(table_name)
         table_info["context"]["translations"] = data["translations"]
         sub_doc_template = DocxTemplate(sub_template_path)
@@ -253,16 +264,19 @@ def generate_docx_task(data):
                 sub_rendered_path.unlink(missing_ok=True)
 
     main_docx_path.unlink(missing_ok=True)
-    return str(current_doc)
+    return {"file_path": str(current_doc), "project_id": project_id}
 
 
 @shared_task
-def generate_pdf_task(docx_path):
-    docx_path = Path(docx_path)
+def generate_pdf_task(data):
+    project_id = data["project_id"]
+    if Project.objects.get(id=project_id).task_status == "ABORT":
+        return
+    docx_path = Path(data["docx_path"])
 
     try:
         pdf_path = convert_docx_to_pdf(str(docx_path))
-        return str(pdf_path)
+        return {"file_path": str(pdf_path), "project_id": project_id}
 
     finally:
         if docx_path.exists():
@@ -271,8 +285,14 @@ def generate_pdf_task(docx_path):
 
 @shared_task
 def save_file_task(
-    temp_file_path, run_id, user_id, company_reporting_id, filename, is_multiple_files
+    data, run_id, user_id, company_reporting_id, filename, is_multiple_files
 ):
+    if not data:
+        return
+    project_id = data["project_id"]
+    if Project.objects.get(id=project_id).task_status == "ABORT":
+        return
+    temp_file_path = data["file_path"]
     file_uuid = uuid.uuid4()
     User = get_user_model()
     user = User.objects.get(id=user_id)
@@ -292,19 +312,30 @@ def save_file_task(
         )
 
     shutil.move(temp_file_path, file_path)
+    parent_dir = Path(temp_file_path).parent
+    shutil.rmtree(parent_dir)
     company_reporting = CompanyReporting.objects.get(id=company_reporting_id)
     create_entry_log(user, company_reporting, "GENERATE REPORT")
 
-    return file_path
+    return {"file_path": str(file_path), "project_id": project_id}
 
 
 @shared_task
-def zip_files_task(file_paths, user_id, error_messages):
+def zip_files_task(data, error_messages):
+    if not data[0]:
+        return
+    project_id = data[0]["project_id"]
+    file_paths = [item["file_path"] for item in data]
+    project = Project.objects.get(id=project_id)
+    if project.task_status == "ABORT":
+        return
     file_uuid = uuid.uuid4()
-    User = get_user_model()
-    user = User.objects.get(id=user_id)
-    output_dir = os.path.join(settings.PATH_FOR_REPORTING_PDF, str(user.id))
-    zip_filename = f"reports_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+    output_dir = Path(os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id)))
+    if output_dir.exists() and output_dir.is_dir():
+        for item in output_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+    zip_filename = f"reports_{project.name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
     zip_path = os.path.join(output_dir, str(file_uuid))
 
     if not isinstance(file_paths, list):
@@ -327,22 +358,17 @@ def zip_files_task(file_paths, user_id, error_messages):
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
 
-    GeneratedReport.objects.create(
-        user=user,
-        file_uuid=file_uuid,
-        filename=zip_filename,
+    GeneratedReport.objects.update_or_create(
+        project=project,
+        defaults={"file_uuid": file_uuid, "filename": zip_filename},
     )
 
     return zip_path
 
 
 @shared_task(ignore_result=True)
-def cleanup_tmp_files(task_id):
-    tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-
-    for tmp_file in ["main_doc.docx", "tmp_doc.docx"]:
-        (tmp_dir / tmp_file).unlink(missing_ok=True)
-
-    run_dir = tmp_dir / task_id
-    if run_dir.exists():
-        shutil.rmtree(run_dir)
+def cleanup_tmp_files(project_id):
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = base_tmp_dir / project_id / "tmp_files"
+    if task_tmp_dir.exists():
+        shutil.rmtree(task_tmp_dir)
