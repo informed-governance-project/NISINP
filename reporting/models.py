@@ -666,5 +666,5 @@ class GeneratedReport(models.Model):
 
     def get_file_path(self):
         return os.path.join(
-            settings.PATH_FOR_REPORTING_PDF, str(self.user.id), str(self.file_uuid)
+            settings.PATH_FOR_REPORTING_PDF, str(self.project.id), str(self.file_uuid)
         )

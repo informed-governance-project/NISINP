@@ -455,11 +455,15 @@ def report_generation_status(request, report_project_id: int):
     reponse = {"project_id": project.id, "status": project.task_status}
 
     if project.task_status == success_status:
+        generated_report = GeneratedReport.objects.get(project=project)
+        reponse["download_uuid"] = generated_report.file_uuid
         return JsonResponse(reponse)
 
     result = AsyncResult(task_id)
 
     if result.status == "SUCCESS":
+        generated_report = GeneratedReport.objects.get(project=project)
+        reponse["download_uuid"] = generated_report.file_uuid
         project.task_status = success_status
         project.save()
         return JsonResponse(reponse)
@@ -997,7 +1001,7 @@ def download_center(request):
 @otp_required
 def download_report(request, file_uuid):
     try:
-        report = GeneratedReport.objects.get(file_uuid=file_uuid, user=request.user)
+        report = GeneratedReport.objects.get(file_uuid=file_uuid)
         file_path = report.get_file_path()
         return FileResponse(
             open(file_path, "rb"), as_attachment=True, filename=report.filename
