@@ -29,7 +29,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
 
-from governanceplatform.helpers import get_sectors_grouped, user_in_group
+from governanceplatform.helpers import (
+    get_sectors_grouped,
+    is_user_regulator,
+    user_in_group,
+)
 from governanceplatform.models import Company, Regulation, Sector
 from securityobjectives.models import Standard, StandardAnswer
 
@@ -69,6 +73,33 @@ from .tasks import (
     save_file_task,
     zip_files_task,
 )
+
+
+def has_change_permission(request, project, action):
+    def check_conditions():
+        user = request.user
+        user_sectors = user.get_sectors().all()
+
+        project_sectors = project.sectors.all()
+        is_user_regulator_sector = (
+            user_in_group(user, "RegulatorAdmin")
+            and project.author.regulators.first() == user.regulators.first()
+        ) or (
+            is_user_regulator(user)
+            and project.author.regulators.first() == user.regulators.first()
+            and any(sector in project_sectors for sector in user_sectors)
+        )
+
+        match action:
+            case "delete":
+                return is_user_regulator_sector
+            case _:
+                return False
+
+    if not check_conditions():
+        messages.error(request, _("Forbidden"))
+        return False
+    return True
 
 
 @login_required
@@ -442,6 +473,15 @@ def copy_report_project(request, report_project_id):
 @otp_required
 @require_http_methods(["POST"])
 def delete_report_project(request, report_project_id: int):
+    print(report_project_id)
+    try:
+        project = Project.objects.get(pk=report_project_id)
+        if not has_change_permission(request, project, "delete"):
+            return redirect("reporting")
+        project.delete()
+        messages.success(request, _("The project has been deleted."))
+    except Project.DoesNotExist:
+        messages.error(request, _("Project not found"))
     return redirect("reporting")
 
 
