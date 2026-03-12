@@ -582,7 +582,6 @@ def create_company_projects_on_sectors_change(
     companies = Company.objects.all()
     sectors = instance.sectors.all()
     years = instance.years or []
-    print(years)
 
     company_projects = [
         CompanyProject(
@@ -595,7 +594,6 @@ def create_company_projects_on_sectors_change(
         for sector in sectors & company.sectors.all()
         for year in years
     ]
-    print(company_projects)
 
     CompanyProject.objects.bulk_create(
         company_projects,

@@ -397,11 +397,10 @@ def create_report_project(request):
                 name=data["name"],
                 standard=data["standard"],
                 years=data["years"],
+                reference_year=data["reference_year"],
             )
             if project and data["sectors"]:
                 project.sectors.set(data["sectors"])
-        else:
-            print(form.errors)
         return redirect("reporting")
 
     form = CreateProjectForm(choices=choices)
