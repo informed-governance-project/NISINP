@@ -650,8 +650,9 @@ class GeneratedReport(models.Model):
     project = models.ForeignKey(
         Project,
         on_delete=models.SET_NULL,
-        verbose_name=_("User"),
+        verbose_name=_("Project"),
         null=True,
+        related_name="generated_report",
     )
     file_uuid = models.UUIDField(
         default=uuid.uuid4,
