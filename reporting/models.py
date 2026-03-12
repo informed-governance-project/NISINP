@@ -4,10 +4,13 @@ from datetime import datetime
 
 import pytz
 from colorfield.fields import ColorField
+from django.apps import apps
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import get_default_timezone, is_naive, make_aware
 from django.utils.translation import gettext_lazy as _
@@ -587,6 +590,39 @@ class Project(models.Model):
         verbose_name = _("Project")
 
 
+# Automatically create the link between company and project when a project is saved
+@receiver(m2m_changed, sender=Project.sectors.through)
+def create_company_projects_on_sectors_change(
+    sender, instance, action, pk_set, **kwargs
+):
+    if action != "post_add":
+        return
+
+    Company = apps.get_model("governanceplatform", "Company")
+    companies = Company.objects.all()
+    sectors = instance.sectors.all()
+    years = instance.years or []
+    print(years)
+
+    company_projects = [
+        CompanyProject(
+            company=company,
+            project=instance,
+            sector=sector,
+            year=year,
+        )
+        for company in companies
+        for sector in sectors & company.sectors.all()
+        for year in years
+    ]
+    print(company_projects)
+
+    CompanyProject.objects.bulk_create(
+        company_projects,
+        ignore_conflicts=True,
+    )
+
+
 class CompanyProject(models.Model):
     company = models.ForeignKey(
         "governanceplatform.Company",
@@ -621,7 +657,7 @@ class CompanyProject(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["company", "project", "sector"],
+                fields=["company", "project", "sector", "year"],
                 name="unique_company_project_sector",
             )
         ]
