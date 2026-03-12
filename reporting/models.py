@@ -4,10 +4,13 @@ from datetime import datetime
 
 import pytz
 from colorfield.fields import ColorField
+from django.apps import apps
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import get_default_timezone, is_naive, make_aware
 from django.utils.translation import gettext_lazy as _
@@ -401,8 +404,8 @@ class LogReporting(models.Model):
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     # save full name in case of the user is deleted to keep the name
     user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
-    reporting = models.ForeignKey(
-        CompanyReporting,
+    project = models.ForeignKey(
+        "reporting.Project",
         on_delete=models.CASCADE,
         null=True,
         default=None,
@@ -540,6 +543,18 @@ class Project(models.Model):
         choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
         null=True,
     )
+    companies = models.ManyToManyField(
+        "governanceplatform.Company",
+        through="CompanyProject",
+        blank=True,
+    )
+    selected_file_format = ArrayField(
+        models.CharField(), verbose_name=_("Selected file format"), default=list
+    )
+    selected_languages = ArrayField(
+        models.CharField(), verbose_name=_("Selected file format"), default=list
+    )
+    reference_year = models.PositiveIntegerField(verbose_name=_("Reference year"))
 
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})
@@ -547,9 +562,85 @@ class Project(models.Model):
     def get_no_childrens_sectors(self):
         return list(self.sectors.filter(parent__isnull=True))
 
+    def __str__(self):
+        return self.name or ""
+
     class Meta:
         verbose_name_plural = _("Projects")
         verbose_name = _("Project")
+
+
+# Automatically create the link between company and project when a project is saved
+@receiver(m2m_changed, sender=Project.sectors.through)
+def create_company_projects_on_sectors_change(
+    sender, instance, action, pk_set, **kwargs
+):
+    if action != "post_add":
+        return
+
+    Company = apps.get_model("governanceplatform", "Company")
+    companies = Company.objects.all()
+    sectors = instance.sectors.all()
+    years = instance.years or []
+    print(years)
+
+    company_projects = [
+        CompanyProject(
+            company=company,
+            project=instance,
+            sector=sector,
+            year=year,
+        )
+        for company in companies
+        for sector in sectors & company.sectors.all()
+        for year in years
+    ]
+    print(company_projects)
+
+    CompanyProject.objects.bulk_create(
+        company_projects,
+        ignore_conflicts=True,
+    )
+
+
+class CompanyProject(models.Model):
+    company = models.ForeignKey(
+        "governanceplatform.Company",
+        on_delete=models.CASCADE,
+        verbose_name=_("Company"),
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        verbose_name=_("Project"),
+    )
+    sector = models.ForeignKey(
+        "governanceplatform.Sector",
+        on_delete=models.CASCADE,
+        verbose_name=_("Sector"),
+    )
+    year = models.PositiveIntegerField()
+    is_selected = models.BooleanField(default=False, verbose_name=_("Is selected"))
+    has_security_objectives = models.BooleanField(
+        default=False, verbose_name=_("Has security objectives")
+    )
+    has_risk_assessment = models.BooleanField(
+        default=False, verbose_name=_("Has risk assessment")
+    )
+    statistic_selected = models.BooleanField(
+        default=False, verbose_name=_("Statistics")
+    )
+    governance_report_selected = models.BooleanField(
+        default=False, verbose_name=_("Governance report")
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "project", "sector", "year"],
+                name="unique_company_project_sector",
+            )
+        ]
 
 
 # store link for the generated file.

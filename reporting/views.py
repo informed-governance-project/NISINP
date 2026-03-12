@@ -20,7 +20,7 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -358,18 +358,21 @@ def create_report_project(request):
             request.POST,
             choices=choices,
         )
+
         if form.is_valid():
             user = request.user
             data = form.cleaned_data
             project = Project.objects.create(
                 author=user,
-                name=data["project_name"],
+                name=data["name"],
                 standard=data["standard"],
-                years=data["year"],
+                years=data["years"],
             )
             if project and data["sectors"]:
                 project.sectors.set(data["sectors"])
-            return HttpResponseRedirect(request.headers.get("referer"))
+        else:
+            print(form.errors)
+        return redirect("reporting")
 
     form = CreateProjectForm(choices=choices)
     context = {"form": form}
@@ -419,43 +422,22 @@ def edit_report_project(request, report_project_id: int):
 
 @login_required
 @otp_required
-def copy_report_project(request, report_project_id: int):
-    user = request.user
-    regulator = user.regulators.first()
-
-    regulation_qs = Regulation.objects.filter(
-        regulators=regulator, standard__isnull=False
-    ).distinct()
-
-    standard_qs = Standard.objects.filter(
-        regulator=regulator, regulation__in=regulation_qs
-    )
-
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
-
-    sector_list = get_sectors_grouped(sectors_queryset)
-
-    choices = {
-        "regulations": regulation_qs,
-        "sectors": sector_list,
-        "standards": standard_qs,
-    }
+def copy_report_project(request, report_project_id):
+    project = get_object_or_404(Project, id=report_project_id)
 
     if request.method == "POST":
-        form = CreateProjectForm(
-            request.POST,
-            choices=choices,
-        )
-        if form.is_valid():
-            return HttpResponseRedirect(request.headers.get("referer"))
+        form = CreateProjectForm(request.POST)
 
-    form = CreateProjectForm(choices=choices, copy=True)
-    context = {"form": form, "is_copy": True}
-    return render(request, "modals/create_report_project.html", context=context)
+        if form.is_valid():
+            new_project = form.save(commit=False)
+            new_project.pk = None
+            new_project.save()
+            form.save_m2m()
+        return redirect("reporting")
+
+    else:
+        form = CreateProjectForm(instance=project)
+        return render(request, "modals/create_report_project.html", {"form": form})
 
 
 @login_required
