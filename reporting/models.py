@@ -414,33 +414,6 @@ class LogReporting(models.Model):
         super().save(*args, **kwargs)
 
 
-# store link for the generated file.
-# filename for the user when the files are stored on the end user device
-# file_uuid when store on the server to prevent conflict
-class GeneratedReport(models.Model):
-    user = models.ForeignKey(
-        "governanceplatform.User",
-        on_delete=models.SET_NULL,
-        verbose_name=_("User"),
-        null=True,
-    )
-    file_uuid = models.UUIDField(
-        default=uuid.uuid4,
-        unique=True,
-        verbose_name=_("uuid"),
-    )
-    filename = models.CharField(max_length=255, verbose_name=_("Filename"))
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
-
-    def __str__(self):
-        return f"{self.filename} ({self.user.email})"
-
-    def get_file_path(self):
-        return os.path.join(
-            settings.PATH_FOR_REPORTING_PDF, str(self.user.id), str(self.file_uuid)
-        )
-
-
 class Configuration(models.Model):
     regulator = models.ForeignKey(
         "governanceplatform.regulator",
@@ -577,3 +550,30 @@ class Project(models.Model):
     class Meta:
         verbose_name_plural = _("Projects")
         verbose_name = _("Project")
+
+
+# store link for the generated file.
+# filename for the project when the files are stored on the end user device
+# file_uuid when store on the server to prevent conflict
+class GeneratedReport(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.SET_NULL,
+        verbose_name=_("User"),
+        null=True,
+    )
+    file_uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        verbose_name=_("uuid"),
+    )
+    filename = models.CharField(max_length=255, verbose_name=_("Filename"))
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), auto_now=True)
+
+    def __str__(self):
+        return f"{self.filename} ({self.user.email})"
+
+    def get_file_path(self):
+        return os.path.join(
+            settings.PATH_FOR_REPORTING_PDF, str(self.user.id), str(self.file_uuid)
+        )
