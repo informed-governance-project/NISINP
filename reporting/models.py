@@ -401,8 +401,8 @@ class LogReporting(models.Model):
     timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
     # save full name in case of the user is deleted to keep the name
     user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
-    reporting = models.ForeignKey(
-        CompanyReporting,
+    project = models.ForeignKey(
+        "reporting.Project",
         on_delete=models.CASCADE,
         null=True,
         default=None,
@@ -567,6 +567,11 @@ class Project(models.Model):
         choices=[(3, _("Top 3")), (5, _("Top 5")), (10, _("Top 10"))],
         null=True,
     )
+    companies = models.ManyToManyField(
+        "governanceplatform.Company",
+        through="CompanyProject",
+        blank=True,
+    )
 
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})
@@ -574,6 +579,49 @@ class Project(models.Model):
     def get_no_childrens_sectors(self):
         return list(self.sectors.filter(parent__isnull=True))
 
+    def __str__(self):
+        return self.name or ""
+
     class Meta:
         verbose_name_plural = _("Projects")
         verbose_name = _("Project")
+
+
+class CompanyProject(models.Model):
+    company = models.ForeignKey(
+        "governanceplatform.Company",
+        on_delete=models.CASCADE,
+        verbose_name=_("Company"),
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        verbose_name=_("Project"),
+    )
+    sector = models.ForeignKey(
+        "governanceplatform.Sector",
+        on_delete=models.CASCADE,
+        verbose_name=_("Sector"),
+    )
+    year = models.PositiveIntegerField()
+    is_selected = models.BooleanField(default=False, verbose_name=_("Is selected"))
+    has_security_objectives = models.BooleanField(
+        default=False, verbose_name=_("Has security objectives")
+    )
+    has_risk_assessment = models.BooleanField(
+        default=False, verbose_name=_("Has risk assessment")
+    )
+    statistic_selected = models.BooleanField(
+        default=False, verbose_name=_("Statistics")
+    )
+    governance_report_selected = models.BooleanField(
+        default=False, verbose_name=_("Governance report")
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "project", "sector"],
+                name="unique_company_project_sector",
+            )
+        ]
