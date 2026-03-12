@@ -269,6 +269,15 @@ class CreateProjectForm(forms.ModelForm):
         label=_("Standard"),
     )
 
+    reference_year = forms.ChoiceField(
+        choices=[
+            (year, year)
+            for year in range(timezone.now().year - 10, timezone.now().year + 2)
+        ],
+        required=True,
+        label=_("Year"),
+    )
+
     years = forms.MultipleChoiceField(
         widget=DropdownCheckboxSelectMultiple(),
         choices=[
@@ -276,7 +285,7 @@ class CreateProjectForm(forms.ModelForm):
             for year in range(timezone.now().year - 10, timezone.now().year + 2)
         ],
         required=True,
-        label=_("Year"),
+        label=_("Comparisons years"),
     )
 
     sectors = forms.MultipleChoiceField(
@@ -287,7 +296,7 @@ class CreateProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["years", "name", "standard", "years", "sectors"]
+        fields = ["years", "name", "standard", "reference_year", "sectors"]
 
     def clean_years(self):
         data = self.cleaned_data["years"]
