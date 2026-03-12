@@ -575,6 +575,13 @@ class Project(models.Model):
         through="CompanyProject",
         blank=True,
     )
+    selected_file_format = ArrayField(
+        models.CharField(), verbose_name=_("Selected file format"), default=list
+    )
+    selected_languages = ArrayField(
+        models.CharField(), verbose_name=_("Selected file format"), default=list
+    )
+    reference_year = models.PositiveIntegerField(verbose_name=_("Reference year"))
 
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})
