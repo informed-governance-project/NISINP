@@ -79,11 +79,9 @@ def generate_docx_task(self, data):
         os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
     )
     task_tmp_dir.mkdir(parents=True, exist_ok=True)
-    main_docx_path = Path(task_tmp_dir / "main_doc.docx")
     template_id = data["template_id"]
     template_file = Template.objects.get(pk=template_id).template_file
     template_path = BytesIO(bytes(template_file))
-    tmp_output_path = task_tmp_dir / "tmp_doc.docx"
     rendered_subs_docs = {}
     document_charts = {
         "chart_average_risk_level": {
@@ -222,6 +220,8 @@ def generate_docx_task(self, data):
         context[chart_name] = InlineImage(
             main_doc_template, chart_bytes, width=chart_with
         )
+    if not task_tmp_dir.exists():
+        return
 
     for table_name, table_info in document_tables.items():
         sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
@@ -245,9 +245,11 @@ def generate_docx_task(self, data):
         sub_doc.save(sub_rendered_path)
         rendered_subs_docs[table_name] = sub_rendered_path
 
+    main_docx_path = Path(task_tmp_dir / "main_doc.docx")
     main_doc_template.render(context)
     main_doc_template.save(main_docx_path)
     current_doc = main_docx_path
+    tmp_output_path = task_tmp_dir / "tmp_doc.docx"
 
     for placeholder, sub_rendered_path in rendered_subs_docs.items():
         sub_rendered_path = Path(sub_rendered_path)
@@ -274,6 +276,8 @@ def generate_pdf_task(data):
         return
     docx_path = Path(data["docx_path"])
 
+    if docx_path.exists():
+        return
     try:
         pdf_path = convert_docx_to_pdf(str(docx_path))
         return {"file_path": str(pdf_path), "project_id": project_id}
