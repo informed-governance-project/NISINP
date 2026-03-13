@@ -50,6 +50,12 @@ urlpatterns = [
         generate_report_project,
         name="generate_report_project",
     ),
+    # Download Reports
+    path(
+        "project/<int:report_project_id>/report/download/<uuid:file_uuid>",
+        download_report,
+        name="download_report",
+    ),
     # Report generation status
     path(
         "project/<int:report_project_id>/report/status",
@@ -109,8 +115,6 @@ urlpatterns = [
     ),
     # Import risk analysis
     path("import_risk_analysis", import_risk_analysis, name="import_risk_analysis"),
-    # Download center
-    path("download/<uuid:file_uuid>/", download_report, name="download_report"),
     # Current template download
     path(
         "admin/reporting/template/<int:pk>/download/",
