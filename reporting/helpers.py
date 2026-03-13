@@ -111,7 +111,11 @@ def get_so_data(cleaned_data):
             entry["score"].append(
                 {
                     "value": score,
-                    "color": get_gradient_color(score) if is_last else "#FFFFFF",
+                    "color": (
+                        get_gradient_color(score, so_color_palette)
+                        if is_last
+                        else "#FFFFFF"
+                    ),
                 }
             )
             entry["evolution"].append(evolution)
@@ -178,7 +182,11 @@ def get_so_data(cleaned_data):
     nb_years = cleaned_data["nb_years"]
     so_excluded = cleaned_data["so_excluded"]
     top_ranking = cleaned_data["top_ranking"]
-    maturity_levels_queryset = MaturityLevel.objects.order_by("level")
+    standard_id = cleaned_data["standard_id"]
+    maturity_levels_queryset = MaturityLevel.objects.filter(
+        standard_id=standard_id
+    ).order_by("level")
+    so_color_palette = list(maturity_levels_queryset.values_list("level", "color"))
     maturity_levels = [
         {"level": ml.level, "label": str(ml), "color": ml.color}
         for ml in maturity_levels_queryset
@@ -1171,10 +1179,7 @@ def lighten_color(rgb_base: str, factor: float = 0.5) -> str:
     return rgb_to_hex(rgb_lighter)
 
 
-def get_gradient_color(value):
-    so_color_palette = list(
-        MaturityLevel.objects.order_by("level").values_list("level", "color")
-    )
+def get_gradient_color(value, so_color_palette):
 
     palette = [(float(v), c) for v, c in so_color_palette]
 

@@ -429,7 +429,7 @@ def generate_report_project(request, report_project_id: int):
 
         report_data = {
             "company": model_to_dict(
-                company, exclude=["phone_number", "entity_categories"]
+                company, exclude=["phone_number", "entity_categories", "sectors"]
             ),
             "sector": {**model_to_dict(sector), "name": str(sector)},
             "year": year,
@@ -445,6 +445,7 @@ def generate_report_project(request, report_project_id: int):
             "language": get_language(),
             "template_id": template.pk,
             "project_id": project_id,
+            "standard_id": project.standard.id,
             "report_configuration_id": report_configuration_id,
         }
 
