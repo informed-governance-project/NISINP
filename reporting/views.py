@@ -23,7 +23,6 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import activate, deactivate_all, get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
@@ -985,19 +984,14 @@ def import_risk_analysis(request):
 
 @login_required
 @otp_required
-def access_log(request, company_id, sector_id, year):
-    validate_result = validate_url_arguments(request, company_id, sector_id, year)
+def access_log(request, project_id):
+    validate_result = validate_url_arguments(request, project_id)
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
-    company, sector, year = validate_result
+    project = validate_result
     try:
-        company_reporting = CompanyReporting.objects.get(
-            company=company, year=year, sector=sector
-        )
-        log = LogReporting.objects.filter(reporting=company_reporting).order_by(
-            "-timestamp"
-        )
-    except CompanyReporting.DoesNotExist:
+        log = LogReporting.objects.filter(project=project).order_by("-timestamp")
+    except Project.DoesNotExist:
         log = LogReporting.objects.none()
 
     context = {"log": log}
@@ -1435,50 +1429,17 @@ def validate_json_file(file):
     return json_data
 
 
-def validate_url_arguments(request, company_id, sector_id, year):
-    user = request.user
-    user_sectors = user.get_sectors().all()
-
+def validate_url_arguments(request, project_id):
     try:
-        company = Company.objects.get(id=company_id)
-    except Company.DoesNotExist:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
         messages.error(
             request,
             _("No company found"),
         )
         return redirect("reporting")
 
-    try:
-        sector = Sector.objects.get(id=sector_id)
-    except Sector.DoesNotExist:
-        messages.error(
-            request,
-            _("No sector found"),
-        )
-        return redirect("reporting")
-
-    try:
-        year = int(year)
-    except ValueError:
-        messages.error(
-            request,
-            _("Year value is not a valid number"),
-        )
-        return redirect("reporting")
-
-    current_year = timezone.now().year
-    if year < 2020 or year > current_year:
-        messages.error(
-            request,
-            _("Invalid year. Please provide a valid year."),
-        )
-        return redirect("reporting")
-
-    if sector not in user_sectors:
-        messages.error(request, _("Forbidden"))
-        return redirect("reporting")
-
-    return company, sector, year
+    return project
 
 
 def add_new_report_recommendations(
