@@ -131,6 +131,9 @@ def reporting(request):
     page_number = reporting_filter_params.get("page")
     paginator = Paginator(project_filter_list, per_page)
     page_obj = paginator.get_page(page_number)
+    projects_running = list(
+        project_filter_list.filter(task_status=CELERY_TASK_STATUS[3][0]).values("id")
+    )
 
     is_filtered = {
         k: v
@@ -345,11 +348,11 @@ def reporting(request):
         return JsonResponse(
             {"messages": rendered_messages, "task_id": task_id}, status=202
         )
-
     context = {
         "filter": project_filter,
         "is_filtered": bool(is_filtered),
         "projects": page_obj,
+        "projects_running": projects_running,
     }
 
     return render(request, "reporting/dashboard.html", context)
