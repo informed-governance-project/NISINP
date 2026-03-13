@@ -15,6 +15,7 @@ from .views import (
     download_template,
     edit_report_configuration,
     edit_report_project,
+    generate_report_project,
     import_risk_analysis,
     report_configuration,
     report_generation_status,
@@ -43,6 +44,12 @@ urlpatterns = [
         "project/<int:report_project_id>/delete",
         delete_report_project,
         name="delete_report_project",
+    ),
+    # Generate Reports
+    path(
+        "project/<int:report_project_id>/report/generate",
+        generate_report_project,
+        name="generate_report_project",
     ),
     # Report generation status
     path(
