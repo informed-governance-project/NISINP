@@ -739,6 +739,15 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
     def has_export_permission(self, request):
         return self.has_view_permission(request)
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "sectors":
+            # exclude parent with children from the list
+            kwargs["queryset"] = Sector.objects.annotate(
+                child_count=Count("children")
+            ).exclude(parent=None, child_count__gt=0)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 
 class UserResource(resources.ModelResource):
     first_name = fields.Field(column_name="firstname", attribute="first_name")
