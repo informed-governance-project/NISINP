@@ -318,6 +318,8 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     parent_dir = Path(temp_file_path).parent
     shutil.rmtree(parent_dir)
     create_entry_log(user, project, "GENERATE REPORT")
+    project.task_status = "DONE"
+    project.save()
 
     return {"file_path": str(file_path), "project_id": project_id}
 
