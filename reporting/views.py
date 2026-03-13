@@ -1040,13 +1040,6 @@ def review_comment_report(request, company_id, sector_id, year):
 
 @login_required
 @otp_required
-def download_center(request):
-    reports = GeneratedReport.objects.filter(user=request.user).order_by("-timestamp")
-    return render(request, "reporting/download_center.html", {"reports": reports})
-
-
-@login_required
-@otp_required
 def download_report(request, file_uuid):
     try:
         report = GeneratedReport.objects.get(file_uuid=file_uuid)

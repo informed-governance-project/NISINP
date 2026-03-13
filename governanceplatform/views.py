@@ -131,7 +131,6 @@ def sitemap(request):
             if type_module == "reporting" and is_user_regulator(user):
                 reporting_pages = [
                     {"name": _("Dashboard"), "url": reverse("reporting")},
-                    {"name": _("Download Center"), "url": reverse("download_center")},
                     {
                         "name": _("Configuration"),
                         "url": reverse("report_configuration"),
