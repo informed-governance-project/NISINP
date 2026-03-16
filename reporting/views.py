@@ -92,6 +92,12 @@ def has_change_permission(request, project, action):
         match action:
             case "delete":
                 return is_user_regulator_sector
+            case "copy":
+                return is_user_regulator_sector
+            case "edit":
+                return is_user_regulator_sector
+            case "log":
+                return is_user_regulator_sector
             case _:
                 return False
 
@@ -104,7 +110,22 @@ def has_change_permission(request, project, action):
 @login_required
 @otp_required
 def reporting(request):
-    project_queryset = Project.objects.all().order_by("-updated_at")
+    user = request.user
+    if user_in_group(user, "RegulatorAdmin"):
+        project_queryset = Project.objects.filter(
+            author__regulators=user.regulators.first()
+        ).order_by("-updated_at")
+    elif user_in_group(user, "RegulatorUser"):
+        project_queryset = (
+            Project.objects.filter(
+                sectors__in=user.get_sectors().all(),
+                author__regulators=user.regulators.first(),
+            )
+            .order_by("-updated_at")
+            .distinct()
+        )
+    else:
+        project_queryset = Project.objects.none()
 
     if "reset" in request.GET:
         request.session.pop("reporting_filter_params", None)
@@ -205,7 +226,12 @@ def edit_report_project(request, report_project_id: int):
     user = request.user
     regulator = user.regulators.first()
 
-    project = get_object_or_404(Project, pk=report_project_id)
+    try:
+        project = get_object_or_404(Project, pk=report_project_id)
+        if not has_change_permission(request, project, "edit"):
+            return redirect("reporting")
+    except Project.DoesNotExist:
+        return redirect("reporting")
 
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
@@ -248,7 +274,12 @@ def edit_report_project(request, report_project_id: int):
 @login_required
 @otp_required
 def copy_report_project(request, report_project_id):
-    project = get_object_or_404(Project, id=report_project_id)
+    try:
+        project = get_object_or_404(Project, pk=report_project_id)
+        if not has_change_permission(request, project, "copy"):
+            return redirect("reporting")
+    except Project.DoesNotExist:
+        return redirect("reporting")
 
     if request.method == "POST":
         form = CreateProjectForm(request.POST)
@@ -973,6 +1004,8 @@ def access_log(request, project_id):
     if isinstance(validate_result, HttpResponseRedirect):
         return validate_result
     project = validate_result
+    if not has_change_permission(request, project, "log"):
+        return redirect("reporting")
     try:
         log = LogReporting.objects.filter(project=project).order_by("-timestamp")
     except Project.DoesNotExist:
@@ -1414,7 +1447,7 @@ def validate_url_arguments(request, project_id):
     except Project.DoesNotExist:
         messages.error(
             request,
-            _("No company found"),
+            _("No project found"),
         )
         return redirect("reporting")
 
