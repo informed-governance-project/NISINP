@@ -105,6 +105,7 @@ class Domain(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Domains")
         verbose_name = _("Domain")
+        ordering = ["position"]
 
 
 # SecurityObjective (SO)
@@ -321,6 +322,10 @@ class SecurityObjectivesInStandard(models.Model):
                 name="unique_security_objective_per_standard",
             ),
         ]
+        ordering = ["position"]
+
+    def __str__(self):
+        return str(self.security_objective)
 
 
 # link between security measure, SO and maturity
@@ -537,6 +542,9 @@ class SecurityObjectiveStatus(models.Model):
     is_completely_filled_out = models.BooleanField(
         default=False, verbose_name=_("It is completely filled out")
     )
+
+    def __str__(self):
+        return str(self.security_objective)
 
 
 class LogStandardAnswer(models.Model):
