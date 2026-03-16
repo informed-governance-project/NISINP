@@ -205,6 +205,8 @@ def edit_report_project(request, report_project_id: int):
     user = request.user
     regulator = user.regulators.first()
 
+    project = get_object_or_404(Project, pk=report_project_id)
+
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
     ).distinct()
@@ -230,12 +232,15 @@ def edit_report_project(request, report_project_id: int):
     if request.method == "POST":
         form = CreateProjectForm(
             request.POST,
+            instance=project,
             choices=choices,
         )
         if form.is_valid():
+            form.save()
             return HttpResponseRedirect(request.headers.get("referer"))
+    else:
+        form = CreateProjectForm(instance=project, choices=choices)
 
-    form = CreateProjectForm(choices=choices)
     context = {"form": form, "is_edit": True}
     return render(request, "modals/create_report_project.html", context=context)
 
