@@ -24,7 +24,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import activate, deactivate_all, get_language, gettext
+from django.utils.translation import activate, deactivate_all, get_language
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
@@ -293,28 +293,13 @@ def generate_report_project(request, report_project_id: int):
     project_id = project.id
     year = project.reference_year
     user_sectors = user.get_sectors().all()
-    selected_companies = [
-        {
-            "company": Company.objects.get(id=46),
-            "sector": Sector.objects.get(id=3),
-        },
-        {
-            "company": Company.objects.get(id=46),
-            "sector": Sector.objects.get(id=3),
-        },
-        {
-            "company": Company.objects.get(id=46),
-            "sector": Sector.objects.get(id=3),
-        },
-        {
-            "company": Company.objects.get(id=46),
-            "sector": Sector.objects.get(id=3),
-        },
-        {
-            "company": Company.objects.get(id=46),
-            "sector": Sector.objects.get(id=3),
-        },
-    ]
+    selected_companies = []
+    testing_company = {
+        "company": Company.objects.get(id=46),
+        "sector": Sector.objects.get(id=3),
+    }
+    for _n in range(0, 3):
+        selected_companies.append(testing_company)
     is_multiple_selected_companies = len(selected_companies) > 1
     error_messages = []
     errors = 0
@@ -326,6 +311,7 @@ def generate_report_project(request, report_project_id: int):
     try:
         template = Template.objects.select_related("configuration").get(
             configuration__regulator=user.regulators.first(),
+            configuration__standard=project.standard,
             language=get_language(),
         )
         report_configuration_id = template.configuration.pk
@@ -333,6 +319,18 @@ def generate_report_project(request, report_project_id: int):
         messages.error(
             request,
             _("No report template"),
+        )
+        rendered_messages = render_error_messages(request)
+        return JsonResponse({"messages": rendered_messages}, status=400)
+
+    years = project.years
+    threshold_for_high_risk = project.threshold_for_high_risk
+    top_ranking = project.top_ranking
+    if not threshold_for_high_risk or not top_ranking:
+        error_message = _("Missing high risk rate threshold or ranking value")
+        messages.error(
+            request,
+            error_message,
         )
         rendered_messages = render_error_messages(request)
         return JsonResponse({"messages": rendered_messages}, status=400)
@@ -365,25 +363,6 @@ def generate_report_project(request, report_project_id: int):
                 messages.error(
                     request,
                     _("No reporting data"),
-                )
-                rendered_messages = render_error_messages(request)
-                return JsonResponse({"messages": rendered_messages}, status=400)
-
-        try:
-            sector_configuration = SectorReportConfiguration.objects.get(sector=sector)
-            nb_years = sector_configuration.number_of_year
-            threshold_for_high_risk = sector_configuration.threshold_for_high_risk
-            top_ranking = sector_configuration.top_ranking
-            so_excluded = sector_configuration.so_excluded.all()
-        except SectorReportConfiguration.DoesNotExist:
-            if is_multiple_selected_companies:
-                error_message = gettext("No configuration for sector")
-                error_messages.append(error_message)
-                continue
-            else:
-                messages.error(
-                    request,
-                    _("No configuration for sector"),
                 )
                 rendered_messages = render_error_messages(request)
                 return JsonResponse({"messages": rendered_messages}, status=400)
@@ -435,8 +414,8 @@ def generate_report_project(request, report_project_id: int):
             "year": year,
             "threshold_for_high_risk": threshold_for_high_risk,
             "top_ranking": top_ranking,
-            "nb_years": nb_years,
-            "so_excluded": [model_to_dict(so) for so in so_excluded],
+            "years": years,
+            "nb_years": len(years),
             "report_recommendations": [
                 rec.observation_recommendation.description
                 for rec in report_recommendations
