@@ -47,6 +47,7 @@ def generate_data(cleaned_data):
 
     data = {
         "company": cleaned_data["company"]["name"],
+        "years": cleaned_data["years"],
         "year": cleaned_data["year"],
         "sector": cleaned_data["sector"]["name"],
         "threshold_for_high_risk": cleaned_data["threshold_for_high_risk"],
@@ -299,7 +300,7 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     file_uuid = uuid.uuid4()
     User = get_user_model()
     user = User.objects.get(id=user_id)
-    output_dir = os.path.join(settings.PATH_FOR_REPORTING_PDF, str(user.id))
+    output_dir = os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id))
     os.makedirs(output_dir, exist_ok=True)
     file_path = os.path.join(output_dir, str(file_uuid))
 
@@ -307,19 +308,19 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
         temp_output_dir = os.path.join(output_dir, run_id)
         os.makedirs(temp_output_dir, exist_ok=True)
         file_path = os.path.join(temp_output_dir, filename)
+
     else:
-        GeneratedReport.objects.create(
-            user=user,
-            file_uuid=file_uuid,
-            filename=filename,
+        GeneratedReport.objects.update_or_create(
+            project=project,
+            defaults={"file_uuid": file_uuid, "filename": filename},
         )
+        create_entry_log(user, project, "GENERATE REPORT")
+        project.task_status = "DONE"
+        project.save()
 
     shutil.move(temp_file_path, file_path)
     parent_dir = Path(temp_file_path).parent
     shutil.rmtree(parent_dir)
-    create_entry_log(user, project, "GENERATE REPORT")
-    project.task_status = "DONE"
-    project.save()
 
     return {"file_path": str(file_path), "project_id": project_id}
 
@@ -366,6 +367,8 @@ def zip_files_task(data, error_messages):
         project=project,
         defaults={"file_uuid": file_uuid, "filename": zip_filename},
     )
+    project.task_status = "DONE"
+    project.save()
 
     return zip_path
 
@@ -373,6 +376,9 @@ def zip_files_task(data, error_messages):
 @shared_task(ignore_result=True)
 def cleanup_tmp_files(project_id):
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = base_tmp_dir / project_id / "tmp_files"
-    if task_tmp_dir.exists():
-        shutil.rmtree(task_tmp_dir)
+    task_tmp_dir = base_tmp_dir / str(project_id)
+
+    if task_tmp_dir.exists() and task_tmp_dir.is_dir():
+        for item in task_tmp_dir.iterdir():
+            if item.is_dir():
+                shutil.rmtree(item)
