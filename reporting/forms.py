@@ -296,7 +296,14 @@ class CreateProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["years", "name", "standard", "reference_year", "sectors"]
+        fields = [
+            "name",
+            "regulation",
+            "standard",
+            "reference_year",
+            "years",
+            "sectors",
+        ]
 
     def clean_years(self):
         data = self.cleaned_data["years"]
@@ -305,6 +312,7 @@ class CreateProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         choices = kwargs.pop("choices", {})
+        is_copy = kwargs.pop("is_copy", False)
         super().__init__(*args, **kwargs)
 
         regulation_qs = choices.get("regulations", Regulation.objects.all())
@@ -318,13 +326,22 @@ class CreateProjectForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             project = self.instance
 
-            self.initial["name"] = project.name
             self.initial["regulation"] = project.standard.regulation
             self.initial["standard"] = project.standard
-            self.initial["years"] = [str(y) for y in project.years]
 
             # M2M sectors
             self.initial["sectors"] = list(project.sectors.values_list("id", flat=True))
 
-            for field_name in ["regulation", "standard"]:
+            if is_copy:
+                disabled_fields = [
+                    "regulation",
+                    "standard",
+                    "reference_year",
+                    "years",
+                    "sectors",
+                ]
+            else:
+                disabled_fields = ["regulation", "standard"]
+
+            for field_name in disabled_fields:
                 self.fields[field_name].disabled = True

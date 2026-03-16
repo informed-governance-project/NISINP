@@ -251,7 +251,7 @@ def copy_report_project(request, report_project_id):
     project = get_object_or_404(Project, id=report_project_id)
 
     if request.method == "POST":
-        form = CreateProjectForm(request.POST)
+        form = CreateProjectForm(request.POST, is_copy=True)
 
         if form.is_valid():
             new_project = form.save(commit=False)
@@ -261,7 +261,7 @@ def copy_report_project(request, report_project_id):
         return redirect("reporting")
 
     else:
-        form = CreateProjectForm(instance=project)
+        form = CreateProjectForm(instance=project, is_copy=True)
         return render(request, "modals/create_report_project.html", {"form": form})
 
 
