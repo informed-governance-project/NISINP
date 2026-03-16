@@ -152,14 +152,14 @@ def get_so_data(cleaned_data):
     def build_radar_data(data_dict, sector_avg_field=None):
         radar_data = defaultdict(list)
         score_field = "score"
-        for index, year in enumerate(years_list):
+        for index, year in enumerate(years):
             for __key, values in data_dict.items():
                 year_label = f"{year}"
                 if index < len(values[score_field]):
                     radar_data[year_label].append(values[score_field][index]["value"])
 
-                if sector_avg_field and year == current_year:
-                    sector_label = f"{sector_avg_translation} {current_year}"
+                if sector_avg_field and is_last_year:
+                    sector_label = f"{sector_avg_translation} {reference_year}"
                     if index < len(values[score_field]):
                         radar_data[sector_label].append(values[sector_avg_field][index])
 
@@ -209,9 +209,8 @@ def get_so_data(cleaned_data):
 
     company = cleaned_data["company"]
     sector = cleaned_data["sector"]
-    current_year = cleaned_data["year"]
-    years_to_compare = [y for y in cleaned_data["years"] if y <= current_year]
-    years_list = sorted(set(years_to_compare + [current_year]))
+    reference_year = cleaned_data["reference_year"]
+    years = cleaned_data["years"]
     top_ranking = cleaned_data["top_ranking"]
     standard_id = cleaned_data["standard_id"]
     maturity_levels_queryset = MaturityLevel.objects.filter(
@@ -238,7 +237,7 @@ def get_so_data(cleaned_data):
     so_data = defaultdict()
     sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
 
-    for year in years_list:
+    for year in years:
         last_answers = get_latest_answers(company, sector, year)
 
         if not last_answers:
@@ -255,8 +254,8 @@ def get_so_data(cleaned_data):
 
         break
 
-    for year in years_list:
-        is_last_year = year == current_year
+    for year in years:
+        is_last_year = year == reference_year
         company_so_by_level = defaultdict(list)
         latest_answers = get_latest_answers(company, sector, year)
 
@@ -400,7 +399,6 @@ def get_so_data(cleaned_data):
     radar_chart_data_by_domain = build_radar_data(company_so_by_domain)
     radar_chart_data_by_year = build_radar_data(company_so_by_year)
     so_data = {
-        "years": years_list,
         "domains": [str(domain) for domain in company_so_by_domain.keys()],
         "maturity_levels": maturity_levels,
         "maturity_levels_labels": maturity_levels_labels,
@@ -528,14 +526,11 @@ def get_risk_data(cleaned_data):
             risks_data, top_ranking
         )
 
-        data_evolution_highest_risks[f"{current_year}"] = [
+        data_evolution_highest_risks[f"{reference_year}"] = [
             round_value(risk.max_risk) for risk in top_ranking_distinct_risks
         ]
 
-        i = 1
-        past_year = current_year - nb_years + i
-        while i <= nb_years:
-            i += 1
+        for year in years:
             for risk in top_ranking_distinct_risks:
                 uuid = risk.uuid
                 if uuid not in risks_top_ranking:
@@ -558,7 +553,7 @@ def get_risk_data(cleaned_data):
                     risks_top_ranking[uuid]["threat"] = str(risk.threat)
                     risks_top_ranking[uuid]["vulnerability"] = str(risk.vulnerability)
                     risks_top_ranking[uuid]["risks_values"] = {
-                        current_year: {
+                        reference_year: {
                             "c": ({"value": risk.risk_c if risk.risk_c > -1 else None}),
                             "i": ({"value": risk.risk_i if risk.risk_i > -1 else None}),
                             "a": ({"value": risk.risk_a if risk.risk_a > -1 else None}),
@@ -566,14 +561,14 @@ def get_risk_data(cleaned_data):
                         }
                     }
 
-                if past_year == current_year:
+                if year == reference_year:
                     continue
 
                 try:
                     risk = RiskData.objects.get(
                         uuid=uuid,
                         service__service=risk.service.service,
-                        service__company_reporting__year=past_year,
+                        service__company_reporting__year=year,
                         service__company_reporting__company__id=company_id,
                         service__company_reporting__sector__id=sector_id,
                     )
@@ -596,13 +591,9 @@ def get_risk_data(cleaned_data):
                         "max": "-",
                     }
 
-                risks_top_ranking[uuid]["risks_values"][past_year] = risk_values_dict
+                risks_top_ranking[uuid]["risks_values"][year] = risk_values_dict
 
-                data_evolution_highest_risks[f"{past_year}"].append(
-                    round_value(max_risk)
-                )
-
-            past_year += 1
+                data_evolution_highest_risks[f"{year}"].append(round_value(max_risk))
 
     def get_top_by_occurrence(model):
         qs = (
@@ -669,7 +660,7 @@ def get_risk_data(cleaned_data):
                     ):
                         status = _("To check")
                 else:
-                    if year == current_year:
+                    if is_last_year:
                         status = _("New")
                     else:
                         status = _("Closed")
@@ -684,9 +675,8 @@ def get_risk_data(cleaned_data):
     company_id = company["id"]
     sector = cleaned_data["sector"]
     sector_id = sector["id"]
-    current_year = cleaned_data["year"]
-    nb_years = cleaned_data["nb_years"]
-    years_list = []
+    reference_year = cleaned_data["reference_year"]
+    years = cleaned_data["years"]
     threshold_for_high_risk = cleaned_data["threshold_for_high_risk"]
     top_ranking = cleaned_data["top_ranking"]
     company_reporting = cleaned_data["company_reporting"]
@@ -708,9 +698,8 @@ def get_risk_data(cleaned_data):
     operator_services = [str(service) for service in services_list]
     operator_services_with_all = [_("All services")] + operator_services
 
-    for offset in range(nb_years):
-        year = current_year - nb_years + offset + 1
-        years_list.append(str(year))
+    for year in years:
+        is_last_year = year == reference_year
         company_label = f"{year}"
         sector_avg_translation = TRANSLATIONS_CONTEXT["sector_average"]
         sector_label = f"{sector_avg_translation} {year}"
@@ -767,7 +756,7 @@ def get_risk_data(cleaned_data):
                     risks_stats_by_year[year][key]
                 )
 
-        if year == current_year:
+        if is_last_year:
             build_evolution_highest_risks_data(company_reporting)
 
             # Top of threats by occurence
@@ -783,7 +772,6 @@ def get_risk_data(cleaned_data):
         build_evolution_recommendations_data()
 
     risk_data = {
-        "years": years_list,
         "threshold_for_high_risk": threshold_for_high_risk,
         "data_by_risk_average": dict(sort_legends(data_by_risk_average)),
         "data_by_high_risk_rate": dict(data_by_high_risk_rate),

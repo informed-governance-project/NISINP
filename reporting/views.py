@@ -302,7 +302,7 @@ def generate_report_project(request, report_project_id: int):
         "company": Company.objects.get(id=46),
         "sector": Sector.objects.get(id=3),
     }
-    for _n in range(0, 3):
+    for _n in range(0, 1):
         selected_companies.append(testing_company)
     is_multiple_selected_companies = len(selected_companies) > 1
     error_messages = []
@@ -409,17 +409,18 @@ def generate_report_project(request, report_project_id: int):
             return JsonResponse({"messages": rendered_messages}, status=400)
 
         report_recommendations = company.get_report_recommandations(year, sector)
+        years_to_compare = [y for y in years if y <= year]
+        years_list = sorted(set(years_to_compare + [year]))
 
         report_data = {
             "company": model_to_dict(
                 company, exclude=["phone_number", "entity_categories", "sectors"]
             ),
             "sector": {**model_to_dict(sector), "name": str(sector)},
-            "year": year,
+            "reference_year": year,
             "threshold_for_high_risk": threshold_for_high_risk,
             "top_ranking": top_ranking,
-            "years": years,
-            "nb_years": len(years),
+            "years": years_list,
             "report_recommendations": [
                 rec.observation_recommendation.description
                 for rec in report_recommendations

@@ -48,7 +48,7 @@ def generate_data(cleaned_data):
     data = {
         "company": cleaned_data["company"]["name"],
         "years": cleaned_data["years"],
-        "year": cleaned_data["year"],
+        "reference_year": cleaned_data["reference_year"],
         "sector": cleaned_data["sector"]["name"],
         "threshold_for_high_risk": cleaned_data["threshold_for_high_risk"],
         "top_ranking": cleaned_data["top_ranking"],
@@ -56,7 +56,6 @@ def generate_data(cleaned_data):
         "charts": charts,
         "so_data": so_data,
         "risk_data": risk_data,
-        "nb_years": cleaned_data["nb_years"],
         "company_reporting": cleaned_data["company_reporting"],
         "translations": TRANSLATIONS_CONTEXT,
         "template_id": template_id,
@@ -84,6 +83,7 @@ def generate_docx_task(self, data):
     template_file = Template.objects.get(pk=template_id).template_file
     template_path = BytesIO(bytes(template_file))
     rendered_subs_docs = {}
+    nb_years = len(data["years"])
     document_charts = {
         "chart_average_risk_level": {
             "width": Mm(140),
@@ -102,45 +102,36 @@ def generate_docx_task(self, data):
         "table_of_evolution_security_objectives": {
             "context": {
                 "table": data["so_data"]["company_so_by_year"],
-                "years": data["so_data"]["years"],
-                "year": data["year"],
             },
-            "column_proportions": [0.4]
-            + [0.1] * len(data["so_data"]["years"])
-            + [0.15],
+            "column_proportions": [0.4] + [0.1] * nb_years + [0.15],
         },
         "table_of_evolution_security_objectives_by_domain": {
             "context": {
                 "table": data["so_data"]["company_so_by_domain"],
-                "years": data["so_data"]["years"],
-                "year": data["year"],
             },
-            "column_proportions": [0.4]
-            + [0.1] * len(data["so_data"]["years"])
-            + [0.15] * 2,
+            "column_proportions": [0.4] + [0.1] * nb_years + [0.15] * 2,
         },
         "table_of_highest_security_objectives_in_the_sector": {
             "context": {
-                "table": data["so_data"]["sector_so_by_year_desc"][str(data["year"])],
-                "year": data["year"],
+                "table": data["so_data"]["sector_so_by_year_desc"][
+                    str(data["reference_year"])
+                ],
             },
             "column_proportions": [0.05] + [0.65] + [0.15] * 2,
         },
         "table_of_lowest_security_objectives_in_the_sector": {
             "context": {
-                "table": data["so_data"]["sector_so_by_year_asc"][str(data["year"])],
-                "year": data["year"],
+                "table": data["so_data"]["sector_so_by_year_asc"][
+                    str(data["reference_year"])
+                ],
             },
             "column_proportions": [0.05] + [0.65] + [0.15] * 2,
         },
         "table_of_evolution_of_the_weakest_security_objectives": {
             "context": {
                 "table": data["so_data"]["company_so_by_priority"],
-                "years": data["so_data"]["years"],
             },
-            "column_proportions": [0.4]
-            + [0.15] * len(data["so_data"]["years"])
-            + [0.15],
+            "column_proportions": [0.4] + [0.15] * nb_years + [0.15],
         },
         "table_of_security_objectives_by_maturity_level": {
             "context": {
@@ -157,10 +148,8 @@ def generate_docx_task(self, data):
         "table_of_evolution_of_the_highest_risks": {
             "context": {
                 "table": data["risk_data"]["data_risks_top_ranking"],
-                "years": data["risk_data"]["years"],
             },
-            "column_proportions": [0.1, 0.25, 0.25, 0.3]
-            + [0.1] * len(data["risk_data"]["years"]),
+            "column_proportions": [0.1, 0.25, 0.25, 0.3] + [0.1] * nb_years,
         },
         "table_of_treatment_of_the_highest_risks": {
             "context": {
@@ -171,9 +160,8 @@ def generate_docx_task(self, data):
         "table_of_risk_summary": {
             "context": {
                 "table": data["risk_data"]["risks_stats_by_year"],
-                "years": data["risk_data"]["years"],
             },
-            "column_proportions": [0.7] + [0.15] * len(data["risk_data"]["years"]),
+            "column_proportions": [0.7] + [0.15] * nb_years,
             "table_width_dxa": 7380,  # 13cm
         },
         "table_of_top_threats_by_occurrence": {
@@ -208,7 +196,7 @@ def generate_docx_task(self, data):
     context = {
         "operator_name": data["company"],
         "sector": data["sector"],
-        "year": data["year"],
+        "year": data["reference_year"],
         "threshold_for_high_risk": data["threshold_for_high_risk"],
         "top_ranking": data["top_ranking"],
         "report_recommendations": report_recommendations,
@@ -228,7 +216,13 @@ def generate_docx_task(self, data):
         sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
         sub_rendered_path = task_tmp_dir / f"{table_name}_rendered.docx"
         context[table_name] = str(table_name)
-        table_info["context"]["translations"] = data["translations"]
+        table_info["context"].update(
+            {
+                "translations": data["translations"],
+                "year": data["reference_year"],
+                "years": data["years"],
+            }
+        )
         sub_doc_template = DocxTemplate(sub_template_path)
         sub_doc_template.render(table_info["context"])
         sub_doc_template.save(sub_rendered_path)
