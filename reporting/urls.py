@@ -109,7 +109,7 @@ urlpatterns = [
         name="update_report_recommendation",
     ),
     path(
-        "access_log/<int:company_id>/<int:sector_id>/<int:year>/",
+        "access_log/<int:project_id>",
         access_log,
         name="reporting_access_log",
     ),
