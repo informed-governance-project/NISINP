@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -663,6 +665,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
     maturity_level_level = fields.Field(column_name="maturity_level_level")
+    maturity_level_color = fields.Field(column_name="maturity_level_color")
     position = fields.Field(
         column_name="position",
         attribute="position",
@@ -680,6 +683,12 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="creator",
         readonly=True,
     )
+
+    def dehydrate_maturity_level_color(self, obj):
+        if obj.maturity_level and obj.maturity_level.pk:
+            return obj.maturity_level.color
+        else:
+            return self._current_import_row["maturity_level_color"]
 
     def dehydrate_maturity_level_level(self, obj):
         if obj.maturity_level and obj.maturity_level.pk:
@@ -755,6 +764,13 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                     )
                 ml.set_current_language(lang)
                 ml.label = row["maturity_level"]
+                # add the color of domain if present of the import
+                if row["maturity_level_color"]:
+                    match = re.match(
+                        r"^#(?:[0-9a-fA-F]{3}){1,2}$", row["maturity_level_color"]
+                    )
+                    if match:
+                        ml.color = row["maturity_level_color"]
                 ml.save()
             if row["evidence"] is None:
                 row["evidence"] = ""
