@@ -466,6 +466,7 @@ def generate_report_project(request, report_project_id: int):
                 return JsonResponse({"messages": rendered_messages}, status=400)
 
             activate(language)
+            sector.set_current_language(language)
             task_data = {
                 **base_data,
                 "language": language,
@@ -475,7 +476,6 @@ def generate_report_project(request, report_project_id: int):
             }
 
             prefix = f"{language}_" if len(languages) > 1 else ""
-            sector.set_current_language(language)
             sector_name = sector.get_safe_translation()
             annual_report_label = _("annual_report")
             filename = urlquote(
