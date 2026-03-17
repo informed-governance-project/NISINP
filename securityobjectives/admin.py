@@ -685,8 +685,13 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     def dehydrate_maturity_level_color(self, obj):
-        if hasattr(self, "_current_import_row"):
+        if (
+            hasattr(self, "_current_import_row")
+            and self._current_import_row["maturity_level_color"] is not None
+        ):
             return self._current_import_row["maturity_level_color"]
+        if hasattr(self, "_current_import_row"):
+            return ""
         if obj.maturity_level and obj.maturity_level.pk:
             return obj.maturity_level.color
         else:
