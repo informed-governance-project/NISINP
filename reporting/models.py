@@ -548,11 +548,12 @@ class Project(models.Model):
         through="CompanyProject",
         blank=True,
     )
-    selected_file_format = ArrayField(
-        models.CharField(), verbose_name=_("Selected file format"), default=list
+    selected_file_format = models.CharField(
+        verbose_name=_("Export format"),
+        choices=[("docx", "docx"), ("pdf", "pdf")],
     )
     selected_languages = ArrayField(
-        models.CharField(), verbose_name=_("Selected file format"), default=list
+        models.CharField(), verbose_name=_("Languages"), default=list
     )
     reference_year = models.PositiveIntegerField(verbose_name=_("Reference year"))
 
