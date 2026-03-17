@@ -275,7 +275,7 @@ class CreateProjectForm(forms.ModelForm):
             for year in range(timezone.now().year - 10, timezone.now().year + 2)
         ],
         required=True,
-        label=_("Year"),
+        label=_("Reference year"),
     )
 
     years = forms.MultipleChoiceField(
@@ -285,13 +285,19 @@ class CreateProjectForm(forms.ModelForm):
             for year in range(timezone.now().year - 10, timezone.now().year + 2)
         ],
         required=True,
-        label=_("Comparisons years"),
+        label=_("Year comparaison"),
     )
 
     sectors = forms.MultipleChoiceField(
         required=True,
         widget=DropdownCheckboxSelectMultiple(),
         label=_("Sectors"),
+    )
+
+    selected_languages = forms.MultipleChoiceField(
+        required=True,
+        widget=DropdownCheckboxSelectMultiple(),
+        label=_("Languages"),
     )
 
     class Meta:
@@ -303,6 +309,10 @@ class CreateProjectForm(forms.ModelForm):
             "reference_year",
             "years",
             "sectors",
+            "top_ranking",
+            "threshold_for_high_risk",
+            "selected_file_format",
+            "selected_languages",
         ]
 
     def clean_years(self):
@@ -314,6 +324,8 @@ class CreateProjectForm(forms.ModelForm):
         choices = kwargs.pop("choices", {})
         is_copy = kwargs.pop("is_copy", False)
         super().__init__(*args, **kwargs)
+
+        self.fields["selected_languages"].choices = settings.LANGUAGES
 
         regulation_qs = choices.get("regulations", Regulation.objects.all())
         standard_qs = choices.get("standards", Standard.objects.all())
@@ -339,6 +351,10 @@ class CreateProjectForm(forms.ModelForm):
                     "reference_year",
                     "years",
                     "sectors",
+                    "top_ranking",
+                    "threshold_for_high_risk",
+                    "selected_file_format",
+                    "selected_languages",
                 ]
             else:
                 disabled_fields = ["regulation", "standard"]
