@@ -295,7 +295,7 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     file_uuid = uuid.uuid4()
     User = get_user_model()
     user = User.objects.get(id=user_id)
-    output_dir = os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id))
+    output_dir = Path(os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id)))
     os.makedirs(output_dir, exist_ok=True)
     file_path = os.path.join(output_dir, str(file_uuid))
 
@@ -316,6 +316,11 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     shutil.move(temp_file_path, file_path)
     parent_dir = Path(temp_file_path).parent
     shutil.rmtree(parent_dir)
+
+    if output_dir.exists():
+        for item in output_dir.iterdir():
+            if str(item.name) != str(file_uuid) and not item.is_dir():
+                item.unlink()
 
     return {"file_path": str(file_path), "project_id": project_id}
 
