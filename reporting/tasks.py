@@ -322,13 +322,15 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
             if str(item.name) != str(file_uuid) and not item.is_dir():
                 item.unlink()
 
-    return {"file_path": str(file_path), "project_id": project_id}
+    return {"file_path": str(file_path), "user_id": user_id, "project_id": project_id}
 
 
 @shared_task
 def zip_files_task(data, error_messages):
     if not data[0]:
         return
+    User = get_user_model()
+    user = User.objects.get(id=data[0]["user_id"])
     project_id = data[0]["project_id"]
     file_paths = [item["file_path"] for item in data]
     project = Project.objects.get(id=project_id)
@@ -367,6 +369,7 @@ def zip_files_task(data, error_messages):
         project=project,
         defaults={"file_uuid": file_uuid, "filename": zip_filename},
     )
+    create_entry_log(user, project, "GENERATE REPORT")
     project.task_status = "DONE"
     project.save()
 
