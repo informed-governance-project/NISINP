@@ -35,7 +35,8 @@ def generate_data(cleaned_data):
     project_id = cleaned_data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
-    activate(cleaned_data.get("language", "en"))
+    language = cleaned_data.get("language", "en")
+    activate(language)
     report_configuration_id = cleaned_data["report_configuration_id"]
     colors = Configuration.objects.get(pk=report_configuration_id).colors.values_list(
         "color"
@@ -57,7 +58,7 @@ def generate_data(cleaned_data):
         "so_data": so_data,
         "risk_data": risk_data,
         "company_reporting": cleaned_data["company_reporting"],
-        "translations": TRANSLATIONS_CONTEXT,
+        "translations": {k: str(v) for k, v in TRANSLATIONS_CONTEXT.items()},
         "template_id": template_id,
         "project_id": project_id,
     }
@@ -269,9 +270,9 @@ def generate_pdf_task(data):
     project_id = data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
-    docx_path = Path(data["docx_path"])
+    docx_path = Path(data["file_path"])
 
-    if docx_path.exists():
+    if not docx_path.exists():
         return
     try:
         pdf_path = convert_docx_to_pdf(str(docx_path))

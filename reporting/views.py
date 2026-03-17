@@ -23,7 +23,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.translation import activate, deactivate_all, get_language
+from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
@@ -325,44 +325,10 @@ def generate_report_project(request, report_project_id: int):
             request,
             _("No project found"),
         )
-
-    project_id = project.id
-    year = project.reference_year
-    user_sectors = user.get_sectors().all()
-    selected_companies = []
-    testing_company = {
-        "company": Company.objects.get(id=46),
-        "sector": Sector.objects.get(id=3),
-    }
-    for _n in range(0, 1):
-        selected_companies.append(testing_company)
-    is_multiple_selected_companies = len(selected_companies) > 1
-    error_messages = []
-    errors = 0
-    report_generation_tasks = []
-    run_id = (
-        datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(uuid.uuid4())[:8]
-    )
-
-    try:
-        template = Template.objects.select_related("configuration").get(
-            configuration__regulator=user.regulators.first(),
-            configuration__standard=project.standard,
-            language=get_language(),
-        )
-        report_configuration_id = template.configuration.pk
-    except Template.DoesNotExist:
-        messages.error(
-            request,
-            _("No report template"),
-        )
         rendered_messages = render_error_messages(request)
         return JsonResponse({"messages": rendered_messages}, status=400)
 
-    years = project.years
-    threshold_for_high_risk = project.threshold_for_high_risk
-    top_ranking = project.top_ranking
-    if not threshold_for_high_risk or not top_ranking:
+    if not project.threshold_for_high_risk or not project.top_ranking:
         error_message = _("Missing high risk rate threshold or ranking value")
         messages.error(
             request,
@@ -370,6 +336,30 @@ def generate_report_project(request, report_project_id: int):
         )
         rendered_messages = render_error_messages(request)
         return JsonResponse({"messages": rendered_messages}, status=400)
+
+    project_id = project.id
+    year = project.reference_year
+    years = project.years
+    threshold_for_high_risk = project.threshold_for_high_risk
+    top_ranking = project.top_ranking
+    languages = project.selected_languages
+    extention = project.selected_file_format
+    user_sectors = user.get_sectors().all()
+    run_id = (
+        datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(uuid.uuid4())[:8]
+    )
+
+    selected_companies = []
+    testing_company = {
+        "company": Company.objects.get(id=46),
+        "sector": Sector.objects.get(id=3),
+    }
+    for _n in range(0, 1):
+        selected_companies.append(testing_company)
+    is_multiple_selected_companies = len(selected_companies) > 1 or len(languages) > 1
+    error_messages = []
+    errors = 0
+    report_generation_tasks = []
 
     for select_company in selected_companies:
         company = select_company.get("company")
@@ -379,10 +369,9 @@ def generate_report_project(request, report_project_id: int):
                 error_message = _("%(sector)s forbidden") % {"sector": sector}
                 error_messages.append(error_message)
                 continue
-            else:
-                messages.error(request, _("Forbidden"))
-                rendered_messages = render_error_messages(request)
-                return JsonResponse({"messages": rendered_messages}, status=400)
+            messages.error(request, _("Forbidden"))
+            rendered_messages = render_error_messages(request)
+            return JsonResponse({"messages": rendered_messages}, status=400)
 
         try:
             company_reporting = CompanyReporting.objects.get(
@@ -395,13 +384,13 @@ def generate_report_project(request, report_project_id: int):
                 )
                 error_messages.append(error_message)
                 continue
-            else:
-                messages.error(
-                    request,
-                    _("No reporting data"),
-                )
-                rendered_messages = render_error_messages(request)
-                return JsonResponse({"messages": rendered_messages}, status=400)
+
+            messages.error(
+                request,
+                _("No reporting data"),
+            )
+            rendered_messages = render_error_messages(request)
+            return JsonResponse({"messages": rendered_messages}, status=400)
 
         security_objectives_declaration = StandardAnswer.objects.filter(
             submitter_company=company,
@@ -417,24 +406,24 @@ def generate_report_project(request, report_project_id: int):
                 error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
                 error_messages.append(error_message)
                 continue
-            else:
-                errors += 1
-                messages.error(
-                    request,
-                    _("No data found for security objectives report"),
-                )
+
+            errors += 1
+            messages.error(
+                request,
+                _("No data found for security objectives report"),
+            )
 
         if not risk_analysis_stats:
             if is_multiple_selected_companies:
                 error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
                 error_messages.append(error_message)
                 continue
-            else:
-                errors += 1
-                messages.error(
-                    request,
-                    _("No data found for risk report"),
-                )
+
+            errors += 1
+            messages.error(
+                request,
+                _("No data found for risk report"),
+            )
 
         if errors > 0:
             rendered_messages = render_error_messages(request)
@@ -444,11 +433,10 @@ def generate_report_project(request, report_project_id: int):
         years_to_compare = [y for y in years if y <= year]
         years_list = sorted(set(years_to_compare + [year]))
 
-        report_data = {
+        base_data = {
             "company": model_to_dict(
                 company, exclude=["phone_number", "entity_categories", "sectors"]
             ),
-            "sector": {**model_to_dict(sector), "name": str(sector)},
             "reference_year": year,
             "threshold_for_high_risk": threshold_for_high_risk,
             "top_ranking": top_ranking,
@@ -458,27 +446,50 @@ def generate_report_project(request, report_project_id: int):
                 for rec in report_recommendations
             ],
             "company_reporting": model_to_dict(company_reporting),
-            "language": get_language(),
-            "template_id": template.pk,
             "project_id": project_id,
             "standard_id": project.standard.id,
-            "report_configuration_id": report_configuration_id,
         }
 
-        sector_name = sector.get_safe_translation()
-        extention = "docx"
-        filename = urlquote(
-            f"{_('annual_report')}_{year}_{company.name}_{sector_name}.{extention}"
-        )
-        task = get_report(
-            request,
-            report_data,
-            run_id,
-            filename,
-            extention,
-            is_multiple_selected_companies,
-        )
-        report_generation_tasks.append(task)
+        for language in languages:
+            try:
+                template = Template.objects.select_related("configuration").get(
+                    configuration__regulator=user.regulators.first(),
+                    configuration__standard=project.standard,
+                    language=language,
+                )
+            except Template.DoesNotExist:
+                no_template_msg = _("No report template")
+                messages.error(
+                    request, messages.error(request, f"{no_template_msg} [{language}]")
+                )
+                rendered_messages = render_error_messages(request)
+                return JsonResponse({"messages": rendered_messages}, status=400)
+
+            activate(language)
+            task_data = {
+                **base_data,
+                "language": language,
+                "template_id": template.pk,
+                "report_configuration_id": template.configuration.pk,
+                "sector": {**model_to_dict(sector), "name": str(sector)},
+            }
+
+            prefix = f"{language}_" if len(languages) > 1 else ""
+            sector.set_current_language(language)
+            sector_name = sector.get_safe_translation()
+            annual_report_label = _("annual_report")
+            filename = urlquote(
+                f"{prefix}{annual_report_label}_{year}_{company.name}_{sector_name}.{extention}"
+            )
+            task = get_report(
+                request,
+                task_data,
+                run_id,
+                filename,
+                extention,
+                is_multiple_selected_companies,
+            )
+            report_generation_tasks.append(task)
 
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
