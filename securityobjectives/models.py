@@ -48,6 +48,13 @@ class MaturityLevel(TranslatableModel):
     class Meta:
         verbose_name_plural = _("Maturity levels")
         verbose_name = _("Maturity level")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["level", "standard"],
+                name="level_standard",
+                deferrable=Deferrable.DEFERRED,
+            ),
+        ]
 
 
 # Domain : To categorize the security objectives
