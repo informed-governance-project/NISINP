@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import get_default_timezone, is_naive, make_aware
@@ -571,18 +571,20 @@ class Project(models.Model):
         verbose_name = _("Project")
 
 
-# Automatically create the link between company and project when a project is saved
+# Automatically create the link between company and project
+# when a project is saved and link with sectors is changed
 @receiver(m2m_changed, sender=Project.sectors.through)
 def create_company_projects_on_sectors_change(
     sender, instance, action, pk_set, **kwargs
 ):
-    if action != "post_add":
+    if action not in ("post_add", "post_remove"):
         return
-
     Company = apps.get_model("governanceplatform", "Company")
     companies = Company.objects.all()
     sectors = instance.sectors.all()
     years = instance.years or []
+    if instance.reference_year not in instance.years:
+        years.append(instance.reference_year)
 
     company_projects = [
         CompanyProject(
@@ -595,11 +597,82 @@ def create_company_projects_on_sectors_change(
         for sector in sectors & company.sectors.all()
         for year in years
     ]
+    if action == "post_add":
+        CompanyProject.objects.bulk_create(
+            company_projects,
+            ignore_conflicts=True,
+        )
+    if action == "post_remove":
+        cc = CompanyProject.objects.all().exclude(
+            sector__in=sectors,
+            year__in=years,
+            company__in=companies,
+        )
+        cc.delete()
 
-    CompanyProject.objects.bulk_create(
-        company_projects,
-        ignore_conflicts=True,
-    )
+
+@receiver(pre_save, sender=Project)
+def track_years_changes(sender, instance, **kwargs):
+    # Store old years values before save to detect changes
+    if instance.pk:
+        try:
+            old = Project.objects.get(pk=instance.pk)
+            instance._old_years = old.years or []
+            instance._old_reference_year = old.reference_year
+        except Project.DoesNotExist:
+            instance._old_years = []
+            instance._old_reference_year = None
+    else:
+        instance._old_years = []
+        instance._old_reference_year = None
+
+
+@receiver(post_save, sender=Project)
+def update_company_project(sender, instance, **kwargs):
+    old_years = getattr(instance, "_old_years", [])
+    old_reference_year = getattr(instance, "_old_reference_year", None)
+
+    new_years = set(instance.years or [])
+    new_years.add(instance.reference_year)
+
+    old_years_set = set(old_years or [])
+    if old_reference_year:
+        old_years_set.add(old_reference_year)
+
+    if new_years == old_years_set:
+        return
+
+    Company = apps.get_model("governanceplatform", "Company")
+    companies = Company.objects.all()
+    sectors = instance.sectors.all()
+
+    added_years = new_years - old_years_set
+    removed_years = old_years_set - new_years
+
+    # Create new company project
+    if added_years:
+        company_projects = [
+            CompanyProject(
+                company=company,
+                project=instance,
+                sector=sector,
+                year=year,
+            )
+            for company in companies
+            for sector in sectors & company.sectors.all()
+            for year in added_years
+        ]
+        CompanyProject.objects.bulk_create(
+            company_projects,
+            ignore_conflicts=True,
+        )
+
+    # delete companyproject if the year is changed
+    if removed_years:
+        CompanyProject.objects.filter(
+            project=instance,
+            year__in=removed_years,
+        ).delete()
 
 
 class CompanyProject(models.Model):
