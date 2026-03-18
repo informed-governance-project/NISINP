@@ -260,3 +260,16 @@ class CompanyProjectDashboard(forms.ModelForm):
             "statistic_selected": forms.CheckboxInput(),
             "governance_report_selected": forms.CheckboxInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        company_project_id = self.instance.pk if self.instance else None
+
+        for field in self.fields.values():
+            field.widget.attrs.update(
+                {
+                    "class": "company-project-input",
+                    "data-company-project-id": company_project_id,
+                }
+            )

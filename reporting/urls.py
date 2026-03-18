@@ -19,6 +19,7 @@ from .views import (
     report_recommendations,
     reporting,
     review_comment_report,
+    update_company_project,
     update_report_recommendation,
 )
 
@@ -46,6 +47,11 @@ urlpatterns = [
         "project/<int:report_project_id>/dashboard",
         dashboard_report_project,
         name="dashboard_report_project",
+    ),
+    path(
+        "company_project/<int:company_project_id>/update",
+        update_company_project,
+        name="update_company_project",
     ),
     # Generate Reports
     path(

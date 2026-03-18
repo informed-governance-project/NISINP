@@ -53,6 +53,7 @@ from .globals import (
 from .helpers import create_entry_log, generate_combined_uuid
 from .models import (
     AssetData,
+    CompanyProject,
     CompanyReporting,
     GeneratedReport,
     LogReporting,
@@ -627,6 +628,7 @@ def generate_report_project(request, report_project_id: int):
 
 @login_required
 @otp_required
+@require_http_methods(["GET"])
 def report_generation_status(request, report_project_id: int):
     project = Project.objects.get(id=report_project_id)
     success_status = CELERY_TASK_STATUS[1][0]
@@ -662,6 +664,7 @@ def report_generation_status(request, report_project_id: int):
 
 @login_required
 @otp_required
+@require_http_methods(["POST"])
 def cancel_report_generation(request, report_project_id: int):
     project = Project.objects.get(id=report_project_id)
     task_id = str(project.task_id)
@@ -681,6 +684,25 @@ def cancel_report_generation(request, report_project_id: int):
     )
 
     return JsonResponse(reponse)
+
+
+@login_required
+@otp_required
+@require_http_methods(["POST"])
+def update_company_project(request, company_project_id: int):
+    company_project = get_object_or_404(CompanyProject, pk=company_project_id)
+    project = company_project.project
+    if not has_change_permission(request, project, "edit"):
+        return redirect("reporting")
+
+    form = CompanyProjectDashboard(request.POST, instance=company_project)
+    if form.is_valid():
+        field = request.POST.get("field")
+        value = request.POST.get("value") == "true"
+        CompanyProject.objects.filter(pk=company_project_id).update(**{field: value})
+        reponse = {"company_project_id": company_project_id, field: value}
+        return JsonResponse(reponse)
+    return redirect("dashboard_report_project", report_project_id=project.id)
 
 
 @login_required
