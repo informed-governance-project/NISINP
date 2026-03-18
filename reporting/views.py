@@ -282,7 +282,7 @@ def copy_report_project(request, report_project_id):
         return redirect("reporting")
 
     if request.method == "POST":
-        form = CreateProjectForm(request.POST, is_copy=True)
+        form = CreateProjectForm(request.POST, instance=project, is_copy=True)
 
         if form.is_valid():
             new_project = form.save(commit=False)
