@@ -49,3 +49,53 @@ CELERY_TASK_STATUS = [
     ("ABORT", _("Aborted")),
     ("RUNNING", _("Running")),
 ]
+
+ALLOWED_DASHBOARD_SORT_FIELDS = {
+    "updated_at": {
+        "field": "updated_at",
+        "type": "datetime",
+    },
+    "created_at": {
+        "field": "created_at",
+        "type": "datetime",
+    },
+    "created_by": {
+        "field": "author",
+        "type": "string",
+    },
+    "name": {
+        "field": "name",
+        "type": "string",
+    },
+    "regulation": {
+        "field": "standard__regulation__translations__label",
+        "type": "string",
+    },
+    "standard": {
+        "field": "standard__translations__label",
+        "type": "string",
+    },
+    "years": {
+        "field": "years",
+        "type": "number",
+    },
+    "sectors": {
+        "field": "sectors__translations__name",
+        "type": "string",
+    },
+}
+
+ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS = {
+    "company": {
+        "field": "company__name",
+        "type": "datetime",
+    },
+    "sector": {
+        "field": "sector__translations__name",
+        "type": "string",
+    },
+    "year": {
+        "field": "year",
+        "type": "number",
+    },
+}

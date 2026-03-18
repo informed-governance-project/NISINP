@@ -31,6 +31,7 @@ from django_otp.decorators import otp_required
 from governanceplatform.helpers import (
     get_sectors_grouped,
     is_user_regulator,
+    sort_queryset_by_field,
     user_in_group,
 )
 from governanceplatform.models import Company, Regulation, Sector
@@ -46,7 +47,11 @@ from .forms import (
     RecommendationsSelectFormSet,
     ReviewCommentForm,
 )
-from .globals import CELERY_TASK_STATUS
+from .globals import (
+    ALLOWED_DASHBOARD_SORT_FIELDS,
+    ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS,
+    CELERY_TASK_STATUS,
+)
 from .helpers import create_entry_log, generate_combined_uuid
 from .models import (
     AssetData,
@@ -128,17 +133,40 @@ def reporting(request):
     else:
         project_queryset = Project.objects.none()
 
+    if "reset_sort" in request.GET:
+        request.session.pop("reporting_sort_params", None)
+        return redirect("reporting")
+
     if "reset" in request.GET:
         request.session.pop("reporting_filter_params", None)
         return redirect("reporting")
 
     current_params = request.session.get("reporting_filter_params", {}).copy()
+    current_sort_params = request.session.get("reporting_sort_params", {}).copy()
 
     for key, values in request.GET.lists():
         current_params[key] = values if key == "sectors" else values[0]
 
+    for key, value in request.GET.items():
+        if key in ("sort_field", "sort_direction"):
+            current_sort_params[key] = value
+
     reporting_filter_params = current_params
-    request.session["reporting_filter_params"] = current_params
+    reporting_sort_params = current_sort_params
+    request.session["reporting_filter_params"] = reporting_filter_params
+    request.session["reporting_sort_params"] = reporting_sort_params
+
+    # Apply sorting
+    sort_field = reporting_sort_params.get("sort_field", "updated_at")
+    sort_direction = reporting_sort_params.get("sort_direction", "desc")
+
+    project_queryset = sort_queryset_by_field(
+        project_queryset,
+        sort_field,
+        sort_direction,
+        "updated_at",
+        ALLOWED_DASHBOARD_SORT_FIELDS,
+    )
 
     project_filter = ProjectFilter(reporting_filter_params, queryset=project_queryset)
 
@@ -155,11 +183,13 @@ def reporting(request):
     is_filtered = {
         k: v
         for k, v in reporting_filter_params.items()
-        if k not in ["page", "per_page"]
+        if k not in ["page", "per_page", "sort_field", "sort_direction"]
     }
 
     context = {
         "filter": project_filter,
+        "sort_field": sort_field,
+        "sort_direction": sort_direction,
         "is_filtered": bool(is_filtered),
         "projects": page_obj,
         "projects_running": projects_running,
@@ -180,26 +210,51 @@ def dashboard_report_project(request, report_project_id: int):
 
     company_project_qs = project.companyproject_set.all()
 
-    if "reset" in request.GET:
-        request.session.pop("reporting_filter_params", None)
-        return redirect("reporting")
+    if "reset_sort" in request.GET:
+        request.session.pop("dashboard_project_sort_params", None)
+        return redirect("dashboard_report_project", report_project_id=project.id)
 
-    current_params = request.session.get("reporting_filter_params", {}).copy()
+    if "reset" in request.GET:
+        request.session.pop("dashboard_project_filter_params", None)
+        return redirect("dashboard_report_project", report_project_id=project.id)
+
+    current_params = request.session.get("dashboard_project_filter_params", {}).copy()
+    current_sort_params = request.session.get(
+        "dashboard_project_sort_params", {}
+    ).copy()
 
     for key, values in request.GET.lists():
         current_params[key] = values if key == "sectors" else values[0]
 
-    dashboard_project_params = current_params
-    request.session["dashboard_project_params"] = current_params
+    for key, value in request.GET.items():
+        if key in ("sort_field", "sort_direction"):
+            current_sort_params[key] = value
+
+    dashboard_project_filter_params = current_params
+    dashboard_project_sort_params = current_sort_params
+    request.session["dashboard_project_filter_params"] = dashboard_project_filter_params
+    request.session["dashboard_project_sort_params"] = dashboard_project_sort_params
+
+    # Apply sorting
+    sort_field = dashboard_project_sort_params.get("sort_field", "company")
+    sort_direction = dashboard_project_sort_params.get("sort_direction", "desc")
+
+    company_project_qs = sort_queryset_by_field(
+        company_project_qs,
+        sort_field,
+        sort_direction,
+        "company",
+        ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS,
+    )
 
     company_project_filter = CompanyProjectFilter(
-        dashboard_project_params, queryset=company_project_qs
+        dashboard_project_filter_params, queryset=company_project_qs
     )
 
     company_project_filter_list = company_project_filter.qs
 
-    per_page = dashboard_project_params.get("per_page", 10)
-    page_number = dashboard_project_params.get("page")
+    per_page = dashboard_project_filter_params.get("per_page", 10)
+    page_number = dashboard_project_filter_params.get("page")
     paginator = Paginator(company_project_filter_list, per_page)
     page_obj = paginator.get_page(page_number)
 
@@ -208,12 +263,14 @@ def dashboard_report_project(request, report_project_id: int):
 
     is_filtered = {
         k: v
-        for k, v in dashboard_project_params.items()
-        if k not in ["page", "per_page"]
+        for k, v in dashboard_project_filter_params.items()
+        if k not in ["page", "per_page", "sort_field", "sort_direction"]
     }
 
     context = {
         "filter": company_project_filter,
+        "sort_field": sort_field,
+        "sort_direction": sort_direction,
         "is_filtered": bool(is_filtered),
         "project": project,
         "items": page_obj,
@@ -384,8 +441,9 @@ def generate_report_project(request, report_project_id: int):
             request,
             _("No project found"),
         )
-        rendered_messages = render_error_messages(request)
-        return JsonResponse({"messages": rendered_messages}, status=400)
+        # return redirect("reporting")
+        # rendered_messages = render_error_messages(request)
+        # return JsonResponse({"messages": rendered_messages}, status=400)
 
     if not project.threshold_for_high_risk or not project.top_ranking:
         error_message = _("Missing high risk rate threshold or ranking value")
@@ -393,8 +451,9 @@ def generate_report_project(request, report_project_id: int):
             request,
             error_message,
         )
-        rendered_messages = render_error_messages(request)
-        return JsonResponse({"messages": rendered_messages}, status=400)
+        return redirect("reporting")
+        # rendered_messages = render_error_messages(request)
+        # return JsonResponse({"messages": rendered_messages}, status=400)
 
     project_id = project.id
     year = project.reference_year
@@ -429,8 +488,7 @@ def generate_report_project(request, report_project_id: int):
                 error_messages.append(error_message)
                 continue
             messages.error(request, _("Forbidden"))
-            rendered_messages = render_error_messages(request)
-            return JsonResponse({"messages": rendered_messages}, status=400)
+            return redirect("reporting")
 
         try:
             company_reporting = CompanyReporting.objects.get(
@@ -448,8 +506,7 @@ def generate_report_project(request, report_project_id: int):
                 request,
                 _("No reporting data"),
             )
-            rendered_messages = render_error_messages(request)
-            return JsonResponse({"messages": rendered_messages}, status=400)
+            return redirect("reporting")
 
         security_objectives_declaration = StandardAnswer.objects.filter(
             submitter_company=company,
@@ -485,8 +542,7 @@ def generate_report_project(request, report_project_id: int):
             )
 
         if errors > 0:
-            rendered_messages = render_error_messages(request)
-            return JsonResponse({"messages": rendered_messages}, status=400)
+            return redirect("reporting")
 
         report_recommendations = company.get_report_recommandations(year, sector)
         years_to_compare = [y for y in years if y <= year]
@@ -521,8 +577,7 @@ def generate_report_project(request, report_project_id: int):
                 messages.error(
                     request, messages.error(request, f"{no_template_msg} [{language}]")
                 )
-                rendered_messages = render_error_messages(request)
-                return JsonResponse({"messages": rendered_messages}, status=400)
+                return redirect("reporting")
 
             activate(language)
             sector.set_current_language(language)
@@ -553,20 +608,15 @@ def generate_report_project(request, report_project_id: int):
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
             messages.error(request, error_message)
-        rendered_messages = render_error_messages(request)
-        return JsonResponse({"messages": rendered_messages}, status=400)
+        return redirect("reporting")
 
-    success_message = _(
-        "Report is being generated. It will be available shortly in the Download Center."
-    )
+    success_message = _("Report is being generated.")
 
     if is_multiple_selected_companies:
         result = chord(group(report_generation_tasks))(zip_files_task.s(error_messages))
         task_id = result.id
 
-        success_message = _(
-            "Reports are being generated. They will be available shortly in the Download Center."
-        )
+        success_message = _("Reports are being generated.")
     else:
         task_id = report_generation_tasks[0].id
 
@@ -575,9 +625,7 @@ def generate_report_project(request, report_project_id: int):
     )
 
     messages.success(request, success_message)
-    rendered_messages = render_error_messages(request)
-
-    return JsonResponse({"messages": rendered_messages, "task_id": task_id}, status=202)
+    return redirect("reporting")
 
 
 @login_required
