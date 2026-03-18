@@ -919,6 +919,9 @@ def import_so_declaration(request):
         if "year" in request.GET:
             initial["year"] = int(request.GET.get("year"))
 
+        if "standard_id" in request.GET:
+            initial["standard"] = int(request.GET.get("standard_id"))
+
     except (ValueError, TypeError):
         messages.error(request, _("Invalid request"))
 
