@@ -11,6 +11,7 @@ from incidents.forms import DropdownCheckboxSelectMultiple
 from securityobjectives.models import Standard
 
 from .models import (
+    CompanyProject,
     CompanyReporting,
     ObservationRecommendation,
     ObservationRecommendationThrough,
@@ -361,3 +362,18 @@ class CreateProjectForm(forms.ModelForm):
 
             for field_name in disabled_fields:
                 self.fields[field_name].disabled = True
+
+
+class CompanyProjectDashboard(forms.ModelForm):
+    class Meta:
+        model = CompanyProject
+        fields = [
+            "is_selected",
+            "statistic_selected",
+            "governance_report_selected",
+        ]
+        widgets = {
+            "is_selected": forms.CheckboxInput(),
+            "statistic_selected": forms.CheckboxInput(),
+            "governance_report_selected": forms.CheckboxInput(),
+        }

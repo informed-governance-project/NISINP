@@ -38,6 +38,7 @@ from securityobjectives.models import Standard, StandardAnswer
 
 from .filters import CompanyProjectFilter, ProjectFilter, RecommendationFilter
 from .forms import (
+    CompanyProjectDashboard,
     ConfigurationReportForm,
     CreateProjectForm,
     ImportRiskAnalysisForm,
@@ -201,6 +202,9 @@ def dashboard_report_project(request, report_project_id: int):
     page_number = dashboard_project_params.get("page")
     paginator = Paginator(company_project_filter_list, per_page)
     page_obj = paginator.get_page(page_number)
+
+    for company_project in page_obj.object_list:
+        company_project.formSelect = CompanyProjectDashboard(instance=company_project)
 
     is_filtered = {
         k: v

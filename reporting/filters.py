@@ -151,7 +151,7 @@ class ProjectFilter(django_filters.FilterSet):
 
 
 class CompanyProjectFilter(django_filters.FilterSet):
-    sectors = django_filters.ModelMultipleChoiceFilter(
+    sector = django_filters.ModelMultipleChoiceFilter(
         queryset=Sector.objects.filter(
             ~Q(
                 id__in=Sector.objects.exclude(parent=None).values_list(
