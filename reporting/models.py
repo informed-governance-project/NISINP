@@ -592,6 +592,8 @@ def create_company_projects_on_sectors_change(
             project=instance,
             sector=sector,
             year=year,
+            has_security_objectives=company.security_objective_exists(year, sector),
+            has_risk_assessment=company.risk_analysis_exists(year, sector),
         )
         for company in companies
         for sector in sectors & company.sectors.all()
@@ -657,6 +659,8 @@ def update_company_project(sender, instance, **kwargs):
                 project=instance,
                 sector=sector,
                 year=year,
+                has_security_objectives=company.security_objective_exists(year, sector),
+                has_risk_assessment=company.risk_analysis_exists(year, sector),
             )
             for company in companies
             for sector in sectors & company.sectors.all()
@@ -713,6 +717,7 @@ class CompanyProject(models.Model):
                 name="unique_company_project_sector",
             )
         ]
+        ordering = ["company", "sector", "year"]
 
 
 # store link for the generated file.
