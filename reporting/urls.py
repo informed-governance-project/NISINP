@@ -8,6 +8,7 @@ from .views import (
     copy_report_project,
     copy_report_recommendations,
     create_report_project,
+    dashboard_report_project,
     delete_report_project,
     delete_report_recommendation,
     download_report,
@@ -43,6 +44,11 @@ urlpatterns = [
         "project/<int:report_project_id>/delete",
         delete_report_project,
         name="delete_report_project",
+    ),
+    path(
+        "project/<int:report_project_id>/dashboard",
+        dashboard_report_project,
+        name="dashboard_report_project",
     ),
     # Generate Reports
     path(

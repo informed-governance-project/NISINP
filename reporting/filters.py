@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from governanceplatform.models import Company, Sector, User
 from incidents.forms import DropdownCheckboxSelectMultiple
 
-from .models import ObservationRecommendation, Project
+from .models import CompanyProject, ObservationRecommendation, Project
 
 
 class YearChoiceFilter(django_filters.ChoiceFilter):
@@ -147,4 +147,36 @@ class ProjectFilter(django_filters.FilterSet):
             # | Q(years__icontains=value)
             | Q(sectors__translations__name__icontains=value)
             | Q(name__icontains=value)
+        ).distinct()
+
+
+class CompanyProjectFilter(django_filters.FilterSet):
+    sectors = django_filters.ModelMultipleChoiceFilter(
+        queryset=Sector.objects.filter(
+            ~Q(
+                id__in=Sector.objects.exclude(parent=None).values_list(
+                    "parent_id", flat=True
+                )
+            )
+            | Q(id=F("parent_id"))
+        ).order_by("parent"),
+        widget=DropdownCheckboxSelectMultiple(
+            attrs={"data-selected-text-format": "count > 2"}
+        ),
+    )
+    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
+
+    class Meta:
+        model = CompanyProject
+        fields = [
+            "company",
+            "sector",
+            "year",
+        ]
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(company__name__icontains=value)
+            | Q(year__icontains=value)
+            | Q(sector__translations__name__icontains=value)
         ).distinct()

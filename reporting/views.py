@@ -36,7 +36,7 @@ from governanceplatform.helpers import (
 from governanceplatform.models import Company, Regulation, Sector
 from securityobjectives.models import Standard, StandardAnswer
 
-from .filters import ProjectFilter, RecommendationFilter
+from .filters import CompanyProjectFilter, ProjectFilter, RecommendationFilter
 from .forms import (
     ConfigurationReportForm,
     CreateProjectForm,
@@ -169,6 +169,57 @@ def reporting(request):
 
 @login_required
 @otp_required
+def dashboard_report_project(request, report_project_id: int):
+    try:
+        project = get_object_or_404(Project, pk=report_project_id)
+        if not has_change_permission(request, project, "edit"):
+            return redirect("reporting")
+    except Project.DoesNotExist:
+        return redirect("reporting")
+
+    company_project_qs = project.companyproject_set.all()
+
+    if "reset" in request.GET:
+        request.session.pop("reporting_filter_params", None)
+        return redirect("reporting")
+
+    current_params = request.session.get("reporting_filter_params", {}).copy()
+
+    for key, values in request.GET.lists():
+        current_params[key] = values if key == "sectors" else values[0]
+
+    dashboard_project_params = current_params
+    request.session["dashboard_project_params"] = current_params
+
+    company_project_filter = CompanyProjectFilter(
+        dashboard_project_params, queryset=company_project_qs
+    )
+
+    company_project_filter_list = company_project_filter.qs
+
+    per_page = dashboard_project_params.get("per_page", 10)
+    page_number = dashboard_project_params.get("page")
+    paginator = Paginator(company_project_filter_list, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    is_filtered = {
+        k: v
+        for k, v in dashboard_project_params.items()
+        if k not in ["page", "per_page"]
+    }
+
+    context = {
+        "filter": company_project_filter,
+        "is_filtered": bool(is_filtered),
+        "project": project,
+        "items": page_obj,
+    }
+
+    return render(request, "reporting/project_dashboard.html", context)
+
+
+@login_required
+@otp_required
 def create_report_project(request):
     user = request.user
     regulator = user.regulators.first()
@@ -210,6 +261,10 @@ def create_report_project(request):
                 standard=data["standard"],
                 years=data["years"],
                 reference_year=data["reference_year"],
+                top_ranking=data["top_ranking"],
+                selected_file_format=data["selected_file_format"],
+                selected_languages=data["selected_languages"],
+                threshold_for_high_risk=data["threshold_for_high_risk"],
             )
             if project and data["sectors"]:
                 project.sectors.set(data["sectors"])
