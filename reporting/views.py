@@ -439,9 +439,7 @@ def generate_report_project(request, report_project_id: int):
             request,
             _("No project found"),
         )
-        # return redirect("reporting")
-        # rendered_messages = render_error_messages(request)
-        # return JsonResponse({"messages": rendered_messages}, status=400)
+        return redirect("reporting")
 
     if not project.threshold_for_high_risk or not project.top_ranking:
         error_message = _("Missing high risk rate threshold or ranking value")
@@ -449,13 +447,21 @@ def generate_report_project(request, report_project_id: int):
             request,
             error_message,
         )
-        return redirect("reporting")
-        # rendered_messages = render_error_messages(request)
-        # return JsonResponse({"messages": rendered_messages}, status=400)
+        return redirect("dashboard_report_project", report_project_id=project.id)
 
     project_id = project.id
     year = project.reference_year
-    years = project.years
+    selected_companies_project = project.companyproject_set.filter(is_selected=True)
+
+    if not selected_companies_project:
+        error_message = _("Nothing selected")
+        messages.error(
+            request,
+            error_message,
+        )
+        return redirect("dashboard_report_project", report_project_id=project.id)
+
+    years = selected_companies_project.values_list("year", flat=True)
     threshold_for_high_risk = project.threshold_for_high_risk
     top_ranking = project.top_ranking
     languages = project.selected_languages
@@ -465,13 +471,14 @@ def generate_report_project(request, report_project_id: int):
         datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(uuid.uuid4())[:8]
     )
 
-    selected_companies = []
-    testing_company = {
-        "company": Company.objects.get(id=46),
-        "sector": Sector.objects.get(id=3),
-    }
-    for _n in range(0, 1):
-        selected_companies.append(testing_company)
+    selected_companies = [
+        {
+            "company": obj.company,
+            "sector": obj.sector,
+        }
+        for obj in selected_companies_project.distinct("company", "sector")
+    ]
+
     is_multiple_selected_companies = len(selected_companies) > 1 or len(languages) > 1
     error_messages = []
     errors = 0
