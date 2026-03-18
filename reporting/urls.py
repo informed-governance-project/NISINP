@@ -2,7 +2,6 @@ from django.urls import path
 
 from .views import (
     access_log,
-    add_report_configuration,
     add_report_recommendations,
     cancel_report_generation,
     copy_report_project,
@@ -13,11 +12,9 @@ from .views import (
     delete_report_recommendation,
     download_report,
     download_template,
-    edit_report_configuration,
     edit_report_project,
     generate_report_project,
     import_risk_analysis,
-    report_configuration,
     report_generation_status,
     report_recommendations,
     reporting,
@@ -73,16 +70,6 @@ urlpatterns = [
         "project/<int:report_project_id>/report/cancel",
         cancel_report_generation,
         name="cancel_report_generation",
-    ),
-    # Configuration
-    path("configuration", report_configuration, name="report_configuration"),
-    path(
-        "configuration/add", add_report_configuration, name="add_report_configuration"
-    ),
-    path(
-        "configuration/edit/<int:report_configuration_id>",
-        edit_report_configuration,
-        name="edit_report_configuration",
     ),
     path(
         "recommendations/<int:company_id>/<int:sector_id>/<int:year>/",

@@ -1,12 +1,12 @@
 from django import forms
 from django.conf import settings
-from django.forms import BaseModelFormSet, modelformset_factory
+from django.forms import modelformset_factory
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from parler.forms import TranslatableModelForm
 
 from governanceplatform.helpers import get_sectors_grouped
-from governanceplatform.models import Company, Regulation, Sector
+from governanceplatform.models import Regulation, Sector
 from incidents.forms import DropdownCheckboxSelectMultiple
 from securityobjectives.models import Standard
 
@@ -16,7 +16,6 @@ from .models import (
     ObservationRecommendation,
     ObservationRecommendationThrough,
     Project,
-    SectorReportConfiguration,
     Template,
 )
 
@@ -63,122 +62,6 @@ class ImportRiskAnalysisForm(forms.Form):
         else:
             for field_name in ["company", "year", "sectors"]:
                 self.fields[field_name].disabled = True
-
-
-class ConfigurationReportForm(forms.ModelForm):
-    class Meta:
-        model = SectorReportConfiguration
-        fields = "__all__"
-
-    def __init__(self, *args, user=None, **kwargs):
-        initial = kwargs.get("initial", {})
-        instance = kwargs.get("instance", None)
-        super().__init__(*args, **kwargs)
-
-        self.fields["so_excluded"].required = False
-        self.fields["so_excluded"].queryset = self.fields[
-            "so_excluded"
-        ].queryset.order_by("unique_code")
-
-        sectors = initial.get("sectors")
-        if sectors:
-            self.fields["sector"].queryset = sectors
-
-        if instance and instance.pk:
-            self.fields["sector"].disabled = True
-
-
-class CompanySelectForm(forms.ModelForm):
-    selected = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "company-select-checkbox"}),
-    )
-    year = forms.IntegerField(required=False)
-    sector = forms.ModelChoiceField(
-        queryset=Sector.objects.all(), required=False, widget=forms.HiddenInput()
-    )
-
-    class Meta:
-        model = Company
-        fields = ["id", "selected", "name", "sector"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["name"].widget = forms.HiddenInput()
-
-    def validate_unique(self):
-        return
-
-
-class CompanySelectFormSet(BaseModelFormSet):
-    def __init__(self, *args, **kwargs):
-        self.year = kwargs.pop("year", None)
-        self.sectors_filter = kwargs.pop("sectors_filter", None)
-        queryset = kwargs.get("queryset")
-        self.company_sectors = []
-
-        if queryset:
-            for company in queryset:
-                for sector in Sector.objects.all():
-                    if not self.sectors_filter or str(sector.id) in self.sectors_filter:
-                        self.company_sectors.append(
-                            {"company": company, "sector": sector}
-                        )
-
-        kwargs["queryset"] = Company.objects.none()
-        super().__init__(*args, **kwargs)
-
-        self._update_management_form()
-
-    def validate_unique(self):
-        company_sector_pairs = [
-            (form.cleaned_data.get("id"), form.cleaned_data.get("sector"))
-            for form in self.forms
-        ]
-
-        seen = set()
-        errors = []
-        for company, sector in company_sector_pairs:
-            if company is not None:
-                if (company.id, sector) in seen:
-                    errors.append("Please correct the duplicate company-sector values.")
-                seen.add((company.id, sector))
-
-        if errors:
-            raise forms.ValidationError(errors)
-
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-
-        if self.year:
-            form.initial["year"] = self.year
-
-    def total_form_count(self):
-        return len(self.company_sectors)
-
-    def _update_management_form(self):
-        total_forms = len(self.company_sectors)
-        self.management_form.initial["TOTAL_FORMS"] = total_forms
-        self.management_form.initial["INITIAL_FORMS"] = total_forms
-
-    def _construct_form(self, i, **kwargs):
-        if i < len(self.company_sectors):
-            company_sector = self.company_sectors[i]
-            company = company_sector["company"]
-            sector = company_sector["sector"]
-
-            kwargs["initial"] = {
-                "sector": sector,
-                "object": company,
-                "id": company.id,
-                "name": company.name,
-            }
-        return super()._construct_form(i, **kwargs)
-
-
-CompanySelectFormSet = modelformset_factory(
-    Company, form=CompanySelectForm, formset=CompanySelectFormSet, extra=0
-)
 
 
 class RecommendationsSelectForm(TranslatableModelForm):

@@ -10,7 +10,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count
 from django.forms.models import model_to_dict
 from django.http import (
     FileResponse,
@@ -40,7 +39,6 @@ from securityobjectives.models import Standard, StandardAnswer
 from .filters import CompanyProjectFilter, ProjectFilter, RecommendationFilter
 from .forms import (
     CompanyProjectDashboard,
-    ConfigurationReportForm,
     CreateProjectForm,
     ImportRiskAnalysisForm,
     ObservationRecommendationOrderForm,
@@ -64,7 +62,6 @@ from .models import (
     Project,
     RecommendationData,
     RiskData,
-    SectorReportConfiguration,
     ServiceStat,
     Template,
     ThreatData,
@@ -684,111 +681,6 @@ def cancel_report_generation(request, report_project_id: int):
     )
 
     return JsonResponse(reponse)
-
-
-@login_required
-@otp_required
-def report_configuration(request):
-    user = request.user
-    report_configuration_queryset = (
-        SectorReportConfiguration.objects.filter(
-            sector__in=user.get_sectors().values_list("id", flat=True)
-        ).distinct()
-        if user_in_group(user, "RegulatorUser")
-        else SectorReportConfiguration.objects.all()
-    )
-
-    context = {"report_configurations": report_configuration_queryset}
-    return render(request, "reporting/report_configuration.html", context=context)
-
-
-@login_required
-@otp_required
-def add_report_configuration(request):
-    user = request.user
-    user_sectors = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.annotate(child_count=Count("children")).exclude(
-            parent=None, child_count__gt=0
-        )
-    )
-
-    report_configuration_queryset = (
-        SectorReportConfiguration.objects.filter(
-            sector__in=user_sectors.values_list("id", flat=True)
-        ).distinct()
-        if user_in_group(user, "RegulatorUser")
-        else SectorReportConfiguration.objects.all()
-    )
-
-    sectors_queryset = (
-        user_sectors
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.annotate(child_count=Count("children")).exclude(
-            parent=None, child_count__gt=0
-        )
-    )
-
-    initial_sectors_queryset = sectors_queryset.exclude(
-        id__in=report_configuration_queryset.values_list("sector__id", flat=True)
-    )
-    if not initial_sectors_queryset:
-        messages.error(
-            request,
-            _("All sectors have been configured"),
-        )
-        return redirect("report_configuration")
-
-    initial = {"sectors": initial_sectors_queryset}
-    if request.method == "POST":
-        form = ConfigurationReportForm(request.POST, initial=initial)
-        if form.is_valid():
-            cleaned_data = form.cleaned_data.copy()
-
-            if cleaned_data["sector"] not in user_sectors:
-                messages.error(request, _("Forbidden"))
-                return redirect("report_configuration")
-
-            so_excluded = cleaned_data.pop("so_excluded", None)
-            new_configuration = SectorReportConfiguration(**cleaned_data)
-            new_configuration.save()
-            if so_excluded:
-                new_configuration.so_excluded.set(so_excluded)
-            return redirect("report_configuration")
-
-    form = ConfigurationReportForm(initial=initial)
-    context = {"form": form}
-    return render(request, "reporting/add_report_configuration.html", context=context)
-
-
-@login_required
-@otp_required
-def edit_report_configuration(request, report_configuration_id: int):
-    user = request.user
-    user_sectors = user.get_sectors().all()
-
-    try:
-        report_configuration = SectorReportConfiguration.objects.get(
-            pk=report_configuration_id
-        )
-    except SectorReportConfiguration.DoesNotExist:
-        messages.error(request, _("Configuration not found"))
-        return redirect("report_configuration")
-
-    if report_configuration.sector not in user_sectors:
-        messages.error(request, _("Forbidden"))
-        return redirect("report_configuration")
-
-    if request.method == "POST":
-        form = ConfigurationReportForm(request.POST, instance=report_configuration)
-        if form.is_valid():
-            form.save()
-            return redirect("report_configuration")
-
-    form = ConfigurationReportForm(instance=report_configuration)
-    context = {"form": form}
-    return render(request, "reporting/add_report_configuration.html", context=context)
 
 
 @login_required
