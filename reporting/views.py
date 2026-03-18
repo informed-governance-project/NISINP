@@ -511,7 +511,7 @@ def generate_report_project(request, report_project_id: int):
                 request,
                 _("No reporting data"),
             )
-            return redirect("reporting")
+            return redirect("dashboard_report_project", report_project_id=project.id)
 
         security_objectives_declaration = StandardAnswer.objects.filter(
             submitter_company=company,
@@ -582,7 +582,9 @@ def generate_report_project(request, report_project_id: int):
                 messages.error(
                     request, messages.error(request, f"{no_template_msg} [{language}]")
                 )
-                return redirect("reporting")
+                return redirect(
+                    "dashboard_report_project", report_project_id=project.id
+                )
 
             activate(language)
             sector.set_current_language(language)
@@ -613,7 +615,8 @@ def generate_report_project(request, report_project_id: int):
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
             messages.error(request, error_message)
-        return redirect("reporting")
+
+        return redirect("dashboard_report_project", report_project_id=project.id)
 
     success_message = _("Report is being generated.")
 
