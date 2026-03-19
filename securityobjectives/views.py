@@ -266,7 +266,7 @@ def declaration(request):
         "position"
     )
 
-    levels = MaturityLevel.objects.all().aggregate(
+    levels = MaturityLevel.objects.filter(standard=standard).aggregate(
         first_level=Min("level"), last_level=Max("level")
     )
 
@@ -799,7 +799,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
             return redirect("securityobjectives")
         standard = standard_answer.standard
 
-        levels = MaturityLevel.objects.all().aggregate(
+        levels = MaturityLevel.objects.filter(standard=standard).aggregate(
             first_level=Min("level"), last_level=Max("level")
         )
         security_objectives_queryset = standard.security_objectives_set.all().order_by(
