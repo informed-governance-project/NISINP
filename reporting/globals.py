@@ -98,4 +98,20 @@ ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS = {
         "field": "year",
         "type": "number",
     },
+    "has_security_objectives": {
+        "field": "has_security_objectives",
+        "type": "boolean",
+    },
+    "has_risk_assessment": {
+        "field": "has_risk_assessment",
+        "type": "boolean",
+    },
+    "statistic_selected": {
+        "field": "statistic_selected",
+        "type": "boolean",
+    },
+    "governance_report_selected": {
+        "field": "governance_report_selected",
+        "type": "boolean",
+    },
 }
