@@ -75,8 +75,8 @@ ALLOWED_DASHBOARD_SORT_FIELDS = {
         "field": "standard__translations__label",
         "type": "string",
     },
-    "years": {
-        "field": "years",
+    "year": {
+        "field": "reference_year",
         "type": "number",
     },
     "sectors": {
