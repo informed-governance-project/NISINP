@@ -156,8 +156,8 @@ class CreateProjectForm(forms.ModelForm):
     reference_year = forms.ChoiceField(
         choices=[
             (year, year)
-            for year in range(timezone.now().year - 10, timezone.now().year + 2)
-        ],
+            for year in range(timezone.now().year - 4, timezone.now().year + 1)
+        ][::-1],
         required=True,
         label=_("Reference year"),
     )
@@ -166,8 +166,8 @@ class CreateProjectForm(forms.ModelForm):
         widget=DropdownCheckboxSelectMultiple(),
         choices=[
             (year, year)
-            for year in range(timezone.now().year - 10, timezone.now().year + 2)
-        ],
+            for year in range(timezone.now().year - 20, timezone.now().year)
+        ][::-1],
         required=True,
         label=_("Year comparaison"),
     )
