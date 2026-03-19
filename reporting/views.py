@@ -251,6 +251,17 @@ def dashboard_report_project(request, report_project_id: int):
 
     company_project_filter_list = company_project_filter.qs
 
+    input_select_fields = [
+        "is_selected",
+        "statistic_selected",
+        "governance_report_selected",
+    ]
+
+    selected_status = {
+        field: not company_project_filter_list.filter(**{field: False}).exists()
+        for field in input_select_fields
+    }
+
     per_page = dashboard_project_filter_params.get("per_page", 10)
     page_number = dashboard_project_filter_params.get("page")
     paginator = Paginator(company_project_filter_list, per_page)
@@ -270,6 +281,7 @@ def dashboard_report_project(request, report_project_id: int):
         "sort_field": sort_field,
         "sort_direction": sort_direction,
         "is_filtered": bool(is_filtered),
+        "selected_status": selected_status,
         "project": project,
         "items": page_obj,
     }
@@ -713,6 +725,32 @@ def update_company_project(request, company_project_id: int):
         reponse = {"company_project_id": company_project_id, field: value}
         return JsonResponse(reponse)
     return redirect("dashboard_report_project", report_project_id=project.id)
+
+
+@login_required
+@otp_required
+@require_http_methods(["POST"])
+def bulk_update_company_project(request, report_project_id: int):
+    project = get_object_or_404(Project, pk=report_project_id)
+    if not has_change_permission(request, project, "edit"):
+        return redirect("reporting")
+
+    field = request.POST.get("field")
+    value = request.POST.get("value") == "true"
+
+    company_project_qs = project.companyproject_set.all()
+    dashboard_project_filter_params = request.session.get(
+        "dashboard_project_filter_params", {}
+    ).copy()
+
+    company_project_filter = CompanyProjectFilter(
+        dashboard_project_filter_params, queryset=company_project_qs
+    )
+
+    company_project_filter.qs.update(**{field: value})
+    reponse = {"project_id": project.id, field: value}
+
+    return JsonResponse(reponse)
 
 
 @login_required

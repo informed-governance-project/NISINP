@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     access_log,
     add_report_recommendations,
+    bulk_update_company_project,
     cancel_report_generation,
     copy_report_project,
     copy_report_recommendations,
@@ -52,6 +53,11 @@ urlpatterns = [
         "company_project/<int:company_project_id>/update",
         update_company_project,
         name="update_company_project",
+    ),
+    path(
+        "project/<int:report_project_id>/company_project/bulk_update",
+        bulk_update_company_project,
+        name="bulk_update_company_project",
     ),
     # Generate Reports
     path(
