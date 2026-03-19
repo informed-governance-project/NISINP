@@ -69,7 +69,7 @@ from .models import (
     VulnerabilityData,
 )
 from .tasks import (
-    cleanup_tmp_files,
+    cleanup_files,
     generate_data,
     generate_docx_task,
     generate_pdf_task,
@@ -433,6 +433,11 @@ def delete_report_project(request, report_project_id: int):
             return redirect("reporting")
         project.delete()
         messages.success(request, _("The project has been deleted."))
+
+        cleanup_files.apply_async(
+            kwargs={"project_id": str(report_project_id), "all_files": True},
+            countdown=5,
+        )
     except Project.DoesNotExist:
         messages.error(request, _("Project not found"))
     return redirect("reporting")
@@ -700,7 +705,7 @@ def cancel_report_generation(request, report_project_id: int):
     project.task_status = "ABORT"
     project.save()
 
-    cleanup_tmp_files.apply_async(
+    cleanup_files.apply_async(
         kwargs={"project_id": str(report_project_id)},
         countdown=5,
     )

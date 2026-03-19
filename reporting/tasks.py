@@ -377,9 +377,13 @@ def zip_files_task(data, error_messages):
 
 
 @shared_task(ignore_result=True)
-def cleanup_tmp_files(project_id):
+def cleanup_files(project_id, all_files=False):
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = base_tmp_dir / str(project_id)
+
+    if all_files and task_tmp_dir.exists():
+        shutil.rmtree(task_tmp_dir)
+        return
 
     if task_tmp_dir.exists() and task_tmp_dir.is_dir():
         for item in task_tmp_dir.iterdir():
