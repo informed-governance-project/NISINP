@@ -616,12 +616,14 @@ def sanitize_html(html, tags=None, attributes=None, styles=None):
             "br",
             "a",
             "abbr",
+            "img",
         ]
     if attributes is None:
         attributes = {
             "a": ["href", "title"],
             "abbr": ["title"],
             "*": ["class", "style"],
+            "img": ["alt", "src", "width"],
         }
     if styles is None:
         styles = ["color", "font-weight", "font-style", "text-decoration"]
