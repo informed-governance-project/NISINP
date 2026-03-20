@@ -13,7 +13,6 @@ from django.core.paginator import Paginator
 from django.forms.models import model_to_dict
 from django.http import (
     FileResponse,
-    Http404,
     HttpRequest,
     HttpResponse,
     HttpResponseRedirect,
@@ -101,6 +100,8 @@ def has_change_permission(request, project, action):
             case "edit":
                 return is_user_regulator_sector
             case "log":
+                return is_user_regulator_sector
+            case "download":
                 return is_user_regulator_sector
             case _:
                 return False
@@ -343,6 +344,8 @@ def create_report_project(request):
             )
             if project and data["sectors"]:
                 project.sectors.set(data["sectors"])
+
+            create_entry_log(user, project, "CREATE PROJECT")
         return redirect("reporting")
 
     form = CreateProjectForm(choices=choices)
@@ -353,15 +356,15 @@ def create_report_project(request):
 @login_required
 @otp_required
 def edit_report_project(request, report_project_id: int):
-    user = request.user
-    regulator = user.regulators.first()
-
     try:
         project = get_object_or_404(Project, pk=report_project_id)
         if not has_change_permission(request, project, "edit"):
             return redirect("reporting")
     except Project.DoesNotExist:
         return redirect("reporting")
+
+    user = request.user
+    regulator = user.regulators.first()
 
     regulation_qs = Regulation.objects.filter(
         regulators=regulator, standard__isnull=False
@@ -393,6 +396,7 @@ def edit_report_project(request, report_project_id: int):
         )
         if form.is_valid():
             form.save()
+            create_entry_log(user, project, "EDIT PROJECT")
             return HttpResponseRedirect(request.headers.get("referer"))
     else:
         form = CreateProjectForm(instance=project, choices=choices)
@@ -411,6 +415,8 @@ def copy_report_project(request, report_project_id):
     except Project.DoesNotExist:
         return redirect("reporting")
 
+    user = request.user
+
     if request.method == "POST":
         form = CreateProjectForm(request.POST, instance=project, is_copy=True)
 
@@ -419,6 +425,7 @@ def copy_report_project(request, report_project_id):
             new_project.pk = None
             new_project.save()
             form.save_m2m()
+            create_entry_log(user, project, "CREATE PROJECT")
         return redirect("reporting")
 
     else:
@@ -700,6 +707,7 @@ def report_generation_status(request, report_project_id: int):
 @otp_required
 @require_http_methods(["POST"])
 def cancel_report_generation(request, report_project_id: int):
+    user = request.user
     project = Project.objects.get(id=report_project_id)
     task_id = str(project.task_id)
     reponse = {"project_id": project.id, "status": project.task_status}
@@ -707,6 +715,7 @@ def cancel_report_generation(request, report_project_id: int):
     if not task_id:
         project.task_status = "FAIL"
         project.save()
+        create_entry_log(user, project, "CANCEL REPORT GENERATION")
         return JsonResponse(reponse)
 
     project.task_status = "ABORT"
@@ -716,6 +725,8 @@ def cancel_report_generation(request, report_project_id: int):
         kwargs={"project_id": str(report_project_id)},
         countdown=5,
     )
+
+    create_entry_log(user, project, "CANCEL REPORT GENERATION")
 
     return JsonResponse(reponse)
 
@@ -1146,16 +1157,19 @@ def review_comment_report(request, company_id, sector_id, year):
 @login_required
 @otp_required
 def download_report(request, report_project_id: int, file_uuid):
-    try:
-        report = GeneratedReport.objects.get(
-            file_uuid=file_uuid, project__id=report_project_id
-        )
-        file_path = report.get_file_path()
-        return FileResponse(
-            open(file_path, "rb"), as_attachment=True, filename=report.filename
-        )
-    except (GeneratedReport.DoesNotExist, FileNotFoundError):
-        raise Http404("Report not found.")
+    report = get_object_or_404(
+        GeneratedReport, file_uuid=file_uuid, project__id=report_project_id
+    )
+    user = request.user
+    project = report.project
+    if not has_change_permission(request, project, "download"):
+        return redirect("reporting")
+
+    file_path = report.get_file_path()
+    create_entry_log(user, project, "DOWNLOAD REPORT")
+    return FileResponse(
+        open(file_path, "rb"), as_attachment=True, filename=report.filename
+    )
 
 
 @login_required
