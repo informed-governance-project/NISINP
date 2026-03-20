@@ -21,6 +21,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
@@ -202,11 +203,8 @@ def reporting(request):
 @login_required
 @otp_required
 def dashboard_report_project(request, report_project_id: int):
-    try:
-        project = get_object_or_404(Project, pk=report_project_id)
-        if not has_change_permission(request, project, "edit"):
-            return redirect("reporting")
-    except Project.DoesNotExist:
+    project = get_object_or_404(Project, pk=report_project_id)
+    if not has_change_permission(request, project, "edit"):
         return redirect("reporting")
 
     company_project_qs = project.companyproject_set.all()
@@ -356,11 +354,8 @@ def create_report_project(request):
 @login_required
 @otp_required
 def edit_report_project(request, report_project_id: int):
-    try:
-        project = get_object_or_404(Project, pk=report_project_id)
-        if not has_change_permission(request, project, "edit"):
-            return redirect("reporting")
-    except Project.DoesNotExist:
+    project = get_object_or_404(Project, pk=report_project_id)
+    if not has_change_permission(request, project, "edit"):
         return redirect("reporting")
 
     user = request.user
@@ -408,11 +403,8 @@ def edit_report_project(request, report_project_id: int):
 @login_required
 @otp_required
 def copy_report_project(request, report_project_id):
-    try:
-        project = get_object_or_404(Project, pk=report_project_id)
-        if not has_change_permission(request, project, "copy"):
-            return redirect("reporting")
-    except Project.DoesNotExist:
+    project = get_object_or_404(Project, pk=report_project_id)
+    if not has_change_permission(request, project, "copy"):
         return redirect("reporting")
 
     user = request.user
@@ -1091,7 +1083,9 @@ def import_risk_analysis(request):
                     return HttpResponseRedirect(request.headers.get("referer"))
 
                 messages.success(request, _("Risk analysis successfully imported"))
-                create_entry_log(user, company_reporting_obj, "RISK ANALYSIS IMPORT")
+                CompanyProject.objects.filter(
+                    company=company, year=year, sector=sector
+                ).update(has_risk_assessment=True)
                 return HttpResponseRedirect(request.headers.get("referer"))
 
     form = ImportRiskAnalysisForm(
@@ -1105,10 +1099,7 @@ def import_risk_analysis(request):
 @login_required
 @otp_required
 def access_log(request, project_id):
-    validate_result = validate_url_arguments(request, project_id)
-    if isinstance(validate_result, HttpResponseRedirect):
-        return validate_result
-    project = validate_result
+    project = get_object_or_404(Project, pk=project_id)
     if not has_change_permission(request, project, "log"):
         return redirect("reporting")
     try:
@@ -1549,17 +1540,50 @@ def validate_json_file(file):
     return json_data
 
 
-def validate_url_arguments(request, project_id):
+def validate_url_arguments(request, company_id, sector_id, year):
+    user = request.user
+    user_sectors = user.get_sectors().all()
+
     try:
-        project = Project.objects.get(id=project_id)
-    except Project.DoesNotExist:
+        company = Company.objects.get(id=company_id)
+    except Company.DoesNotExist:
         messages.error(
             request,
-            _("No project found"),
+            _("No company found"),
         )
         return redirect("reporting")
 
-    return project
+    try:
+        sector = Sector.objects.get(id=sector_id)
+    except Sector.DoesNotExist:
+        messages.error(
+            request,
+            _("No sector found"),
+        )
+        return redirect("reporting")
+
+    try:
+        year = int(year)
+    except ValueError:
+        messages.error(
+            request,
+            _("Year value is not a valid number"),
+        )
+        return redirect("reporting")
+
+    current_year = timezone.now().year
+    if year < 2020 or year > current_year:
+        messages.error(
+            request,
+            _("Invalid year. Please provide a valid year."),
+        )
+        return redirect("reporting")
+
+    if sector not in user_sectors:
+        messages.error(request, _("Forbidden"))
+        return redirect("reporting")
+
+    return company, sector, year
 
 
 def add_new_report_recommendations(
