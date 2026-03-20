@@ -482,7 +482,6 @@ def generate_report_project(request, report_project_id: int):
         )
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    years = selected_companies_project.values_list("year", flat=True)
     threshold_for_high_risk = project.threshold_for_high_risk
     top_ranking = project.top_ranking
     languages = project.selected_languages
@@ -496,6 +495,9 @@ def generate_report_project(request, report_project_id: int):
         {
             "company": obj.company,
             "sector": obj.sector,
+            "years": selected_companies_project.filter(company=obj.company).values_list(
+                "year", flat=True
+            ),
         }
         for obj in selected_companies_project.distinct("company", "sector")
     ]
@@ -508,6 +510,7 @@ def generate_report_project(request, report_project_id: int):
     for select_company in selected_companies:
         company = select_company.get("company")
         sector = select_company.get("sector")
+        years = select_company.get("years")
         if sector not in user_sectors:
             if is_multiple_selected_companies:
                 error_message = _("%(sector)s forbidden") % {"sector": sector}
