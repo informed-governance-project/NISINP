@@ -652,6 +652,7 @@ def sort_queryset_by_field(
 
     field = config_field["field"]
     is_string = config_field["type"] == "string"
+    is_boolean = config_field["type"] == "boolean"
 
     if "__translations__" in field:
         annotated_name = f"sort_{field.replace('__', '_')}"
@@ -667,6 +668,8 @@ def sort_queryset_by_field(
     if is_string:
         expr = Lower(field)
         ordering.append(expr.desc() if sort_direction == "desc" else expr.asc())
+    elif is_boolean:
+        ordering.append(field if sort_direction == "desc" else f"-{field}")
     else:
         ordering.append(f"-{field}" if sort_direction == "desc" else field)
 

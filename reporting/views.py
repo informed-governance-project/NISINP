@@ -131,11 +131,13 @@ def reporting(request):
     else:
         project_queryset = Project.objects.none()
 
+    search_value = request.GET.get("search", None)
+
     if "reset_sort" in request.GET:
         request.session.pop("reporting_sort_params", None)
         return redirect("reporting")
 
-    if "reset" in request.GET:
+    if "reset" in request.GET or search_value == "":
         request.session.pop("reporting_filter_params", None)
         return redirect("reporting")
 
@@ -208,11 +210,13 @@ def dashboard_report_project(request, report_project_id: int):
 
     company_project_qs = project.companyproject_set.all()
 
+    search_value = request.GET.get("search", None)
+
     if "reset_sort" in request.GET:
         request.session.pop("dashboard_project_sort_params", None)
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    if "reset" in request.GET:
+    if "reset" in request.GET or search_value == "":
         request.session.pop("dashboard_project_filter_params", None)
         return redirect("dashboard_report_project", report_project_id=project.id)
 
@@ -222,7 +226,7 @@ def dashboard_report_project(request, report_project_id: int):
     ).copy()
 
     for key, values in request.GET.lists():
-        current_params[key] = values if key == "sectors" else values[0]
+        current_params[key] = values if key in ["sector", "year"] else values[0]
 
     for key, value in request.GET.items():
         if key in ("sort_field", "sort_direction"):
@@ -246,7 +250,7 @@ def dashboard_report_project(request, report_project_id: int):
     )
 
     company_project_filter = CompanyProjectFilter(
-        dashboard_project_filter_params, queryset=company_project_qs
+        dashboard_project_filter_params, queryset=company_project_qs, project=project
     )
 
     company_project_filter_list = company_project_filter.qs
@@ -749,7 +753,7 @@ def bulk_update_company_project(request, report_project_id: int):
     ).copy()
 
     company_project_filter = CompanyProjectFilter(
-        dashboard_project_filter_params, queryset=company_project_qs
+        dashboard_project_filter_params, queryset=company_project_qs, project=project
     )
 
     company_project_filter.qs.update(**{field: value})

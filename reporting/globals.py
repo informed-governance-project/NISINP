@@ -86,6 +86,10 @@ ALLOWED_DASHBOARD_SORT_FIELDS = {
 }
 
 ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS = {
+    "is_selected": {
+        "field": "is_selected",
+        "type": "boolean",
+    },
     "company": {
         "field": "company__name",
         "type": "datetime",
