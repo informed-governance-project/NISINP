@@ -4,7 +4,7 @@
 SITE_ID = 303
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-DJANGO_CI = True
+DJANGO_CI = "True"
 
 DATABASES = {
     "default": {
