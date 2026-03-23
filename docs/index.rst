@@ -55,6 +55,7 @@ Incident Notification Module
    ui_user
    ui_administrator
    ui_platformadmin
+   report_generation
 
 
 Presentation
