@@ -1,16 +1,11 @@
-.. _required_settings:
+Report generation
+==================
 
 Required Settings
-=================
-
-.. contents::
-   :local:
-   :depth: 2
-
-.. _maturity_levels:
+-----------------
 
 Security Objectives Maturity Levels
------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Define a color (in **HEX format**) for each maturity level.
 
@@ -20,12 +15,8 @@ Define a color (in **HEX format**) for each maturity level.
 
    #ed2939, #ffc000, #dde96d, #00b050
 
----
-
-.. _reporting_configuration:
-
 Reporting Configuration
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Configure reporting settings for each **Security Standard**:
 
@@ -44,12 +35,8 @@ By default, the following palette is applied:
 
    Default palette used for charts.
 
----
-
-.. _docx_template:
-
 DOCX Template
-=============
+--------------
 
 A sample DOCX template is available for testing:
 
@@ -58,19 +45,18 @@ A sample DOCX template is available for testing:
 
 See also :ref:`available_placeholders` for supported tags.
 
----
 
 .. _available_placeholders:
 
 Available Placeholder Tags
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following placeholders can be used inside the DOCX template.
 
 .. _context_tags:
 
-Context Tags
-^^^^^^^^^^^^
+1. Context Tags
+
 
 These tags are replaced with contextual data:
 
@@ -81,12 +67,10 @@ These tags are replaced with contextual data:
 - ``{{ threshold_for_high_risk }}``
 - ``{{ top_ranking }}``
 
----
 
 .. _chart_tags:
 
-Chart Tags
-^^^^^^^^^^
+2. Chart Tags
 
 Use these placeholders to insert charts:
 
@@ -99,12 +83,10 @@ Use these placeholders to insert charts:
 - ``{{ chart_average_high_risk_level }}``
 - ``{{ chart_evolution_highest_risks }}``
 
----
 
 .. _table_tags:
 
-Table Tags
-^^^^^^^^^^
+3. Table Tags
 
 Use these placeholders to insert tables:
 
@@ -121,5 +103,3 @@ Use these placeholders to insert tables:
 - ``{{ table_of_top_threats_by_occurrence }}``
 - ``{{ table_of_top_vulnerabilities_by_occurrence }}``
 - ``{{ table_of_recommendations }}``
-
----
