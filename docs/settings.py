@@ -4,7 +4,7 @@
 SITE_ID = 303
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-DJANGO_CI = "True"
+DJANGO_CI = True
 
 DATABASES = {
     "default": {
@@ -17,9 +17,12 @@ DATABASES = {
 }
 
 try:
-    from governanceplatform import config  # type: ignore
-except ImportError:  # pragma: no cover
-    from governanceplatform import config_dev as config
+    import governanceplatform.config as config  # type: ignore
+except ModuleNotFoundError as exc:  # pragma: no cover
+    if DJANGO_CI:
+        import governanceplatform.config_dev as config  # type: ignore
+    else:
+        raise ImportError("The configuration file cannot be found") from exc
 
 
 try:
