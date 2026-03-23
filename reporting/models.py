@@ -398,11 +398,14 @@ class LogReporting(models.Model):
         verbose_name=_("User"),
         null=True,
     )
-    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), default=timezone.now)
+    timestamp = models.DateTimeField(verbose_name=_("Timestamp"), auto_now=True)
     # save full name in case of the user is deleted to keep the name
     user_full_name = models.CharField(max_length=250, verbose_name=_("User full name"))
+    role = models.CharField(max_length=250, verbose_name=_("Role"))
+    entity_name = models.CharField(max_length=250, verbose_name=_("Entity name"))
     project = models.ForeignKey(
         "reporting.Project",
+        verbose_name=_("Project"),
         on_delete=models.CASCADE,
         null=True,
         default=None,

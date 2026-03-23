@@ -22,6 +22,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from parler.models import TranslationDoesNotExist
 
+from governanceplatform.helpers import is_user_regulator
 from securityobjectives.models import (
     Domain,
     MaturityLevel,
@@ -908,10 +909,19 @@ def generate_combined_uuid(array_uuid: List[str]) -> uuid.UUID:
 
 
 def create_entry_log(user, project, action):
+    role = user.groups.first().name if user.groups.exists() else ""
+    entity_name = ""
+
+    if is_user_regulator(user):
+        regulator = user.regulators.first()
+        entity_name = regulator.name if regulator else ""
+
     log = LogReporting.objects.create(
         user=user,
         project=project,
         action=action,
+        role=role,
+        entity_name=entity_name,
     )
     log.save()
 
