@@ -1,6 +1,8 @@
 # Django settings for docs project.
 # import source code dir
 
+import governanceplatform.config_dev as config
+
 SITE_ID = 303
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -15,15 +17,6 @@ DATABASES = {
         "PORT": "",
     }
 }
-
-try:
-    import governanceplatform.config as config  # type: ignore
-except ModuleNotFoundError as exc:  # pragma: no cover
-    if DJANGO_CI:
-        import governanceplatform.config_dev as config  # type: ignore
-    else:
-        raise ImportError("The configuration file cannot be found") from exc
-
 
 try:
     # SECURITY WARNING: keep the secret key used in production secret!
