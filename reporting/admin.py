@@ -62,6 +62,10 @@ class ObservationRecommendationAdmin(
         "sectors",
     )
 
+    # Hidden temporally
+    def has_module_permission(self, request):
+        return False
+
     @admin.display(description=_("Sectors"))
     def get_sector_name(self, obj):
         return [sector for sector in obj.sectors.all()]
