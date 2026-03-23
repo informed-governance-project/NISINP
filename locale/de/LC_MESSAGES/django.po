@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 09:19+0100\n"
+"POT-Creation-Date: 2026-03-23 11:16+0100\n"
 "PO-Revision-Date: 2026-02-25 08:37+0000\n"
 "Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: de\n"
@@ -49,7 +49,7 @@ msgstr "Entitäts-Kategorien"
 #: incidents/forms.py:658 incidents/models.py:47 incidents/models.py:330
 #: incidents/views.py:1119 reporting/admin.py:65 reporting/filters.py:44
 #: reporting/filters.py:87 reporting/forms.py:52 reporting/forms.py:178
-#: reporting/models.py:346 reporting/models.py:529
+#: reporting/models.py:346 reporting/models.py:532
 #: securityobjectives/forms.py:143 securityobjectives/forms.py:191
 #: securityobjectives/forms.py:228 securityobjectives/models.py:462
 msgid "Sectors"
@@ -236,7 +236,7 @@ msgid "Email address"
 msgstr "E-Mail-Adresse"
 
 #: governanceplatform/forms.py:43 incidents/models.py:1033
-#: securityobjectives/models.py:567
+#: reporting/models.py:404 securityobjectives/models.py:567
 msgid "Role"
 msgstr "Rolle"
 
@@ -370,7 +370,7 @@ msgstr ""
 #: governanceplatform/models.py:246 governanceplatform/models.py:285
 #: incidents/models.py:230 incidents/models.py:259 incidents/models.py:313
 #: reporting/filters.py:65 reporting/models.py:47 reporting/models.py:73
-#: reporting/models.py:99 reporting/models.py:516
+#: reporting/models.py:99 reporting/models.py:519
 #: securityobjectives/models.py:223
 msgid "Name"
 msgstr "Name"
@@ -404,7 +404,7 @@ msgstr "Ersteller"
 
 #: governanceplatform/models.py:80 governanceplatform/models.py:88
 #: incidents/admin.py:647 reporting/models.py:30 reporting/models.py:303
-#: reporting/models.py:585
+#: reporting/models.py:588
 msgid "Sector"
 msgstr "Sektor"
 
@@ -444,7 +444,6 @@ msgid "Types"
 msgstr "Typen"
 
 #: governanceplatform/models.py:191
-#| msgid "Sectors"
 msgid "sectors"
 msgstr ""
 
@@ -470,7 +469,7 @@ msgstr "E-Mail-Adresse für die Vorfallsmeldung"
 
 #: governanceplatform/models.py:278 governanceplatform/models.py:527
 #: governanceplatform/models.py:653 incidents/admin.py:705
-#: incidents/models.py:323 incidents/models.py:533 reporting/models.py:420
+#: incidents/models.py:323 incidents/models.py:533 reporting/models.py:423
 #: securityobjectives/models.py:259
 msgid "Regulator"
 msgstr "Regulierungsbehörde"
@@ -601,7 +600,7 @@ msgstr "Vorfallregeln"
 
 #: governanceplatform/models.py:803 incidents/models.py:920
 #: incidents/models.py:1030 incidents/models.py:1078 incidents/models.py:1168
-#: reporting/models.py:401 reporting/models.py:629
+#: reporting/models.py:401 reporting/models.py:632
 #: securityobjectives/models.py:564
 msgid "Timestamp"
 msgstr "Zeitstempel"
@@ -946,7 +945,7 @@ msgstr "Von"
 msgid "To"
 msgstr "Zu"
 
-#: incidents/globals.py:38 reporting/helpers.py:666
+#: incidents/globals.py:38 reporting/helpers.py:667
 msgid "Closed"
 msgstr "Geschlossen"
 
@@ -1096,7 +1095,7 @@ msgid "Incident notification workflow"
 msgstr "Workflow für die Vorfallmeldung"
 
 #: incidents/models.py:382 incidents/models.py:1064 incidents/models.py:1081
-#: incidents/models.py:1098 reporting/models.py:458
+#: incidents/models.py:1098 reporting/models.py:461
 #: securityobjectives/models.py:67 securityobjectives/models.py:322
 #: securityobjectives/models.py:352
 msgid "Position"
@@ -1238,7 +1237,8 @@ msgstr "Zeitablauf"
 msgid "Full username"
 msgstr "Vollständiger Benutzername"
 
-#: incidents/models.py:1034 securityobjectives/models.py:568
+#: incidents/models.py:1034 reporting/models.py:405
+#: securityobjectives/models.py:568
 msgid "Entity name"
 msgstr "Name der Entität"
 
@@ -1246,7 +1246,7 @@ msgstr "Name der Entität"
 msgid "Incident report processed"
 msgstr "Vorfallbericht bearbeitet"
 
-#: incidents/models.py:1050 reporting/models.py:410
+#: incidents/models.py:1050 reporting/models.py:413
 #: securityobjectives/models.py:575
 msgid "Action performed"
 msgstr "Aktion ausgeführt"
@@ -1263,7 +1263,7 @@ msgstr "Option für dir Fragekategorie"
 msgid "Mandatory"
 msgstr "Erforderlich"
 
-#: incidents/models.py:1105 reporting/models.py:506
+#: incidents/models.py:1105 reporting/models.py:509
 msgid "Updated at"
 msgstr "Aktualisiert am"
 
@@ -1370,7 +1370,6 @@ msgid "Current file"
 msgstr ""
 
 #: reporting/admin.py:99
-#| msgid "Download Center"
 msgid "Download"
 msgstr ""
 
@@ -1384,7 +1383,7 @@ msgstr "Jahr"
 msgid "JSON File"
 msgstr "JSON Datei"
 
-#: reporting/forms.py:33 reporting/models.py:24 reporting/models.py:575
+#: reporting/forms.py:33 reporting/models.py:24 reporting/models.py:578
 #: securityobjectives/forms.py:172 securityobjectives/models.py:389
 msgid "Company"
 msgstr "Unternehmen"
@@ -1394,29 +1393,25 @@ msgid "Only .docx files are allowed."
 msgstr ""
 
 #: reporting/forms.py:141
-#| msgid "Creator name"
 msgid "Project name"
 msgstr ""
 
-#: reporting/forms.py:153 reporting/models.py:426 reporting/models.py:524
+#: reporting/forms.py:153 reporting/models.py:429 reporting/models.py:527
 #: securityobjectives/admin.py:618 securityobjectives/admin.py:898
 #: securityobjectives/models.py:70 securityobjectives/models.py:307
 #: securityobjectives/models.py:408
 msgid "Standard"
 msgstr "Standard"
 
-#: reporting/forms.py:162 reporting/models.py:555
-#| msgid "Reference"
+#: reporting/forms.py:162 reporting/models.py:558
 msgid "Reference year"
 msgstr ""
 
 #: reporting/forms.py:172
-#| msgid "Year of submission"
 msgid "Year comparaison"
 msgstr ""
 
-#: reporting/forms.py:184 reporting/models.py:553
-#| msgid "Language settings"
+#: reporting/forms.py:184 reporting/models.py:556
 msgid "Languages"
 msgstr ""
 
@@ -1466,17 +1461,14 @@ msgid "Upward"
 msgstr ""
 
 #: reporting/globals.py:19
-#| msgid "Sector average"
 msgid "Sector ranking"
 msgstr ""
 
 #: reporting/globals.py:20
-#| msgid "Sectors"
 msgid "Sector scores"
 msgstr ""
 
 #: reporting/globals.py:21
-#| msgid "Operators"
 msgid "Operator scores"
 msgstr ""
 
@@ -1510,22 +1502,18 @@ msgid "Residual risk"
 msgstr "Restrisiko"
 
 #: reporting/globals.py:29
-#| msgid "Risk treatment"
 msgid "Treatment"
 msgstr ""
 
 #: reporting/globals.py:31
-#| msgid "Total of treated risks"
 msgid "Treated Risks"
 msgstr ""
 
 #: reporting/globals.py:32
-#| msgid "Untreated"
 msgid "Untreated Risks"
 msgstr ""
 
 #: reporting/globals.py:33
-#| msgid "Average of current risks"
 msgid "Average treated current risks"
 msgstr ""
 
@@ -1534,17 +1522,14 @@ msgid "High risks"
 msgstr ""
 
 #: reporting/globals.py:35
-#| msgid "Average of residual risks"
 msgid "Average high risks"
 msgstr ""
 
 #: reporting/globals.py:36
-#| msgid "Average of residual risks"
 msgid "Average residual risks"
 msgstr ""
 
 #: reporting/globals.py:37
-#| msgid "Residual risk"
 msgid "Reduced risks"
 msgstr ""
 
@@ -1553,12 +1538,10 @@ msgid "Rejected risks"
 msgstr ""
 
 #: reporting/globals.py:39
-#| msgid "Total of accepted risks"
 msgid "Accepted risks"
 msgstr ""
 
 #: reporting/globals.py:40
-#| msgid "Total of shared risks"
 msgid "Shared risks"
 msgstr ""
 
@@ -1567,7 +1550,6 @@ msgid "Recommendation"
 msgstr "Empfehlung"
 
 #: reporting/globals.py:42
-#| msgid "Deadline in hours"
 msgid "Deadline"
 msgstr ""
 
@@ -1577,7 +1559,6 @@ msgid "Status"
 msgstr "Status"
 
 #: reporting/globals.py:47
-#| msgid "Fail"
 msgid "Failed"
 msgstr ""
 
@@ -1593,23 +1574,23 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
-#: reporting/helpers.py:655
+#: reporting/helpers.py:656
 msgid "Postponed"
 msgstr "Aufgeschoben"
 
-#: reporting/helpers.py:661
+#: reporting/helpers.py:662
 msgid "To check"
 msgstr "Zu überprüfen"
 
-#: reporting/helpers.py:664
+#: reporting/helpers.py:665
 msgid "New"
 msgstr ""
 
-#: reporting/helpers.py:699
+#: reporting/helpers.py:700
 msgid "All services"
 msgstr "Alle Dienste"
 
-#: reporting/helpers.py:935 reporting/helpers.py:1034
+#: reporting/helpers.py:945 reporting/helpers.py:1044
 msgid "average"
 msgstr "Durchschnitt"
 
@@ -1618,7 +1599,7 @@ msgid "Comment"
 msgstr "Kommentar"
 
 #: reporting/models.py:57 reporting/models.py:83 reporting/models.py:109
-#: reporting/models.py:178 reporting/models.py:265 reporting/models.py:626
+#: reporting/models.py:178 reporting/models.py:265 reporting/models.py:629
 msgid "uuid"
 msgstr "uuid"
 
@@ -1754,23 +1735,23 @@ msgstr "Empfehlungen"
 msgid "Number of years to compare"
 msgstr "Anzahl der zu vergleichenden Jahre"
 
-#: reporting/models.py:312 reporting/models.py:534
+#: reporting/models.py:312 reporting/models.py:537
 msgid "High risk rate threshold"
 msgstr "Schwellenwert für hohe Risikoklasse"
 
-#: reporting/models.py:316 reporting/models.py:539
+#: reporting/models.py:316 reporting/models.py:542
 msgid "Ranking"
 msgstr "Rangliste"
 
-#: reporting/models.py:317 reporting/models.py:540
+#: reporting/models.py:317 reporting/models.py:543
 msgid "Top 3"
 msgstr "Top 3"
 
-#: reporting/models.py:317 reporting/models.py:540
+#: reporting/models.py:317 reporting/models.py:543
 msgid "Top 5"
 msgstr "Top 5"
 
-#: reporting/models.py:317 reporting/models.py:540
+#: reporting/models.py:317 reporting/models.py:543
 msgid "Top 10"
 msgstr "Top 10"
 
@@ -1778,11 +1759,11 @@ msgstr "Top 10"
 msgid "Security objectives excluded"
 msgstr "Ausgeschlossene Sicherheitsziele"
 
-#: reporting/models.py:326 reporting/models.py:431
+#: reporting/models.py:326 reporting/models.py:434
 msgid "Configurations"
 msgstr "Einstellungen"
 
-#: reporting/models.py:327 reporting/models.py:432
+#: reporting/models.py:327 reporting/models.py:435
 msgid "Configuration"
 msgstr "Konfiguration"
 
@@ -1826,113 +1807,101 @@ msgstr "Beobachtungsreihenfolge"
 msgid "User full name"
 msgstr "Vollständiger Name des Benutzers"
 
-#: reporting/models.py:447
+#: reporting/models.py:408 reporting/models.py:571 reporting/models.py:583
+#: reporting/models.py:622
+msgid "Project"
+msgstr ""
+
+#: reporting/models.py:450
 msgid "This regulator already has this standard configured."
 msgstr ""
 
-#: reporting/models.py:457 reporting/models.py:462
+#: reporting/models.py:460 reporting/models.py:465
 #: securityobjectives/admin.py:326 securityobjectives/models.py:25
 msgid "Color"
 msgstr ""
 
-#: reporting/models.py:461
+#: reporting/models.py:464
 msgid "Colors"
 msgstr ""
 
-#: reporting/models.py:475
-#| msgid "Language settings"
+#: reporting/models.py:478
 msgid "Language"
 msgstr ""
 
-#: reporting/models.py:478
-#| msgid "Filename"
+#: reporting/models.py:481
 msgid "File"
 msgstr ""
 
-#: reporting/models.py:483
+#: reporting/models.py:486
 msgid "Templates DOCX"
 msgstr ""
 
-#: reporting/models.py:484
+#: reporting/models.py:487
 msgid "Template DOCX"
 msgstr ""
 
-#: reporting/models.py:497
-#| msgid "Status"
+#: reporting/models.py:500
 msgid "Task Status"
 msgstr ""
 
-#: reporting/models.py:504
-#| msgid "Create account"
+#: reporting/models.py:507
 msgid "Created at"
 msgstr ""
 
-#: reporting/models.py:509
+#: reporting/models.py:512
 msgid "Author"
 msgstr ""
 
-#: reporting/models.py:532
-#| msgid "Year"
+#: reporting/models.py:535
 msgid "Years"
 msgstr ""
 
-#: reporting/models.py:549
-#| msgid "Export"
+#: reporting/models.py:552
 msgid "Export format"
 msgstr ""
 
-#: reporting/models.py:567
+#: reporting/models.py:570
 msgid "Projects"
 msgstr ""
 
-#: reporting/models.py:568 reporting/models.py:580 reporting/models.py:619
-msgid "Project"
-msgstr ""
-
-#: reporting/models.py:588
+#: reporting/models.py:591
 msgid "Is selected"
 msgstr ""
 
-#: reporting/models.py:590
-#| msgid "Security objectives"
+#: reporting/models.py:593
 msgid "Has security objectives"
 msgstr ""
 
-#: reporting/models.py:593
+#: reporting/models.py:596
 msgid "Has risk assessment"
 msgstr ""
 
-#: reporting/models.py:596
-#| msgid "Status"
+#: reporting/models.py:599
 msgid "Statistics"
 msgstr ""
 
-#: reporting/models.py:599
-#| msgid "Governance"
+#: reporting/models.py:602
 msgid "Governance report"
 msgstr ""
 
-#: reporting/models.py:628
+#: reporting/models.py:631
 msgid "Filename"
 msgstr "Dateiname"
 
 #: reporting/views.py:438
-#| msgid "The incident has been deleted."
 msgid "The project has been deleted."
 msgstr ""
 
 #: reporting/views.py:445
-#| msgid "No sector found"
 msgid "Project not found"
 msgstr ""
 
 #: reporting/views.py:460
-#| msgid "No sector found"
 msgid "No project found"
 msgstr ""
 
 #: reporting/views.py:465
-#| msgid "High risk rate threshold"
 msgid "Missing high risk rate threshold or ranking value"
 msgstr ""
 
@@ -1958,7 +1927,6 @@ msgid "No data found for risk report"
 msgstr "Keine Daten für Risikobericht gefunden"
 
 #: reporting/views.py:604
-#| msgid "No reporting data"
 msgid "No report template"
 msgstr ""
 
@@ -1967,12 +1935,10 @@ msgid "annual_report"
 msgstr ""
 
 #: reporting/views.py:644
-#| msgid "Report timeline timezone"
 msgid "Report is being generated."
 msgstr ""
 
 #: reporting/views.py:650
-#| msgid "Report an incident"
 msgid "Reports are being generated."
 msgstr ""
 
