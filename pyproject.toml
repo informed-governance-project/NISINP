@@ -80,6 +80,7 @@ optional = true
 sphinx-book-theme = "^1.0.1"
 sphinxcontrib-openapi = "^0.8.1"
 pydot = "^1.4.2"
+sphinx = "^9.1.0"
 
 [build-system]
 requires = ["poetry-core"]
