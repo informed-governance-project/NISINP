@@ -1,13 +1,18 @@
-Report generation
-==================
-
-Required Settings
------------------
+Administration Settings [**Regulator Admin**]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Security Objectives Maturity Levels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Define a color (in **HEX format**) for each maturity level.
+Define a color (in **HEX format**) for each maturity level. By default is ``#FFFFFF``
+
+.. figure:: _static/so_maturity_level_set_color.png
+   :alt: Set palette colors
+   :scale: 50 %
+   :align: center
+
+   Maturity level configuration
+
 
 **Example:**
 
@@ -16,11 +21,19 @@ Define a color (in **HEX format**) for each maturity level.
    #ed2939, #ffc000, #dde96d, #00b050
 
 Reporting Configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-Configure reporting settings for each **Security Standard**:
+Configure reporting settings for each **Security Standard**
 
-- A **DOCX template** must be provided for each supported language.
+
+.. figure:: _static/reporting_configuration.png
+   :alt: Reporting configuration
+   :align: center
+
+   Reporting configuration
+
+
+- A :ref:`DOCX_template` must be provided for each supported language.
 - Define a **color palette** used in chart series.
 
 By default, the following palette is applied:
@@ -35,27 +48,24 @@ By default, the following palette is applied:
 
    Default palette used for charts.
 
+
+.. _DOCX_template:
+
 DOCX Template
---------------
+~~~~~~~~~~~~~
 
 A sample DOCX template is available for testing:
 
 - :download:`DOCX template <_static/docx_test_template.docx>`
 - :download:`Rendered report example <_static/docx_test_template_rendered.docx>`
 
-See also :ref:`available_placeholders` for supported tags.
 
-
-.. _available_placeholders:
-
-Available Placeholder Tags
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Available Placeholder Tags**
 
 The following placeholders can be used inside the DOCX template.
 
-.. _context_tags:
 
-1. Context Tags
+1. **Context Tags**
 
 
 These tags are replaced with contextual data:
@@ -68,9 +78,8 @@ These tags are replaced with contextual data:
 - ``{{ top_ranking }}``
 
 
-.. _chart_tags:
 
-2. Chart Tags
+2. **Chart Tags**
 
 Use these placeholders to insert charts:
 
@@ -84,9 +93,7 @@ Use these placeholders to insert charts:
 - ``{{ chart_evolution_highest_risks }}``
 
 
-.. _table_tags:
-
-3. Table Tags
+3. **Table Tags**
 
 Use these placeholders to insert tables:
 
