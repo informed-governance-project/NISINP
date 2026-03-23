@@ -15,6 +15,7 @@ import django
 sys.path.insert(0, os.path.abspath(".."))
 os.environ["DJANGO_SETTINGS_MODULE"] = "governanceplatform.settings"
 os.environ["READTHEDOCS"] = "True"
+os.environ["DJANGO_CI"] = "True"
 django.setup()
 
 project = "NIS Incident Notification Platform"
