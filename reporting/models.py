@@ -490,7 +490,7 @@ class Template(models.Model):
 
     def __str__(self):
         languages = dict(settings.LANGUAGES)
-        return languages.get(self.language, self.language)
+        return str(languages.get(self.language, self.language))
 
 
 class Project(models.Model):
