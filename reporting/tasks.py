@@ -19,7 +19,6 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
-from lxml import etree
 
 from .globals import TRANSLATIONS_CONTEXT
 from .helpers import (
@@ -123,8 +122,8 @@ def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
                     continue
         title = extract_title_from_para(para)
         index = extract_index_from_para(para)
-        # in each ToC, empty the w:t after fldChar[separate] od PAGEREF
-        if title and (title in title_number or index in index_number):
+        # in each ToC, empty the w:t after fldChar[separate] of PAGEREF
+        if (title and title in title_number) or (index and index in index_number):
             for hyperlink in para.iter(qn("w:hyperlink")):
                 in_pageref_value = False
                 for r in hyperlink.iter(qn("w:r")):
@@ -201,89 +200,6 @@ def old_update_toc(file_path: str):
         check=True,
         timeout=30,
     )
-
-
-# dump ToC structure in libre office doc
-def dump_toc_structure(doc: Document, output_path: str = "toc_dump.txt"):
-    body = doc.element.body
-    paragraphs = list(body.iter(qn("w:p")))
-
-    in_toc = False
-    with open(output_path, "w", encoding="utf-8") as f:
-        for i, para in enumerate(paragraphs):
-            for instr in para.iter(qn("w:instrText")):
-                if "TOC" in (instr.text or ""):
-                    in_toc = True
-
-            if in_toc:
-                pStyle = para.find(".//" + qn("w:pStyle"))
-                style = (
-                    pStyle.get(qn("w:val"), "") if pStyle is not None else "NO_STYLE"
-                )
-                f.write(f"\n--- Para {i} | style: {style} ---\n")
-                f.write(etree.tostring(para, pretty_print=True).decode())
-
-                if (
-                    pStyle is not None
-                    and "TOC" not in style
-                    and "toc" not in style.lower()
-                ):
-                    if i > 0:
-                        in_toc = False
-                        break
-
-
-# remove page number in ToC in word document
-def remove_page_numbers_from_toc(doc: Document):
-    body = doc.element.body
-    paragraphs = list(body.iter(qn("w:p")))
-
-    in_toc = False
-
-    for para in paragraphs:
-        pStyle = para.find(".//" + qn("w:pStyle"))
-        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
-
-        # detect begining of ToC
-        if not in_toc:
-            for instr in para.iter(qn("w:instrText")):
-                if "TOC" in (instr.text or ""):
-                    in_toc = True
-                    break
-
-        if not in_toc:
-            continue
-
-        # Detect end of Toc paragraphe NO_STYLE with fldChar[end] of TOC global field
-        if not style_val.startswith("TOC") and not style_val.startswith("toc"):
-            has_toc_instr = any(
-                "TOC" in (instr.text or "") for instr in para.iter(qn("w:instrText"))
-            )
-            if not has_toc_instr:
-                # check if it's the fldChar[end] of global ToC
-                fld_chars = list(para.iter(qn("w:fldChar")))
-                if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
-                    break
-                # we continue
-                if not any(para.iter(qn("w:hyperlink"))):
-                    continue
-
-        # in each ToC, empty the w:t after fldChar[separate] od PAGEREF
-        for hyperlink in para.iter(qn("w:hyperlink")):
-            in_pageref_value = False
-            for r in hyperlink.iter(qn("w:r")):
-                fld_char = r.find(qn("w:fldChar"))
-                if fld_char is not None:
-                    fld_type = fld_char.get(qn("w:fldCharType"))
-                    if fld_type == "separate":
-                        in_pageref_value = True
-                    elif fld_type == "end":
-                        in_pageref_value = False
-
-                if in_pageref_value:
-                    t = r.find(qn("w:t"))
-                    if t is not None:
-                        t.text = ""
 
 
 @shared_task
