@@ -1,0 +1,79 @@
+services:
+  web:
+    container_name: ${SERIMA_ENVIRONMENT}-serima-web
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8888}:8888"
+    volumes:
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
+      - ../../files/docker-init.d/:/docker-init.d
+      - theme_data:/app/theme
+      - shared_dir:/app/tmp
+    restart: unless-stopped
+    depends_on:
+      - theme
+      - db
+    user: "33:33"
+
+  db:
+    image: postgres:15
+    container_name: ${SERIMA_ENVIRONMENT}-serima-db
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  theme:
+    container_name: ${SERIMA_ENVIRONMENT}-serima-theme
+    build:
+      context: https://github.com/informed-governance-project/default-theme.git#${THEME_VERSION:-main}
+      dockerfile: docker/Dockerfile
+    volumes:
+      - theme_data:/app/theme
+    restart: no
+
+  celery-worker:
+    container_name: ${SERIMA_ENVIRONMENT}-serima-celery-worker
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: .env
+    command: worker
+    volumes:
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
+      - theme_data:/app/theme
+      - shared_dir:/app/tmp
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+
+  celery-beat:
+    container_name: ${SERIMA_ENVIRONMENT}-serima-celery-beat
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: .env
+    command: beat
+    volumes:
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+      - celery-worker
+
+  redis:
+    container_name: ${SERIMA_ENVIRONMENT}-serima-redis
+    image: docker.io/redis:7-alpine
+    volumes:
+      - ../../files/redis/data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  theme_data:
+  shared_dir:
