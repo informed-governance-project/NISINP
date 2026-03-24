@@ -145,7 +145,7 @@ def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
                                 t.text = title_number[title]
 
 
-# extract the title of a docx paragraph
+# extract the index of a docx paragraph
 def extract_index_from_para(para):
     texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
 
@@ -163,7 +163,7 @@ def extract_index_from_para(para):
     return None
 
 
-# extract the index of a docx paragraph
+# extract the title of a docx paragraph
 def extract_title_from_para(para):
     texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
 
