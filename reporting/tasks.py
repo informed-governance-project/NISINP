@@ -35,11 +35,13 @@ from .helpers import (
 from .models import Configuration, GeneratedReport, Project, Template
 
 
+# extract the page number of a Openoffice XML
 def extract_toc_page_numbers_v2(doc_v2: Document) -> dict[str, str]:
     body = doc_v2.element.body
     paragraphs = list(body.iter(qn("w:p")))
 
-    results = dict()
+    results_title = dict()
+    results_index = dict()
 
     in_toc = False
 
@@ -76,16 +78,17 @@ def extract_toc_page_numbers_v2(doc_v2: Document) -> dict[str, str]:
                 if len(texts) >= 2:
                     before_last = texts[-2].text.strip()
                     last = texts[-1].text.strip()
-                    results[before_last] = last
+                    results_title[before_last] = last
+                    if len(texts) >= 3:
+                        index = texts[-3].text.strip()
+                        results_index[index] = last
 
-    return results
+    return [results_index, results_title]
 
 
 # replace ToC number of v1 by the v2
 def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
-    title_number = extract_toc_page_numbers_v2(doc_v2)
-    print("page numbers")
-    print(title_number)
+    index_number, title_number = extract_toc_page_numbers_v2(doc_v2)
 
     body = doc_v1.element.body
     paragraphs = list(body.iter(qn("w:p")))
@@ -119,8 +122,9 @@ def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
                 if not any(para.iter(qn("w:hyperlink"))):
                     continue
         title = extract_title_from_para(para)
+        index = extract_index_from_para(para)
         # in each ToC, empty the w:t after fldChar[separate] od PAGEREF
-        if title and title in title_number:
+        if title and (title in title_number or index in index_number):
             for hyperlink in para.iter(qn("w:hyperlink")):
                 in_pageref_value = False
                 for r in hyperlink.iter(qn("w:r")):
@@ -135,10 +139,31 @@ def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
                     if in_pageref_value:
                         t = r.find(qn("w:t"))
                         if t is not None:
-                            t.text = title_number[title]
+                            if index in index_number:
+                                t.text = index_number[index]
+                            elif title in title_number:
+                                t.text = title_number[title]
 
 
 # extract the title of a docx paragraph
+def extract_index_from_para(para):
+    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
+
+    if len(texts) < 2:
+        return None
+
+    # remove last (page number)
+    texts_no_page = texts[:-1]
+
+    # index = premier élément numérique du TOC
+    for t in texts_no_page:
+        if re.match(r"^\d+(\.\d+)*$", t):
+            return t
+
+    return None
+
+
+# extract the index of a docx paragraph
 def extract_title_from_para(para):
     texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
 
@@ -156,7 +181,6 @@ def extract_title_from_para(para):
 
     # real title = last one
     texte = " ".join(clean_texts)
-    print(texte)
     return " ".join(texte.split())
 
 
