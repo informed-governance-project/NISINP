@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 11:16+0100\n"
+"POT-Creation-Date: 2026-03-24 08:40+0100\n"
 "PO-Revision-Date: 2026-02-25 08:37+0000\n"
 "Last-Translator: Chris Frings <Chris.frings+RegAdmin@ilr.lu>\n"
 "Language: de\n"
@@ -47,7 +47,7 @@ msgstr "Entitäts-Kategorien"
 #: governanceplatform/admin.py:597 governanceplatform/models.py:81
 #: incidents/admin.py:564 incidents/admin.py:636 incidents/admin.py:955
 #: incidents/forms.py:658 incidents/models.py:47 incidents/models.py:330
-#: incidents/views.py:1119 reporting/admin.py:65 reporting/filters.py:44
+#: incidents/views.py:1119 reporting/admin.py:69 reporting/filters.py:44
 #: reporting/filters.py:87 reporting/forms.py:52 reporting/forms.py:178
 #: reporting/models.py:346 reporting/models.py:532
 #: securityobjectives/forms.py:143 securityobjectives/forms.py:191
@@ -576,7 +576,7 @@ msgid "Regulations"
 msgstr "Vorschriften"
 
 #: governanceplatform/models.py:736 incidents/forms.py:1110
-#: reporting/admin.py:110 reporting/forms.py:147
+#: reporting/admin.py:114 reporting/forms.py:147
 #: securityobjectives/models.py:264
 msgid "Regulation"
 msgstr "Verordnung"
@@ -1365,11 +1365,11 @@ msgstr "Datum der Entdeckung"
 msgid "Incident Timeline"
 msgstr "Vorfallverlauf"
 
-#: reporting/admin.py:92
+#: reporting/admin.py:96
 msgid "Current file"
 msgstr ""
 
-#: reporting/admin.py:99
+#: reporting/admin.py:103
 msgid "Download"
 msgstr ""
 
@@ -1408,7 +1408,7 @@ msgid "Reference year"
 msgstr ""
 
 #: reporting/forms.py:172
-msgid "Year comparaison"
+msgid "Comparison years"
 msgstr ""
 
 #: reporting/forms.py:184 reporting/models.py:556
