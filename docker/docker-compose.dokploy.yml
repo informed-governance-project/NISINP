@@ -8,8 +8,8 @@ services:
     ports:
       - "${APP_PORT:-8888}:8888"
     volumes:
-      - ../files/config/config.py:/app/governanceplatform/config.py:ro
-      - ../files/docker-init.d/:/docker-init.d
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
+      - ../../files/docker-init.d/:/docker-init.d
       - theme_data:/app/theme
       - shared_dir:/app/tmp
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     env_file: .env
     command: worker
     volumes:
-      - ../files/config/config.py:/app/governanceplatform/config.py:ro
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
       - theme_data:/app/theme
       - shared_dir:/app/tmp
     restart: unless-stopped
@@ -59,7 +59,7 @@ services:
     env_file: .env
     command: beat
     volumes:
-      - ../files/config/config.py:/app/governanceplatform/config.py:ro
+      - ../../files/config/config.py:/app/governanceplatform/config.py:ro
     restart: unless-stopped
     depends_on:
       - redis
@@ -70,7 +70,7 @@ services:
     container_name: ${SERIMA_ENVIRONMENT}-serima-redis
     image: docker.io/redis:7-alpine
     volumes:
-      - ../files/redis/data:/data
+      - ../../files/redis/data:/data
     restart: unless-stopped
 
 volumes:
