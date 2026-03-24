@@ -29,7 +29,7 @@ services:
   theme:
     container_name: ${SERIMA_ENVIRONMENT}-serima-theme
     build:
-      context: https://github.com/informed-governance-project/default-theme.git#${THEME_VERSION:-main}
+      context: ${THEME_VERSION}
       dockerfile: docker/Dockerfile
     volumes:
       - theme_data:/app/theme
