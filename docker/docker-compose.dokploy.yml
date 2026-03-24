@@ -29,8 +29,9 @@ services:
   theme:
     container_name: ${SERIMA_ENVIRONMENT}-serima-theme
     build:
-      context: ${THEME_VERSION}
+      context: ${THEME_REPO}#${THEME_VERSION}
       dockerfile: docker/Dockerfile
+      no_cache: true
     volumes:
       - theme_data:/app/theme
     restart: no
