@@ -2,7 +2,7 @@ services:
   web:
     container_name: ${SERIMA_ENVIRONMENT}-serima-web
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
     env_file: .env
     ports:
@@ -38,7 +38,7 @@ services:
   celery-worker:
     container_name: ${SERIMA_ENVIRONMENT}-serima-celery-worker
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
     env_file: .env
     command: worker
@@ -54,7 +54,7 @@ services:
   celery-beat:
     container_name: ${SERIMA_ENVIRONMENT}-serima-celery-beat
     build:
-      context: .
+      context: ..
       dockerfile: docker/Dockerfile
     env_file: .env
     command: beat
