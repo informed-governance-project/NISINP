@@ -1,7 +1,10 @@
 import base64
+import copy
 import datetime
 import os
+import re
 import shutil
+import subprocess
 import uuid
 import zipfile
 from io import BytesIO
@@ -13,8 +16,10 @@ from django.contrib.auth import get_user_model
 from django.utils import formats
 from django.utils.translation import activate
 from docx import Document
+from docx.oxml.ns import qn
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
+from lxml import etree
 
 from .globals import TRANSLATIONS_CONTEXT
 from .helpers import (
@@ -28,6 +33,233 @@ from .helpers import (
     redistribute_column_widths_proportional,
 )
 from .models import Configuration, GeneratedReport, Project, Template
+
+
+def extract_toc_page_numbers_v2(doc_v2: Document) -> dict[str, str]:
+    body = doc_v2.element.body
+    paragraphs = list(body.iter(qn("w:p")))
+
+    results = dict()
+
+    in_toc = False
+
+    for para in paragraphs:
+        pStyle = para.find(".//" + qn("w:pStyle"))
+        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
+
+        if not in_toc:
+            for instr in para.iter(qn("w:instrText")):
+                if "TOC" in (instr.text or ""):
+                    in_toc = True
+                    break
+
+        if not in_toc:
+            continue
+
+        # end of TOC : fldChar[end] on a non-TOC para
+        if not style_val.upper().startswith("TOC"):
+            fld_chars = list(para.iter(qn("w:fldChar")))
+            if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
+                break
+            # Para without style TOC but with fldChar end in the last hyperlink
+            for hl in para.iter(qn("w:hyperlink")):
+                for r in hl.iter(qn("w:r")):
+                    fc = r.find(qn("w:fldChar"))
+                    if fc is not None and fc.get(qn("w:fldCharType")) == "end":
+                        in_toc = False
+                        break
+
+        for hyperlink in para.iter(qn("w:hyperlink")):
+            for r in hyperlink.iter(qn("w:r")):
+                texts = list(r.iter(qn("w:t")))
+
+                if len(texts) >= 2:
+                    before_last = texts[-2].text.strip()
+                    last = texts[-1].text.strip()
+                    results[before_last] = last
+
+    return results
+
+
+# replace ToC number of v1 by the v2
+def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
+    title_number = extract_toc_page_numbers_v2(doc_v2)
+    print("page numbers")
+    print(title_number)
+
+    body = doc_v1.element.body
+    paragraphs = list(body.iter(qn("w:p")))
+    in_toc = False
+
+    for para in paragraphs:
+        title = None
+        pStyle = para.find(".//" + qn("w:pStyle"))
+        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
+
+        if not in_toc:
+            for instr in para.iter(qn("w:instrText")):
+                if "TOC" in (instr.text or ""):
+                    in_toc = True
+                    break
+
+        if not in_toc:
+            continue
+
+        # Detect end of Toc paragraphe NO_STYLE with fldChar[end] of TOC global field
+        if not style_val.startswith("TOC") and not style_val.startswith("toc"):
+            has_toc_instr = any(
+                "TOC" in (instr.text or "") for instr in para.iter(qn("w:instrText"))
+            )
+            if not has_toc_instr:
+                # check if it's the fldChar[end] of global ToC
+                fld_chars = list(para.iter(qn("w:fldChar")))
+                if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
+                    break
+                # we continue
+                if not any(para.iter(qn("w:hyperlink"))):
+                    continue
+        title = extract_title_from_para(para)
+        # in each ToC, empty the w:t after fldChar[separate] od PAGEREF
+        if title and title in title_number:
+            for hyperlink in para.iter(qn("w:hyperlink")):
+                in_pageref_value = False
+                for r in hyperlink.iter(qn("w:r")):
+                    fld_char = r.find(qn("w:fldChar"))
+                    if fld_char is not None:
+                        fld_type = fld_char.get(qn("w:fldCharType"))
+                        if fld_type == "separate":
+                            in_pageref_value = True
+                        elif fld_type == "end":
+                            in_pageref_value = False
+
+                    if in_pageref_value:
+                        t = r.find(qn("w:t"))
+                        if t is not None:
+                            t.text = title_number[title]
+
+
+# extract the title of a docx paragraph
+def extract_title_from_para(para):
+    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
+
+    if len(texts) < 2:
+        return None
+
+    # remove the last (page number)
+    texts_no_page = texts[:-1]
+
+    # remove the begning (ex : 1.2.3)
+    clean_texts = [t for t in texts_no_page if not re.match(r"^\d+(\.\d+)*$", t)]
+
+    if not clean_texts:
+        return None
+
+    # real title = last one
+    texte = " ".join(clean_texts)
+    print(texte)
+    return " ".join(texte.split())
+
+
+# update page number with libre office
+def old_update_toc(file_path: str):
+    """
+    Update table of content in docx
+    """
+
+    cmd = [
+        "/usr/bin/python3",
+        "/home/monarc/governanceplatform/reporting/scripts/update_toc_docx.py",
+        file_path,
+    ]
+
+    subprocess.run(
+        cmd,
+        check=True,
+        timeout=30,
+    )
+
+
+# dump ToC structure in libre office doc
+def dump_toc_structure(doc: Document, output_path: str = "toc_dump.txt"):
+    body = doc.element.body
+    paragraphs = list(body.iter(qn("w:p")))
+
+    in_toc = False
+    with open(output_path, "w", encoding="utf-8") as f:
+        for i, para in enumerate(paragraphs):
+            for instr in para.iter(qn("w:instrText")):
+                if "TOC" in (instr.text or ""):
+                    in_toc = True
+
+            if in_toc:
+                pStyle = para.find(".//" + qn("w:pStyle"))
+                style = (
+                    pStyle.get(qn("w:val"), "") if pStyle is not None else "NO_STYLE"
+                )
+                f.write(f"\n--- Para {i} | style: {style} ---\n")
+                f.write(etree.tostring(para, pretty_print=True).decode())
+
+                if (
+                    pStyle is not None
+                    and "TOC" not in style
+                    and "toc" not in style.lower()
+                ):
+                    if i > 0:
+                        in_toc = False
+                        break
+
+
+# remove page number in ToC in word document
+def remove_page_numbers_from_toc(doc: Document):
+    body = doc.element.body
+    paragraphs = list(body.iter(qn("w:p")))
+
+    in_toc = False
+
+    for para in paragraphs:
+        pStyle = para.find(".//" + qn("w:pStyle"))
+        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
+
+        # detect begining of ToC
+        if not in_toc:
+            for instr in para.iter(qn("w:instrText")):
+                if "TOC" in (instr.text or ""):
+                    in_toc = True
+                    break
+
+        if not in_toc:
+            continue
+
+        # Detect end of Toc paragraphe NO_STYLE with fldChar[end] of TOC global field
+        if not style_val.startswith("TOC") and not style_val.startswith("toc"):
+            has_toc_instr = any(
+                "TOC" in (instr.text or "") for instr in para.iter(qn("w:instrText"))
+            )
+            if not has_toc_instr:
+                # check if it's the fldChar[end] of global ToC
+                fld_chars = list(para.iter(qn("w:fldChar")))
+                if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
+                    break
+                # we continue
+                if not any(para.iter(qn("w:hyperlink"))):
+                    continue
+
+        # in each ToC, empty the w:t after fldChar[separate] od PAGEREF
+        for hyperlink in para.iter(qn("w:hyperlink")):
+            in_pageref_value = False
+            for r in hyperlink.iter(qn("w:r")):
+                fld_char = r.find(qn("w:fldChar"))
+                if fld_char is not None:
+                    fld_type = fld_char.get(qn("w:fldCharType"))
+                    if fld_type == "separate":
+                        in_pageref_value = True
+                    elif fld_type == "end":
+                        in_pageref_value = False
+
+                if in_pageref_value:
+                    t = r.find(qn("w:t"))
+                    if t is not None:
+                        t.text = ""
 
 
 @shared_task
@@ -275,6 +507,19 @@ def generate_pdf_task(data):
     if not docx_path.exists():
         return
     try:
+        doc = Document(str(docx_path))
+        # copy the current doc
+        doc2 = copy.deepcopy(doc)
+        doc2.save(str(docx_path.with_suffix(".lo.docx")))
+        # update number
+        old_update_toc(str(docx_path.with_suffix(".lo.docx")))
+
+        doc = Document(str(docx_path))
+        doc2 = Document(str(docx_path.with_suffix(".lo.docx")))
+
+        # replace with the correct number
+        replace_toc_page_numbers(doc, doc2)
+        doc.save(str(docx_path))
         pdf_path = convert_docx_to_pdf(str(docx_path))
         return {"file_path": str(pdf_path), "project_id": project_id}
 
