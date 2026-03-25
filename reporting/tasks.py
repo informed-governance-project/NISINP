@@ -464,8 +464,8 @@ def generate_pdf_task(data):
         return {"file_path": str(pdf_path), "project_id": project_id}
 
     finally:
-        if docx_path.exists():
-            docx_path.unlink(missing_ok=True)
+        docx_path.unlink(missing_ok=True)
+        docx_path.with_suffix(".lo.docx").unlink(missing_ok=True)
 
 
 @shared_task
