@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-25 09:00+0100\n"
 "PO-Revision-Date: 2026-03-25 14:12+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1362,7 +1362,7 @@ msgstr ""
 
 #: reporting/admin.py:103
 msgid "Download"
-msgstr ""
+msgstr "Downloaden"
 
 #: reporting/filters.py:26 reporting/forms.py:44 reporting/globals.py:30
 #: securityobjectives/forms.py:136 securityobjectives/forms.py:183
@@ -1898,7 +1898,7 @@ msgstr ""
 
 #: reporting/views.py:477
 msgid "Nothing selected"
-msgstr ""
+msgstr "Niets geselecteerd"
 
 #: reporting/views.py:515
 #, python-format
