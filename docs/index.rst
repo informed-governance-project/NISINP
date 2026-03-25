@@ -36,6 +36,7 @@ Incident Notification Module
    modules
    architecture
    api-v1
+   exemple
 
 
 .. toctree::
