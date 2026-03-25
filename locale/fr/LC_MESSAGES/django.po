@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-25 09:00+0100\n"
 "PO-Revision-Date: 2026-03-25 13:18+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -445,7 +445,7 @@ msgstr "Types"
 
 #: governanceplatform/models.py:191
 msgid "sectors"
-msgstr ""
+msgstr "secteurs"
 
 #: governanceplatform/models.py:239 governanceplatform/models.py:596
 #: incidents/models.py:525 reporting/filters.py:22
@@ -1363,11 +1363,11 @@ msgstr "Chronologie de l’incident"
 
 #: reporting/admin.py:96
 msgid "Current file"
-msgstr ""
+msgstr "Fichier actuel"
 
 #: reporting/admin.py:103
 msgid "Download"
-msgstr ""
+msgstr "Télécharger"
 
 #: reporting/filters.py:26 reporting/forms.py:44 reporting/globals.py:30
 #: securityobjectives/forms.py:136 securityobjectives/forms.py:183
@@ -1386,11 +1386,11 @@ msgstr "Entreprise"
 
 #: reporting/forms.py:130
 msgid "Only .docx files are allowed."
-msgstr ""
+msgstr "Seuls les fichiers .docx sont autorisés."
 
 #: reporting/forms.py:141
 msgid "Project name"
-msgstr ""
+msgstr "Nom du projet"
 
 #: reporting/forms.py:153 reporting/models.py:429 reporting/models.py:527
 #: securityobjectives/admin.py:618 securityobjectives/admin.py:898
@@ -1409,7 +1409,7 @@ msgstr "Années de comparaison"
 
 #: reporting/forms.py:184 reporting/models.py:556
 msgid "Languages"
-msgstr ""
+msgstr "Langues"
 
 #: reporting/globals.py:4
 msgid "Reduction"
@@ -1438,7 +1438,7 @@ msgstr "Domaine"
 
 #: reporting/globals.py:13
 msgid "Evolution"
-msgstr ""
+msgstr "Évolution"
 
 #: reporting/globals.py:14
 msgid "Sector average"
@@ -1446,27 +1446,27 @@ msgstr "Moyenne du secteur"
 
 #: reporting/globals.py:16
 msgid "Downward"
-msgstr ""
+msgstr "Baisse"
 
 #: reporting/globals.py:17
 msgid "Stable"
-msgstr ""
+msgstr "Stable"
 
 #: reporting/globals.py:18
 msgid "Upward"
-msgstr ""
+msgstr "Hausse"
 
 #: reporting/globals.py:19
 msgid "Sector ranking"
-msgstr ""
+msgstr "Classement par secteur"
 
 #: reporting/globals.py:20
 msgid "Sector scores"
-msgstr ""
+msgstr "Résultats du secteur"
 
 #: reporting/globals.py:21
 msgid "Operator scores"
-msgstr ""
+msgstr "Résultats de l'opérateur"
 
 #: reporting/globals.py:22 securityobjectives/models.py:122
 msgid "Objective"
@@ -1474,7 +1474,7 @@ msgstr "Objectif"
 
 #: reporting/globals.py:23
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: reporting/globals.py:24 reporting/models.py:61 reporting/models.py:126
 #: reporting/models.py:188
@@ -1491,7 +1491,7 @@ msgstr "Vulnérabilité"
 
 #: reporting/globals.py:27
 msgid "Current risk (max)"
-msgstr ""
+msgstr "Risque actuel (max.)"
 
 #: reporting/globals.py:28 reporting/models.py:207
 msgid "Residual risk"
@@ -1499,47 +1499,47 @@ msgstr "Risque résiduel"
 
 #: reporting/globals.py:29
 msgid "Treatment"
-msgstr ""
+msgstr "Traitement"
 
 #: reporting/globals.py:31
 msgid "Treated Risks"
-msgstr ""
+msgstr "Risques traités"
 
 #: reporting/globals.py:32
 msgid "Untreated Risks"
-msgstr ""
+msgstr "Risques non traités"
 
 #: reporting/globals.py:33
 msgid "Average treated current risks"
-msgstr ""
+msgstr "Moyenne des risques courants traités"
 
 #: reporting/globals.py:34
 msgid "High risks"
-msgstr ""
+msgstr "Risques élevés"
 
 #: reporting/globals.py:35
 msgid "Average high risks"
-msgstr ""
+msgstr "Moyenne des risques élevés"
 
 #: reporting/globals.py:36
 msgid "Average residual risks"
-msgstr ""
+msgstr "Moyenne des risques résiduels"
 
 #: reporting/globals.py:37
 msgid "Reduced risks"
-msgstr ""
+msgstr "Risques réduits"
 
 #: reporting/globals.py:38
 msgid "Rejected risks"
-msgstr ""
+msgstr "Risques rejetés"
 
 #: reporting/globals.py:39
 msgid "Accepted risks"
-msgstr ""
+msgstr "Risques acceptés"
 
 #: reporting/globals.py:40
 msgid "Shared risks"
-msgstr ""
+msgstr "Risques partagés"
 
 #: reporting/globals.py:41 reporting/models.py:274
 msgid "Recommendation"
@@ -1547,7 +1547,7 @@ msgstr "Recommandation"
 
 #: reporting/globals.py:42
 msgid "Deadline"
-msgstr ""
+msgstr "Date limite"
 
 #: reporting/globals.py:43 securityobjectives/models.py:428
 #: securityobjectives/models.py:532
@@ -1556,7 +1556,7 @@ msgstr "Statut"
 
 #: reporting/globals.py:47
 msgid "Failed"
-msgstr ""
+msgstr "Échoué"
 
 #: reporting/globals.py:48
 msgid "Successful"
@@ -1564,11 +1564,11 @@ msgstr ""
 
 #: reporting/globals.py:49
 msgid "Aborted"
-msgstr ""
+msgstr "Annulé"
 
 #: reporting/globals.py:50
 msgid "Running"
-msgstr ""
+msgstr "En cours"
 
 #: reporting/helpers.py:656
 msgid "Postponed"
@@ -1580,7 +1580,7 @@ msgstr "A vérifier"
 
 #: reporting/helpers.py:665
 msgid "New"
-msgstr ""
+msgstr "Nouveau"
 
 #: reporting/helpers.py:700
 msgid "All services"
@@ -1806,80 +1806,80 @@ msgstr "Nom complet de l'utilisateur"
 #: reporting/models.py:408 reporting/models.py:571 reporting/models.py:583
 #: reporting/models.py:622
 msgid "Project"
-msgstr ""
+msgstr "Projet"
 
 #: reporting/models.py:450
 msgid "This regulator already has this standard configured."
-msgstr ""
+msgstr "Ce standard est déjà configuré pour ce régulateur."
 
 #: reporting/models.py:460 reporting/models.py:465
 #: securityobjectives/admin.py:326 securityobjectives/models.py:25
 msgid "Color"
-msgstr ""
+msgstr "Couleur"
 
 #: reporting/models.py:464
 msgid "Colors"
-msgstr ""
+msgstr "Couleurs"
 
 #: reporting/models.py:478
 msgid "Language"
-msgstr ""
+msgstr "Langue"
 
 #: reporting/models.py:481
 msgid "File"
-msgstr ""
+msgstr "Fichier"
 
 #: reporting/models.py:486
 msgid "Templates DOCX"
-msgstr ""
+msgstr "Formulaire DOCX"
 
 #: reporting/models.py:487
 msgid "Template DOCX"
-msgstr ""
+msgstr "Formulaire DOCX"
 
 #: reporting/models.py:500
 msgid "Task Status"
-msgstr ""
+msgstr "Statut de la tâche"
 
 #: reporting/models.py:507
 msgid "Created at"
-msgstr ""
+msgstr "Créé le"
 
 #: reporting/models.py:512
 msgid "Author"
-msgstr ""
+msgstr "Auteur"
 
 #: reporting/models.py:535
 msgid "Years"
-msgstr ""
+msgstr "Années"
 
 #: reporting/models.py:552
 msgid "Export format"
-msgstr ""
+msgstr "Format d'export"
 
 #: reporting/models.py:570
 msgid "Projects"
-msgstr ""
+msgstr "Projets"
 
 #: reporting/models.py:591
 msgid "Is selected"
-msgstr ""
+msgstr "Est sélectionné"
 
 #: reporting/models.py:593
 msgid "Has security objectives"
-msgstr ""
+msgstr "A des objectifs de sécurité"
 
 #: reporting/models.py:596
 msgid "Has risk assessment"
-msgstr ""
+msgstr "A une analyse de risques"
 
 #: reporting/models.py:599
 msgid "Statistics"
-msgstr ""
+msgstr "Statistiques"
 
 #: reporting/models.py:602
 msgid "Governance report"
-msgstr ""
+msgstr "Gouvernance"
 
 #: reporting/models.py:631
 msgid "Filename"
@@ -1887,23 +1887,23 @@ msgstr "Nom du fichier"
 
 #: reporting/views.py:438
 msgid "The project has been deleted."
-msgstr ""
+msgstr "Le projet a été supprimé."
 
 #: reporting/views.py:445
 msgid "Project not found"
-msgstr ""
+msgstr "Projet introuvable"
 
 #: reporting/views.py:460
 msgid "No project found"
-msgstr ""
+msgstr "Aucun projet trouvé"
 
 #: reporting/views.py:465
 msgid "Missing high risk rate threshold or ranking value"
-msgstr ""
+msgstr "Absence de seuil de risque élevé ou de valeur de classement"
 
 #: reporting/views.py:477
 msgid "Nothing selected"
-msgstr ""
+msgstr "Rien de sélectionné"
 
 #: reporting/views.py:515
 #, python-format
@@ -1924,19 +1924,19 @@ msgstr "Aucune donnée trouvée pour le rapport sur les risques"
 
 #: reporting/views.py:604
 msgid "No report template"
-msgstr ""
+msgstr "Pas de modèle de rapport"
 
 #: reporting/views.py:624
 msgid "annual_report"
-msgstr ""
+msgstr "rapport_annuel"
 
 #: reporting/views.py:644
 msgid "Report is being generated."
-msgstr ""
+msgstr "Rapports en cours de génération."
 
 #: reporting/views.py:650
 msgid "Reports are being generated."
-msgstr ""
+msgstr "Rapports en cours de génération"
 
 #: reporting/views.py:847
 msgid "Recommendations have been added successfully"
@@ -2024,7 +2024,7 @@ msgstr "Niveau"
 
 #: securityobjectives/models.py:26
 msgid "Color used in reporting module (hexadecimal format)"
-msgstr ""
+msgstr "Couleurs utilisées dans le module de rapport (format hexadécimal)"
 
 #: securityobjectives/models.py:49
 msgid "Maturity levels"
@@ -2048,7 +2048,7 @@ msgstr "est archivé"
 
 #: securityobjectives/models.py:194
 msgid "Security Objectives"
-msgstr "Objectifs de Sécurité"
+msgstr "Objectifs de sécurité"
 
 #: securityobjectives/models.py:220
 msgid "Available placeholders: #SO_REFERENCE#"
