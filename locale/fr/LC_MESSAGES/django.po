@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 08:40+0100\n"
+"POT-Creation-Date: 2026-03-25 09:00+0100\n"
 "PO-Revision-Date: 2026-03-24 07:37+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language: fr\n"
@@ -1401,7 +1401,7 @@ msgid "Standard"
 msgstr "Standard"
 
 #: reporting/forms.py:162 reporting/models.py:558
-msgid "Reference year"
+msgid "Base year"
 msgstr ""
 
 #: reporting/forms.py:172
@@ -1560,7 +1560,7 @@ msgid "Failed"
 msgstr ""
 
 #: reporting/globals.py:48
-msgid "Successed"
+msgid "Successful"
 msgstr ""
 
 #: reporting/globals.py:49
