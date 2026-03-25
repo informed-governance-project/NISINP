@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-25 09:00+0100\n"
 "PO-Revision-Date: 2026-03-25 14:12+0000\n"
-"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
+"Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1454,7 +1454,7 @@ msgstr "Rückgang"
 
 #: reporting/globals.py:17
 msgid "Stable"
-msgstr "Konstant"
+msgstr "Stabil"
 
 #: reporting/globals.py:18
 msgid "Upward"
@@ -1466,7 +1466,7 @@ msgstr "Rangliste nach Sektoren"
 
 #: reporting/globals.py:20
 msgid "Sector scores"
-msgstr "Sektorergebnisse"
+msgstr "Sektorbewertungen"
 
 #: reporting/globals.py:21
 msgid "Operator scores"
