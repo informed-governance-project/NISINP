@@ -555,7 +555,7 @@ class Project(models.Model):
     selected_languages = ArrayField(
         models.CharField(), verbose_name=_("Languages"), default=list
     )
-    reference_year = models.PositiveIntegerField(verbose_name=_("Reference year"))
+    reference_year = models.PositiveIntegerField(verbose_name=_("Base year"))
 
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})

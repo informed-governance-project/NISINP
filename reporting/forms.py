@@ -159,7 +159,7 @@ class CreateProjectForm(forms.ModelForm):
             for year in range(timezone.now().year - 4, timezone.now().year + 1)
         ][::-1],
         required=True,
-        label=_("Reference year"),
+        label=_("Base year"),
     )
 
     years = forms.MultipleChoiceField(

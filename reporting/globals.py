@@ -45,7 +45,7 @@ TRANSLATIONS_CONTEXT = {
 
 CELERY_TASK_STATUS = [
     ("FAIL", _("Failed")),
-    ("DONE", _("Successed")),
+    ("DONE", _("Successful")),
     ("ABORT", _("Aborted")),
     ("RUNNING", _("Running")),
 ]
