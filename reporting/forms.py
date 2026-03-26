@@ -117,9 +117,10 @@ class TemplateAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["language"] = forms.ChoiceField(
-            choices=settings.LANGUAGES,
-        )
+
+        languages_choices = [(code, _(name)) for code, name in settings.LANGUAGES]
+
+        self.fields["language"] = forms.ChoiceField(choices=languages_choices)
 
     def clean_template_file(self):
         file = self.cleaned_data.get("template_file")
@@ -209,7 +210,9 @@ class CreateProjectForm(forms.ModelForm):
         is_copy = kwargs.pop("is_copy", False)
         super().__init__(*args, **kwargs)
 
-        self.fields["selected_languages"].choices = settings.LANGUAGES
+        languages_choices = [(code, _(name)) for code, name in settings.LANGUAGES]
+
+        self.fields["selected_languages"].choices = languages_choices
 
         regulation_qs = choices.get("regulations", Regulation.objects.all())
         standard_qs = choices.get("standards", Standard.objects.all())

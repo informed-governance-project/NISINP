@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-25 09:00+0100\n"
-"PO-Revision-Date: 2026-03-25 08:08+0000\n"
+"POT-Creation-Date: 2026-03-26 09:24+0100\n"
+"PO-Revision-Date: 2026-03-26 08:34+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -49,7 +49,7 @@ msgstr "Categorieën van entiteiten"
 #: incidents/admin.py:564 incidents/admin.py:636 incidents/admin.py:955
 #: incidents/forms.py:658 incidents/models.py:47 incidents/models.py:330
 #: incidents/views.py:1119 reporting/admin.py:69 reporting/filters.py:44
-#: reporting/filters.py:87 reporting/forms.py:52 reporting/forms.py:178
+#: reporting/filters.py:87 reporting/forms.py:53 reporting/forms.py:185
 #: reporting/models.py:346 reporting/models.py:532
 #: securityobjectives/forms.py:143 securityobjectives/forms.py:191
 #: securityobjectives/forms.py:228 securityobjectives/models.py:462
@@ -570,7 +570,7 @@ msgid "Regulations"
 msgstr "Regelgevingen"
 
 #: governanceplatform/models.py:736 incidents/forms.py:1110
-#: reporting/admin.py:114 reporting/forms.py:147
+#: reporting/admin.py:114 reporting/forms.py:154
 #: securityobjectives/models.py:264
 msgid "Regulation"
 msgstr "Regelgeving"
@@ -1362,47 +1362,47 @@ msgstr ""
 
 #: reporting/admin.py:103
 msgid "Download"
-msgstr ""
+msgstr "Downloaden"
 
-#: reporting/filters.py:26 reporting/forms.py:44 reporting/globals.py:30
+#: reporting/filters.py:26 reporting/forms.py:45 reporting/globals.py:30
 #: securityobjectives/forms.py:136 securityobjectives/forms.py:183
 #: securityobjectives/forms.py:220
 msgid "Year"
 msgstr "Jaar"
 
-#: reporting/forms.py:27
+#: reporting/forms.py:28
 msgid "JSON File"
 msgstr "JSON-bestand"
 
-#: reporting/forms.py:33 reporting/models.py:24 reporting/models.py:578
+#: reporting/forms.py:34 reporting/models.py:24 reporting/models.py:578
 #: securityobjectives/forms.py:172 securityobjectives/models.py:389
 msgid "Company"
 msgstr "Onderneming"
 
-#: reporting/forms.py:130
+#: reporting/forms.py:137
 msgid "Only .docx files are allowed."
 msgstr ""
 
-#: reporting/forms.py:141
+#: reporting/forms.py:148
 msgid "Project name"
 msgstr ""
 
-#: reporting/forms.py:153 reporting/models.py:429 reporting/models.py:527
+#: reporting/forms.py:160 reporting/models.py:429 reporting/models.py:527
 #: securityobjectives/admin.py:618 securityobjectives/admin.py:898
 #: securityobjectives/models.py:70 securityobjectives/models.py:307
 #: securityobjectives/models.py:408
 msgid "Standard"
 msgstr "Norm"
 
-#: reporting/forms.py:162 reporting/models.py:558
+#: reporting/forms.py:169 reporting/models.py:558
 msgid "Base year"
 msgstr ""
 
-#: reporting/forms.py:172
+#: reporting/forms.py:179
 msgid "Comparison years"
 msgstr ""
 
-#: reporting/forms.py:184 reporting/models.py:556
+#: reporting/forms.py:191 reporting/models.py:556
 msgid "Languages"
 msgstr ""
 
@@ -1898,7 +1898,7 @@ msgstr ""
 
 #: reporting/views.py:477
 msgid "Nothing selected"
-msgstr ""
+msgstr "Niets geselecteerd"
 
 #: reporting/views.py:515
 #, python-format
