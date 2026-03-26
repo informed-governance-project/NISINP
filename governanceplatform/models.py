@@ -185,6 +185,11 @@ class Company(models.Model):
         verbose_name=_("Entity categories"),
         blank=True,
     )
+    sectors = models.ManyToManyField(
+        Sector,
+        verbose_name=_("sectors"),
+        blank=True,
+    )
 
     def __str__(self):
         return self.name
