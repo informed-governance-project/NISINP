@@ -191,7 +191,7 @@ def old_update_toc(file_path: str):
 
     cmd = [
         "/usr/bin/python3",
-        "/home/monarc/governanceplatform/reporting/scripts/update_toc_docx.py",
+        "reporting/scripts/update_toc_docx.py",
         file_path,
     ]
 
