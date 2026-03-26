@@ -1,5 +1,6 @@
 import base64
-import copy
+
+# import copy
 import datetime
 import os
 import re
@@ -447,19 +448,19 @@ def generate_pdf_task(data):
     if not docx_path.exists():
         return
     try:
-        doc = Document(str(docx_path))
+        # doc = Document(str(docx_path))
         # copy the current doc
-        doc2 = copy.deepcopy(doc)
-        doc2.save(str(docx_path.with_suffix(".lo.docx")))
+        # doc2 = copy.deepcopy(doc)
+        # doc2.save(str(docx_path.with_suffix(".lo.docx")))
         # update number
-        old_update_toc(str(docx_path.with_suffix(".lo.docx")))
+        # old_update_toc(str(docx_path.with_suffix(".lo.docx")))
 
-        doc = Document(str(docx_path))
-        doc2 = Document(str(docx_path.with_suffix(".lo.docx")))
+        # doc = Document(str(docx_path))
+        # doc2 = Document(str(docx_path.with_suffix(".lo.docx")))
 
         # replace with the correct number
-        replace_toc_page_numbers(doc, doc2)
-        doc.save(str(docx_path))
+        # replace_toc_page_numbers(doc, doc2)
+        # doc.save(str(docx_path))
         pdf_path = convert_docx_to_pdf(str(docx_path))
         return {"file_path": str(pdf_path), "project_id": project_id}
 
