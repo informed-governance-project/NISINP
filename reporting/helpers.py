@@ -1550,7 +1550,7 @@ def get_updated_toc(file_path: str):
     proc = subprocess.run(
         cmd,
         check=True,
-        timeout=30,
+        timeout=60,
         capture_output=True,
         text=True,
     )
