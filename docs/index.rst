@@ -65,14 +65,17 @@ The Incident Notification Module is developed and maintained by
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
-The incident notification module is designed to be used as a national incident notification tool. It is multi-regulator, i.e. any regulator or competent authority of the country can use it and receive the incident notifications. It is multi-regulation, i.e. it can completely be configured, and each regulator is responsible to configure the regulations he is responsible for.
-The operators under supervision can use it to notify their incidents.
+The incident notification module is designed to serve as a national incident reporting tool. 
+It is multi-regulator, meaning that any regulator or competent authority in the country can use it and receive incident notifications. 
+
+It is also multi-regulation, meaning that it is fully configurable, and each regulator is responsible for configuring the regulations for which they are accountable.
+Operators under supervision can use the module to submit their incident notifications.
 
 This project is lead by `NC3-LU <https://www.nc3.lu>`__.
 Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 `IBPT.be <https://www.ibpt.be>`_.
 
-.. figure:: _static/screenshot_incidents-page.png
+.. figure:: _static/folder1/Overview.png
    :alt: Screenshot of the list of incidents from the regulator view.
    :target: _static/screenshot_incidents-page.png
 
