@@ -264,6 +264,12 @@ def generate_docx_task(self, data):
             if sub_rendered_path.exists():
                 sub_rendered_path.unlink(missing_ok=True)
 
+    ensure_soffice_running()
+    # get updated ToC
+    updated_toc = get_updated_toc(str(current_doc))
+    doc = Document(str(current_doc))
+    replace_toc_page_numbers(doc, updated_toc)
+    doc.save(str(current_doc))
     main_docx_path.unlink(missing_ok=True)
     return {"file_path": str(current_doc), "project_id": project_id}
 
@@ -278,14 +284,6 @@ def generate_pdf_task(self, data):
     if not docx_path.exists():
         return
     try:
-        ensure_soffice_running()
-        # get updated ToC
-        updated_toc = get_updated_toc(str(docx_path))
-        doc = Document(str(docx_path))
-
-        # replace with the correct number
-        replace_toc_page_numbers(doc, updated_toc)
-        doc.save(str(docx_path))
         pdf_path = convert_docx_to_pdf(str(docx_path))
         return {"file_path": str(pdf_path), "project_id": project_id}
     finally:
