@@ -1,7 +1,29 @@
 import json
 import sys
+import time
 
 import uno
+
+
+def connect_uno(resolver, pipe_name, retries=20, delay=0.2):
+    """
+    Try to connect to UNO with retry mechanism
+    """
+    last_exception = None
+
+    for _ in range(retries):
+        try:
+            return resolver.resolve(
+                f"uno:pipe,name={pipe_name};urp;StarOffice.ComponentContext"
+            )
+
+        except Exception as e:
+            last_exception = e
+            time.sleep(delay)
+
+    raise RuntimeError(
+        f"Impossible to connect after {retries} tentatives"
+    ) from last_exception
 
 
 def parse_toc_entry(text):
@@ -31,7 +53,7 @@ def update_toc(file_path):
     resolver = localContext.ServiceManager.createInstanceWithContext(
         "com.sun.star.bridge.UnoUrlResolver", localContext
     )
-    ctx = resolver.resolve("uno:pipe,name=update_toc;urp;StarOffice.ComponentContext")
+    ctx = connect_uno(resolver, "update_toc")
     smgr = ctx.ServiceManager
     desktop = smgr.createInstanceWithContext("com.sun.star.frame.Desktop", ctx)
     # Open file
