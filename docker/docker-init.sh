@@ -8,6 +8,7 @@ SUPERUSER_EMAIL="${SUPERUSER_EMAIL:-}"
 SUPERUSER_PASSWORD="${SUPERUSER_PASSWORD:-}"
 MAIN_SITE="${MAIN_SITE:-}"
 MAIN_SITE_NAME="${MAIN_SITE_NAME:-}"
+CELERY_CONCURRENCY="${CELERY_CONCURRENCY:-3}"
 
 set -euo pipefail
 
@@ -57,13 +58,13 @@ END
         exec gunicorn governanceplatform.wsgi --workers "$APP_WORKERS" --bind "$APP_BIND_ADDRESS:$APP_PORT"
         ;;
     worker)
-        exec celery -A celery_worker worker --loglevel=info
+        exec celery -A celery_worker worker --concurrency=$CELERY_CONCURRENCY --loglevel=info
         ;;
     beat)
         exec celery -A celery_beat beat --loglevel=info
         ;;
     *)
         echo >&2 "unknown component in entrypoint $(basename $0)"
-        exit 1
+        exit 1doc
         ;;
 esac
