@@ -1,5 +1,7 @@
 import base64
 import copy
+import json
+import re
 import shutil
 import subprocess
 import textwrap
@@ -13,6 +15,7 @@ from typing import List
 
 import plotly.colors as pc
 import plotly.graph_objects as go
+import psutil
 from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
@@ -1396,3 +1399,160 @@ def fix_outer_column_borders(table_element, color: str = "FFFFFF"):
             border.set(qn("w:space"), "0")
             border.set(qn("w:color"), color)
             tcBorders.append(border)
+
+
+def is_soffice_running(pipe_name="update_toc"):
+    """Check if soffice is running with the correct pipe"""
+    for proc in psutil.process_iter(["name", "cmdline"]):
+        try:
+            if proc.info["name"] and "soffice" in proc.info["name"]:
+                cmdline = proc.info["cmdline"] or []
+                if any(pipe_name in arg for arg in cmdline):
+                    return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return False
+
+
+def ensure_soffice_running():
+    if not is_soffice_running("update_toc"):
+        subprocess.Popen(
+            [
+                "soffice",
+                "--headless",
+                "--accept=pipe,name=update_toc;urp;",
+                "--norestore",
+                "--nologo",
+                "--invisible",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+# replace ToC number by the one of array otc_number
+def replace_toc_page_numbers(doc_v1: Document, toc_number) -> None:
+    index_number = dict()
+    title_number = dict()
+    for entry in toc_number:
+        page = entry["page"]
+        if entry["index"] is not None:
+            index_number[entry["index"]] = page
+        if entry["name"] is not None:
+            title_number[entry["name"]] = page
+
+    body = doc_v1.element.body
+    paragraphs = list(body.iter(qn("w:p")))
+    in_toc = False
+
+    for para in paragraphs:
+        title = None
+        pStyle = para.find(".//" + qn("w:pStyle"))
+        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
+
+        if not in_toc:
+            for instr in para.iter(qn("w:instrText")):
+                if "TOC" in (instr.text or ""):
+                    in_toc = True
+                    break
+
+        if not in_toc:
+            continue
+
+        # Detect end of Toc paragraphe NO_STYLE with fldChar[end] of TOC global field
+        if not style_val.startswith("TOC") and not style_val.startswith("toc"):
+            has_toc_instr = any(
+                "TOC" in (instr.text or "") for instr in para.iter(qn("w:instrText"))
+            )
+            if not has_toc_instr:
+                # check if it's the fldChar[end] of global ToC
+                fld_chars = list(para.iter(qn("w:fldChar")))
+                if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
+                    break
+                # we continue
+                if not any(para.iter(qn("w:hyperlink"))):
+                    continue
+        title = extract_title_from_para(para)
+        index = extract_index_from_para(para)
+        # in each ToC, empty the w:t after fldChar[separate] of PAGEREF
+        if (title and title in title_number) or (index and index in index_number):
+            for hyperlink in para.iter(qn("w:hyperlink")):
+                in_pageref_value = False
+                for r in hyperlink.iter(qn("w:r")):
+                    fld_char = r.find(qn("w:fldChar"))
+                    if fld_char is not None:
+                        fld_type = fld_char.get(qn("w:fldCharType"))
+                        if fld_type == "separate":
+                            in_pageref_value = True
+                        elif fld_type == "end":
+                            in_pageref_value = False
+
+                    if in_pageref_value:
+                        t = r.find(qn("w:t"))
+                        if t is not None:
+                            if index in index_number:
+                                t.text = index_number[index]
+                            elif title in title_number:
+                                t.text = title_number[title]
+
+
+# extract the index of a docx paragraph
+def extract_index_from_para(para):
+    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
+
+    if len(texts) < 2:
+        return None
+
+    # remove last (page number)
+    texts_no_page = texts[:-1]
+
+    # index = premier élément numérique du TOC
+    for t in texts_no_page:
+        if re.match(r"^\d+(\.\d+)*$", t):
+            return t
+
+    return None
+
+
+# extract the title of a docx paragraph
+def extract_title_from_para(para):
+    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
+
+    if len(texts) < 2:
+        return None
+
+    # remove the last (page number)
+    texts_no_page = texts[:-1]
+
+    # remove the begning (ex : 1.2.3)
+    clean_texts = [t for t in texts_no_page if not re.match(r"^\d+(\.\d+)*$", t)]
+
+    if not clean_texts:
+        return None
+
+    # real title = last one
+    texte = " ".join(clean_texts)
+    return " ".join(texte.split())
+
+
+# update page number with libre office
+def get_updated_toc(file_path: str):
+    """
+    Update table of content in docx
+    """
+
+    cmd = [
+        "/usr/bin/python3",
+        "reporting/scripts/update_toc_docx.py",
+        file_path,
+    ]
+
+    proc = subprocess.run(
+        cmd,
+        check=True,
+        timeout=30,
+        capture_output=True,
+        text=True,
+    )
+
+    return json.loads(proc.stdout)

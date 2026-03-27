@@ -1,11 +1,7 @@
 import base64
-
-# import copy
 import datetime
 import os
-import re
 import shutil
-import subprocess
 import uuid
 import zipfile
 from io import BytesIO
@@ -17,7 +13,6 @@ from django.contrib.auth import get_user_model
 from django.utils import formats
 from django.utils.translation import activate
 from docx import Document
-from docx.oxml.ns import qn
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
 
@@ -25,182 +20,17 @@ from .globals import TRANSLATIONS_CONTEXT
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
+    ensure_soffice_running,
     fix_outer_column_borders,
     get_charts,
     get_risk_data,
     get_so_data,
+    get_updated_toc,
     merge_subdoc_into_placeholder,
     redistribute_column_widths_proportional,
+    replace_toc_page_numbers,
 )
 from .models import Configuration, GeneratedReport, Project, Template
-
-
-# extract the page number of a Openoffice XML
-def extract_toc_page_numbers_v2(doc_v2: Document) -> dict[str, str]:
-    body = doc_v2.element.body
-    paragraphs = list(body.iter(qn("w:p")))
-
-    results_title = dict()
-    results_index = dict()
-
-    in_toc = False
-
-    for para in paragraphs:
-        pStyle = para.find(".//" + qn("w:pStyle"))
-        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
-
-        if not in_toc:
-            for instr in para.iter(qn("w:instrText")):
-                if "TOC" in (instr.text or ""):
-                    in_toc = True
-                    break
-
-        if not in_toc:
-            continue
-
-        # end of TOC : fldChar[end] on a non-TOC para
-        if not style_val.upper().startswith("TOC"):
-            fld_chars = list(para.iter(qn("w:fldChar")))
-            if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
-                break
-            # Para without style TOC but with fldChar end in the last hyperlink
-            for hl in para.iter(qn("w:hyperlink")):
-                for r in hl.iter(qn("w:r")):
-                    fc = r.find(qn("w:fldChar"))
-                    if fc is not None and fc.get(qn("w:fldCharType")) == "end":
-                        in_toc = False
-                        break
-
-        for hyperlink in para.iter(qn("w:hyperlink")):
-            for r in hyperlink.iter(qn("w:r")):
-                texts = list(r.iter(qn("w:t")))
-
-                if len(texts) >= 2:
-                    before_last = texts[-2].text.strip()
-                    last = texts[-1].text.strip()
-                    results_title[before_last] = last
-                    if len(texts) >= 3:
-                        index = texts[-3].text.strip()
-                        results_index[index] = last
-
-    return [results_index, results_title]
-
-
-# replace ToC number of v1 by the v2
-def replace_toc_page_numbers(doc_v1: Document, doc_v2: Document) -> None:
-    index_number, title_number = extract_toc_page_numbers_v2(doc_v2)
-
-    body = doc_v1.element.body
-    paragraphs = list(body.iter(qn("w:p")))
-    in_toc = False
-
-    for para in paragraphs:
-        title = None
-        pStyle = para.find(".//" + qn("w:pStyle"))
-        style_val = pStyle.get(qn("w:val"), "") if pStyle is not None else ""
-
-        if not in_toc:
-            for instr in para.iter(qn("w:instrText")):
-                if "TOC" in (instr.text or ""):
-                    in_toc = True
-                    break
-
-        if not in_toc:
-            continue
-
-        # Detect end of Toc paragraphe NO_STYLE with fldChar[end] of TOC global field
-        if not style_val.startswith("TOC") and not style_val.startswith("toc"):
-            has_toc_instr = any(
-                "TOC" in (instr.text or "") for instr in para.iter(qn("w:instrText"))
-            )
-            if not has_toc_instr:
-                # check if it's the fldChar[end] of global ToC
-                fld_chars = list(para.iter(qn("w:fldChar")))
-                if any(fc.get(qn("w:fldCharType")) == "end" for fc in fld_chars):
-                    break
-                # we continue
-                if not any(para.iter(qn("w:hyperlink"))):
-                    continue
-        title = extract_title_from_para(para)
-        index = extract_index_from_para(para)
-        # in each ToC, empty the w:t after fldChar[separate] of PAGEREF
-        if (title and title in title_number) or (index and index in index_number):
-            for hyperlink in para.iter(qn("w:hyperlink")):
-                in_pageref_value = False
-                for r in hyperlink.iter(qn("w:r")):
-                    fld_char = r.find(qn("w:fldChar"))
-                    if fld_char is not None:
-                        fld_type = fld_char.get(qn("w:fldCharType"))
-                        if fld_type == "separate":
-                            in_pageref_value = True
-                        elif fld_type == "end":
-                            in_pageref_value = False
-
-                    if in_pageref_value:
-                        t = r.find(qn("w:t"))
-                        if t is not None:
-                            if index in index_number:
-                                t.text = index_number[index]
-                            elif title in title_number:
-                                t.text = title_number[title]
-
-
-# extract the index of a docx paragraph
-def extract_index_from_para(para):
-    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
-
-    if len(texts) < 2:
-        return None
-
-    # remove last (page number)
-    texts_no_page = texts[:-1]
-
-    # index = premier élément numérique du TOC
-    for t in texts_no_page:
-        if re.match(r"^\d+(\.\d+)*$", t):
-            return t
-
-    return None
-
-
-# extract the title of a docx paragraph
-def extract_title_from_para(para):
-    texts = [t.text.strip() for t in para.iter(qn("w:t")) if t.text and t.text.strip()]
-
-    if len(texts) < 2:
-        return None
-
-    # remove the last (page number)
-    texts_no_page = texts[:-1]
-
-    # remove the begning (ex : 1.2.3)
-    clean_texts = [t for t in texts_no_page if not re.match(r"^\d+(\.\d+)*$", t)]
-
-    if not clean_texts:
-        return None
-
-    # real title = last one
-    texte = " ".join(clean_texts)
-    return " ".join(texte.split())
-
-
-# update page number with libre office
-def old_update_toc(file_path: str):
-    """
-    Update table of content in docx
-    """
-
-    cmd = [
-        "/usr/bin/python3",
-        "reporting/scripts/update_toc_docx.py",
-        file_path,
-    ]
-
-    subprocess.run(
-        cmd,
-        check=True,
-        timeout=30,
-    )
 
 
 @shared_task
@@ -438,8 +268,8 @@ def generate_docx_task(self, data):
     return {"file_path": str(current_doc), "project_id": project_id}
 
 
-@shared_task
-def generate_pdf_task(data):
+@shared_task(bind=True)
+def generate_pdf_task(self, data):
     project_id = data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
@@ -448,25 +278,18 @@ def generate_pdf_task(data):
     if not docx_path.exists():
         return
     try:
-        # doc = Document(str(docx_path))
-        # copy the current doc
-        # doc2 = copy.deepcopy(doc)
-        # doc2.save(str(docx_path.with_suffix(".lo.docx")))
-        # update number
-        # old_update_toc(str(docx_path.with_suffix(".lo.docx")))
-
-        # doc = Document(str(docx_path))
-        # doc2 = Document(str(docx_path.with_suffix(".lo.docx")))
+        ensure_soffice_running()
+        # get updated ToC
+        updated_toc = get_updated_toc(str(docx_path))
+        doc = Document(str(docx_path))
 
         # replace with the correct number
-        # replace_toc_page_numbers(doc, doc2)
-        # doc.save(str(docx_path))
+        replace_toc_page_numbers(doc, updated_toc)
+        doc.save(str(docx_path))
         pdf_path = convert_docx_to_pdf(str(docx_path))
         return {"file_path": str(pdf_path), "project_id": project_id}
-
     finally:
         docx_path.unlink(missing_ok=True)
-        docx_path.with_suffix(".lo.docx").unlink(missing_ok=True)
 
 
 @shared_task
