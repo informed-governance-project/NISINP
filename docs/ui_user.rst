@@ -4,7 +4,7 @@ User interface
 The login page
 ---------------
 
-On this page you can log in or create an account in case you have to notify an incident and you don't have credentials.
+On this page, you can log in or create an account in case you have to notify an incident and you do not have credentials.
 
 .. figure:: _static/SER_1.png
    :alt: Login page.
@@ -14,14 +14,18 @@ On this page you can log in or create an account in case you have to notify an i
 
 If you already have an account, please use the left pane and enter your credentials (email address and password) to log in. 
 
-In case you have forgotten your password or username, please click on the link below the 'Log in' button that says '**Forgotten your password or username?**'.
+In case you have forgotten your password or username, please click on the link below the 'Log in' button that says 
+'**Forgotten your password or username?**'.
 
-If you do not have an account, please click on the '**Sign Up**' link on the left pane, or use the right pane and click on the '**Create an account**' button. Both options will take you to the account creation page.
+If you do not have an account, please click on the '**Sign Up**' link on the left pane, 
+or use the right pane and click on the '**Create an account**' button. 
+Both options will take you to the account creation page.
 
 Create an account
 ------------------
 
-If you do not have an account yet, create one by using the '**Sign Up**' link on the left or the '**Create an account**' button on the right. Populate the required fields and provide a password you would like to use.
+If you do not have an account yet, create one by using the '**Sign Up**' link on the left or the '**Create an account**' 
+button on the right. Populate the required fields and provide a password you would like to use.
 
 Please note that the following password restrictions apply:
 
@@ -39,7 +43,8 @@ Please note that the following password restrictions apply:
 Enable two-factor authentication
 ---------------------------------
 
-Once you click on '**Register**', you are logged into the SERIMA Platform. Since this is your first login, the system suggests you to enable the two-factor authentication. Click on the button '**Enable Two-Factor Authentication**'.
+Once you click on '**Register**', you are logged into the SERIMA Platform. Since this is your first login, 
+the system suggests you to enable the two-factor authentication. Click on the button '**Enable Two-Factor Authentication**'.
 
 .. figure:: _static/SER_3.png
    :alt: 2FA.
@@ -55,7 +60,9 @@ Follow the steps in the wizard to enable 2FA: first, click on the '**Next**' but
 
    2FA
 
-Then either use your smartphone and scan the QR code from the screen or use the long character set called TOTP Secret to set up TOTP in your authenticator or password manager manually. As the last step, please enter the token (a six-digit number) into the Token field and click '**Next**'.
+Then either use your smartphone and scan the QR code from the screen or use the long character set called TOTP Secret 
+to set up TOTP in your authenticator or password manager manually. As the last step, please enter the token (a six-digit number) 
+into the Token field and click '**Next**'.
 
 .. figure:: _static/SER_5.png
    :alt: 2FA.
@@ -71,7 +78,8 @@ In case you have successfully enabled two-factor authentication, you are greeted
 
    2FA
 
-Please click on the grey button and log in again. Provide your email address and password and click on '**Log in**'. Then, open your authenticator app on your smartphone and type in the randomly generated Token and click '**Log in**'.
+Please click on the grey button and log in again. Provide your email address and password and click on '**Log in**'. 
+Then, open your authenticator app on your smartphone and type in the randomly generated Token and click '**Log in**'.
 
 .. figure:: _static/SER_7.png
    :alt: 2FA.
@@ -86,9 +94,11 @@ Since this is your first login, there is no incident displayed in the incident d
    :alt: Logged in.
    :target: _static/SER_8.png
 
-The Platform is straightforward. Use the '**ILR SERIMA Platform**' link in the top-left corner to come back to the main page at any time. 
+The Platform is straightforward. Use the '**ILR SERIMA Platform**' link in the top-left corner 
+to come back to the main page at any time. 
 
-In the top right-hand corner, you can see your name with a drop-down menu. If you click on the down-pointing arrow, the following dropdown menu appears:
+In the top right-hand corner, you can see your name with a drop-down menu. 
+If you click on the down-pointing arrow, the following dropdown menu appears:
 
 .. figure:: _static/SER_9_240.png
    :alt: contextual menu.
@@ -96,9 +106,12 @@ In the top right-hand corner, you can see your name with a drop-down menu. If yo
 
 * **Account**: you may change your first name, last name, and phone number.
 
-* **Security**: you can change your security settings. You can create backup tokens in case you do not have any device with you (you can access your account using backup tokens). You can also disable two-factor authentication, but this is strongly not recommended.
+* **Security**: you can change your security settings. You can create backup tokens in case you do not have any device with you 
+(you can access your account using backup tokens). You can also disable two-factor authentication, but this is strongly not recommended.
 
-* **Password**: you can change your password here. You must enter your old password and type in twice the new one you would like to use (please observe the restrictions on creating a new password).
+* **Password**: you can change your password here. 
+You must enter your old password and type in twice the new one you would like to use 
+(please observe the restrictions on creating a new password).
 
 .. figure:: _static/SER_10_240.png
    :alt: contextual menu darked.
@@ -106,7 +119,8 @@ In the top right-hand corner, you can see your name with a drop-down menu. If yo
 
 * **Dark theme/Light theme**: you can switch between a dark and light background by using this link. 
 
-* **Log out**: use this link to log out from the application. In case you are not active, the system will log you out for security reasons.
+* **Log out**: use this link to log out from the application. 
+In case you are not active, the system will log you out for security reasons.
 
 * **Language separator**: in the top right-hand corner, you can switch between English (en), French (fr) and Dutch (nl) languages.
 
@@ -114,7 +128,8 @@ In the top right-hand corner, you can see your name with a drop-down menu. If yo
 Report an incident 
 -------------------
 
-The main function of this module is to make it possible for you to report incidents. To report an incident, click on the ’Report an incident’ button in the top right-hand corner:
+The main function of this module is to make it possible for you to report incidents. 
+To report an incident, click on the ’Report an incident’ button in the top right-hand corner:
 
 .. figure:: _static/SER_11.png
    :alt: notification button.
@@ -157,7 +172,9 @@ The following step is to define which regulation/s you want to refer to. Again, 
 Sectors
 ~~~~~~~~~
 
-Then you should define which sector is affected by the incident. The options are very straightforward and you may choose more sectors. As many sectors as you have marked, as many incidents will be created in the system.
+Then you should define which sector is affected by the incident. 
+The options are very straightforward and you may choose more sectors. 
+As many sectors as you have marked, as many incidents will be created in the system.
 
 For demonstration purposes, let's choose two sectors (Energy-Electricity and Digital Infrastructure Telecommunications):
 

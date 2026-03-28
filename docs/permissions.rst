@@ -4,7 +4,7 @@ Permissions and roles
 Summary
 ----------
 
-The available roles are:
+The available roles are as follows:
 
 - PlatformAdmin (Django super admin)
 - RegulatorAdmin

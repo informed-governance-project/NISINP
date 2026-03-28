@@ -1,7 +1,7 @@
 Modules
 =======
 
-Main components of the software:
+The main components of the software are as follows:
 
 - the governance platform (settings, administration panel and core
   components). The governance platform provides access to the various modules hosted on the platform;
@@ -13,7 +13,7 @@ Main components of the software:
 Incident Notification
 ---------------------
 
-The Web interface used to report and track incidents.
+The Web interface is used to report and track incidents.
 
 
 API

@@ -4,7 +4,7 @@ Prerequisites
 Software
 --------
 
-Generally speaking, requirements are the following:
+Generally speaking, the requirements are the following:
 
 - A GNU/Linux distribution. Tested on Debian Bookworm and Ubuntu 22.04.3 LTS;
 - Python version >= 3.10. Tested with Python 3.11 and 3.12;
@@ -12,7 +12,7 @@ Generally speaking, requirements are the following:
 - An email server — outgoing email;
 - A cron daemon — scheduled tasks.
 
-Postfix, or an equivalent software, is required for the email notifications.
+Postfix, or an equivalent software, is required for email notifications.
 
 For the Web server you can use Gunicorn, uWSGI, Apache or Nginx.
 

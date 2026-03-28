@@ -1,26 +1,24 @@
 Security Model
 ==============
 
-First, an overview of the security policy.
-
 Security policy
 ---------------
 
 Supported Versions
 ``````````````````
 
-Last stable version of this software always provides security updates.
+The last stable version of this software always provides security updates.
 There will be no security patches for other releases (tagged or not).
 
 Reporting a Vulnerability
 `````````````````````````
 
 If you think you have found a potential security issue, do not open
-directly a public GitHub issue. Please email us. You can contact
+directly a public GitHub issue. Please email us. You can contact us at:
 opensource@nc3.lu
 
 You can also specify how you would like to be credited for your finding
-(commit message or release notes for the new release). We will
+(commit message or release notes for the new release). We 
 respect your privacy and will only publicize your involvement if you
 grant us permission.
 
@@ -41,7 +39,7 @@ Public security issues are listed
 `here <https://github.com/informed-governance-project/NISINP/issues?q=is%3Aissue+label%3Asecurity+>`_.
 
 
-Audit on the source code
+Audit the source code
 ------------------------
 
 
@@ -49,4 +47,4 @@ Audit on the source code
 Authentication
 --------------
 
-Two factor authentication is available and mandatory for the admin access.
+Two-factor authentication is available and mandatory for the admin access.
