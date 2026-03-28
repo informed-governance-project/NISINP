@@ -61,7 +61,7 @@ Incident Notification Module
 Presentation
 ------------
 
-The Incident Notification Module is developed and maintained by
+The Incident Notification Module is developed and maintained by the
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
@@ -71,8 +71,7 @@ It is multi-regulator, meaning that any regulator or competent authority in the 
 It is also multi-regulation, meaning that it is fully configurable, and each regulator is responsible for configuring the regulations for which they are accountable.
 Operators under supervision can use the module to submit their incident notifications.
 
-This project is lead by `NC3-LU <https://www.nc3.lu>`__.
-Developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
+This project is lead by `NC3-LU <https://www.nc3.lu>`__ and developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 `IBPT.be <https://www.ibpt.be>`_.
 
 .. figure:: _static/folder1/Overview.png
@@ -86,12 +85,10 @@ If you find errors or omission, please don't hesitate to submit
 `an issue <https://github.com/informed-governance-project/NISINP/issues/new?labels=documentation&template=bug_report.md>`_
 or open a pull request with a fix.
 
-
 Contact
 -------
 
 `NC3 Luxembourg <https://www.nc3.lu>`_ - `info@nc3.lu <info@nc3.lu>`_
-
 
 License
 -------
