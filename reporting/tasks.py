@@ -8,6 +8,7 @@ from io import BytesIO
 from pathlib import Path
 
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import formats
@@ -16,7 +17,7 @@ from docx import Document
 from docx.shared import Mm
 from docxtpl import DocxTemplate, InlineImage, RichTextParagraph
 
-from .globals import TRANSLATIONS_CONTEXT
+from .globals import CELERY_TASK_STATUS, TRANSLATIONS_CONTEXT
 from .helpers import (
     convert_docx_to_pdf,
     create_entry_log,
@@ -31,6 +32,8 @@ from .helpers import (
     replace_toc_page_numbers,
 )
 from .models import Configuration, GeneratedReport, Project, Template
+
+logger = get_task_logger(__name__)
 
 
 @shared_task
@@ -69,10 +72,18 @@ def generate_data(cleaned_data):
     return data
 
 
-@shared_task(bind=True)
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=120,
+    retry_jitter=True,
+)
 def generate_docx_task(self, data):
     if not data:
         return
+
     project_id = data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
@@ -83,199 +94,231 @@ def generate_docx_task(self, data):
         os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
     )
     task_tmp_dir.mkdir(parents=True, exist_ok=True)
-    template_id = data["template_id"]
-    template_file = Template.objects.get(pk=template_id).template_file
-    template_path = BytesIO(bytes(template_file))
-    rendered_subs_docs = {}
-    nb_years = len(data["years"])
-    document_charts = {
-        "chart_average_risk_level": {
-            "width": Mm(140),
-        },
-        "chart_high_risk_rate": {
-            "width": Mm(140),
-        },
-        "chart_average_high_risk_level": {
-            "width": Mm(140),
-        },
-        "chart_evolution_highest_risks": {
-            "width": Mm(140),
-        },
-    }
-    document_tables = {
-        "table_of_evolution_security_objectives": {
-            "context": {
-                "table": data["so_data"]["company_so_by_year"],
-            },
-            "column_proportions": [0.4] + [0.1] * nb_years + [0.15],
-        },
-        "table_of_evolution_security_objectives_by_domain": {
-            "context": {
-                "table": data["so_data"]["company_so_by_domain"],
-            },
-            "column_proportions": [0.4] + [0.1] * nb_years + [0.15] * 2,
-        },
-        "table_of_highest_security_objectives_in_the_sector": {
-            "context": {
-                "table": data["so_data"]["sector_so_by_year_desc"][
-                    str(data["reference_year"])
-                ],
-            },
-            "column_proportions": [0.05] + [0.65] + [0.15] * 2,
-        },
-        "table_of_lowest_security_objectives_in_the_sector": {
-            "context": {
-                "table": data["so_data"]["sector_so_by_year_asc"][
-                    str(data["reference_year"])
-                ],
-            },
-            "column_proportions": [0.05] + [0.65] + [0.15] * 2,
-        },
-        "table_of_evolution_of_the_weakest_security_objectives": {
-            "context": {
-                "table": data["so_data"]["company_so_by_priority"],
-            },
-            "column_proportions": [0.4] + [0.15] * nb_years + [0.15],
-        },
-        "table_of_security_objectives_by_maturity_level": {
-            "context": {
-                "table": data["so_data"]["company_so_by_level"],
-            },
-            "column_proportions": [0.25]
-            * len(data["so_data"]["company_so_by_level"]["headers"]),
-        },
-        "maturity_level_legend": {
-            "context": {
-                "maturity_levels": data["so_data"]["maturity_levels"],
-            },
-        },
-        "table_of_evolution_of_the_highest_risks": {
-            "context": {
-                "table": data["risk_data"]["data_risks_top_ranking"],
-            },
-            "column_proportions": [0.1, 0.25, 0.25, 0.3] + [0.1] * nb_years,
-        },
-        "table_of_treatment_of_the_highest_risks": {
-            "context": {
-                "table": data["risk_data"]["data_risks_top_ranking"],
-            },
-            "column_proportions": [0.08, 0.18, 0.18, 0.25, 0.13, 0.17, 0.13],
-        },
-        "table_of_risk_summary": {
-            "context": {
-                "table": data["risk_data"]["risks_stats_by_year"],
-            },
-            "column_proportions": [0.7] + [0.15] * nb_years,
-            "table_width_dxa": 7380,  # 13cm
-        },
-        "table_of_top_threats_by_occurrence": {
-            "context": {
-                "table": data["risk_data"]["top_threats"],
-            },
-            "column_proportions": [0.1, 0.9],
-            "table_width_dxa": 8504,  # 15cm
-        },
-        "table_of_top_vulnerabilities_by_occurrence": {
-            "context": {
-                "table": data["risk_data"]["top_vulnerabilities"],
-            },
-            "column_proportions": [0.1, 0.9],
-            "table_width_dxa": 8504,  # 15cm
-        },
-        "table_of_recommendations": {
-            "context": {
-                "table": data["risk_data"]["recommendations_evolution"],
-            },
-            "column_proportions": [0.7, 0.15, 0.15],
-        },
-    }
-
-    main_doc_template = DocxTemplate(template_path)
-    main_doc = Document(template_path)
-
-    report_recommendations = RichTextParagraph()
-    for rec in data["report_recommendations"]:
-        report_recommendations.add(rec, parastyle="CircleBullet")
-
-    context = {
-        "operator_name": data["company"],
-        "sector": data["sector"],
-        "year": data["reference_year"],
-        "threshold_for_high_risk": data["threshold_for_high_risk"],
-        "top_ranking": data["top_ranking"],
-        "report_recommendations": report_recommendations,
-        "report_observations": data["company_reporting"]["comment"],
-        "publication_date": formats.date_format(datetime.date.today(), format="d F Y"),
-    }
-    for chart_name, chart_data in data["charts"].items():
-        chart_bytes = BytesIO(base64.b64decode(chart_data))
-        chart_with = document_charts.get(chart_name, {}).get("width", Mm(170))
-        context[chart_name] = InlineImage(
-            main_doc_template, chart_bytes, width=chart_with
-        )
-    if not task_tmp_dir.exists():
-        return
-
-    for table_name, table_info in document_tables.items():
-        sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
-        sub_rendered_path = task_tmp_dir / f"{table_name}_rendered.docx"
-        context[table_name] = str(table_name)
-        table_info["context"].update(
-            {
-                "translations": data["translations"],
-                "year": data["reference_year"],
-                "years": data["years"],
-            }
-        )
-        sub_doc_template = DocxTemplate(sub_template_path)
-        sub_doc_template.render(table_info["context"])
-        sub_doc_template.save(sub_rendered_path)
-        sub_doc = Document(sub_rendered_path)
-        for table in sub_doc.tables:
-            table_width_dxa = None
-            if "table_width_dxa" in table_info:
-                # 1dxa = 1cm * 28.346 * 20
-                table_width_dxa = table_info["table_width_dxa"]
-            if "column_proportions" in table_info:
-                redistribute_column_widths_proportional(
-                    table, table_info["column_proportions"], main_doc, table_width_dxa
-                )
-            fix_outer_column_borders(table._element)
-        sub_doc.save(sub_rendered_path)
-        rendered_subs_docs[table_name] = sub_rendered_path
-
-    main_docx_path = Path(task_tmp_dir / "main_doc.docx")
-    main_doc_template.render(context)
-    main_doc_template.save(main_docx_path)
-    current_doc = main_docx_path
-    tmp_output_path = task_tmp_dir / "tmp_doc.docx"
-
-    for placeholder, sub_rendered_path in rendered_subs_docs.items():
-        sub_rendered_path = Path(sub_rendered_path)
-        try:
-            merge_subdoc_into_placeholder(
-                main_docx_path=current_doc,
-                subdoc_path=sub_rendered_path,
-                placeholder=placeholder,
-                output_path=tmp_output_path,
+    success = False
+    try:
+        if not task_tmp_dir.exists():
+            logger.warning(
+                "task_tmp_dir has disappeared before processing begins : %s",
+                task_tmp_dir,
             )
-            current_doc = tmp_output_path
-        finally:
-            if sub_rendered_path.exists():
-                sub_rendered_path.unlink(missing_ok=True)
+            return
+        template_id = data["template_id"]
+        template_file = Template.objects.get(pk=template_id).template_file
+        template_path = BytesIO(bytes(template_file))
+        rendered_subs_docs = {}
+        nb_years = len(data["years"])
+        document_charts = {
+            "chart_average_risk_level": {
+                "width": Mm(140),
+            },
+            "chart_high_risk_rate": {
+                "width": Mm(140),
+            },
+            "chart_average_high_risk_level": {
+                "width": Mm(140),
+            },
+            "chart_evolution_highest_risks": {
+                "width": Mm(140),
+            },
+        }
+        document_tables = {
+            "table_of_evolution_security_objectives": {
+                "context": {
+                    "table": data["so_data"]["company_so_by_year"],
+                },
+                "column_proportions": [0.4] + [0.1] * nb_years + [0.15],
+            },
+            "table_of_evolution_security_objectives_by_domain": {
+                "context": {
+                    "table": data["so_data"]["company_so_by_domain"],
+                },
+                "column_proportions": [0.4] + [0.1] * nb_years + [0.15] * 2,
+            },
+            "table_of_highest_security_objectives_in_the_sector": {
+                "context": {
+                    "table": data["so_data"]["sector_so_by_year_desc"][
+                        str(data["reference_year"])
+                    ],
+                },
+                "column_proportions": [0.05] + [0.65] + [0.15] * 2,
+            },
+            "table_of_lowest_security_objectives_in_the_sector": {
+                "context": {
+                    "table": data["so_data"]["sector_so_by_year_asc"][
+                        str(data["reference_year"])
+                    ],
+                },
+                "column_proportions": [0.05] + [0.65] + [0.15] * 2,
+            },
+            "table_of_evolution_of_the_weakest_security_objectives": {
+                "context": {
+                    "table": data["so_data"]["company_so_by_priority"],
+                },
+                "column_proportions": [0.4] + [0.15] * nb_years + [0.15],
+            },
+            "table_of_security_objectives_by_maturity_level": {
+                "context": {
+                    "table": data["so_data"]["company_so_by_level"],
+                },
+                "column_proportions": [0.25]
+                * len(data["so_data"]["company_so_by_level"]["headers"]),
+            },
+            "maturity_level_legend": {
+                "context": {
+                    "maturity_levels": data["so_data"]["maturity_levels"],
+                },
+            },
+            "table_of_evolution_of_the_highest_risks": {
+                "context": {
+                    "table": data["risk_data"]["data_risks_top_ranking"],
+                },
+                "column_proportions": [0.1, 0.25, 0.25, 0.3] + [0.1] * nb_years,
+            },
+            "table_of_treatment_of_the_highest_risks": {
+                "context": {
+                    "table": data["risk_data"]["data_risks_top_ranking"],
+                },
+                "column_proportions": [0.08, 0.18, 0.18, 0.25, 0.13, 0.17, 0.13],
+            },
+            "table_of_risk_summary": {
+                "context": {
+                    "table": data["risk_data"]["risks_stats_by_year"],
+                },
+                "column_proportions": [0.7] + [0.15] * nb_years,
+                "table_width_dxa": 7380,  # 13cm
+            },
+            "table_of_top_threats_by_occurrence": {
+                "context": {
+                    "table": data["risk_data"]["top_threats"],
+                },
+                "column_proportions": [0.1, 0.9],
+                "table_width_dxa": 8504,  # 15cm
+            },
+            "table_of_top_vulnerabilities_by_occurrence": {
+                "context": {
+                    "table": data["risk_data"]["top_vulnerabilities"],
+                },
+                "column_proportions": [0.1, 0.9],
+                "table_width_dxa": 8504,  # 15cm
+            },
+            "table_of_recommendations": {
+                "context": {
+                    "table": data["risk_data"]["recommendations_evolution"],
+                },
+                "column_proportions": [0.7, 0.15, 0.15],
+            },
+        }
 
-    ensure_soffice_running()
-    # get updated ToC
-    updated_toc = get_updated_toc(str(current_doc))
-    doc = Document(str(current_doc))
-    replace_toc_page_numbers(doc, updated_toc)
-    doc.save(str(current_doc))
-    main_docx_path.unlink(missing_ok=True)
-    return {"file_path": str(current_doc), "project_id": project_id}
+        main_doc_template = DocxTemplate(template_path)
+        main_doc = Document(template_path)
+
+        report_recommendations = RichTextParagraph()
+        for rec in data["report_recommendations"]:
+            report_recommendations.add(rec, parastyle="CircleBullet")
+
+        context = {
+            "operator_name": data["company"],
+            "sector": data["sector"],
+            "year": data["reference_year"],
+            "threshold_for_high_risk": data["threshold_for_high_risk"],
+            "top_ranking": data["top_ranking"],
+            "report_recommendations": report_recommendations,
+            "report_observations": data["company_reporting"]["comment"],
+            "publication_date": formats.date_format(
+                datetime.date.today(), format="d F Y"
+            ),
+        }
+        for chart_name, chart_data in data["charts"].items():
+            chart_bytes = BytesIO(base64.b64decode(chart_data))
+            chart_with = document_charts.get(chart_name, {}).get("width", Mm(170))
+            context[chart_name] = InlineImage(
+                main_doc_template, chart_bytes, width=chart_with
+            )
+
+        for table_name, table_info in document_tables.items():
+            sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
+            sub_rendered_path = task_tmp_dir / f"{table_name}_rendered.docx"
+            context[table_name] = str(table_name)
+            table_info["context"].update(
+                {
+                    "translations": data["translations"],
+                    "year": data["reference_year"],
+                    "years": data["years"],
+                }
+            )
+            sub_doc_template = DocxTemplate(sub_template_path)
+            sub_doc_template.render(table_info["context"])
+            sub_doc_template.save(sub_rendered_path)
+            sub_doc = Document(sub_rendered_path)
+            for table in sub_doc.tables:
+                table_width_dxa = None
+                if "table_width_dxa" in table_info:
+                    # 1dxa = 1cm * 28.346 * 20
+                    table_width_dxa = table_info["table_width_dxa"]
+                if "column_proportions" in table_info:
+                    redistribute_column_widths_proportional(
+                        table,
+                        table_info["column_proportions"],
+                        main_doc,
+                        table_width_dxa,
+                    )
+                fix_outer_column_borders(table._element)
+            sub_doc.save(sub_rendered_path)
+            rendered_subs_docs[table_name] = sub_rendered_path
+
+        main_docx_path = Path(task_tmp_dir / "main_doc.docx")
+        main_doc_template.render(context)
+        main_doc_template.save(main_docx_path)
+        current_doc = main_docx_path
+        tmp_output_path = task_tmp_dir / "tmp_doc.docx"
+
+        for placeholder, sub_rendered_path in rendered_subs_docs.items():
+            sub_rendered_path = Path(sub_rendered_path)
+            try:
+                merge_subdoc_into_placeholder(
+                    main_docx_path=current_doc,
+                    subdoc_path=sub_rendered_path,
+                    placeholder=placeholder,
+                    output_path=tmp_output_path,
+                )
+                current_doc = tmp_output_path
+            finally:
+                if sub_rendered_path.exists():
+                    sub_rendered_path.unlink(missing_ok=True)
+
+        pipe_name = f"update_toc_{os.getpid()}"
+        ensure_soffice_running(pipe_name)
+        # get updated ToC
+        updated_toc = get_updated_toc(str(current_doc), pipe_name)
+        doc = Document(str(current_doc))
+        replace_toc_page_numbers(doc, updated_toc)
+        doc.save(str(current_doc))
+        main_docx_path.unlink(missing_ok=True)
+        success = True
+        return {"file_path": str(current_doc), "project_id": project_id}
+
+    except Exception as exc:
+        logger.exception(
+            "Error in generate_docx_task for the project %s : %s", project_id, exc
+        )
+        raise
+    finally:
+        if not success and task_tmp_dir.exists():
+            shutil.rmtree(task_tmp_dir, ignore_errors=True)
+            logger.info("Temporary file cleanup following a failure : %s", task_tmp_dir)
 
 
-@shared_task(bind=True)
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=120,
+    retry_jitter=True,
+)
 def generate_pdf_task(self, data):
+    if not data:
+        return
     project_id = data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
@@ -298,7 +341,10 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     project = Project.objects.get(id=project_id)
     if project.task_status == "ABORT":
         return
-    temp_file_path = data["file_path"]
+    temp_file_path = Path(data["file_path"])
+    if not temp_file_path.exists():
+        logger.warning("Temporary file not found: %s", temp_file_path)
+        return
     file_uuid = uuid.uuid4()
     User = get_user_model()
     user = User.objects.get(id=user_id)
@@ -307,11 +353,11 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
     file_path = os.path.join(output_dir, str(file_uuid))
 
     if is_multiple_files:
-        temp_output_dir = os.path.join(output_dir, run_id)
-        os.makedirs(temp_output_dir, exist_ok=True)
-        file_path = os.path.join(temp_output_dir, filename)
+        file_path = os.path.join(temp_file_path.parent, filename)
+        shutil.move(temp_file_path, file_path)
 
     else:
+        shutil.move(temp_file_path, file_path)
         GeneratedReport.objects.update_or_create(
             project=project,
             defaults={"file_uuid": file_uuid, "filename": filename},
@@ -320,35 +366,28 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
         project.task_status = "DONE"
         project.save()
 
-    shutil.move(temp_file_path, file_path)
-    parent_dir = Path(temp_file_path).parent
-    shutil.rmtree(parent_dir)
-
-    if output_dir.exists():
-        for item in output_dir.iterdir():
-            if str(item.name) != str(file_uuid) and not item.is_dir():
-                item.unlink()
-
     return {"file_path": str(file_path), "user_id": user_id, "project_id": project_id}
 
 
 @shared_task
 def zip_files_task(data, error_messages):
-    if not data[0]:
+    if not data or not data[0]:
+        logger.warning("zip_files task was called with empty or invalid data.")
         return
     User = get_user_model()
     user = User.objects.get(id=data[0]["user_id"])
     project_id = data[0]["project_id"]
-    file_paths = [item["file_path"] for item in data]
+    file_paths = [item["file_path"] for item in data if item and "file_path" in item]
+    if not file_paths:
+        logger.warning("No valid files to zip for the project %s", project_id)
+        return
     project = Project.objects.get(id=project_id)
     if project.task_status == "ABORT":
         return
     file_uuid = uuid.uuid4()
     output_dir = Path(os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id)))
-    if output_dir.exists() and output_dir.is_dir():
-        for item in output_dir.iterdir():
-            if item.is_file():
-                item.unlink()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     zip_filename = f"reports_{project.name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
     zip_path = os.path.join(output_dir, str(file_uuid))
 
@@ -361,16 +400,11 @@ def zip_files_task(data, error_messages):
                 arcname = os.path.basename(file_path)
                 zipf.write(file_path, arcname=arcname)
             else:
-                print(f"File not found: {file_path}")
+                logger.warning("File missing from the zip file : %s", file_path)
 
         if error_messages:
             error_log = "\n".join(error_messages)
             zipf.writestr("error_log.txt", error_log)
-
-    temp_dir = os.path.dirname(file_paths[0])
-
-    if os.path.exists(temp_dir):
-        shutil.rmtree(temp_dir)
 
     GeneratedReport.objects.update_or_create(
         project=project,
@@ -388,11 +422,35 @@ def cleanup_files(project_id, all_files=False):
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = base_tmp_dir / str(project_id)
 
-    if all_files and task_tmp_dir.exists():
+    if not task_tmp_dir.exists():
+        return
+
+    if all_files:
         shutil.rmtree(task_tmp_dir)
         return
 
-    if task_tmp_dir.exists() and task_tmp_dir.is_dir():
-        for item in task_tmp_dir.iterdir():
+    items = list(task_tmp_dir.iterdir())
+
+    if len(items) <= 1:
+        return
+
+    items.sort(key=lambda x: x.stat().st_mtime)
+    latest_item = items[-1]
+
+    if latest_item.is_dir():
+        shutil.rmtree(latest_item)
+        return
+
+    for item in items:
+        if item != latest_item:
             if item.is_dir():
                 shutil.rmtree(item)
+            else:
+                item.unlink()
+
+
+@shared_task(ignore_result=True)
+def on_chord_error(request, exc, traceback, project_id):
+    logger.error("Generation failed for the project %s : %s", project_id, exc)
+    Project.objects.filter(id=project_id).update(task_status=CELERY_TASK_STATUS[0][0])
+    cleanup_files.delay(project_id)

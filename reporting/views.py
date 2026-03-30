@@ -73,6 +73,7 @@ from .tasks import (
     generate_data,
     generate_docx_task,
     generate_pdf_task,
+    on_chord_error,
     save_file_task,
     zip_files_task,
 )
@@ -631,9 +632,10 @@ def generate_report_project(request, report_project_id: int):
                 run_id,
                 filename,
                 extention,
+                project_id,
                 is_multiple_selected_companies,
             )
-            report_generation_tasks.append(task)
+            report_generation_tasks.append(task.on_error(on_chord_error.s(project_id)))
 
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
@@ -641,19 +643,22 @@ def generate_report_project(request, report_project_id: int):
 
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    success_message = _("Report is being generated.")
+    Project.objects.filter(id=project_id).update(
+        task_status=CELERY_TASK_STATUS[3][0]  # "RUNNING"
+    )
 
     if is_multiple_selected_companies:
-        result = chord(group(report_generation_tasks))(zip_files_task.s(error_messages))
-        task_id = result.id
-
+        callback = (
+            zip_files_task.s(error_messages) | cleanup_files.si(project_id)
+        ).on_error(on_chord_error.s(project_id))
+        result = chord(group(report_generation_tasks))(callback)
         success_message = _("Reports are being generated.")
     else:
-        task_id = report_generation_tasks[0].id
+        result = task.delay()
+        success_message = _("Report is being generated.")
 
-    Project.objects.filter(id=project_id).update(
-        task_id=task_id, task_status=CELERY_TASK_STATUS[3][0]
-    )
+    task_id = result.id
+    Project.objects.filter(id=project_id).update(task_id=task_id)
 
     messages.success(request, success_message)
     return redirect("reporting")
@@ -665,8 +670,17 @@ def generate_report_project(request, report_project_id: int):
 def report_generation_status(request, report_project_id: int):
     project = Project.objects.get(id=report_project_id)
     success_status = CELERY_TASK_STATUS[1][0]
+    failure_status = CELERY_TASK_STATUS[0][0]
     task_id = str(project.task_id)
     reponse = {"project_id": project.id, "status": project.task_status}
+
+    if project.task_status == failure_status:
+        generated_report = GeneratedReport.objects.get(project=project)
+        messages.error(request, _("Report generation failed."))
+        rendered_messages = render_error_messages(request)
+        reponse["download_uuid"] = generated_report.file_uuid
+        reponse["messages"] = rendered_messages
+        return JsonResponse(reponse)
 
     if project.task_status == success_status:
         generated_report = GeneratedReport.objects.get(project=project)
@@ -1492,6 +1506,7 @@ def get_report(
     run_id,
     filename,
     extention,
+    project_id,
     is_multiple_files: bool,
 ):
     user = request.user
@@ -1513,13 +1528,10 @@ def get_report(
         )
     )
 
-    task_workflow = chain(*steps)
-
     if not is_multiple_files:
-        result = task_workflow.delay()
-        return result
+        return chain(*steps, cleanup_files.si(project_id))
     else:
-        return task_workflow
+        return chain(*steps)
 
 
 def validate_json_file(file):

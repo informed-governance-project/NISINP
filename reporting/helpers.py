@@ -1165,7 +1165,7 @@ def convert_docx_to_pdf(docx_path: str) -> str:
             ],
             check=True,
             capture_output=True,
-            timeout=60,
+            timeout=120,
         )
 
         if not pdf_path.exists():
@@ -1414,13 +1414,13 @@ def is_soffice_running(pipe_name="update_toc"):
     return False
 
 
-def ensure_soffice_running():
-    if not is_soffice_running("update_toc"):
+def ensure_soffice_running(pipe_name: str = "update_toc"):
+    if not is_soffice_running(pipe_name):
         subprocess.Popen(
             [
                 "soffice",
                 "--headless",
-                "--accept=pipe,name=update_toc;urp;",
+                f"--accept=pipe,name={pipe_name};urp;",
                 "--norestore",
                 "--nologo",
                 "--invisible",
@@ -1536,7 +1536,7 @@ def extract_title_from_para(para):
 
 
 # update page number with libre office
-def get_updated_toc(file_path: str):
+def get_updated_toc(file_path: str, pipe_name: str = "update_toc"):
     """
     Update table of content in docx
     """
@@ -1545,12 +1545,13 @@ def get_updated_toc(file_path: str):
         "/usr/bin/python3",
         "reporting/scripts/update_toc_docx.py",
         file_path,
+        pipe_name,
     ]
 
     proc = subprocess.run(
         cmd,
         check=True,
-        timeout=60,
+        timeout=120,
         capture_output=True,
         text=True,
     )

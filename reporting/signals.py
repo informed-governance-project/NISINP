@@ -1,3 +1,8 @@
+import os
+import subprocess
+
+from celery.signals import worker_process_init, worker_process_shutdown
+from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.db.models.signals import (
     m2m_changed,
@@ -11,6 +16,8 @@ from django.dispatch import Signal, receiver
 from governanceplatform.models import Company
 
 from .models import CompanyProject, Project, RiskData
+
+logger = get_task_logger(__name__)
 
 # define a signal to update project
 project_needs_update = Signal()
@@ -167,3 +174,17 @@ def delete_orphaned_recommendationdata(sender, instance, **kwargs):
     for b in related_bs:
         if b.riskdata_set.count() == 0:
             b.delete()
+
+
+@worker_process_init.connect
+def cleanup_stale_soffice(**kwargs):
+    pipe_name = f"update_toc_{os.getpid()}"
+    subprocess.run(["pkill", "-f", f"pipe,name={pipe_name}"], capture_output=True)
+    logger.info("Soft orphan cleanup on startup : %s", pipe_name)
+
+
+@worker_process_shutdown.connect
+def kill_soffice_on_shutdown(**kwargs):
+    pipe_name = f"update_toc_{os.getpid()}"
+    subprocess.run(["pkill", "-f", f"pipe,name={pipe_name}"], capture_output=True)
+    logger.info("soffice shut down properly : %s", pipe_name)
