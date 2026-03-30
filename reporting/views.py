@@ -5,7 +5,6 @@ from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
 from celery import chain, chord, group
-from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -669,42 +668,27 @@ def generate_report_project(request, report_project_id: int):
 @require_http_methods(["GET"])
 def report_generation_status(request, report_project_id: int):
     project = Project.objects.get(id=report_project_id)
-    success_status = CELERY_TASK_STATUS[1][0]
+    generated_report = GeneratedReport.objects.get(project=project)
     failure_status = CELERY_TASK_STATUS[0][0]
-    task_id = str(project.task_id)
-    reponse = {"project_id": project.id, "status": project.task_status}
+    success_status = CELERY_TASK_STATUS[1][0]
+    revoked_status = CELERY_TASK_STATUS[2][0]
+    reponse = {
+        "project_id": project.id,
+        "status": project.task_status,
+        "download_uuid": generated_report.file_uuid,
+    }
 
     if project.task_status == failure_status:
-        generated_report = GeneratedReport.objects.get(project=project)
         messages.error(request, _("Report generation failed."))
-        rendered_messages = render_error_messages(request)
-        reponse["download_uuid"] = generated_report.file_uuid
-        reponse["messages"] = rendered_messages
-        return JsonResponse(reponse)
 
     if project.task_status == success_status:
-        generated_report = GeneratedReport.objects.get(project=project)
-        reponse["download_uuid"] = generated_report.file_uuid
-        return JsonResponse(reponse)
+        messages.success(request, _("The report has been generated successfully."))
 
-    result = AsyncResult(task_id)
+    if project.task_status == revoked_status:
+        messages.success(request, _("Report generation was cancelled."))
 
-    if result.status == "SUCCESS":
-        generated_report = GeneratedReport.objects.get(project=project)
-        reponse["download_uuid"] = generated_report.file_uuid
-        project.task_status = success_status
-        project.save()
-        return JsonResponse(reponse)
-
-    if result.status in "REVOKED":
-        project.task_status = CELERY_TASK_STATUS[2][0]
-        project.save()
-        return JsonResponse(reponse)
-
-    if result.status in "FAILURE":
-        project.task_status = CELERY_TASK_STATUS[0][0]
-        project.save()
-        return JsonResponse(reponse)
+    rendered_messages = render_error_messages(request)
+    reponse["messages"] = rendered_messages
 
     return JsonResponse(reponse)
 
