@@ -3,8 +3,10 @@ import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
-from celery import chain, chord, group
+import redis
+from celery import chain, chord, current_app, group
 from celery.exceptions import CeleryError
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -460,6 +462,13 @@ def generate_report_project(request, report_project_id: int):
         )
         return redirect("reporting")
 
+    if not reporting_health_check():
+        project.task_status = CELERY_TASK_STATUS[0][0]
+        messages.error(
+            request, _("Failed to start report generation. Please try again.")
+        )
+        return redirect("dashboard_report_project", report_project_id=project.id)
+
     if project.task_status == CELERY_TASK_STATUS[3][0]:
         messages.warning(
             request,
@@ -687,6 +696,10 @@ def report_generation_status(request, report_project_id: int):
         "status": project.task_status,
         "download_uuid": generated_report.file_uuid,
     }
+
+    if not reporting_health_check():
+        project.task_status = failure_status
+        project.save()
 
     if project.task_status == failure_status:
         messages.error(request, _("Report generation failed."))
@@ -1625,3 +1638,25 @@ def render_error_messages(request):
         {"messages": messages.get_messages(request)},
         request=request,
     )
+
+
+def is_celery_worker_alive():
+    try:
+        inspect = current_app.control.inspect()
+        response = inspect.ping()
+        return bool(response)
+    except Exception:
+        return False
+
+
+def is_redis_available():
+    try:
+        r = redis.Redis.from_url(settings.CELERY_BROKER_URL)
+        r.ping()
+        return True
+    except redis.exceptions.RedisError:
+        return False
+
+
+def reporting_health_check():
+    return is_celery_worker_alive() and is_redis_available()

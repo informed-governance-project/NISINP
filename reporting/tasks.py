@@ -51,7 +51,7 @@ def generate_data(self, cleaned_data):
 
     project_id = cleaned_data["project_id"]
     project = Project.objects.get(id=project_id)
-    if project.task_status == "ABORT":
+    if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
@@ -105,7 +105,7 @@ def generate_data(self, cleaned_data):
 )
 def generate_docx_task(self, project_id):
     project = Project.objects.get(id=project_id)
-    if project.task_status == "ABORT":
+    if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
@@ -355,7 +355,7 @@ def generate_docx_task(self, project_id):
 )
 def generate_pdf_task(self, project_id):
     project = Project.objects.get(id=project_id)
-    if project.task_status == "ABORT":
+    if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
@@ -378,7 +378,7 @@ def generate_pdf_task(self, project_id):
 @shared_task(bind=True, ignore_result=True)
 def save_file_task(self, project_id, user_id, filename, is_multiple_files):
     project = Project.objects.get(id=project_id)
-    if project.task_status == "ABORT":
+    if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
@@ -417,7 +417,7 @@ def save_file_task(self, project_id, user_id, filename, is_multiple_files):
 @shared_task(ignore_result=True)
 def zip_files_task(user_id, project_id, error_messages):
     project = Project.objects.get(id=project_id)
-    if project.task_status == "ABORT":
+    if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     User = get_user_model()
     user = User.objects.get(id=user_id)
