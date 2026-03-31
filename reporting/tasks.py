@@ -51,7 +51,7 @@ def generate_data(self, cleaned_data):
 
     project_id = cleaned_data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
-        return
+        return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
@@ -104,12 +104,17 @@ def generate_docx_task(self, project_id):
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
-    file_path = task_tmp_dir / "data.json"
+    file_path = Path(task_tmp_dir / "data.json")
+
+    if not file_path.exists():
+        return "Data file not found for docx generation"
+
     with open(file_path) as f:
         data = json.load(f)
 
     if not data:
         return "No data found for docx generation"
+
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return "Aborted"
     subdocs_templates_dir = Path(
