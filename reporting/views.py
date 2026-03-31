@@ -1,6 +1,4 @@
-import datetime
 import json
-import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
@@ -486,9 +484,6 @@ def generate_report_project(request, report_project_id: int):
     languages = project.selected_languages
     extention = project.selected_file_format
     user_sectors = user.get_sectors().all()
-    run_id = (
-        datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + str(uuid.uuid4())[:8]
-    )
 
     selected_companies = [
         {
@@ -628,7 +623,6 @@ def generate_report_project(request, report_project_id: int):
             task = get_report(
                 request,
                 task_data,
-                run_id,
                 filename,
                 extention,
                 project_id,
@@ -648,7 +642,8 @@ def generate_report_project(request, report_project_id: int):
 
     if is_multiple_selected_companies:
         callback = (
-            zip_files_task.s(error_messages) | cleanup_files.si(project_id)
+            zip_files_task.si(user.id, project_id, error_messages)
+            | cleanup_files.si(project_id)
         ).on_error(on_chord_error.s(project_id))
         result = chord(group(report_generation_tasks))(callback)
         success_message = _("Reports are being generated.")
@@ -1487,7 +1482,6 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
 def get_report(
     request: HttpRequest,
     cleaned_data: dict,
-    run_id,
     filename,
     extention,
     project_id,
@@ -1497,15 +1491,15 @@ def get_report(
 
     steps = [
         generate_data.s(cleaned_data),
-        generate_docx_task.s(),
+        generate_docx_task.si(project_id),
     ]
 
     if extention == "pdf":
-        steps.append(generate_pdf_task.s())
+        steps.append(generate_pdf_task.si(project_id))
 
     steps.append(
-        save_file_task.s(
-            run_id,
+        save_file_task.si(
+            project_id,
             user.id,
             filename,
             is_multiple_files,

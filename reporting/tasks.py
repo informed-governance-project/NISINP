@@ -1,9 +1,11 @@
 import base64
 import datetime
+import json
 import os
 import shutil
 import uuid
 import zipfile
+from decimal import Decimal
 from io import BytesIO
 from pathlib import Path
 
@@ -36,11 +38,25 @@ from .models import Configuration, GeneratedReport, Project, Template
 logger = get_task_logger(__name__)
 
 
-@shared_task
-def generate_data(cleaned_data):
+@shared_task(bind=True, ignore_result=True)
+def generate_data(self, cleaned_data):
+    def custom_default(obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        if isinstance(obj, (datetime.datetime, datetime.date)):
+            return obj.isoformat()
+        return str(obj)
+
     project_id = cleaned_data["project_id"]
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return
+    run_id = str(self.request.root_id)
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    file_path = task_tmp_dir / "data.json"
+    task_tmp_dir.mkdir(parents=True, exist_ok=True)
     language = cleaned_data.get("language", "en")
     activate(language)
     report_configuration_id = cleaned_data["report_configuration_id"]
@@ -69,31 +85,36 @@ def generate_data(cleaned_data):
         "project_id": project_id,
     }
 
-    return data
+    with open(file_path, "w") as f:
+        json.dump(data, f, default=custom_default)
+
+    return "Data generated successfully"
 
 
 @shared_task(
     bind=True,
+    ignore_result=True,
     autoretry_for=(Exception,),
     max_retries=3,
     retry_backoff=True,
     retry_backoff_max=120,
     retry_jitter=True,
 )
-def generate_docx_task(self, data):
-    if not data:
-        return
-
-    project_id = data["project_id"]
-    if Project.objects.get(id=project_id).task_status == "ABORT":
-        return
-    tmp_id = str(self.request.id)
+def generate_docx_task(self, project_id):
+    run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / tmp_id
+    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    file_path = task_tmp_dir / "data.json"
+    with open(file_path) as f:
+        data = json.load(f)
+
+    if not data:
+        return "No data found for docx generation"
+    if Project.objects.get(id=project_id).task_status == "ABORT":
+        return "Aborted"
     subdocs_templates_dir = Path(
         os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
     )
-    task_tmp_dir.mkdir(parents=True, exist_ok=True)
     success = False
     try:
         if not task_tmp_dir.exists():
@@ -295,7 +316,7 @@ def generate_docx_task(self, data):
         doc.save(str(current_doc))
         main_docx_path.unlink(missing_ok=True)
         success = True
-        return {"file_path": str(current_doc), "project_id": project_id}
+        return "Docx generated successfully"
 
     except Exception as exc:
         logger.exception(
@@ -303,6 +324,8 @@ def generate_docx_task(self, data):
         )
         raise
     finally:
+        if success and task_tmp_dir.exists():
+            file_path.unlink(missing_ok=True)
         if not success and task_tmp_dir.exists():
             shutil.rmtree(task_tmp_dir, ignore_errors=True)
             logger.info("Temporary file cleanup following a failure : %s", task_tmp_dir)
@@ -310,41 +333,45 @@ def generate_docx_task(self, data):
 
 @shared_task(
     bind=True,
+    ignore_result=True,
     autoretry_for=(Exception,),
     max_retries=3,
     retry_backoff=True,
     retry_backoff_max=120,
     retry_jitter=True,
 )
-def generate_pdf_task(self, data):
-    if not data:
-        return
-    project_id = data["project_id"]
+def generate_pdf_task(self, project_id):
     if Project.objects.get(id=project_id).task_status == "ABORT":
-        return
-    docx_path = Path(data["file_path"])
+        return "Aborted"
+    run_id = str(self.request.root_id)
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    docx_path = Path(task_tmp_dir / "tmp_doc.docx")
 
     if not docx_path.exists():
-        return
+        return "Docx file not found for PDF conversion"
     try:
-        pdf_path = convert_docx_to_pdf(str(docx_path))
-        return {"file_path": str(pdf_path), "project_id": project_id}
-    finally:
+        convert_docx_to_pdf(str(docx_path))
         docx_path.unlink(missing_ok=True)
+        return "PDF generated successfully"
+    except Exception as exc:
+        logger.exception("PDF conversion failed for project %s : %s", project_id, exc)
+        raise
 
 
-@shared_task
-def save_file_task(data, run_id, user_id, filename, is_multiple_files):
-    if not data:
-        return
-    project_id = data["project_id"]
+@shared_task(bind=True, ignore_result=True)
+def save_file_task(self, project_id, user_id, filename, is_multiple_files):
     project = Project.objects.get(id=project_id)
     if project.task_status == "ABORT":
+        return "Aborted"
+    run_id = str(self.request.root_id)
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = Path(base_tmp_dir / str(project_id) / "tmp_files" / run_id)
+    temp_file_path = next(task_tmp_dir.glob("tmp_doc.*"), None)
+    if temp_file_path is None:
+        logger.warning("Temporary file not found in %s", task_tmp_dir)
         return
-    temp_file_path = Path(data["file_path"])
-    if not temp_file_path.exists():
-        logger.warning("Temporary file not found: %s", temp_file_path)
-        return
+
     file_uuid = uuid.uuid4()
     User = get_user_model()
     user = User.objects.get(id=user_id)
@@ -366,24 +393,16 @@ def save_file_task(data, run_id, user_id, filename, is_multiple_files):
         project.task_status = "DONE"
         project.save()
 
-    return {"file_path": str(file_path), "user_id": user_id, "project_id": project_id}
+    return "File saved successfully"
 
 
-@shared_task
-def zip_files_task(data, error_messages):
-    if not data or not data[0]:
-        logger.warning("zip_files task was called with empty or invalid data.")
-        return
-    User = get_user_model()
-    user = User.objects.get(id=data[0]["user_id"])
-    project_id = data[0]["project_id"]
-    file_paths = [item["file_path"] for item in data if item and "file_path" in item]
-    if not file_paths:
-        logger.warning("No valid files to zip for the project %s", project_id)
-        return
+@shared_task(ignore_result=True)
+def zip_files_task(user_id, project_id, error_messages):
     project = Project.objects.get(id=project_id)
     if project.task_status == "ABORT":
-        return
+        return "Aborted"
+    User = get_user_model()
+    user = User.objects.get(id=user_id)
     file_uuid = uuid.uuid4()
     output_dir = Path(os.path.join(settings.PATH_FOR_REPORTING_PDF, str(project_id)))
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -391,12 +410,17 @@ def zip_files_task(data, error_messages):
     zip_filename = f"reports_{project.name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
     zip_path = os.path.join(output_dir, str(file_uuid))
 
-    if not isinstance(file_paths, list):
-        file_paths = [file_paths]
+    base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
+    task_tmp_dir = Path(base_tmp_dir / str(project_id) / "tmp_files")
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
-        for file_path in file_paths:
-            if os.path.exists(file_path):
+        for run_path in task_tmp_dir.iterdir():
+            if not run_path.is_dir():
+                continue
+            file_path = next(
+                (f for f in run_path.iterdir() if f.suffix in (".pdf", ".docx")), None
+            )
+            if file_path and file_path.exists():
                 arcname = os.path.basename(file_path)
                 zipf.write(file_path, arcname=arcname)
             else:
@@ -414,7 +438,7 @@ def zip_files_task(data, error_messages):
     project.task_status = "DONE"
     project.save()
 
-    return zip_path
+    return "Files zipped and saved successfully"
 
 
 @shared_task(ignore_result=True)
@@ -423,30 +447,32 @@ def cleanup_files(project_id, all_files=False):
     task_tmp_dir = base_tmp_dir / str(project_id)
 
     if not task_tmp_dir.exists():
-        return
+        return "Temporary directory does not exist, no files to clean up"
 
     if all_files:
-        shutil.rmtree(task_tmp_dir)
-        return
+        shutil.rmtree(task_tmp_dir, ignore_errors=True)
+        return "Temporary files cleaned up successfully"
 
     items = list(task_tmp_dir.iterdir())
 
     if len(items) <= 1:
-        return
+        return "No files to clean up"
 
     items.sort(key=lambda x: x.stat().st_mtime)
     latest_item = items[-1]
 
     if latest_item.is_dir():
-        shutil.rmtree(latest_item)
-        return
+        shutil.rmtree(latest_item, ignore_errors=True)
+        return "Temporary files cleaned up successfully"
 
     for item in items:
         if item != latest_item:
             if item.is_dir():
-                shutil.rmtree(item)
+                shutil.rmtree(item, ignore_errors=True)
             else:
-                item.unlink()
+                item.unlink(missing_ok=True)
+
+    return "Temporary files cleaned up successfully"
 
 
 @shared_task(ignore_result=True)
