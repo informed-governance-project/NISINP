@@ -501,6 +501,10 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         )
         return headline_translation or ""
 
+    @admin.display(
+        description=_("Regulation"),
+        ordering="sector_regulation_workflow__sector_regulation__regulation__translations__label",
+    )
     def regulation(self):
         return self.sector_regulation_workflow.sector_regulation.regulation
 
