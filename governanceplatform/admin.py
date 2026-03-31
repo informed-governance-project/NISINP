@@ -1143,7 +1143,16 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email_verified",
         "date_joined",
     ]
-    search_fields = ["first_name", "last_name", "email", "phone_number"]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "companies__name",
+        "regulators__translations__name",
+        "observers__translations__name",
+        "groups__name",
+    ]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,

@@ -488,18 +488,27 @@ class User(AbstractUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    @admin.display(description=_("Companies"))
+    @admin.display(
+        description=_("Companies"),
+        ordering="companies__name",
+    )
     def get_companies(self):
         return ", ".join([company.name for company in self.companies.all().distinct()])
 
-    @admin.display(description=_("Companies"))
+    @admin.display(
+        description=_("Companies"),
+        ordering="companies__name",
+    )
     def get_companies_for_operator_admin(self, op_admin):
         companies = (
             self.companies.all().distinct() & op_admin.companies.all().distinct()
         )
         return ", ".join([company.name for company in companies.all().distinct()])
 
-    @admin.display(description=_("Regulator"))
+    @admin.display(
+        description=_("Regulator"),
+        ordering="regulators__translations__name",
+    )
     def get_regulators(self):
         return ", ".join(
             [
@@ -508,7 +517,10 @@ class User(AbstractUser, PermissionsMixin):
             ]
         )
 
-    @admin.display(description=_("Observer"))
+    @admin.display(
+        description=_("Observer"),
+        ordering="observers__translations__name",
+    )
     def get_observers(self):
         return ", ".join(
             [
@@ -517,7 +529,10 @@ class User(AbstractUser, PermissionsMixin):
             ]
         )
 
-    @admin.display(description=_("Roles"))
+    @admin.display(
+        description=_("Roles"),
+        ordering="groups__name",
+    )
     def get_permissions_groups(self):
         return ", ".join([group.name for group in self.groups.all()])
 
