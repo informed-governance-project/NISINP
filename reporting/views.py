@@ -1,8 +1,10 @@
 import json
+import uuid
 from collections import Counter, defaultdict
 from urllib.parse import quote as urlquote
 
 from celery import chain, chord, group
+from celery.exceptions import CeleryError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ValidationError
@@ -449,7 +451,6 @@ def delete_report_project(request, report_project_id: int):
 @require_http_methods(["POST"])
 def generate_report_project(request, report_project_id: int):
     user = request.user
-
     try:
         project = Project.objects.get(id=report_project_id)
     except Project.DoesNotExist:
@@ -458,6 +459,13 @@ def generate_report_project(request, report_project_id: int):
             _("No project found"),
         )
         return redirect("reporting")
+
+    if project.task_status == CELERY_TASK_STATUS[3][0]:
+        messages.warning(
+            request,
+            _("Report generation is already in progress for this project."),
+        )
+        return redirect("dashboard_report_project", report_project_id=project.id)
 
     if not project.threshold_for_high_risk or not project.top_ranking:
         error_message = _("Missing high risk rate threshold or ranking value")
@@ -636,23 +644,30 @@ def generate_report_project(request, report_project_id: int):
 
         return redirect("dashboard_report_project", report_project_id=project.id)
 
+    task_id = uuid.uuid4()
     Project.objects.filter(id=project_id).update(
-        task_status=CELERY_TASK_STATUS[3][0]  # "RUNNING"
+        task_status=CELERY_TASK_STATUS[3][0], task_id=task_id
     )
 
-    if is_multiple_selected_companies:
-        callback = (
-            zip_files_task.si(user.id, project_id, error_messages)
-            | cleanup_files.si(project_id)
-        ).on_error(on_chord_error.s(project_id))
-        result = chord(group(report_generation_tasks))(callback)
-        success_message = _("Reports are being generated.")
-    else:
-        result = task.delay()
-        success_message = _("Report is being generated.")
-
-    task_id = result.id
-    Project.objects.filter(id=project_id).update(task_id=task_id)
+    try:
+        if is_multiple_selected_companies:
+            callback = (
+                zip_files_task.si(user.id, project_id, error_messages)
+                | cleanup_files.si(project_id)
+            ).on_error(on_chord_error.s(project_id))
+            chord(group(report_generation_tasks))(callback)
+            success_message = _("Reports are being generated.")
+        else:
+            task.delay()
+            success_message = _("Report is being generated.")
+    except (ConnectionError, RuntimeError, CeleryError):
+        Project.objects.filter(id=project_id).update(
+            task_status=CELERY_TASK_STATUS[0][0]
+        )
+        messages.error(
+            request, _("Failed to start report generation. Please try again.")
+        )
+        return redirect("dashboard_report_project", report_project_id=project.id)
 
     messages.success(request, success_message)
     return redirect("reporting")

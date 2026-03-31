@@ -50,11 +50,14 @@ def generate_data(self, cleaned_data):
         return str(obj)
 
     project_id = cleaned_data["project_id"]
-    if Project.objects.get(id=project_id).task_status == "ABORT":
+    project = Project.objects.get(id=project_id)
+    if project.task_status == "ABORT":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    task_tmp_dir = (
+        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
+    )
     file_path = task_tmp_dir / "data.json"
     task_tmp_dir.mkdir(parents=True, exist_ok=True)
     language = cleaned_data.get("language", "en")
@@ -101,9 +104,14 @@ def generate_data(self, cleaned_data):
     retry_jitter=True,
 )
 def generate_docx_task(self, project_id):
+    project = Project.objects.get(id=project_id)
+    if project.task_status == "ABORT":
+        return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    task_tmp_dir = (
+        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
+    )
     file_path = Path(task_tmp_dir / "data.json")
 
     if not file_path.exists():
@@ -346,11 +354,14 @@ def generate_docx_task(self, project_id):
     retry_jitter=True,
 )
 def generate_pdf_task(self, project_id):
-    if Project.objects.get(id=project_id).task_status == "ABORT":
+    project = Project.objects.get(id=project_id)
+    if project.task_status == "ABORT":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = base_tmp_dir / str(project_id) / "tmp_files" / run_id
+    task_tmp_dir = (
+        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
+    )
     docx_path = Path(task_tmp_dir / "tmp_doc.docx")
 
     if not docx_path.exists():
@@ -371,7 +382,9 @@ def save_file_task(self, project_id, user_id, filename, is_multiple_files):
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = Path(base_tmp_dir / str(project_id) / "tmp_files" / run_id)
+    task_tmp_dir = Path(
+        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
+    )
     temp_file_path = next(task_tmp_dir.glob("tmp_doc.*"), None)
     if temp_file_path is None:
         logger.warning("Temporary file not found in %s", task_tmp_dir)
@@ -416,7 +429,7 @@ def zip_files_task(user_id, project_id, error_messages):
     zip_path = os.path.join(output_dir, str(file_uuid))
 
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = Path(base_tmp_dir / str(project_id) / "tmp_files")
+    task_tmp_dir = Path(base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}")
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for run_path in task_tmp_dir.iterdir():
