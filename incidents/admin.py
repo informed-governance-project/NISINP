@@ -7,7 +7,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, OuterRef, Q, Subquery
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -26,6 +26,7 @@ from governanceplatform.admin import (
 from governanceplatform.globals import ACTION_FLAG_CHOICES
 from governanceplatform.helpers import (
     can_change_or_delete_obj,
+    generate_display_methods,
     sanitize_html,
     set_creator,
     translated_queryset,
@@ -467,12 +468,13 @@ class QuestionAdmin(
     actions = [duplicate_objects]
     list_display = [
         "reference",
-        "label",
+        "label_display",
         "question_type",
         "get_predefined_answers",
         "creator",
     ]
-    list_display_links = ["reference", "label"]
+    translated_fields = ["label"]
+    list_display_links = ["reference", "label_display"]
     search_fields = [
         "translations__label",
         "translations__tooltip",
@@ -504,6 +506,14 @@ class QuestionAdmin(
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+
+for name, method in generate_display_methods(
+    [
+        "label",
+    ]
+).items():
+    setattr(QuestionAdmin, name, method)
 
 
 @admin.register(QuestionOptions, site=admin_site)
@@ -604,8 +614,9 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         "get_regulations",
         "get_sector_name",
         "get_subsector_name",
-        "headline",
+        "headline_display",
     ]
+    translated_fields = ["headline"]
     search_fields = [
         "translations__label",
         "regulations__translations__label",
@@ -640,11 +651,42 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         ),
     ]
 
-    @admin.display(description=_("Regulations"))
+    def get_queryset(self, request):
+        lang = get_language()
+        sector_subquery = (
+            Sector.objects.filter(
+                impact=OuterRef("pk"),
+            )
+            .values("parent__translations__name")
+            .filter(parent__translations__language_code=lang)
+            .distinct()[:1]
+        )
+        subsector_subquery = (
+            Sector.objects.filter(
+                impact=OuterRef("pk"),
+            )
+            .values("translations__name")
+            .filter(translations__language_code=lang)
+            .distinct()[:1]
+        )
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                "regulations",
+            )
+            .annotate(sector_sort=Subquery(sector_subquery))
+            .annotate(subsector_sort=Subquery(subsector_subquery))
+            .distinct()
+        )
+
+    @admin.display(
+        description=_("Regulations"), ordering="regulations__translations__label"
+    )
     def get_regulations(self, obj):
         return ", ".join([c.label for c in obj.regulations.all()])
 
-    @admin.display(description=_("Sector"))
+    @admin.display(description=_("Sector"), ordering="sector_sort")
     def get_sector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
@@ -653,11 +695,14 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
                 if sector.parent
                 else sector.get_safe_translation()
             )
+            # if we don't want to see the duplicate sectors:
+            # if sector_name not in sectors:
+            #     sectors.append(sector_name)
             sectors.append(sector_name)
 
         return sectors
 
-    @admin.display(description=_("Sub-sector"))
+    @admin.display(description=_("Sub-sector"), ordering="subsector_sort")
     def get_subsector_name(self, obj):
         sectors = []
         for sector in obj.sectors.all():
@@ -677,6 +722,14 @@ class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+
+for name, method in generate_display_methods(
+    [
+        "headline",
+    ]
+).items():
+    setattr(ImpactAdmin, name, method)
 
 
 class EmailResource(TranslationUpdateMixin, resources.ModelResource):
@@ -758,9 +811,10 @@ class EmailTypeListFilter(SimpleListFilter):
 class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
     list_display = [
         "name",
-        "subject",
-        "content",
+        "subject_display",
+        "content_display",
     ]
+    translated_fields = ["subject", "content"]
 
     search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
@@ -809,16 +863,21 @@ class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         super().save_model(request, obj, form, change)
 
 
+for name, method in generate_display_methods(["subject", "content"]).items():
+    setattr(EmailAdmin, name, method)
+
+
 @admin.register(Workflow, site=admin_site)
 class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     list_display = [
         "name",
-        "label",
-        "description",
+        "label_display",
+        "description_display",
         "is_impact_needed",
         "submission_email",
         "creator",
     ]
+    translated_fields = ["label", "description"]
     search_fields = [
         "translations__label",
         "name",
@@ -897,6 +956,10 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     def save_model(self, request, obj, form, change):
         set_creator(request, obj, change)
         super().save_model(request, obj, form, change)
+
+
+for name, method in generate_display_methods(["label", "description"]).items():
+    setattr(WorkflowAdmin, name, method)
 
 
 class SectorRegulationResource(resources.ModelResource):
@@ -1045,10 +1108,11 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     list_display = [
         "regulation",
         "sector_regulation_workflow",
-        "headline",
+        "headline_display",
         "trigger_event",
         "delay_in_hours",
     ]
+    translated_fields = ["headline"]
     search_fields = [
         "sector_regulation_workflow__sector_regulation__regulation__translations__label",
         "translations__headline",
@@ -1072,3 +1136,11 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
                 .distinct()
             )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+for name, method in generate_display_methods(
+    [
+        "headline",
+    ]
+).items():
+    setattr(SectorRegulationWorkflowEmailAdmin, name, method)
