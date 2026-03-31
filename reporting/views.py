@@ -680,7 +680,7 @@ def report_generation_status(request, report_project_id: int):
         messages.success(request, _("The report has been generated successfully."))
 
     if project.task_status == revoked_status:
-        messages.success(request, _("Report generation was cancelled."))
+        messages.warning(request, _("Report generation was cancelled."))
 
     rendered_messages = render_error_messages(request)
     reponse["messages"] = rendered_messages
