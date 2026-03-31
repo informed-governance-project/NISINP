@@ -1143,7 +1143,7 @@ def convert_docx_to_pdf(docx_path: str) -> str:
     output_dir = docx_path.parent
     pdf_path = output_dir / (docx_path.stem + ".pdf")
 
-    profile_dir = Path("/tmp") / f"lo-profile-{uuid.uuid4()}"
+    profile_dir = Path(output_dir / f"lo-profile-{uuid.uuid4()}")
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     try:
