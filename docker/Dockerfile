@@ -19,6 +19,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
   gettext \
   libreoffice-writer \
+  python3-uno \
   && rm -rf /var/lib/apt/lists/*
 
 # running as www-data, we need homedir and PATH for --user installed pip modules
