@@ -2,29 +2,52 @@ FROM node:18-bullseye AS npmbuilder
 
 WORKDIR /app
 
-COPY package.json /app
-COPY package-lock.json /app
+COPY package.json package-lock.json /app/
 
 RUN npm ci
-RUN npm install
 
-FROM python:3.12-bullseye
+FROM ubuntu:24.04
 
 ARG APP_VERSION
 ARG GUNICORN_VERSION=23.0
-ENV APP_VERSION=$APP_VERSION
+ENV APP_VERSION=$APP_VERSION \
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="${PATH}:/var/www/.local/bin"
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  gettext \
-  libreoffice-writer \
-  python3-uno \
+    # Python
+    python3.12 \
+    python3-pip \
+    # LibreOffice — for document conversion
+    python3-uno \
+    libreoffice-writer \
+    fonts-liberation \
+    fonts-crosextra-carlito \
+    fonts-crosextra-caladea \
+    # WeasyPrint dependencies
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libcairo2 \
+    libffi8 \
+    shared-mime-info \
+    # Other dependencies
+    gettext \
+    git \
+  && fc-cache -f \
   && rm -rf /var/lib/apt/lists/*
 
-# running as www-data, we need homedir and PATH for --user installed pip modules
+# Both python and python3 link to python3.12
+RUN ln -sf /usr/bin/python3.12 /usr/bin/python3 \
+ && ln -sf /usr/bin/python3.12 /usr/bin/python
+
+# running as www-data
 RUN mkdir -p /app /var/www && chown www-data: /app /var/www
-ENV PATH="${PATH}:/var/www/.local/bin"
 USER www-data
 
 # because package.json scripts.postinstall tries to be smart
@@ -42,20 +65,21 @@ COPY --chown=www-data pyproject.toml /app/pyproject.toml
 COPY --chown=www-data README.md /app/README.md
 COPY --chown=www-data manage.py /app/manage.py
 
-RUN python3 -m pip install --user .
-RUN python3 -m pip install --user gunicorn~=$GUNICORN_VERSION
+RUN python -m pip install \
+    --user \
+    --break-system-packages \
+    --no-cache-dir \
+    "gunicorn~=${GUNICORN_VERSION}" \
+    .
 
-COPY celery_worker.py /app/
-COPY celery_beat.py /app/
-
-COPY docker/docker-init.sh /app/docker-init.sh
+COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
 
 RUN mkdir -p /app/tmp
 
 ENTRYPOINT [ "/app/docker-init.sh" ]
 
-ENV APP_PORT="8888"
-ENV APP_BIND_ADDRESS="0.0.0.0"
-ENV APP_WORKERS="4"
+ENV APP_PORT="8888" \
+    APP_BIND_ADDRESS="0.0.0.0" \
+    APP_WORKERS="4"
 
 EXPOSE $APP_PORT
