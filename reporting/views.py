@@ -517,6 +517,7 @@ def generate_report_project(request, report_project_id: int):
     error_messages = []
     errors = 0
     report_generation_tasks = []
+    task_id = uuid.uuid4()
 
     for select_company in selected_companies:
         company = select_company.get("company")
@@ -643,9 +644,12 @@ def generate_report_project(request, report_project_id: int):
                 filename,
                 extention,
                 project_id,
+                task_id,
                 is_multiple_selected_companies,
             )
-            report_generation_tasks.append(task.on_error(on_chord_error.s(project_id)))
+            report_generation_tasks.append(
+                task.on_error(on_chord_error.s(project_id, task_id))
+            )
 
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
@@ -653,7 +657,6 @@ def generate_report_project(request, report_project_id: int):
 
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    task_id = uuid.uuid4()
     Project.objects.filter(id=project_id).update(
         task_status=CELERY_TASK_STATUS[3][0], task_id=task_id
     )
@@ -661,9 +664,9 @@ def generate_report_project(request, report_project_id: int):
     try:
         if is_multiple_selected_companies:
             callback = (
-                zip_files_task.si(user.id, project_id, error_messages)
-                | cleanup_files.si(project_id)
-            ).on_error(on_chord_error.s(project_id))
+                zip_files_task.si(user.id, project_id, task_id, error_messages)
+                | cleanup_files.si(project_id, task_id)
+            ).on_error(on_chord_error.s(project_id, task_id))
             chord(group(report_generation_tasks))(callback)
             success_message = _("Reports are being generated.")
         else:
@@ -1513,21 +1516,23 @@ def get_report(
     filename,
     extention,
     project_id,
+    task_id,
     is_multiple_files: bool,
 ):
     user = request.user
 
     steps = [
-        generate_data.s(cleaned_data),
-        generate_docx_task.si(project_id),
+        generate_data.s(project_id, task_id, cleaned_data),
+        generate_docx_task.si(project_id, task_id),
     ]
 
     if extention == "pdf":
-        steps.append(generate_pdf_task.si(project_id))
+        steps.append(generate_pdf_task.si(project_id, task_id))
 
     steps.append(
         save_file_task.si(
             project_id,
+            task_id,
             user.id,
             filename,
             is_multiple_files,
@@ -1535,7 +1540,7 @@ def get_report(
     )
 
     if not is_multiple_files:
-        return chain(*steps, cleanup_files.si(project_id))
+        return chain(*steps, cleanup_files.si(project_id, task_id))
     else:
         return chain(*steps)
 

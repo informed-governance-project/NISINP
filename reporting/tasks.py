@@ -39,7 +39,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task(bind=True, ignore_result=True)
-def generate_data(self, cleaned_data):
+def generate_data(self, project_id, task_id, cleaned_data):
     def custom_default(obj):
         if isinstance(obj, Decimal):
             return float(obj)
@@ -49,15 +49,17 @@ def generate_data(self, cleaned_data):
             return obj.isoformat()
         return str(obj)
 
-    project_id = cleaned_data["project_id"]
-    project = Project.objects.get(id=project_id)
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
+
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = (
-        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
-    )
+    task_tmp_dir = base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id
     file_path = task_tmp_dir / "data.json"
     task_tmp_dir.mkdir(parents=True, exist_ok=True)
     language = cleaned_data.get("language", "en")
@@ -103,15 +105,18 @@ def generate_data(self, cleaned_data):
     retry_backoff_max=120,
     retry_jitter=True,
 )
-def generate_docx_task(self, project_id):
-    project = Project.objects.get(id=project_id)
+def generate_docx_task(self, project_id, task_id):
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
+
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = (
-        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
-    )
+    task_tmp_dir = base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id
     file_path = Path(task_tmp_dir / "data.json")
 
     if not file_path.exists():
@@ -353,15 +358,17 @@ def generate_docx_task(self, project_id):
     retry_backoff_max=120,
     retry_jitter=True,
 )
-def generate_pdf_task(self, project_id):
-    project = Project.objects.get(id=project_id)
+def generate_pdf_task(self, project_id, task_id):
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = (
-        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
-    )
+    task_tmp_dir = base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id
     docx_path = Path(task_tmp_dir / "tmp_doc.docx")
 
     if not docx_path.exists():
@@ -376,14 +383,18 @@ def generate_pdf_task(self, project_id):
 
 
 @shared_task(bind=True, ignore_result=True)
-def save_file_task(self, project_id, user_id, filename, is_multiple_files):
-    project = Project.objects.get(id=project_id)
+def save_file_task(self, project_id, task_id, user_id, filename, is_multiple_files):
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = Path(
-        base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}" / run_id
+        base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id
     )
     temp_file_path = next(task_tmp_dir.glob("tmp_doc.*"), None)
     if temp_file_path is None:
@@ -415,8 +426,12 @@ def save_file_task(self, project_id, user_id, filename, is_multiple_files):
 
 
 @shared_task(ignore_result=True)
-def zip_files_task(user_id, project_id, error_messages):
-    project = Project.objects.get(id=project_id)
+def zip_files_task(user_id, project_id, task_id, error_messages):
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     if project.task_status == "ABORT" or project.task_status == "FAIL":
         return "Aborted"
     User = get_user_model()
@@ -429,7 +444,7 @@ def zip_files_task(user_id, project_id, error_messages):
     zip_path = os.path.join(output_dir, str(file_uuid))
 
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = Path(base_tmp_dir / str(project_id) / f"tmp_files_{project.task_id}")
+    task_tmp_dir = Path(base_tmp_dir / str(project_id) / f"tmp_files_{task_id}")
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for run_path in task_tmp_dir.iterdir():
@@ -460,7 +475,12 @@ def zip_files_task(user_id, project_id, error_messages):
 
 
 @shared_task(ignore_result=True)
-def cleanup_files(project_id, all_files=False):
+def cleanup_files(project_id, task_id, all_files=False):
+    try:
+        Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
     task_tmp_dir = base_tmp_dir / str(project_id)
 
@@ -494,7 +514,12 @@ def cleanup_files(project_id, all_files=False):
 
 
 @shared_task(ignore_result=True)
-def on_chord_error(request, exc, traceback, project_id):
+def on_chord_error(request, exc, traceback, project_id, task_id):
     logger.error("Generation failed for the project %s : %s", project_id, exc)
-    Project.objects.filter(id=project_id).update(task_status=CELERY_TASK_STATUS[0][0])
-    cleanup_files.delay(project_id)
+    try:
+        project = Project.objects.get(id=project_id, task_id=task_id)
+    except Project.DoesNotExist:
+        return "A new report generation is in progress for this project."
+
+    project.update(task_status=CELERY_TASK_STATUS[0][0])
+    cleanup_files.delay(project_id, task_id)
