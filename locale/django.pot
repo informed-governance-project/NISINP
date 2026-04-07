@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-26 09:27+0100\n"
+"POT-Creation-Date: 2026-04-07 09:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,8 +34,8 @@ msgstr ""
 msgid "Contacts for company"
 msgstr ""
 
-#: governanceplatform/admin.py:568 governanceplatform/admin.py:1156
-#: governanceplatform/admin.py:1169
+#: governanceplatform/admin.py:568 governanceplatform/admin.py:1165
+#: governanceplatform/admin.py:1178
 msgid "Contact information"
 msgstr ""
 
@@ -44,15 +44,15 @@ msgid "Configuration information"
 msgstr ""
 
 #: governanceplatform/admin.py:588 governanceplatform/models.py:186
-#: governanceplatform/models.py:760
+#: governanceplatform/models.py:775
 msgid "Entity categories"
 msgstr ""
 
 #: governanceplatform/admin.py:597 governanceplatform/models.py:81
-#: incidents/admin.py:564 incidents/admin.py:636 incidents/admin.py:955
+#: incidents/admin.py:574 incidents/admin.py:647 incidents/admin.py:1018
 #: incidents/forms.py:658 incidents/models.py:47 incidents/models.py:330
 #: incidents/views.py:1119 reporting/admin.py:69 reporting/filters.py:44
-#: reporting/filters.py:87 reporting/forms.py:53 reporting/forms.py:185
+#: reporting/filters.py:87 reporting/forms.py:52 reporting/forms.py:179
 #: reporting/models.py:346 reporting/models.py:532
 #: securityobjectives/forms.py:143 securityobjectives/forms.py:191
 #: securityobjectives/forms.py:228 securityobjectives/models.py:462
@@ -68,15 +68,15 @@ msgid "Reset 2FA"
 msgstr ""
 
 #: governanceplatform/admin.py:996 governanceplatform/models.py:279
-#: governanceplatform/models.py:486 governanceplatform/models.py:720
-#: governanceplatform/models.py:723 incidents/models.py:616
+#: governanceplatform/models.py:486 governanceplatform/models.py:735
+#: governanceplatform/models.py:738 incidents/models.py:620
 #: incidents/views.py:1118
 msgid "Regulators"
 msgstr ""
 
 #: governanceplatform/admin.py:1015 governanceplatform/models.py:457
-#: governanceplatform/models.py:536 governanceplatform/models.py:686
-#: governanceplatform/models.py:774
+#: governanceplatform/models.py:546 governanceplatform/models.py:701
+#: governanceplatform/models.py:789
 msgid "Observer"
 msgstr ""
 
@@ -85,40 +85,40 @@ msgstr ""
 msgid "Operators"
 msgstr ""
 
-#: governanceplatform/admin.py:1059 governanceplatform/models.py:545
+#: governanceplatform/admin.py:1059 governanceplatform/models.py:558
 msgid "Roles"
 msgstr ""
 
-#: governanceplatform/admin.py:1189 governanceplatform/models.py:516
-#: governanceplatform/models.py:520
+#: governanceplatform/admin.py:1198 governanceplatform/models.py:517
+#: governanceplatform/models.py:524
 msgid "Companies"
 msgstr ""
 
-#: governanceplatform/admin.py:1217
+#: governanceplatform/admin.py:1226
 msgid "Cookies acceptation has been reseted"
 msgstr ""
 
-#: governanceplatform/admin.py:1225
+#: governanceplatform/admin.py:1234
 msgid "Terms acceptation has been reset"
 msgstr ""
 
-#: governanceplatform/admin.py:1270 governanceplatform/models.py:810
+#: governanceplatform/admin.py:1279 governanceplatform/models.py:825
 msgid "Additional information"
 msgstr ""
 
-#: governanceplatform/admin.py:1690 governanceplatform/models.py:794
+#: governanceplatform/admin.py:1699 governanceplatform/models.py:809
 msgid "Observer regulation"
 msgstr ""
 
-#: governanceplatform/admin.py:1691 governanceplatform/models.py:795
+#: governanceplatform/admin.py:1700 governanceplatform/models.py:810
 msgid "Observer regulations"
 msgstr ""
 
-#: governanceplatform/admin.py:1698 governanceplatform/models.py:701
+#: governanceplatform/admin.py:1707 governanceplatform/models.py:716
 msgid "Observer user"
 msgstr ""
 
-#: governanceplatform/admin.py:1699 governanceplatform/models.py:702
+#: governanceplatform/admin.py:1708 governanceplatform/models.py:717
 msgid "Observer users"
 msgstr ""
 
@@ -229,7 +229,7 @@ msgstr ""
 msgid "Email address"
 msgstr ""
 
-#: governanceplatform/forms.py:43 incidents/models.py:1033
+#: governanceplatform/forms.py:43 incidents/models.py:1037
 #: reporting/models.py:404 securityobjectives/models.py:567
 msgid "Role"
 msgstr ""
@@ -382,7 +382,7 @@ msgid "Creator"
 msgstr ""
 
 #: governanceplatform/models.py:80 governanceplatform/models.py:88
-#: incidents/admin.py:647 reporting/models.py:30 reporting/models.py:303
+#: incidents/admin.py:689 reporting/models.py:30 reporting/models.py:303
 #: reporting/models.py:588
 msgid "Sector"
 msgstr ""
@@ -426,8 +426,8 @@ msgstr ""
 msgid "sectors"
 msgstr ""
 
-#: governanceplatform/models.py:239 governanceplatform/models.py:596
-#: incidents/models.py:525 reporting/filters.py:22
+#: governanceplatform/models.py:239 governanceplatform/models.py:611
+#: incidents/models.py:529 reporting/filters.py:22
 msgid "Operator"
 msgstr ""
 
@@ -446,9 +446,9 @@ msgstr ""
 msgid "E-mail address for incident notification"
 msgstr ""
 
-#: governanceplatform/models.py:278 governanceplatform/models.py:527
-#: governanceplatform/models.py:653 incidents/admin.py:705
-#: incidents/models.py:323 incidents/models.py:533 reporting/models.py:423
+#: governanceplatform/models.py:278 governanceplatform/models.py:534
+#: governanceplatform/models.py:668 incidents/admin.py:758
+#: incidents/models.py:323 incidents/models.py:537 reporting/models.py:423
 #: securityobjectives/models.py:259
 msgid "Regulator"
 msgstr ""
@@ -490,110 +490,110 @@ msgstr ""
 msgid "Indicates whether the user has verified their email address."
 msgstr ""
 
-#: governanceplatform/models.py:577 incidents/admin.py:74
+#: governanceplatform/models.py:592 incidents/admin.py:75
 msgid "Users"
 msgstr ""
 
-#: governanceplatform/models.py:578 governanceplatform/models.py:601
-#: governanceplatform/models.py:648 governanceplatform/models.py:681
-#: incidents/models.py:1027 incidents/templatetags/custom_filters.py:88
+#: governanceplatform/models.py:593 governanceplatform/models.py:616
+#: governanceplatform/models.py:663 governanceplatform/models.py:696
+#: incidents/models.py:1031 incidents/templatetags/custom_filters.py:88
 #: reporting/models.py:398 securityobjectives/models.py:561
 #: securityobjectives/templatetags/SO_custom_filters.py:135
 msgid "User"
 msgstr ""
 
-#: governanceplatform/models.py:604 governanceplatform/models.py:656
-#: governanceplatform/models.py:689
+#: governanceplatform/models.py:619 governanceplatform/models.py:671
+#: governanceplatform/models.py:704
 msgid "Is administrator"
 msgstr ""
 
-#: governanceplatform/models.py:607
+#: governanceplatform/models.py:622
 msgid "Approved"
 msgstr ""
 
-#: governanceplatform/models.py:615
+#: governanceplatform/models.py:630
 msgid "Company User"
 msgstr ""
 
-#: governanceplatform/models.py:616
+#: governanceplatform/models.py:631
 msgid "Company Users"
 msgstr ""
 
-#: governanceplatform/models.py:633
+#: governanceplatform/models.py:648
 msgid "Incident users can only become administrator after being approved."
 msgstr ""
 
-#: governanceplatform/models.py:639
+#: governanceplatform/models.py:654
 msgid "The first user of an operator must be an administrator."
 msgstr ""
 
-#: governanceplatform/models.py:659 governanceplatform/models.py:692
+#: governanceplatform/models.py:674 governanceplatform/models.py:707
 msgid "Can export incidents"
 msgstr ""
 
-#: governanceplatform/models.py:669
+#: governanceplatform/models.py:684
 msgid "Regulator user"
 msgstr ""
 
-#: governanceplatform/models.py:670
+#: governanceplatform/models.py:685
 msgid "Regulator users"
 msgstr ""
 
-#: governanceplatform/models.py:713 governanceplatform/models.py:744
+#: governanceplatform/models.py:728 governanceplatform/models.py:759
 #: incidents/models.py:28 incidents/models.py:81 incidents/models.py:124
 #: incidents/models.py:262 securityobjectives/models.py:15
 #: securityobjectives/models.py:64 securityobjectives/models.py:253
 msgid "Label"
 msgstr ""
 
-#: governanceplatform/models.py:735 incidents/admin.py:643
+#: governanceplatform/models.py:750 incidents/admin.py:684
 msgid "Regulations"
 msgstr ""
 
-#: governanceplatform/models.py:736 incidents/forms.py:1110
-#: reporting/admin.py:114 reporting/forms.py:154
+#: governanceplatform/models.py:751 incidents/forms.py:1110
+#: incidents/models.py:505 reporting/admin.py:114 reporting/forms.py:148
 #: securityobjectives/models.py:264
 msgid "Regulation"
 msgstr ""
 
-#: governanceplatform/models.py:749
+#: governanceplatform/models.py:764
 msgid "Code"
 msgstr ""
 
-#: governanceplatform/models.py:761
+#: governanceplatform/models.py:776
 msgid "Entity category"
 msgstr ""
 
-#: governanceplatform/models.py:769 incidents/admin.py:585
+#: governanceplatform/models.py:784 incidents/admin.py:595
 #: incidents/models.py:42 incidents/models.py:318
 msgid "Legal basis"
 msgstr ""
 
-#: governanceplatform/models.py:777
+#: governanceplatform/models.py:792
 msgid "Incident rules"
 msgstr ""
 
-#: governanceplatform/models.py:803 incidents/models.py:920
-#: incidents/models.py:1030 incidents/models.py:1078 incidents/models.py:1168
+#: governanceplatform/models.py:818 incidents/models.py:924
+#: incidents/models.py:1034 incidents/models.py:1082 incidents/models.py:1172
 #: reporting/models.py:401 reporting/models.py:632
 #: securityobjectives/models.py:564
 msgid "Timestamp"
 msgstr ""
 
-#: governanceplatform/models.py:804 incidents/admin.py:108
-#: incidents/admin.py:202
+#: governanceplatform/models.py:819 incidents/admin.py:109
+#: incidents/admin.py:203
 msgid "Activity"
 msgstr ""
 
-#: governanceplatform/models.py:805
+#: governanceplatform/models.py:820
 msgid "Object id"
 msgstr ""
 
-#: governanceplatform/models.py:807
+#: governanceplatform/models.py:822
 msgid "Object representation"
 msgstr ""
 
-#: governanceplatform/models.py:814 governanceplatform/models.py:815
+#: governanceplatform/models.py:829 governanceplatform/models.py:830
 msgid "Script execution logs"
 msgstr ""
 
@@ -715,79 +715,79 @@ msgstr ""
 msgid "Invalid captcha"
 msgstr ""
 
-#: incidents/admin.py:302 incidents/models.py:166 incidents/models.py:176
+#: incidents/admin.py:303 incidents/models.py:166 incidents/models.py:176
 msgid "Question"
 msgstr ""
 
-#: incidents/admin.py:303 incidents/models.py:1162
+#: incidents/admin.py:304 incidents/models.py:1166
 msgid "Questionnaire"
 msgstr ""
 
-#: incidents/admin.py:342
+#: incidents/admin.py:343
 msgid "Predefined answer"
 msgstr ""
 
-#: incidents/admin.py:343
+#: incidents/admin.py:344
 msgid "Predefined answers"
 msgstr ""
 
-#: incidents/admin.py:448 incidents/models.py:116
+#: incidents/admin.py:449 incidents/models.py:116
 msgid "Question Type"
 msgstr ""
 
-#: incidents/admin.py:620 incidents/admin.py:833 incidents/admin.py:935
+#: incidents/admin.py:631 incidents/admin.py:892 incidents/admin.py:998
 #: securityobjectives/admin.py:209
 msgid "General"
 msgstr ""
 
-#: incidents/admin.py:627 incidents/admin.py:945
+#: incidents/admin.py:638 incidents/admin.py:1008
 msgid "Supervision"
 msgstr ""
 
-#: incidents/admin.py:660
+#: incidents/admin.py:705
 msgid "Sub-sector"
 msgstr ""
 
-#: incidents/admin.py:722
+#: incidents/admin.py:775
 msgid "Email type"
 msgstr ""
 
-#: incidents/admin.py:779 incidents/models.py:220
+#: incidents/admin.py:833 incidents/models.py:220
 #: securityobjectives/admin.py:998 securityobjectives/models.py:219
 msgid "Content"
 msgstr ""
 
-#: incidents/admin.py:786 securityobjectives/admin.py:1008
+#: incidents/admin.py:840 securityobjectives/admin.py:1008
 msgid "HTML preview"
 msgstr ""
 
-#: incidents/admin.py:789 securityobjectives/admin.py:1011
+#: incidents/admin.py:843 securityobjectives/admin.py:1011
 msgid "No preview yet"
 msgstr ""
 
-#: incidents/admin.py:840 incidents/admin.py:961
+#: incidents/admin.py:899 incidents/admin.py:1024
 #: securityobjectives/admin.py:216
 msgid "Notification Email"
 msgstr ""
 
-#: incidents/admin.py:889 incidents/admin.py:1025
+#: incidents/admin.py:948 incidents/admin.py:1088
 #, python-brace-format
 msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
 "<br>"
 msgstr ""
 
-#: incidents/admin.py:911 incidents/models.py:304 incidents/models.py:379
-#: incidents/models.py:917
+#: incidents/admin.py:974 incidents/models.py:304 incidents/models.py:379
+#: incidents/models.py:921
 msgid "Incident report"
 msgstr ""
 
-#: incidents/admin.py:912 incidents/models.py:303 incidents/models.py:326
-#: incidents/models.py:601
+#: incidents/admin.py:975 incidents/models.py:303 incidents/models.py:326
+#: incidents/models.py:605
 msgid "Incident reports"
 msgstr ""
 
-#: incidents/admin.py:1016
+#: incidents/admin.py:1079
 #, python-brace-format
 msgid ""
 "<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
@@ -814,7 +814,7 @@ msgstr ""
 msgid "Date format yyyy-mm-dd hh:mm"
 msgstr ""
 
-#: incidents/forms.py:431 incidents/models.py:521
+#: incidents/forms.py:431 incidents/models.py:525
 msgid "Name of the Operator"
 msgstr ""
 
@@ -865,7 +865,7 @@ msgstr ""
 msgid "Incident notification date"
 msgstr ""
 
-#: incidents/forms.py:888 incidents/models.py:892
+#: incidents/forms.py:888 incidents/models.py:896
 msgid "Incident detection date"
 msgstr ""
 
@@ -873,7 +873,7 @@ msgstr ""
 msgid "Incident start date"
 msgstr ""
 
-#: incidents/forms.py:902 incidents/models.py:898
+#: incidents/forms.py:902 incidents/models.py:902
 msgid "Incident resolution date"
 msgstr ""
 
@@ -885,7 +885,7 @@ msgstr ""
 msgid "Resolution date cannot be before detection date."
 msgstr ""
 
-#: incidents/forms.py:1115 incidents/models.py:376 incidents/models.py:590
+#: incidents/forms.py:1115 incidents/models.py:376 incidents/models.py:594
 msgid "Workflow"
 msgstr ""
 
@@ -905,7 +905,7 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: incidents/globals.py:38 reporting/helpers.py:667
+#: incidents/globals.py:38 reporting/helpers.py:670
 msgid "Closed"
 msgstr ""
 
@@ -959,7 +959,7 @@ msgstr ""
 msgid "Impact"
 msgstr ""
 
-#: incidents/models.py:75 incidents/models.py:605 incidents/models.py:930
+#: incidents/models.py:75 incidents/models.py:609 incidents/models.py:934
 #: incidents/views.py:1585
 msgid "Impacts"
 msgstr ""
@@ -980,7 +980,7 @@ msgstr ""
 msgid "Tooltip"
 msgstr ""
 
-#: incidents/models.py:144 incidents/models.py:1175
+#: incidents/models.py:144 incidents/models.py:1179
 msgid "Answers"
 msgstr ""
 
@@ -988,7 +988,7 @@ msgstr ""
 msgid "Questions"
 msgstr ""
 
-#: incidents/models.py:172 incidents/models.py:1159 incidents/models.py:1174
+#: incidents/models.py:172 incidents/models.py:1163 incidents/models.py:1178
 msgid "Answer"
 msgstr ""
 
@@ -1049,8 +1049,8 @@ msgstr ""
 msgid "Incident notification workflow"
 msgstr ""
 
-#: incidents/models.py:382 incidents/models.py:1064 incidents/models.py:1081
-#: incidents/models.py:1098 reporting/models.py:461
+#: incidents/models.py:382 incidents/models.py:1068 incidents/models.py:1085
+#: incidents/models.py:1102 reporting/models.py:461
 #: securityobjectives/models.py:67 securityobjectives/models.py:322
 #: securityobjectives/models.py:352
 msgid "Position"
@@ -1088,141 +1088,141 @@ msgstr ""
 msgid "Reminder email"
 msgstr ""
 
-#: incidents/models.py:511
+#: incidents/models.py:515
 msgid "Incident ID"
 msgstr ""
 
-#: incidents/models.py:542
+#: incidents/models.py:546
 msgid "Contact user"
 msgstr ""
 
-#: incidents/models.py:549
+#: incidents/models.py:553
 msgid "Contact last name"
 msgstr ""
 
-#: incidents/models.py:552
+#: incidents/models.py:556
 msgid "Contact first name"
 msgstr ""
 
-#: incidents/models.py:555
+#: incidents/models.py:559
 msgid "Contact job title"
 msgstr ""
 
-#: incidents/models.py:557
+#: incidents/models.py:561
 msgid "Contact email"
 msgstr ""
 
-#: incidents/models.py:559
+#: incidents/models.py:563
 msgid "Contact telephone"
 msgstr ""
 
-#: incidents/models.py:563
+#: incidents/models.py:567
 msgid "Technical last name"
 msgstr ""
 
-#: incidents/models.py:566
+#: incidents/models.py:570
 msgid "Technical first name"
 msgstr ""
 
-#: incidents/models.py:569
+#: incidents/models.py:573
 msgid "Technical job title"
 msgstr ""
 
-#: incidents/models.py:572
+#: incidents/models.py:576
 msgid "Technical email"
 msgstr ""
 
-#: incidents/models.py:575
+#: incidents/models.py:579
 msgid "Technical telephone"
 msgstr ""
 
-#: incidents/models.py:579
+#: incidents/models.py:583
 msgid "Internal incident reference"
 msgstr ""
 
-#: incidents/models.py:582
+#: incidents/models.py:586
 msgid "Criminal complaint file number"
 msgstr ""
 
-#: incidents/models.py:586
+#: incidents/models.py:590
 msgid "Impacted service"
 msgstr ""
 
-#: incidents/models.py:598
+#: incidents/models.py:602
 msgid "Impacted sectors"
 msgstr ""
 
-#: incidents/models.py:609
+#: incidents/models.py:613
 msgid "Significant impact"
 msgstr ""
 
-#: incidents/models.py:625 incidents/models.py:922
+#: incidents/models.py:629 incidents/models.py:926
 msgid "Report status"
 msgstr ""
 
-#: incidents/models.py:629
+#: incidents/models.py:633
 msgid "Incident status"
 msgstr ""
 
-#: incidents/models.py:886 incidents/models.py:911 incidents/models.py:945
+#: incidents/models.py:890 incidents/models.py:915 incidents/models.py:949
 msgid "Incident"
 msgstr ""
 
-#: incidents/models.py:887 incidents/models.py:946
+#: incidents/models.py:891 incidents/models.py:950
 msgid "Incidents"
 msgstr ""
 
-#: incidents/models.py:895
+#: incidents/models.py:899
 msgid "Incident starting date"
 msgstr ""
 
-#: incidents/models.py:904
+#: incidents/models.py:908
 msgid "Report timeline timezone"
 msgstr ""
 
-#: incidents/models.py:934 incidents/views.py:1589
+#: incidents/models.py:938 incidents/views.py:1589
 msgid "Comment/Explanation"
 msgstr ""
 
-#: incidents/models.py:940
+#: incidents/models.py:944
 msgid "Timeline"
 msgstr ""
 
-#: incidents/models.py:1032
+#: incidents/models.py:1036
 msgid "Full username"
 msgstr ""
 
-#: incidents/models.py:1034 reporting/models.py:405
+#: incidents/models.py:1038 reporting/models.py:405
 #: securityobjectives/models.py:568
 msgid "Entity name"
 msgstr ""
 
-#: incidents/models.py:1037 incidents/models.py:1044 incidents/models.py:1156
+#: incidents/models.py:1041 incidents/models.py:1048 incidents/models.py:1160
 msgid "Incident report processed"
 msgstr ""
 
-#: incidents/models.py:1050 reporting/models.py:413
+#: incidents/models.py:1054 reporting/models.py:413
 #: securityobjectives/models.py:575
 msgid "Action performed"
 msgstr ""
 
-#: incidents/models.py:1070
+#: incidents/models.py:1074
 msgid "Question category options"
 msgstr ""
 
-#: incidents/models.py:1071
+#: incidents/models.py:1075
 msgid "Question category option"
 msgstr ""
 
-#: incidents/models.py:1080 incidents/models.py:1097
+#: incidents/models.py:1084 incidents/models.py:1101
 msgid "Mandatory"
 msgstr ""
 
-#: incidents/models.py:1105 reporting/models.py:509
+#: incidents/models.py:1109 reporting/models.py:509
 msgid "Updated at"
 msgstr ""
 
-#: incidents/models.py:1109
+#: incidents/models.py:1113
 msgid "Deleted date"
 msgstr ""
 
@@ -1246,9 +1246,9 @@ msgstr ""
 #: incidents/views.py:349 incidents/views.py:356 incidents/views.py:410
 #: incidents/views.py:441 incidents/views.py:451 incidents/views.py:506
 #: incidents/views.py:569 incidents/views.py:606 incidents/views.py:645
-#: incidents/views.py:680 incidents/views.py:704 reporting/views.py:111
-#: reporting/views.py:518 reporting/views.py:953 reporting/views.py:980
-#: reporting/views.py:987 reporting/views.py:1583
+#: incidents/views.py:680 incidents/views.py:704 reporting/views.py:113
+#: reporting/views.py:535 reporting/views.py:981 reporting/views.py:1008
+#: reporting/views.py:1015 reporting/views.py:1610
 #: securityobjectives/views.py:910 securityobjectives/views.py:916
 #: securityobjectives/views.py:1174
 msgid "Forbidden"
@@ -1323,45 +1323,45 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-#: reporting/filters.py:26 reporting/forms.py:45 reporting/globals.py:30
+#: reporting/filters.py:26 reporting/forms.py:44 reporting/globals.py:30
 #: securityobjectives/forms.py:136 securityobjectives/forms.py:183
 #: securityobjectives/forms.py:220
 msgid "Year"
 msgstr ""
 
-#: reporting/forms.py:28
+#: reporting/forms.py:27
 msgid "JSON File"
 msgstr ""
 
-#: reporting/forms.py:34 reporting/models.py:24 reporting/models.py:578
+#: reporting/forms.py:33 reporting/models.py:24 reporting/models.py:578
 #: securityobjectives/forms.py:172 securityobjectives/models.py:389
 msgid "Company"
 msgstr ""
 
-#: reporting/forms.py:137
+#: reporting/forms.py:131
 msgid "Only .docx files are allowed."
 msgstr ""
 
-#: reporting/forms.py:148
+#: reporting/forms.py:142
 msgid "Project name"
 msgstr ""
 
-#: reporting/forms.py:160 reporting/models.py:429 reporting/models.py:527
+#: reporting/forms.py:154 reporting/models.py:429 reporting/models.py:527
 #: securityobjectives/admin.py:618 securityobjectives/admin.py:898
 #: securityobjectives/models.py:70 securityobjectives/models.py:307
 #: securityobjectives/models.py:408
 msgid "Standard"
 msgstr ""
 
-#: reporting/forms.py:169 reporting/models.py:558
+#: reporting/forms.py:163 reporting/models.py:558
 msgid "Base year"
 msgstr ""
 
-#: reporting/forms.py:179
+#: reporting/forms.py:173
 msgid "Comparison years"
 msgstr ""
 
-#: reporting/forms.py:191 reporting/models.py:556
+#: reporting/forms.py:185 reporting/models.py:556
 msgid "Languages"
 msgstr ""
 
@@ -1524,23 +1524,23 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
-#: reporting/helpers.py:656
+#: reporting/helpers.py:659
 msgid "Postponed"
 msgstr ""
 
-#: reporting/helpers.py:662
+#: reporting/helpers.py:665
 msgid "To check"
 msgstr ""
 
-#: reporting/helpers.py:665
+#: reporting/helpers.py:668
 msgid "New"
 msgstr ""
 
-#: reporting/helpers.py:700
+#: reporting/helpers.py:703
 msgid "All services"
 msgstr ""
 
-#: reporting/helpers.py:945 reporting/helpers.py:1044
+#: reporting/helpers.py:948 reporting/helpers.py:1047
 msgid "average"
 msgstr ""
 
@@ -1839,118 +1839,138 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-#: reporting/views.py:438
+#: reporting/views.py:440
 msgid "The project has been deleted."
 msgstr ""
 
-#: reporting/views.py:445
+#: reporting/views.py:447
 msgid "Project not found"
 msgstr ""
 
-#: reporting/views.py:460
+#: reporting/views.py:461
 msgid "No project found"
 msgstr ""
 
-#: reporting/views.py:465
+#: reporting/views.py:468 reporting/views.py:684
+msgid "Failed to start report generation. Please try again."
+msgstr ""
+
+#: reporting/views.py:475
+msgid "Report generation is already in progress for this project."
+msgstr ""
+
+#: reporting/views.py:480
 msgid "Missing high risk rate threshold or ranking value"
 msgstr ""
 
-#: reporting/views.py:477
+#: reporting/views.py:492
 msgid "Nothing selected"
 msgstr ""
 
-#: reporting/views.py:515
+#: reporting/views.py:532
 #, python-format
 msgid "%(sector)s forbidden"
 msgstr ""
 
-#: reporting/views.py:535
+#: reporting/views.py:552
 msgid "No reporting data"
 msgstr ""
 
-#: reporting/views.py:557
+#: reporting/views.py:574
 msgid "No data found for security objectives report"
 msgstr ""
 
-#: reporting/views.py:569
+#: reporting/views.py:586
 msgid "No data found for risk report"
 msgstr ""
 
-#: reporting/views.py:604
+#: reporting/views.py:621
 msgid "No report template"
 msgstr ""
 
-#: reporting/views.py:624
+#: reporting/views.py:641
 msgid "annual_report"
 msgstr ""
 
-#: reporting/views.py:644
-msgid "Report is being generated."
-msgstr ""
-
-#: reporting/views.py:650
+#: reporting/views.py:675
 msgid "Reports are being generated."
 msgstr ""
 
-#: reporting/views.py:847
+#: reporting/views.py:678
+msgid "Report is being generated."
+msgstr ""
+
+#: reporting/views.py:712
+msgid "Report generation failed."
+msgstr ""
+
+#: reporting/views.py:715
+msgid "The report has been generated successfully."
+msgstr ""
+
+#: reporting/views.py:718
+msgid "Report generation was cancelled."
+msgstr ""
+
+#: reporting/views.py:875
 msgid "Recommendations have been added successfully"
 msgstr ""
 
-#: reporting/views.py:883
+#: reporting/views.py:911
 #, python-brace-format
 msgid "No recommendations from {last_year}"
 msgstr ""
 
-#: reporting/views.py:891
+#: reporting/views.py:919
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
 msgstr ""
 
-#: reporting/views.py:924
+#: reporting/views.py:952
 msgid "No report recommendation found"
 msgstr ""
 
-#: reporting/views.py:928
+#: reporting/views.py:956
 msgid "The report recommendation has been deleted."
 msgstr ""
 
-#: reporting/views.py:995 securityobjectives/views.py:926
+#: reporting/views.py:1023 securityobjectives/views.py:926
 msgid "Invalid request"
 msgstr ""
 
-#: reporting/views.py:1085
+#: reporting/views.py:1113
 msgid "Risk analysis successfully imported"
 msgstr ""
 
-#: reporting/views.py:1527
+#: reporting/views.py:1554
 msgid "Uploaded file is not a JSON file."
 msgstr ""
 
-#: reporting/views.py:1532
+#: reporting/views.py:1559
 msgid "Uploaded file contains invalid JSON."
 msgstr ""
 
-#: reporting/views.py:1535
+#: reporting/views.py:1562
 msgid "JSON file must contain an object at the root."
 msgstr ""
 
-#: reporting/views.py:1538
+#: reporting/views.py:1565
 msgid "Missing 'instances' key in the JSON file."
 msgstr ""
 
-#: reporting/views.py:1552
+#: reporting/views.py:1579
 msgid "No company found"
 msgstr ""
 
-#: reporting/views.py:1561
+#: reporting/views.py:1588
 msgid "No sector found"
 msgstr ""
 
-#: reporting/views.py:1570
+#: reporting/views.py:1597
 msgid "Year value is not a valid number"
 msgstr ""
 
-#: reporting/views.py:1578
+#: reporting/views.py:1605
 msgid "Invalid year. Please provide a valid year."
 msgstr ""
 
