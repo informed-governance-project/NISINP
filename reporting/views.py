@@ -440,7 +440,11 @@ def delete_report_project(request, report_project_id: int):
         messages.success(request, _("The project has been deleted."))
 
         cleanup_files.apply_async(
-            kwargs={"project_id": str(report_project_id), "all_files": True},
+            kwargs={
+                "project_id": str(report_project_id),
+                "task_id": str(project.task_id),
+                "all_files": True,
+            },
             countdown=5,
         )
     except Project.DoesNotExist:
@@ -738,7 +742,7 @@ def cancel_report_generation(request, report_project_id: int):
     project.save()
 
     cleanup_files.apply_async(
-        kwargs={"project_id": str(report_project_id)},
+        kwargs={"project_id": str(report_project_id), "task_id": task_id},
         countdown=5,
     )
 
