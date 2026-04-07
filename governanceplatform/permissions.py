@@ -157,7 +157,7 @@ def set_platform_admin_permissions(user):
 def set_regulator_admin_permissions(user):
     set_permissions_for_user(
         user,
-        is_superuser=True,
+        is_superuser=False,
         is_staff=True,
         group_name="RegulatorAdmin",
         permissions=GROUP_PERMISSIONS["RegulatorAdmin"],
