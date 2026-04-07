@@ -169,7 +169,7 @@ class CreateProjectForm(forms.ModelForm):
             (year, year)
             for year in range(timezone.now().year - 20, timezone.now().year)
         ][::-1],
-        required=True,
+        required=False,
         label=_("Comparison years"),
     )
 
