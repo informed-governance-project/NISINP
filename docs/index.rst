@@ -57,6 +57,38 @@ Incident Notification Module
    ui_administrator
    ui_platformadmin
 
+.. toctree::
+   :caption: User Manual
+   :maxdepth: 3
+   :hidden:
+
+   ui_introduction
+   ui_login page
+   ui_create an account
+   ui_enable 2FA
+   ui_parts of the homepage
+   ui_incident notification dashboard
+   ui_how to report an incident?
+   ui_reported incidents view
+   ui_incident reporting workflow - operator admin
+   ui_incident reporting workflow - regulator admin
+   ui_security objectives dashboard
+   ui_how to submit a security objective?
+   ui_how does the score system work?
+   ui_security objectives workflow - operator admin
+   ui_security objectives workflow - regulator admin
+
+.. toctree::
+   :caption: Administration interface
+   :maxdepth: 3
+   :hidden:
+
+   ui_introduction
+   ui_operator admin
+   ui_regulator user
+   ui_regulator admin
+   ui_platform admin
+
 
 Presentation
 ------------
