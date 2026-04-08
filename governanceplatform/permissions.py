@@ -34,6 +34,7 @@ GROUP_PERMISSIONS = {
         "workflow": ["add", "change", "delete"],
         "sectorregulation": ["add", "change", "delete"],
         "question": ["add", "change", "delete"],
+        "predefinedanswer": ["add", "change", "delete"],
         "questionoptions": ["add", "change", "delete"],
         "questioncategory": ["add", "change", "delete"],
         "questioncategoryoptions": ["add", "change", "delete"],
