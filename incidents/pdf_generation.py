@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from weasyprint import CSS, HTML
 
-from governanceplatform.utils.weasyprint_fetcher import restricted_url_fetcher
+from governanceplatform.utils.weasyprint_fetcher import RestrictedURLFetcher
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow
@@ -121,7 +121,7 @@ def get_pdf_report(
     htmldoc = HTML(
         string=output_from_parsed_template,
         base_url=static_theme_dir,
-        url_fetcher=restricted_url_fetcher,
+        url_fetcher=RestrictedURLFetcher(),
     )
 
     stylesheets = [
