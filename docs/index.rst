@@ -83,7 +83,7 @@ Incident Notification Module
    :maxdepth: 3
    :hidden:
 
-   ui_introduction
+   ui_admin introduction
    ui_operator admin
    ui_regulator user
    ui_regulator admin
