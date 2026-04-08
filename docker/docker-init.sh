@@ -65,6 +65,6 @@ END
         ;;
     *)
         echo >&2 "unknown component in entrypoint $(basename $0)"
-        exit 1doc
+        exit 1
         ;;
 esac
