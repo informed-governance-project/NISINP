@@ -30,16 +30,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-crosextra-caladea \
     # WeasyPrint dependencies
     libpango-1.0-0 \
+    libharfbuzz0b \
     libpangoft2-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libcairo2 \
-    libffi8 \
-    shared-mime-info \
+    libharfbuzz-subset0 \
+    libffi-dev \
+    libjpeg-dev \
+    libopenjp2-7-dev \
     # Other dependencies
     gettext \
     git \
-  && fc-cache -f \
   && rm -rf /var/lib/apt/lists/*
 
 # Both python and python3 link to python3.12
