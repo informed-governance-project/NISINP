@@ -417,6 +417,10 @@ def copy_report_project(request, report_project_id):
         if form.is_valid():
             new_project = form.save(commit=False)
             new_project.pk = None
+            new_project.task_id = None
+            new_project.task_status = Project._meta.get_field(
+                "task_status"
+            ).get_default()
             new_project.save()
             form.save_m2m()
             create_entry_log(user, project, "CREATE PROJECT")
