@@ -44,6 +44,7 @@ def test_incidents_admin_roles_addition_rights(otp_client, populate_incident_db)
         "sectorregulation",
         "workflow",
         "question",
+        "predefinedanswer",
         "sectorregulationworkflowemail",
     ]
     authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]

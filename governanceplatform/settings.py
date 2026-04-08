@@ -158,7 +158,6 @@ INSTALLED_APPS = [
     "django_filters",
     "cookiebanner",
     "health_check",
-    "health_check.db",
     "captcha",
     "colorfield",
 ]
