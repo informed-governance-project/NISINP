@@ -698,14 +698,12 @@ def generate_report_project(request, report_project_id: int):
 @require_http_methods(["GET"])
 def report_generation_status(request, report_project_id: int):
     project = Project.objects.get(id=report_project_id)
-    generated_report = GeneratedReport.objects.get(project=project)
     failure_status = CELERY_TASK_STATUS[0][0]
     success_status = CELERY_TASK_STATUS[1][0]
     revoked_status = CELERY_TASK_STATUS[2][0]
     reponse = {
         "project_id": project.id,
         "status": project.task_status,
-        "download_uuid": generated_report.file_uuid,
     }
 
     if not reporting_health_check():
@@ -720,6 +718,12 @@ def report_generation_status(request, report_project_id: int):
 
     if project.task_status == revoked_status:
         messages.warning(request, _("Report generation was cancelled."))
+
+    try:
+        generated_report = GeneratedReport.objects.get(project=project)
+        reponse["download_uuid"] = generated_report.file_uuid
+    except GeneratedReport.DoesNotExist:
+        pass
 
     rendered_messages = render_error_messages(request)
     reponse["messages"] = rendered_messages
