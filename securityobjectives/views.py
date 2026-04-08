@@ -37,6 +37,7 @@ from django.utils.translation import override
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
 from weasyprint import CSS, HTML
+from weasyprint.text.fonts import FontConfiguration
 
 from governanceplatform.helpers import (
     get_active_company_from_session,
@@ -842,6 +843,8 @@ def download_declaration_pdf(request, standard_answer_id: int):
             so: dict(levels) for so, levels in security_objectives.items()
         }
         static_theme_dir = settings.STATIC_THEME_DIR
+        font_config = FontConfiguration()
+
         output_from_parsed_template = render_to_string(
             "report/security_objectives/template.html",
             {
@@ -855,11 +858,17 @@ def download_declaration_pdf(request, standard_answer_id: int):
         htmldoc = HTML(string=output_from_parsed_template, base_url=static_theme_dir)
 
         stylesheets = [
-            CSS(os.path.join(static_theme_dir, "css/custom.css")),
-            CSS(os.path.join(static_theme_dir, "css/report.css")),
+            CSS(
+                os.path.join(static_theme_dir, "css/custom.css"),
+                font_config=font_config,
+            ),
+            CSS(
+                os.path.join(static_theme_dir, "css/report.css"),
+                font_config=font_config,
+            ),
         ]
 
-        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets)
+        pdf_report = htmldoc.write_pdf(stylesheets=stylesheets, font_config=font_config)
         response = HttpResponse(pdf_report, content_type="application/pdf")
         response["Content-Disposition"] = (
             f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
