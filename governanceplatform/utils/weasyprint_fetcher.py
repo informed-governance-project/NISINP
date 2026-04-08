@@ -2,7 +2,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from django.conf import settings
-from weasyprint import default_url_fetcher
+from weasyprint import URLFetcher
 
 ALLOWED_DIRS = [
     Path(settings.STATIC_ROOT).resolve(),
@@ -11,14 +11,15 @@ ALLOWED_DIRS = [
 ALLOWED_DIRS = [d for d in ALLOWED_DIRS if d]
 
 
-def restricted_url_fetcher(url):
-    parsed = urlparse(url)
-    # only local file
-    if parsed.scheme == "file":
-        path = Path(parsed.path).resolve()
+class RestrictedURLFetcher(URLFetcher):
+    def fetch(self, url):
+        parsed = urlparse(url)
 
-        for allowed_dir in ALLOWED_DIRS:
-            if path.is_relative_to(allowed_dir):
-                return default_url_fetcher(url)
+        if parsed.scheme == "file":
+            path = Path(parsed.path).resolve()
 
-    raise ValueError(f"Unsupported URL scheme: {url}")
+            for allowed_dir in ALLOWED_DIRS:
+                if path.is_relative_to(allowed_dir):
+                    return super().fetch(url)
+
+        raise ValueError(f"Unsupported URL: {url}")

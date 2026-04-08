@@ -18,6 +18,7 @@ Including another URLconf
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog, set_language
+from health_check.views import HealthCheckView
 from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
 
@@ -109,7 +110,15 @@ urlpatterns = [
     path("contact/", views.contact, name="contact"),
     path("captcha/", include("captcha.urls")),  # Captcha URL
     # basic healthcheck
-    path("healthz", include("health_check.urls")),
+    path(
+        "healthz",
+        HealthCheckView.as_view(
+            checks=[
+                "health_check.Cache",
+                "health_check.Database",
+            ]
+        ),
+    ),
     # URL patterns to serve the translations in JavaScript
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
 ]
