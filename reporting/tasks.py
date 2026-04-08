@@ -523,3 +523,13 @@ def on_chord_error(request, exc, traceback, project_id, task_id):
 
     project.update(task_status=CELERY_TASK_STATUS[0][0])
     cleanup_files.delay(project_id, task_id)
+
+
+@shared_task
+def delete_project_task(project_id):
+    try:
+        project = Project.objects.get(id=project_id)
+        project.delete()
+        return "Project deleted successfully"
+    except Project.DoesNotExist:
+        return "Project already deleted"
