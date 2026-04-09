@@ -52,6 +52,7 @@ celery = "^5.5.1"
 redis = "^5.2.1"
 markdown = "^3.10.1"
 bleach = "^6.3.0"
+poetry = "^2.3.3"
 
 
 [tool.poetry.group.dev.dependencies]
