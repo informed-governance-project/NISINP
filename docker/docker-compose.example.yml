@@ -16,13 +16,18 @@ services:
       MAIN_SITE: "${MAIN_SITE}" # not set if empty
       MAIN_SITE_NAME: "${MAIN_SITE_NAME}" # not set if empty
     ports:
-      - "8888:8888"
+      - "${APP_PORT:-8888}:8888"
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
       - theme:/app/theme
       - shared_dir:/app/tmp
     restart: unless-stopped
-  postgres:
+    depends_on:
+      - theme
+      - db
+    user: "33:33"
+
+  db:
     container_name: governanceplatform-postgres-${NISINP_ENVIRONMENT?:err}
     image: postgres:15
     environment: *env
@@ -36,7 +41,8 @@ services:
     image: ${THEME_IMAGE:-ghcr.io/informed-governance-project/default-theme}:${THEME_VERSION?:err}
     volumes:
       - theme:/app/theme
-    restart: unless-stopped
+    restart: no
+
   celery-worker:
     container_name: governanceplatform-celery-worker-${NISINP_ENVIRONMENT?:err}
     image: ${NISINP_IMAGE:-ghcr.io/informed-governance-project/nisinp}:${NISINP_VERSION?:err}
@@ -47,6 +53,11 @@ services:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
       - theme:/app/theme
       - shared_dir:/app/tmp
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+
   celery-beat:
     container_name: governanceplatform-celery-beat-${NISINP_ENVIRONMENT?:err}
     image: ${NISINP_IMAGE:-ghcr.io/informed-governance-project/nisinp}:${NISINP_VERSION?:err}
@@ -55,11 +66,18 @@ services:
     command: beat
     volumes:
       - ./volumes/config/config.py:/app/governanceplatform/config.py:ro
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+      - celery-worker
+
   redis:
     container_name: governanceplatform-redis-${NISINP_ENVIRONMENT?:err}
     image: docker.io/redis:7-alpine
     volumes:
       - ./volumes/redis/data:/data
+    restart: unless-stopped
 
 volumes:
   theme:

@@ -146,7 +146,6 @@ INSTALLED_APPS = [
     "django_filters",
     "cookiebanner",
     "health_check",
-    "health_check.db",
     "captcha",
 ]
 
@@ -215,23 +214,6 @@ MIDDLEWARE = [
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
-
-if DEBUG and not os.environ.get("READTHEDOCS"):
-    INSTALLED_APPS.append("debug_toolbar")
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    context_processors.append("django.template.context_processors.debug")
-    import socket
-
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
-    DEBUG_TOOLBAR_CONFIG = {
-        "INTERCEPT_REDIRECTS": False,
-        "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
-        "RESULTS_CACHE_SIZE": 3,
-        "SHOW_COLLAPSED": True,
-        "SQL_WARNING_THRESHOLD": 100,
-    }
-
 
 ROOT_URLCONF = "governanceplatform.urls"
 

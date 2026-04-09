@@ -83,7 +83,7 @@ class CustomAdminSite(admin.AdminSite):
         app_list = super().get_app_list(request, app_label)
 
         user = request.user
-        has_permission = user.has_module_perms("scriptlogentry")
+        has_permission = user.has_perm("governanceplatform.view_scriptlogentry")
 
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
@@ -1143,7 +1143,16 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email_verified",
         "date_joined",
     ]
-    search_fields = ["first_name", "last_name", "email", "phone_number"]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "companies__name",
+        "regulators__translations__name",
+        "observers__translations__name",
+        "groups__name",
+    ]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,

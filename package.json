@@ -1,6 +1,6 @@
 {
   "name": "nisinp",
-  "version": "0.5.12",
+  "version": "0.5.13",
   "license": "AGPL-3.0",
   "private": true,
   "dependencies": {
@@ -17,8 +17,8 @@
     "sass": "^1.77.8"
   },
   "engines": {
-    "node": "16.x",
-    "npm": "8.19.2"
+    "node": "24.x",
+    "npm": "11.x"
   },
   "scripts": {
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/'), 'static/npm_components', 'junction') } catch (e) { }\"",
