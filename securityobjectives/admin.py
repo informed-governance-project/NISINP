@@ -600,6 +600,12 @@ class SecurityObjectiveAdmin(
         "description",
     ]
 
+    def has_import_permission(self, request):
+        return request.user.has_perm("securityobjectives.add_securityobjective")
+
+    def has_export_permission(self, request):
+        return request.user.has_perm("securityobjectives.view_securityobjective")
+
     def get_readonly_fields(self, request, obj=None):
         if obj:
             return ("creator",)
@@ -877,6 +883,12 @@ class SecurityMeasureAdmin(
         "description",
         "evidence",
     ]
+
+    def has_import_permission(self, request):
+        return request.user.has_perm("securityobjectives.add_securitymeasure")
+
+    def has_export_permission(self, request):
+        return request.user.has_perm("securityobjectives.view_securitymeasure")
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
