@@ -15,7 +15,7 @@ from django.utils import translation
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
-from django_otp.decorators import otp_required
+from governanceplatform.otp_utils import optional_otp_required as otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget

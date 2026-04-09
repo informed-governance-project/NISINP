@@ -23,7 +23,7 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
-from django_otp.decorators import otp_required
+from governanceplatform.otp_utils import optional_otp_required as otp_required
 from formtools.wizard.views import SessionWizardView
 from openpyxl import Workbook
 
