@@ -14,8 +14,8 @@ Follow the steps in the wizard to enable 2FA: first, click the **Next** button.
    :alt: Enable two-factor authentication and start the wizard
    :target: _static/user_manual_images/UM_SER_4.png
 
-Then either use your smartphone and scan the QR code from the screen, or use the long character set called **TOTP** Secret 
-to set up TOTP (Time-based One-Time Password) in your authenticator or password manager manually. 
+Then either use your smartphone and scan the QR code from the screen, or use the long character set called TOTP Secret 
+to set up **TOTP** (Time-based One-Time Password) in your authenticator or password manager manually. 
 As the last step, please enter the token (a six-digit number) into the Token field and click **Next**.
 
 .. figure:: _static/user_manual_images/UM_SER_5m.png
@@ -35,7 +35,7 @@ Then, open your authenticator on your smartphone and type in the randomly genera
    :alt: Enable two-factor authentication - token
    :target: _static/user_manual_images/UM_SER_7.png
 
-As an Operator or User, this is your main page where you land whenever you open this application. 
+As an **Operator** or **User**, this is your main page where you land whenever you open this application. 
 Since this is your first login, there is no incident in the platform to show.
 
 .. figure:: _static/user_manual_images/UM_SER_8.png
