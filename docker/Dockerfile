@@ -1,4 +1,4 @@
-FROM node:18-bullseye AS npmbuilder
+FROM node:24-bookworm-slim  AS npmbuilder
 
 WORKDIR /app
 
@@ -38,7 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenjp2-7-dev \
     # Other dependencies
     gettext \
-    git \
   && rm -rf /var/lib/apt/lists/*
 
 # Both python and python3 link to python3.12
