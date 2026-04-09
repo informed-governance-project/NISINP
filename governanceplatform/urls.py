@@ -25,7 +25,7 @@ from two_factor.views import LoginView
 from governanceplatform import views
 from governanceplatform.admin import admin_site
 from governanceplatform.forms import CustomPasswordResetForm
-from governanceplatform.settings import DEBUG, REGULATOR_CONTACT, SITE_NAME
+from governanceplatform.settings import REGULATOR_CONTACT, SITE_NAME
 
 handler404 = "governanceplatform.views.custom_404_view"
 handler500 = "governanceplatform.views.custom_500_view"
@@ -130,7 +130,3 @@ urlpatterns = [
     # URL patterns to serve the translations in JavaScript
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
 ]
-
-
-if DEBUG:
-    urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))
