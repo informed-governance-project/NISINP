@@ -58,7 +58,7 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 
     class Meta:
         model = Domain
-        fields = ("label", "position")
+        fields = ("id", "label", "position")
 
 
 @admin.register(Domain, site=admin_site)
@@ -810,6 +810,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
             "security_objective",
             "maturity_level",
             "maturity_level_level",
+            "maturity_level_color",
             "position",
             "description",
             "evidence",
