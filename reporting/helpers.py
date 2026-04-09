@@ -7,7 +7,6 @@ import subprocess
 import textwrap
 import uuid
 from collections import Counter, OrderedDict, defaultdict
-from io import BytesIO
 from itertools import groupby, zip_longest
 from pathlib import Path
 from statistics import mean
@@ -1121,21 +1120,8 @@ def text_wrap(text, max_line_length=20):
 
 
 def convert_graph_to_base64(fig, export_format="png"):
-    buffer = BytesIO()
-    fig.write_image(
-        buffer,
-        format=export_format,
-        engine="kaleido",
-        scale=3,
-    )
-    buffer.seek(0)
-    image = buffer.getvalue()
-    buffer.close()
-
-    graph = base64.b64encode(image)
-    graph = graph.decode("utf-8")
-
-    return graph
+    image_bytes = fig.to_image(format=export_format, scale=3)
+    return base64.b64encode(image_bytes).decode("utf-8")
 
 
 def convert_docx_to_pdf(docx_path: str) -> str:
