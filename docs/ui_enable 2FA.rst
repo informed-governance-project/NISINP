@@ -10,9 +10,9 @@ the system suggests you enable two-factor authentication. Click the button **Ena
 
 Follow the steps in the wizard to enable 2FA: first, click the **Next** button.
 
-.. figure:: _static/user_manual_images/UM_SER_4.png
+.. figure:: _static/user_manual_images/UM_SER_4m.png
    :alt: Enable two-factor authentication and start the wizard
-   :target: _static/user_manual_images/UM_SER_4.png
+   :target: _static/user_manual_images/UM_SER_4m.png
 
 Then either use your smartphone and scan the QR code from the screen, or use the long character set called TOTP Secret 
 to set up **TOTP** (Time-based One-Time Password) in your authenticator or password manager manually. 
