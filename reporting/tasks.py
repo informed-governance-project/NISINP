@@ -521,7 +521,8 @@ def on_chord_error(request, exc, traceback, project_id, task_id):
     except Project.DoesNotExist:
         return "A new report generation is in progress for this project."
 
-    project.update(task_status=CELERY_TASK_STATUS[0][0])
+    project.task_status = CELERY_TASK_STATUS[0][0]
+    project.save()
     cleanup_files.delay(project_id, task_id)
 
 
