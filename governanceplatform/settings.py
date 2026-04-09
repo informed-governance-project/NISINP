@@ -213,7 +213,7 @@ MIDDLEWARE = [
 # OTP middleware is disabled in DEBUG mode to allow development without 2FA.
 if not DEBUG:
     MIDDLEWARE.insert(
-        MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware") + 1,
+        MIDDLEWARE.index("django.contrib.messages.middleware.MessageMiddleware") + 1,
         "django_otp.middleware.OTPMiddleware",
     )
 
