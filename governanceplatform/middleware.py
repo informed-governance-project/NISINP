@@ -145,7 +145,7 @@ class TermsAcceptanceMiddleware:
     def __call__(self, request):
         # Only check for authenticated users
         user = request.user
-        if user.is_authenticated and user.is_verified():
+        if user.is_authenticated and getattr(user, "is_verified", lambda: True)():
             # let the user logout and read terms
             if request.path == reverse("logout") or request.path == reverse("terms"):
                 return self.get_response(request)
