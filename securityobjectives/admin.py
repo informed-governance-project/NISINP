@@ -119,7 +119,6 @@ for name, method in generate_display_methods(
 
 
 class StandardResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
     label = fields.Field(
         column_name="label",
         attribute="label",
@@ -270,7 +269,6 @@ for name, method in generate_display_methods(["label", "description"]).items():
 
 
 class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
     label = fields.Field(
         column_name="label",
         attribute="label",
@@ -368,7 +366,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         self._row_cache = {}
         self._importing = False
 
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
     objective = fields.Field(
         column_name="objective",
         attribute="objective",
@@ -397,11 +394,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         attribute="position",
     )
     priority = fields.Field(column_name="priority")
-    creator = fields.Field(
-        column_name="creator",
-        attribute="creator",
-        readonly=True,
-    )
 
     def dehydrate_standard(self, obj):
         if self._importing:
@@ -656,7 +648,6 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         super().__init__(*args, **kwargs)
         self.request = kwargs.pop("request", None)
 
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
     standard = fields.Field(
         column_name="standard",
         attribute="standard",
@@ -683,11 +674,6 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     evidence = fields.Field(
         column_name="evidence",
         attribute="evidence",
-    )
-    creator = fields.Field(
-        column_name="creator",
-        attribute="creator",
-        readonly=True,
     )
 
     def dehydrate_maturity_level_color(self, obj):
