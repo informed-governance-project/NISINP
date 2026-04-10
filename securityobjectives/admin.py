@@ -546,10 +546,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                 sois.position = row["position"]
             sois.save()
 
-    def get_export_fields(self):
-        fields = super().get_export_fields()
-        return [f for f in fields if f.attribute != "id"]
-
     class Meta:
         model = SecurityObjective
         fields = (
@@ -802,10 +798,6 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     def after_import_row(self, row, row_result, **kwargs):
         if hasattr(self, "_current_import_row"):
             del self._current_import_row
-
-    def get_export_fields(self):
-        fields = super().get_export_fields()
-        return [f for f in fields if f.attribute != "id"]
 
     class Meta:
         model = SecurityMeasure
