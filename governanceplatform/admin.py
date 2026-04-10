@@ -1958,4 +1958,3 @@ class ScriptLogEntryAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request, obj=None):
         return is_user_regulator(request.user)
-
