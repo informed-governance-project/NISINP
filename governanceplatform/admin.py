@@ -940,18 +940,18 @@ class userRegulatorInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         if user_in_group(request.user, "PlatformAdmin"):
             if "is_regulator_administrator" in formset.form.base_fields:
-                formset.form.base_fields[
-                    "is_regulator_administrator"
-                ].widget = forms.HiddenInput()
+                formset.form.base_fields["is_regulator_administrator"].widget = (
+                    forms.HiddenInput()
+                )
                 formset.form.base_fields["is_regulator_administrator"].initial = True
             if "sectors" in formset.form.base_fields:
                 formset.form.base_fields.pop("sectors", None)
 
         if not user_in_group(request.user, "PlatformAdmin"):
             if "can_export_incidents" in formset.form.base_fields:
-                formset.form.base_fields[
-                    "can_export_incidents"
-                ].widget = forms.HiddenInput()
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
 
         formset.empty_permitted = False
         return formset
@@ -1759,16 +1759,16 @@ class ObserverUserInline(admin.TabularInline):
             user_in_group(request.user, "PlatformAdmin")
             and "is_observer_administrator" in formset.form.base_fields
         ):
-            formset.form.base_fields[
-                "is_observer_administrator"
-            ].widget = forms.HiddenInput()
+            formset.form.base_fields["is_observer_administrator"].widget = (
+                forms.HiddenInput()
+            )
             formset.form.base_fields["is_observer_administrator"].initial = True
 
         if not user_in_group(request.user, "PlatformAdmin"):
             if "can_export_incidents" in formset.form.base_fields:
-                formset.form.base_fields[
-                    "can_export_incidents"
-                ].widget = forms.HiddenInput()
+                formset.form.base_fields["can_export_incidents"].widget = (
+                    forms.HiddenInput()
+                )
 
         formset.empty_permitted = False
         return formset
@@ -1958,3 +1958,4 @@ class ScriptLogEntryAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request, obj=None):
         return is_user_regulator(request.user)
+
