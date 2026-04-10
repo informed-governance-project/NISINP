@@ -383,7 +383,9 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         attribute="domain",
         widget=TranslatedNameWidget(Domain, field="label"),
     )
-    domain_position = fields.Field(column_name="domain_position")
+    domain_position = fields.Field(
+        column_name="domain_position", attribute="domain__position"
+    )
 
     standard = fields.Field(
         column_name="standard",
@@ -393,7 +395,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         column_name="position",
         attribute="position",
     )
-    priority = fields.Field(column_name="priority")
+    priority = fields.Field(column_name="priority", attribute="priority")
 
     def get_instance(self, instance_loader, row):
         """
@@ -449,6 +451,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             return self._current_import_row["priority"]
 
     def dehydrate_domain_position(self, obj):
+        print("coucou")
         if obj.domain and obj.domain.pk:
             return obj.domain.position
         else:
