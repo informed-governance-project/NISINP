@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-13 11:03+0200\n"
-"PO-Revision-Date: 2026-04-13 08:59+0000\n"
+"PO-Revision-Date: 2026-04-13 11:03+0000\n"
 "Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -951,7 +951,7 @@ msgstr "Geschlossen"
 
 #: incidents/globals.py:39
 msgid "Ongoing"
-msgstr "Laufend"
+msgstr "Andauernd"
 
 #: incidents/globals.py:43 incidents/globals.py:51 incidents/globals.py:99
 #: securityobjectives/globals.py:4
@@ -965,7 +965,7 @@ msgstr "Wird geprüft"
 
 #: incidents/globals.py:47 incidents/globals.py:55 incidents/globals.py:94
 msgid "Submission overdue"
-msgstr "Bericht-Einreichung überfällig"
+msgstr "Einreichung überfällig"
 
 #: incidents/globals.py:56 incidents/globals.py:89
 msgid "Late submission"
