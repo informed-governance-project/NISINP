@@ -50,7 +50,7 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="label",
     )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+    def after_init_instance(self, instance, new, row, **kwargs):
         creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
@@ -133,7 +133,7 @@ class StandardResource(TranslationUpdateMixin, resources.ModelResource):
         widget=TranslatedNameWidget(Regulation, field="label"),
     )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+    def after_init_instance(self, instance, new, row, **kwargs):
         creator = kwargs.get("creator")
         if instance and creator:
             instance.regulator = creator
@@ -278,7 +278,7 @@ class MaturityLevelResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="level",
     )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+    def after_init_instance(self, instance, new, row, **kwargs):
         creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
@@ -460,9 +460,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     def after_import(self, dataset, result, **kwargs):
         self._importing = False
 
-    def skip_row(
-        self, instance, original, row, import_validation_errors=None, **kwargs
-    ):
+    def skip_row(self, instance, original, row, import_validation_errors=None):
         # Object already in used we don't change
         if instance and instance.pk and self.request:
             return not can_change_or_delete_obj(self.request, instance)
@@ -472,7 +470,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             original,
             row,
             import_validation_errors=import_validation_errors,
-            **kwargs,
         )
 
     def after_init_instance(self, instance, new, row, **kwargs):
@@ -518,7 +515,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         return super().before_import_row(row, **kwargs)
 
     # if there is a standard get it and save the SO
-    def after_import_row(self, row, row_result, row_number=None, **kwargs):
+    def after_import_row(self, row, row_result, **kwargs):
         if hasattr(self, "_current_import_row"):
             del self._current_import_row
         so = SecurityObjective.objects.get(pk=row_result.object_id)
@@ -730,9 +727,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                 .standard
             )
 
-    def skip_row(
-        self, instance, original, row, import_validation_errors=None, **kwargs
-    ):
+    def skip_row(self, instance, original, row, import_validation_errors=None):
         # Object already in used we don't change
         if instance and instance.pk and self.request:
             return not can_change_or_delete_obj(self.request, instance)
@@ -742,10 +737,9 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
             original,
             row,
             import_validation_errors=import_validation_errors,
-            **kwargs,
         )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+    def after_init_instance(self, instance, new, row, **kwargs):
         creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
@@ -799,7 +793,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         return super().before_import_row(row, **kwargs)
 
     # erase the temporary variable
-    def after_import_row(self, row, row_result, row_number=None, **kwargs):
+    def after_import_row(self, row, row_result, **kwargs):
         if hasattr(self, "_current_import_row"):
             del self._current_import_row
 
