@@ -451,7 +451,6 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             return self._current_import_row["priority"]
 
     def dehydrate_domain_position(self, obj):
-        print("coucou")
         if obj.domain and obj.domain.pk:
             return obj.domain.position
         else:
