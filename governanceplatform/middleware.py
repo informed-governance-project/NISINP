@@ -18,19 +18,6 @@ from governanceplatform.settings import TERMS_ACCEPTANCE_TIME_IN_DAYS
 from governanceplatform.views import select_company
 
 
-def is_user_verified(user):
-    """Return True if the user has passed OTP verification.
-
-    In DEBUG mode, verification is bypassed so developers without an OTP
-    device can still access the application. In production, delegates to
-    django-otp's is_verified() which is added to the user object by
-    OTPMiddleware.
-    """
-    if settings.DEBUG:
-        return True
-    return user.is_verified()
-
-
 class SessionExpiryMiddleware:
     """Middleware to check if the session has expired."""
 
@@ -95,8 +82,11 @@ class RestrictViewsMiddleware:
     def __call__(self, request):
         user = request.user
         if user.is_authenticated:
+            if settings.DEBUG:
+                user.is_verified = lambda: True
+
             if (
-                not is_user_verified(user)
+                not user.is_verified()
                 and not request.path == reverse("two_factor:profile")
                 and not request.path == reverse("two_factor:setup")
                 and not request.path == reverse("two_factor:qr")
@@ -158,7 +148,7 @@ class TermsAcceptanceMiddleware:
     def __call__(self, request):
         # Only check for authenticated users
         user = request.user
-        if user.is_authenticated and is_user_verified(user):
+        if user.is_authenticated and user.is_verified():
             # let the user logout and read terms
             if request.path == reverse("logout") or request.path == reverse("terms"):
                 return self.get_response(request)
