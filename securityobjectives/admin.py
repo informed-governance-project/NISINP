@@ -678,8 +678,12 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="maturity_level",
         widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
-    maturity_level_level = fields.Field(column_name="maturity_level_level")
-    maturity_level_color = fields.Field(column_name="maturity_level_color")
+    maturity_level_level = fields.Field(
+        column_name="maturity_level_level", attribute="maturity_level_level"
+    )
+    maturity_level_color = fields.Field(
+        column_name="maturity_level_color", attribute="maturity_level_color"
+    )
     position = fields.Field(
         column_name="position",
         attribute="position",
