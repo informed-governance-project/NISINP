@@ -203,19 +203,13 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "governanceplatform.middleware.SessionExpiryMiddleware",
     "governanceplatform.middleware.RestrictViewsMiddleware",
     "governanceplatform.middleware.TermsAcceptanceMiddleware",
     "governanceplatform.middleware.ForceReloginMiddleware",
     "governanceplatform.middleware.CheckFunctionalityAccessMiddleware",
 ]
-
-# OTP middleware is disabled in DEBUG mode to allow development without 2FA.
-if not DEBUG:
-    MIDDLEWARE.insert(
-        MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware") + 1,
-        "django_otp.middleware.OTPMiddleware",
-    )
 
 INTERNAL_IPS = [
     "127.0.0.1",

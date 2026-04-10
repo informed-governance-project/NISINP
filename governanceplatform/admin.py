@@ -15,7 +15,7 @@ from django.utils import translation
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
-from governanceplatform.otp_utils import optional_otp_required as otp_required
+from django_otp.decorators import otp_required
 from import_export import fields, resources
 from import_export.admin import ExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
@@ -940,18 +940,18 @@ class userRegulatorInline(admin.TabularInline):
         formset = super().get_formset(request, obj, **kwargs)
         if user_in_group(request.user, "PlatformAdmin"):
             if "is_regulator_administrator" in formset.form.base_fields:
-                formset.form.base_fields["is_regulator_administrator"].widget = (
-                    forms.HiddenInput()
-                )
+                formset.form.base_fields[
+                    "is_regulator_administrator"
+                ].widget = forms.HiddenInput()
                 formset.form.base_fields["is_regulator_administrator"].initial = True
             if "sectors" in formset.form.base_fields:
                 formset.form.base_fields.pop("sectors", None)
 
         if not user_in_group(request.user, "PlatformAdmin"):
             if "can_export_incidents" in formset.form.base_fields:
-                formset.form.base_fields["can_export_incidents"].widget = (
-                    forms.HiddenInput()
-                )
+                formset.form.base_fields[
+                    "can_export_incidents"
+                ].widget = forms.HiddenInput()
 
         formset.empty_permitted = False
         return formset
@@ -1759,16 +1759,16 @@ class ObserverUserInline(admin.TabularInline):
             user_in_group(request.user, "PlatformAdmin")
             and "is_observer_administrator" in formset.form.base_fields
         ):
-            formset.form.base_fields["is_observer_administrator"].widget = (
-                forms.HiddenInput()
-            )
+            formset.form.base_fields[
+                "is_observer_administrator"
+            ].widget = forms.HiddenInput()
             formset.form.base_fields["is_observer_administrator"].initial = True
 
         if not user_in_group(request.user, "PlatformAdmin"):
             if "can_export_incidents" in formset.form.base_fields:
-                formset.form.base_fields["can_export_incidents"].widget = (
-                    forms.HiddenInput()
-                )
+                formset.form.base_fields[
+                    "can_export_incidents"
+                ].widget = forms.HiddenInput()
 
         formset.empty_permitted = False
         return formset
