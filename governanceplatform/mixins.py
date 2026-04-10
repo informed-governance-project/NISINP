@@ -5,7 +5,7 @@ from .helpers import can_change_or_delete_obj, filter_languages_not_translated
 
 
 class TranslationUpdateMixin:
-    def after_save_instance(self, instance, using_transactions, dry_run):
+    def after_save_instance(self, instance, row, **kwargs):
         fields = instance._parler_meta.get_all_fields()
         defaults = {}
         for field in fields:

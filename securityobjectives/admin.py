@@ -395,6 +395,24 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
     )
     priority = fields.Field(column_name="priority")
 
+    def get_instance(self, instance_loader, row):
+        """
+        Allows to define uniqueness: (unique_code, creator)
+        without needing ‘creator’ in the file.
+        """
+        if not self.request:
+            return None
+        user = self.request.user
+        cr = None
+        if user:
+            cr = user.regulators.first()
+        if cr is None:
+            return None
+        return self._meta.model.objects.filter(
+            unique_code=row.get("unique_code"),
+            creator=cr,
+        ).first()
+
     def dehydrate_standard(self, obj):
         if self._importing:
             cached = self._row_cache.get(id(self._current_import_row), {})
@@ -436,10 +454,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         else:
             return self._current_import_row["domain_position"]
 
-    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+    def before_import(self, dataset, **kwargs):
         self._importing = True
 
-    def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
+    def after_import(self, dataset, result, **kwargs):
         self._importing = False
 
     def skip_row(
@@ -457,7 +475,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             **kwargs,
         )
 
-    def after_import_instance(self, instance, new, row_number=None, **kwargs):
+    def after_init_instance(self, instance, new, row, **kwargs):
         creator = kwargs.get("creator")
         if instance and creator:
             instance.creator = creator
@@ -545,7 +563,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             "position",
             "priority",
         )
-        import_id_fields = ("unique_code", "creator")
+        import_id_fields = ("unique_code",)
 
 
 @admin.register(SecurityObjective, site=admin_site)
