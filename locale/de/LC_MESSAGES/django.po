@@ -5,7 +5,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-13 11:03+0200\n"
 "PO-Revision-Date: 2026-04-13 11:03+0000\n"
-"Last-Translator: Sascha Maurer <Sascha.maurer+RegAdmin@ilr.lu>\n"
+"Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1894,6 +1894,8 @@ msgid ""
 "Report generation is in progress for this project. Please cancel the report "
 "generation before deleting the project."
 msgstr ""
+"Die Berichterstellung für dieses Projekt ist gerade im Gange. Bitte brechen "
+"Sie die Berichterstellung ab, bevor Sie das Projekt löschen."
 
 #: reporting/views.py:463
 msgid "The project has been deleted."
@@ -1910,10 +1912,12 @@ msgstr "Kein Projekt gefunden"
 #: reporting/views.py:487 reporting/views.py:699
 msgid "Failed to start report generation. Please try again."
 msgstr ""
+"Die Berichterstellung konnte nicht gestartet werden. Bitte versuchen Sie es "
+"erneut."
 
 #: reporting/views.py:494
 msgid "Report generation is already in progress for this project."
-msgstr ""
+msgstr "Die Erstellung des Berichts für dieses Projekt ist bereits im Gange."
 
 #: reporting/views.py:499
 msgid "Missing high risk rate threshold or ranking value"
@@ -1958,15 +1962,15 @@ msgstr "Der Bericht wird erstellt."
 
 #: reporting/views.py:725
 msgid "Report generation failed."
-msgstr ""
+msgstr "Die Berichterstellung ist fehlgeschlagen."
 
 #: reporting/views.py:728
 msgid "The report has been generated successfully."
-msgstr ""
+msgstr "Der Bericht wurde erfolgreich erstellt."
 
 #: reporting/views.py:731
 msgid "Report generation was cancelled."
-msgstr ""
+msgstr "Die Berichterstellung wurde abgebrochen."
 
 #: reporting/views.py:894
 msgid "Recommendations have been added successfully"
