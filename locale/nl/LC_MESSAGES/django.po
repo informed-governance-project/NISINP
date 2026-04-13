@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 08:33+0200\n"
+"POT-Creation-Date: 2026-04-13 11:03+0200\n"
 "PO-Revision-Date: 2026-03-27 09:27+0000\n"
 "Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
 "Language-Team: \n"
@@ -352,7 +352,7 @@ msgstr "Het CSRF-token is verlopen. Probeer het nog eens."
 msgid "Session expired. Please log in again to continue."
 msgstr "De sessie is verlopen. Meld u opnieuw aan om door te gaan."
 
-#: governanceplatform/middleware.py:274
+#: governanceplatform/middleware.py:277
 msgid "For security reasons, you will need to log in again to access it."
 msgstr ""
 "Uit veiligheidsoverwegingen moet u zich opnieuw authenticeren om toegang te "
@@ -759,7 +759,7 @@ msgid "Question Type"
 msgstr "Soort van vraag"
 
 #: incidents/admin.py:533 incidents/admin.py:770 incidents/admin.py:868
-#: securityobjectives/admin.py:209
+#: securityobjectives/admin.py:208
 msgid "General"
 msgstr "Algemeen"
 
@@ -776,20 +776,20 @@ msgid "Email type"
 msgstr "E-mailtype"
 
 #: incidents/admin.py:711 incidents/models.py:220
-#: securityobjectives/admin.py:1011 securityobjectives/models.py:219
+#: securityobjectives/admin.py:1007 securityobjectives/models.py:219
 msgid "Content"
 msgstr "Inhoud"
 
-#: incidents/admin.py:718 securityobjectives/admin.py:1021
+#: incidents/admin.py:718 securityobjectives/admin.py:1017
 msgid "HTML preview"
 msgstr "HTML voorvertoning"
 
-#: incidents/admin.py:721 securityobjectives/admin.py:1024
+#: incidents/admin.py:721 securityobjectives/admin.py:1020
 msgid "No preview yet"
 msgstr "Nog geen voorvertoning"
 
 #: incidents/admin.py:777 incidents/admin.py:894
-#: securityobjectives/admin.py:216
+#: securityobjectives/admin.py:215
 msgid "Notification Email"
 msgstr "Meldingsmail"
 
@@ -1126,8 +1126,8 @@ msgid "Reminder email"
 msgstr "Herinneringsmail"
 
 #: incidents/models.py:515
-msgid "Incident ID"
-msgstr "Incident-ID"
+msgid "Incident Reference"
+msgstr ""
 
 #: incidents/models.py:546
 msgid "Contact user"
@@ -1389,7 +1389,7 @@ msgid "Project name"
 msgstr ""
 
 #: reporting/forms.py:154 reporting/models.py:429 reporting/models.py:527
-#: securityobjectives/admin.py:624 securityobjectives/admin.py:911
+#: securityobjectives/admin.py:629 securityobjectives/admin.py:907
 #: securityobjectives/models.py:70 securityobjectives/models.py:307
 #: securityobjectives/models.py:408
 msgid "Standard"
@@ -1809,7 +1809,7 @@ msgid "This regulator already has this standard configured."
 msgstr ""
 
 #: reporting/models.py:460 reporting/models.py:465
-#: securityobjectives/admin.py:326 securityobjectives/models.py:25
+#: securityobjectives/admin.py:324 securityobjectives/models.py:25
 msgid "Color"
 msgstr ""
 
@@ -2022,7 +2022,7 @@ msgstr "Jaarwaarde is geen geldig getal"
 msgid "Invalid year. Please provide a valid year."
 msgstr "Ongeldig jaartal. Geef een geldig jaartal op."
 
-#: securityobjectives/admin.py:839
+#: securityobjectives/admin.py:835
 msgid "Standard of security objective and maturity level must be the same"
 msgstr ""
 "De norm voor de doelstelling en het maturiteitsniveau van de beveiliging "

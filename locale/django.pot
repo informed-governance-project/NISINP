@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 08:33+0200\n"
+"POT-Creation-Date: 2026-04-13 11:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -336,7 +336,7 @@ msgstr ""
 msgid "Session expired. Please log in again to continue."
 msgstr ""
 
-#: governanceplatform/middleware.py:274
+#: governanceplatform/middleware.py:277
 msgid "For security reasons, you will need to log in again to access it."
 msgstr ""
 
@@ -736,7 +736,7 @@ msgid "Question Type"
 msgstr ""
 
 #: incidents/admin.py:533 incidents/admin.py:770 incidents/admin.py:868
-#: securityobjectives/admin.py:209
+#: securityobjectives/admin.py:208
 msgid "General"
 msgstr ""
 
@@ -753,20 +753,20 @@ msgid "Email type"
 msgstr ""
 
 #: incidents/admin.py:711 incidents/models.py:220
-#: securityobjectives/admin.py:1011 securityobjectives/models.py:219
+#: securityobjectives/admin.py:1007 securityobjectives/models.py:219
 msgid "Content"
 msgstr ""
 
-#: incidents/admin.py:718 securityobjectives/admin.py:1021
+#: incidents/admin.py:718 securityobjectives/admin.py:1017
 msgid "HTML preview"
 msgstr ""
 
-#: incidents/admin.py:721 securityobjectives/admin.py:1024
+#: incidents/admin.py:721 securityobjectives/admin.py:1020
 msgid "No preview yet"
 msgstr ""
 
 #: incidents/admin.py:777 incidents/admin.py:894
-#: securityobjectives/admin.py:216
+#: securityobjectives/admin.py:215
 msgid "Notification Email"
 msgstr ""
 
@@ -1089,7 +1089,7 @@ msgid "Reminder email"
 msgstr ""
 
 #: incidents/models.py:515
-msgid "Incident ID"
+msgid "Incident Reference"
 msgstr ""
 
 #: incidents/models.py:546
@@ -1347,7 +1347,7 @@ msgid "Project name"
 msgstr ""
 
 #: reporting/forms.py:154 reporting/models.py:429 reporting/models.py:527
-#: securityobjectives/admin.py:624 securityobjectives/admin.py:911
+#: securityobjectives/admin.py:629 securityobjectives/admin.py:907
 #: securityobjectives/models.py:70 securityobjectives/models.py:307
 #: securityobjectives/models.py:408
 msgid "Standard"
@@ -1767,7 +1767,7 @@ msgid "This regulator already has this standard configured."
 msgstr ""
 
 #: reporting/models.py:460 reporting/models.py:465
-#: securityobjectives/admin.py:326 securityobjectives/models.py:25
+#: securityobjectives/admin.py:324 securityobjectives/models.py:25
 msgid "Color"
 msgstr ""
 
@@ -1980,7 +1980,7 @@ msgstr ""
 msgid "Invalid year. Please provide a valid year."
 msgstr ""
 
-#: securityobjectives/admin.py:839
+#: securityobjectives/admin.py:835
 msgid "Standard of security objective and maturity level must be the same"
 msgstr ""
 
