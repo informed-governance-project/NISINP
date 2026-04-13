@@ -33,36 +33,31 @@ Operator Admin’s Workflow
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_61.png
 
-4.	As the next step, the Operator Admin fills out the **Incident Timeline** form, providing information about the incident itself, 
-    including the incident timezone, notification date, detection date, start date, and resolution date (the screenshot below has been truncated):
+4.	As the next step, the Operator Admin fills out the **Incident Timeline** form, providing information about the incident itself, including the incident timezone, notification date, detection date, start date, and resolution date (the screenshot below has been truncated):
 
 .. figure:: _static/user_manual_images/UM_SER_62.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_62.png
 
 5.	Next, in the **Regulation form**, the Operator Admin selects the affected regulation(s) and NIS services. 
-    When finished, the Operator Admin clicks **Next** (the screenshot below has been truncated):
+When finished, the Operator Admin clicks **Next** (the screenshot below has been truncated):
 
 .. figure:: _static/user_manual_images/UM_SER_63.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_63.png
 
-6.	On the **General Notification Information** form, the Operator Admin can provide detailed information about the impact on essential services, 
-    the estimated number of people affected, the estimated duration of the incident, the geographical area impacted, and other relevant aspects 
-    of the incident. 
+6.	On the **General Notification Information** form, the Operator Admin can provide detailed information about the impact on essential services, the estimated number of people affected, the estimated duration of the incident, the geographical area impacted, and other relevant aspects of the incident. 
 
-    The Operator Admin can also indicate whether support is required from GovCERT or CIRCL. (The screenshot below has been truncated.)
+The Operator Admin can also indicate whether support is required from GovCERT or CIRCL. (The screenshot below has been truncated.)
 
 .. figure:: _static/user_manual_images/UM_SER_64.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_64.png
 
-7.	Once the form is completed, the Operator Admin should click **Submit**. 
-    The submitted incident report then appears on the **Overview of Reported Incidents** screen. 
+7.	Once the form is completed, the Operator Admin should click **Submit**. The submitted incident report then appears on the **Overview of Reported Incidents** screen. 
     
-    The reference number (highlighted in green) is important, as it allows the Operator Admin to search for the reported incidents. 
-    As shown in the screenshot below, the status of the report (under the Report column) is **Preliminary Incident Report**, 
-    indicated by a clock icon (highlighted in yellow). Both the status and icon are displayed in grey.
+The reference number (highlighted in green) is important, as it allows the Operator Admin to search for the reported incidents. 
+As shown in the screenshot below, the status of the report (under the Report column) is **Preliminary Incident Report**, indicated by a clock icon (highlighted in yellow). Both the status and icon are displayed in grey.
 
 .. figure:: _static/user_manual_images/UM_SER_65.png
    :alt: Incident notification
