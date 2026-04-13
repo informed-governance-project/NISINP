@@ -1,5 +1,5 @@
 About
-===========================
+-----------------------
 
 The `ILR SERIMA (SEcurity RIsk MAnagement) Platform <https://www.ilr.lu/en/sectors/niss/serima/>`__, also called the 
 `NIS Incident Notification Platform (or NISINP) <https://nisinp.readthedocs.io/en/latest/>`__, 
@@ -39,7 +39,7 @@ This project is led by `NC3-LU <https://nc3.lu/>`__ and developed in partnership
 `IBPT <https://www.bipt.be/consumers>`__.
 
 Purpose
-===========================
+------------------------
 
 The platform enables communication between operators (or end users) and different authorities in the event of incidents. 
 In case of an incident, the operator must notify the authorities within 24 hours and provide a detailed report about the incident.
