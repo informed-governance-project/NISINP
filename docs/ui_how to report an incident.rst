@@ -23,6 +23,7 @@ Contact form
 ~~~~~~~~~~~~~~
 The **Contact** form appears. Please fill in the required fields, so the authorities to whom you are sending the incident report can get back to you.
 The form has three main parts:
+
 1.	**Name of the operator**: This is the person in charge of the incident notification. Provide your name, job title, email, and telephone number.
 2.	**Technical contact** (if the same person, please activate the slider, so it will be red)
 3.	**References** (Optional): Incident reference, Complaint reference.
@@ -84,9 +85,9 @@ You will then be redirected to the main screen (Incident List View), where the n
 The table displays the information you entered during the incident report preparation, 
 along with additional columns such as Significant Impact, Incident Status, and Actions.
 
-.. note::
+   .. note::
 
-   Please note that the system creates one incident entry for each sector you select. 
+   **Please note that the system creates one incident entry for each sector you select.** 
 
 In the previous example, two sectors were chosen (Digital Infrastructure, and Telecommunication services or network provider). 
 As a result, two separate incidents were created, each represented by its own line in the list.
