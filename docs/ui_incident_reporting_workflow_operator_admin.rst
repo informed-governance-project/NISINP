@@ -63,8 +63,7 @@ As shown in the screenshot below, the status of the report (under the Report col
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_65.png
 
-   Clicking the **version control** icon in the **Actions** column opens a pop-up showing that the **Preliminary Incident Report** with reference 
-   **OP1_DIn_DIn_0007_2025** was created (including time and date), and its status is **Under Review**.
+Clicking the **version control** icon in the **Actions** column opens a pop-up showing that the **Preliminary Incident Report** with reference **OP1_DIn_DIn_0007_2025** was created (including time and date), and its status is **Under Review**.
 
 .. figure:: _static/user_manual_images/UM_SER_66.png
    :alt: Incident notification
