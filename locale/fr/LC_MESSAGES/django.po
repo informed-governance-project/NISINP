@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-10 08:33+0200\n"
-"PO-Revision-Date: 2026-03-26 08:34+0000\n"
+"PO-Revision-Date: 2026-04-13 08:59+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1891,6 +1891,8 @@ msgid ""
 "Report generation is in progress for this project. Please cancel the report "
 "generation before deleting the project."
 msgstr ""
+"La génération des rapports est en cours pour ce projet. Veuillez annuler la "
+"génération des rapports avant de supprimer le projet."
 
 #: reporting/views.py:463
 msgid "The project has been deleted."
@@ -1906,11 +1908,11 @@ msgstr "Aucun projet trouvé"
 
 #: reporting/views.py:487 reporting/views.py:699
 msgid "Failed to start report generation. Please try again."
-msgstr ""
+msgstr "Échec du lancement de la génération des rapports. Veuillez réessayer."
 
 #: reporting/views.py:494
 msgid "Report generation is already in progress for this project."
-msgstr ""
+msgstr "La génération des rapports est déjà en cours pour ce projet."
 
 #: reporting/views.py:499
 msgid "Missing high risk rate threshold or ranking value"
@@ -1955,15 +1957,15 @@ msgstr "Rapports en cours de génération."
 
 #: reporting/views.py:725
 msgid "Report generation failed."
-msgstr ""
+msgstr "La génération des rapports a échoué."
 
 #: reporting/views.py:728
 msgid "The report has been generated successfully."
-msgstr ""
+msgstr "Le rapport a été généré avec succès."
 
 #: reporting/views.py:731
 msgid "Report generation was cancelled."
-msgstr ""
+msgstr "La génération des rapports a été annulée."
 
 #: reporting/views.py:894
 msgid "Recommendations have been added successfully"
@@ -2051,7 +2053,9 @@ msgstr "Niveau"
 
 #: securityobjectives/models.py:26
 msgid "Color used in reporting module (hexadecimal format)"
-msgstr "Couleurs utilisées dans le module de rapport (format hexadécimal)"
+msgstr ""
+"Couleurs utilisées dans le module de génération des rapports (format "
+"hexadécimal)"
 
 #: securityobjectives/models.py:49
 msgid "Maturity levels"
