@@ -32,7 +32,7 @@ django-two-factor-auth = "^1.15.5"
 phonenumbers = "^9.0.27"
 django-import-export = "^4.4.0"
 parler = "^1.0.1"
-django-parler = {git = "https://github.com/t0kubetsu/django-parler.git"}
+django-parler = {git = "https://github.com/t0kubetsu/django-parler.git", rev = "a6e606be1baa90be4828a1086ba6ae037abc5747"}
 django-countries = "^8.2.0"
 weasyprint = "^68.0"
 django-extensions = "^4.1"
