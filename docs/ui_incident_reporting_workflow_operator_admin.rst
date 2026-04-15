@@ -1,5 +1,5 @@
-Incident Reporting Workflow
------------------------------
+Incident Reporting Workflow - Operator
+----------------------------------------
 
 This chapter explains how the incident reporting workflow functions in the SERIMA system. 
 The chapters **How to Report an Incident** and **Reported Incidents View** provide an overview of the SERIMA user interface. 
