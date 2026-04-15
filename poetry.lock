@@ -960,24 +960,24 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.2.13"
+version = "6.0.4"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "django-5.2.13-py3-none-any.whl", hash = "sha256:5788fce61da23788a8ce6f02583765ab060d396720924789f97fa42119d37f7a"},
-    {file = "django-5.2.13.tar.gz", hash = "sha256:a31589db5188d074c63f0945c3888fad104627dfcc236fb2b97f71f89da33bc4"},
+    {file = "django-6.0.4-py3-none-any.whl", hash = "sha256:14359c809fc16e8f81fd2b59d7d348e4d2d799da6840b10522b6edf7b8afc1da"},
+    {file = "django-6.0.4.tar.gz", hash = "sha256:8cfa2572b3f2768b2e84983cf3c4811877a01edb64e817986ec5d60751c113ac"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.8.1"
-sqlparse = ">=0.3.1"
+asgiref = ">=3.9.1"
+sqlparse = ">=0.5.0"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-argon2 = ["argon2-cffi (>=19.1.0)"]
-bcrypt = ["bcrypt"]
+argon2 = ["argon2-cffi (>=23.1.0)"]
+bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-bootstrap5"
@@ -1169,18 +1169,22 @@ segno = ["segno"]
 
 [[package]]
 name = "django-parler"
-version = "2.3"
+version = "2.4"
 description = "Simple Django model translations without nasty hacks, featuring nice admin integration."
 optional = false
 python-versions = "*"
 groups = ["main"]
-files = [
-    {file = "django-parler-2.3.tar.gz", hash = "sha256:2c8f5012ceb5e49af93b16ea3fe4d0c83d70b91b2d0f470c05d7d742b6f3083d"},
-    {file = "django_parler-2.3-py3-none-any.whl", hash = "sha256:8f6c8061e4b5690f1ee2d8e5760940ef06bf78a5bfa033d11178377559c749cf"},
-]
+files = []
+develop = false
 
 [package.dependencies]
-Django = ">=2.2"
+Django = ">=4.2"
+
+[package.source]
+type = "git"
+url = "https://github.com/t0kubetsu/django-parler.git"
+reference = "HEAD"
+resolved_reference = "a6e606be1baa90be4828a1086ba6ae037abc5747"
 
 [[package]]
 name = "django-parler-rest"
@@ -3916,4 +3920,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "69f46eaf496a84cbd6fb52f92e614ea19893f89748da0b018c05cebbfa884c3e"
+content-hash = "2d3f7ece5dc0bfaf726796c34cd4f6e146ad0f8683a4c119a99e424e4b8d41c3"
