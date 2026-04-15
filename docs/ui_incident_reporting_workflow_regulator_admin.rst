@@ -27,7 +27,7 @@ incident. If the Admin needs to contact the Operator Admin directly, this featur
    :target: _static/user_manual_images/UM_SER_69.png
 
 2.	The Regulator Admin reviews the content of the forms (**Incident Timeline, Regulation, General Notification Information**) and adds a comment 
-    while setting the report status on the Comment/Explanation form. 
+while setting the report status on the Comment/Explanation form. 
 
 The report status can be set to **Passed** if the Regulator accepts the content, or **Revision Required** if further information or corrections are needed.
 In the latter case, the Regulator should provide an explanation of what is missing or needs to be updated for the report to be approved.
