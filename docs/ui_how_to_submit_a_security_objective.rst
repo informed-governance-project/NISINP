@@ -16,31 +16,37 @@ Once on the dashboard, click the **New submission** button in the top-right corn
    :alt: New submission
    :target: _static/user_manual_images/UM_SER_57.png
 
-The following pop-up appears. Choose the evaluation framework, year, and sector/s from the dropdown menus.
+The **Create a new security objectives statement** pop-up appears. Choose the evaluation framework, year, and sector/s from the dropdown menus.
 
+.. figure:: _static/user_manual_images/UM_SER_58.png
+   :alt: Create a new security objectives statement
+   :target: _static/user_manual_images/UM_SER_58.png
 
+The **Sectors** drop-down menu offers multiple options. Once you have selected an option, it will appear in the dropdown (in the screenshot below, the option **Digital infrastructure** is selected). To select more, click the dropdown again so the options appear, with the checkmark indicating the already selected option.
 
+.. figure:: _static/user_manual_images/UM_SER_83.png
+   :alt: Create a new security objectives statement - Digital infrastructure
+   :target: _static/user_manual_images/UM_SER_83.png
 
+To select additional options, click the drop-down again; the options will appear, with a checkmark indicating the selected items.
 
+.. figure:: _static/user_manual_images/UM_SER_84.png
+   :alt: Create a new security objectives statement - Digital infrastructure
+   :target: _static/user_manual_images/UM_SER_84.png
 
+You can select as many options as needed. The selected options appear in the drop-down field and remain visible when you click the Sectors drop-down field again.
 
+.. figure:: _static/user_manual_images/UM_SER_85.png
+   :alt: Create a new security objectives statement - selected several sectors
+   :target: _static/user_manual_images/UM_SER_85.png
 
+When you click the **Sectors drop-down** field again, the original pop-up appears with the selected options in the Sectors drop-down. 
+If multiple options are selected, not all of them may be visible. Hover your mouse over the Sectors drop-down field to view the selected options.
 
+.. figure:: _static/user_manual_images/UM_SER_86.png
+   :alt: Create a new security objectives statement - selected several sectors
+   :target: _static/user_manual_images/UM_SER_86.png
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+If all three drop-down menus (Evaluation Framework, Year, and Sectors) contain appropriate values, click the create button. 
+The **Security Objectives Dashboard** appears, and you can start the process.
+In the following chapter, you can read about the workflow for submitting a security objective.
