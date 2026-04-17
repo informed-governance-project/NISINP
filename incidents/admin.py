@@ -982,7 +982,7 @@ class SectorRegulationInline(admin.TabularInline):
 
 
 @admin.register(SectorRegulation, site=admin_site)
-class SectorRegulationAdmin(CustomTranslatableAdmin, PermissionMixin):
+class SectorRegulationAdmin(PermissionMixin, CustomTranslatableAdmin):
     list_display = ["name", "regulation", "regulator", "is_detection_date_needed"]
     search_fields = [
         "translations__name",
