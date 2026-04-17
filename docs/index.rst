@@ -75,6 +75,7 @@ Incident Notification Module
    ui_security_objectives_dashboard
    ui_how_to_submit_a_security_objective
    ui_how_does_the_score_system_work
+   ui_security_objectives_workflow_score_system
    ui_security_objectives_workflow_operator_admin
    ui_security_objectives_workflow_regulator_admin
 
