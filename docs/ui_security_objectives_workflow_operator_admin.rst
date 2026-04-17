@@ -32,25 +32,42 @@ If you reach 3 points out of three, the form indicator turns from yellow to gree
    :alt: Measures Implemented
    :target: _static/user_manual_images/UM_SER_90.png
 
+The form numbers can appear in three colors: gray, yellow, and green. The colors indicate the following:
 
-47
+* **Grey** 	– you have not started filling out the form.
+* **Yellow** 	– you have started filling out the form, but you have not completed it.
+* **Green** 	– you have completed the form.
 
+At the bottom of each form is the **Planned Measures** field, where you can enter the measures you plan to implement to improve your security posture.
 
+Please complete each form carefully. Review the maturity levels described on each form and select the level that applies to you. 
+Use the sliders where appropriate and provide a short explanation in the **Justification** column that corresponds to the selected maturity level and sliders.
 
+**Note that you can submit your Security Objectives entry only when all form numbers are green.**
 
+The screenshot below shows a security objective in which forms 16, 17, and 22 are yellow. As a result, even though the Submit button is light green, the security objective report cannot be submitted.
 
+.. figure:: _static/user_manual_images/UM_SER_91.png
+   :alt: Security Objective forms
+   :target: _static/user_manual_images/UM_SER_91.png
 
+Also, on the **Dashboard**, in the **Progress** column of the security objective entry, you can see that the entry is not yet ready for submission (it is only 90% complete).
 
+.. figure:: _static/user_manual_images/UM_SER_98.png
+   :alt: Security Objective Dashboard
+   :target: _static/user_manual_images/UM_SER_98.png
 
+You can click a form number to jump directly to that form. Make the necessary changes and resolve all remaining issues so that all forms turn green and the entry can be submitted.
 
+.. figure:: _static/user_manual_images/UM_SER_92.png
+   :alt: Security Objective forms all green
+   :target: _static/user_manual_images/UM_SER_92.png
 
+You can now click **Submit**. The Security Objective entry appears on the Dashboard in green, showing 100% in the **Progress** column. In the **Status** column, the entry is marked as **Under review**. Also, above the Dashboard, a message confirms that your security objective declaration has been submitted:
 
+.. figure:: _static/user_manual_images/UM_SER_93.png
+   :alt: Security Objective declaration - submitted
+   :target: _static/user_manual_images/UM_SER_93.png
 
-
-
-
-
-
-
-
+The Operator Admin has submitted the declaration. It is now the Regulator’s responsibility to review it, report any issues, request additional information if needed, or accept the declaration if it is satisfactory.
 
