@@ -394,7 +394,6 @@ class QuestionTypeListFilter(SimpleListFilter):
 class QuestionAdmin(
     CustomTranslatableAdmin,
     PermissionMixin,
-    CustomTranslatableAdmin,
 ):
     actions = [duplicate_objects]
     list_display = [
