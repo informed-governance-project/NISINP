@@ -219,7 +219,7 @@ class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(PredefinedAnswer, site=admin_site)
 class PredefinedAnswerAdmin(
-    PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+    CustomTranslatableAdmin, PermissionMixin, ExportActionModelAdmin
 ):
     list_display = ["predefined_answer", "creator"]
     search_fields = ["translations__predefined_answer"]
@@ -254,7 +254,7 @@ class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
 
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(
-    PermissionMixin, ExportActionModelAdmin, CustomTranslatableAdmin
+    CustomTranslatableAdmin, PermissionMixin, ExportActionModelAdmin
 ):
     list_display = ["label", "creator"]
     search_fields = ["translations__label"]
@@ -461,9 +461,9 @@ class QuestionTypeListFilter(SimpleListFilter):
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(
+    CustomTranslatableAdmin,
     PermissionMixin,
     ExportActionModelAdmin,
-    CustomTranslatableAdmin,
 ):
     actions = [duplicate_objects]
     list_display = [
@@ -609,7 +609,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class ImpactAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
     list_display = [
         "get_regulations",
         "get_sector_name",
@@ -808,7 +808,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class EmailAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
     list_display = [
         "name",
         "subject_display",
@@ -868,7 +868,7 @@ for name, method in generate_display_methods(["subject", "content"]).items():
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
+class WorkflowAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = [
         "name",
         "label_display",
