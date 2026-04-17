@@ -13,8 +13,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
-from import_export import fields, resources
-from import_export.admin import ExportActionModelAdmin
 from markdown import markdown
 from parler.models import TranslatableModel
 
@@ -32,13 +30,12 @@ from governanceplatform.helpers import (
     translated_queryset,
     user_in_group,
 )
-from governanceplatform.mixins import PermissionMixin, TranslationUpdateMixin
+from governanceplatform.mixins import PermissionMixin
 from governanceplatform.models import Regulation, Regulator, Sector, User
 from governanceplatform.settings import (
     LOG_RETENTION_TIME_IN_DAY,
     PARLER_DEFAULT_LANGUAGE_CODE,
 )
-from governanceplatform.widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 from incidents.forms import QuestionOptionsInlineForm
 from incidents.models import (
     Answer,
@@ -205,25 +202,10 @@ class LogEntryAdmin(admin.ModelAdmin):
         return ACTION_FLAG_CHOICES[obj.action_flag]
 
 
-class PredefinedAnswerResource(TranslationUpdateMixin, resources.ModelResource):
-    predefined_answer = fields.Field(
-        column_name="predefined_answer",
-        attribute="predefined_answer",
-    )
-
-    class Meta:
-        model = PredefinedAnswer
-        fields = ("id", "predefined_answer")
-        export_order = fields
-
-
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(
-    CustomTranslatableAdmin, PermissionMixin, ExportActionModelAdmin
-):
+class PredefinedAnswerAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = ["predefined_answer", "creator"]
     search_fields = ["translations__predefined_answer"]
-    resource_class = PredefinedAnswerResource
     exclude = ["creator_name", "creator"]
 
     # Hidden from register models list
@@ -235,66 +217,15 @@ class PredefinedAnswerAdmin(
         super().save_model(request, obj, form, change)
 
 
-class QuestionCategoryResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-    label = fields.Field(
-        column_name="label",
-        attribute="label",
-    )
-    position = fields.Field(
-        column_name="position",
-        attribute="position",
-    )
-
-    class Meta:
-        model = QuestionCategory
-        fields = ("id", "label", "position")
-        export_order = fields
-
-
 @admin.register(QuestionCategory, site=admin_site)
-class QuestionCategoryAdmin(
-    CustomTranslatableAdmin, PermissionMixin, ExportActionModelAdmin
-):
+class QuestionCategoryAdmin(PermissionMixin, CustomTranslatableAdmin):
     list_display = ["label", "creator"]
     search_fields = ["translations__label"]
-    resource_class = QuestionCategoryResource
     exclude = ["creator_name", "creator"]
 
     # Hidden from register models list
     def has_module_permission(self, request):
         return False
-
-
-class QuestionResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-    label = fields.Field(
-        column_name="label",
-        attribute="label",
-    )
-    reference = fields.Field(
-        column_name="reference",
-        attribute="reference",
-    )
-    tooltip = fields.Field(
-        column_name="tooltip",
-        attribute="tooltip",
-    )
-    question_type = fields.Field(
-        column_name="question_type",
-        attribute="question_type",
-    )
-
-    class Meta:
-        model = Question
-        fields = (
-            "id",
-            "reference",
-            "label",
-            "tooltip",
-            "question_type",
-        )
-        export_order = fields
 
 
 class QuestionOptionsInline(PermissionMixin, admin.TabularInline):
@@ -463,7 +394,7 @@ class QuestionTypeListFilter(SimpleListFilter):
 class QuestionAdmin(
     CustomTranslatableAdmin,
     PermissionMixin,
-    ExportActionModelAdmin,
+    CustomTranslatableAdmin,
 ):
     actions = [duplicate_objects]
     list_display = [
@@ -488,7 +419,6 @@ class QuestionAdmin(
         "label",
         "tooltip",
     ]
-    resource_class = QuestionResource
     inlines = [PredefinedAnswerInline]
     list_filter = [QuestionTypeListFilter]
 
@@ -544,32 +474,6 @@ class QuestionCategoryOptionsAdmin(PermissionMixin, admin.ModelAdmin):
         return False
 
 
-class ImpactResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-    regulations = fields.Field(
-        column_name="regulations",
-        attribute="regulations",
-        widget=TranslatedNameWidget(Regulation, field="label"),
-    )
-    label = fields.Field(
-        column_name="label",
-        attribute="label",
-    )
-    headline = fields.Field(
-        column_name="headline",
-        attribute="headline",
-    )
-    sectors = fields.Field(
-        column_name="sectors",
-        attribute="sectors",
-        widget=TranslatedNameM2MWidget(Sector, field="name", separator="|"),
-    )
-
-    class Meta:
-        model = Impact
-        fields = ("id", "regulations", "headline", "sectors")
-
-
 class ImpactSectorListFilter(SimpleListFilter):
     title = _("Sectors")
     parameter_name = "sectors"
@@ -609,7 +513,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
 
 
 @admin.register(Impact, site=admin_site)
-class ImpactAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
+class ImpactAdmin(CustomTranslatableAdmin):
     list_display = [
         "get_regulations",
         "get_sector_name",
@@ -622,7 +526,6 @@ class ImpactAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
         "regulations__translations__label",
         "sectors__translations__name",
     ]
-    resource_class = ImpactResource
     list_filter = [ImpactSectorListFilter, ImpactRegulationListFilter]
     exclude = ["creator_name", "creator"]
     filter_horizontal = ("sectors", "regulations")
@@ -732,28 +635,6 @@ for name, method in generate_display_methods(
     setattr(ImpactAdmin, name, method)
 
 
-class EmailResource(TranslationUpdateMixin, resources.ModelResource):
-    subject = fields.Field(
-        column_name="subject",
-        attribute="subject",
-    )
-
-    content = fields.Field(
-        column_name="content",
-        attribute="content",
-    )
-
-    name = fields.Field(
-        column_name="name",
-        attribute="name",
-    )
-
-    class Meta:
-        model = Email
-        fields = ("id", "name", "subject", "content")
-        export_order = fields
-
-
 class EmailRegulatorListFilter(SimpleListFilter):
     title = _("Regulator")
     parameter_name = "creator_id"
@@ -808,7 +689,7 @@ class EmailTypeListFilter(SimpleListFilter):
 
 
 @admin.register(Email, site=admin_site)
-class EmailAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
+class EmailAdmin(CustomTranslatableAdmin):
     list_display = [
         "name",
         "subject_display",
@@ -818,8 +699,6 @@ class EmailAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
 
     search_fields = ["translations__subject", "translations__content", "name"]
     list_filter = [EmailRegulatorListFilter, EmailTypeListFilter]
-    resource_class = EmailResource
-
     readonly_fields = ("html_preview",)
 
     fieldsets = (
@@ -962,13 +841,6 @@ for name, method in generate_display_methods(["label", "description"]).items():
     setattr(WorkflowAdmin, name, method)
 
 
-class SectorRegulationResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    class Meta:
-        model = SectorRegulation
-
-
 class SectorRegulationInline(admin.TabularInline):
     model = SectorRegulation.workflows.through
     verbose_name = _("Incident report")
@@ -989,7 +861,6 @@ class SectorRegulationAdmin(CustomTranslatableAdmin, PermissionMixin):
         "regulator__translations__name",
         "regulation__translations__label",
     ]
-    resource_class = SectorRegulationResource
     inlines = (SectorRegulationInline,)
     save_as = True
     filter_horizontal = ("sectors",)
@@ -1094,15 +965,6 @@ class SectorRegulationAdmin(CustomTranslatableAdmin, PermissionMixin):
         return permission
 
 
-class SectorRegulationWorkflowEmailResource(
-    TranslationUpdateMixin, resources.ModelResource
-):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    class Meta:
-        model = SectorRegulationWorkflowEmail
-
-
 @admin.register(SectorRegulationWorkflowEmail, site=admin_site)
 class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
     list_display = [
@@ -1118,14 +980,6 @@ class SectorRegulationWorkflowEmailAdmin(CustomTranslatableAdmin):
         "translations__headline",
         "sector_regulation_workflow__workflow__name",
     ]
-    resource_class = SectorRegulationWorkflowEmailResource
-    fields = (
-        "sector_regulation_workflow",
-        "headline",
-        "email",
-        "trigger_event",
-        "delay_in_hours",
-    )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sector_regulation_workflow":
