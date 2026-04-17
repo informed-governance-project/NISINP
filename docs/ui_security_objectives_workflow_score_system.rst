@@ -1,4 +1,4 @@
-Security Objectives Workflow
+Security Objectives Workflow - Score System
 -------------------------------
   
 Before we dive into the workflow, let’s discuss how the scoring system works. In the next chapter, you can read a short explanation.
