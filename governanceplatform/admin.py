@@ -247,7 +247,7 @@ class SectorResource(TranslationUpdateMixin, resources.ModelResource):
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class SectorAdmin(CustomTranslatableAdmin, ExportActionModelAdmin):
     list_display = ["acronym", "name_display", "parent"]
     list_display_links = ["acronym", "name_display"]
     search_fields = ["translations__name", "acronym", "parent__translations__name"]
