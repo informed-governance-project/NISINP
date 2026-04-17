@@ -203,7 +203,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 
 @admin.register(PredefinedAnswer, site=admin_site)
-class PredefinedAnswerAdmin(PermissionMixin, CustomTranslatableAdmin):
+class PredefinedAnswerAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = ["predefined_answer", "creator"]
     search_fields = ["translations__predefined_answer"]
     exclude = ["creator_name", "creator"]
@@ -392,8 +392,8 @@ class QuestionTypeListFilter(SimpleListFilter):
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(
-    PermissionMixin,
     CustomTranslatableAdmin,
+    PermissionMixin,
 ):
     actions = [duplicate_objects]
     list_display = [
@@ -746,7 +746,7 @@ for name, method in generate_display_methods(["subject", "content"]).items():
 
 
 @admin.register(Workflow, site=admin_site)
-class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
+class WorkflowAdmin(CustomTranslatableAdmin, PermissionMixin):
     list_display = [
         "name",
         "label_display",
