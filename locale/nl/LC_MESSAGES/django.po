@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-13 11:03+0200\n"
-"PO-Revision-Date: 2026-03-27 09:27+0000\n"
+"PO-Revision-Date: 2026-04-20 14:06+0000\n"
 "Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -1127,7 +1127,7 @@ msgstr "Herinneringsmail"
 
 #: incidents/models.py:515
 msgid "Incident Reference"
-msgstr ""
+msgstr "Incidentreferentie"
 
 #: incidents/models.py:546
 msgid "Contact user"
@@ -1382,7 +1382,7 @@ msgstr "Onderneming"
 
 #: reporting/forms.py:131
 msgid "Only .docx files are allowed."
-msgstr ""
+msgstr "Alleen .docx bestanden zijn toegelaten."
 
 #: reporting/forms.py:142
 msgid "Project name"
