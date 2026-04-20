@@ -100,21 +100,25 @@ If the Regulator Admin clicks the Send button and finalizes their decision, they
 The Operator Admin receives the failed Security Objectives declaration. When the Operator Admin logs in and there is a failed entry, the Admin can see a white **X icon** on a red circular background in the **Status** column of the dashboard. 
 In addition to the Status icon, the **blue dot** on the Review Comment icon indicates that **there is a comment** explaining the denial.
 
+.. figure:: _static/user_manual_images/UM_SER_106.png
+   :alt: Security Objectives - review comment has been saved
+   :target: _static/user_manual_images/UM_SER_106.png
 
+The Operator Admin can read the Regulator Admin’s comment. If the Operator Admin clicks the **Review** icon, the following pop-up appears, allowing the Admin to decide whether to review or update the Security Objective.
 
+If the admin does not want to make any changes in the first round and only wants to view the rejected declaration, then click the review button; if they want to make changes, then click the update button.
 
+.. figure:: _static/user_manual_images/UM_SER_107.png
+   :alt: Security Objectives - update or review statement pop-up
+   :target: _static/user_manual_images/UM_SER_107.png
 
+If the Operator Admin chooses to **Review** the entry, they can view the Regulator Admin’s comments. If the Operator Admin chooses to **Update** the failed Security Objective, they can make changes, correct the forms, and send the updated Security Objective back to the Regulator Admin. In this case, the Regulator Admin receives the updated declaration and reviews it again. The Regulator Admin checks the content of the declaration and decides whether it can be approved or must be rejected again.
 
+The Security Objective declaration can be sent back and forth between the two parties until all forms are accepted by the Regulator Admin.
 
+The process can be tracked easily and clearly using the version control function. On the Dashboard, in the **Actions** column, clicking the **Version Control** button opens the version control pop-up. This pop-up allows you to accurately track when each status change occurred and what the status was. Additionally, you can read the related comments by clicking the **Comment** icon in the Actions column.
 
-
-
-
-
-
-
-
-
-
-
+.. figure:: _static/user_manual_images/UM_SER_108.png
+   :alt: Security Objectives - update or review statement pop-up
+   :target: _static/user_manual_images/UM_SER_108.png
 
