@@ -32,6 +32,4 @@ In the screenshot below, the list is sorted by creation date in ascending order 
    :alt: reported incidents view table - sorting
    :target: _static/user_manual_images/UM_SER_40.png
 
-
-
-
+In case you see clickable links in the table, you may click on them for further information.
