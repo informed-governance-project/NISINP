@@ -48,7 +48,7 @@ When finished, the Operator Admin clicks **Next** (the screenshot below has been
 
 6.	On the **General Notification Information** form, the Operator Admin can provide detailed information about the impact on essential services, the estimated number of people affected, the estimated duration of the incident, the geographical area impacted, and other relevant aspects of the incident. 
 
-The Operator Admin can also indicate whether support is required from GovCERT or CIRCL. (The screenshot below has been truncated.)
+The Operator Admin can also indicate whether support is required from **GovCERT** or **CIRCL**. (The screenshot below has been truncated.)
 
 .. figure:: _static/user_manual_images/UM_SER_64.png
    :alt: Incident notification
@@ -111,7 +111,7 @@ If the Operator Admin hovers the mouse over the report, a pop-up appears indicat
    :alt: Preliminary Incident Report - failed
    :target: _static/user_manual_images/UM_SER_78.png
 
-If the Operator Admin wants more information on why the report failed, they should click the speech bubble icon with a green plus, 
+If the Operator Admin wants more information on why the report failed, they should click the **speech bubble icon with a green plus**, 
 which indicates that a comment is available. The comment displays the text entered by the Regulator Admin on the **Comment/Explanation** form 
 (see the step describing the Regulator Admin’s workflow). 
 Clicking the icon opens a pop-up showing the reason why the report was not accepted.
@@ -119,3 +119,5 @@ Clicking the icon opens a pop-up showing the reason why the report was not accep
 .. figure:: _static/user_manual_images/UM_SER_79.png
    :alt: Preliminary Incident Report - not resolved
    :target: _static/user_manual_images/UM_SER_79.png
+
+The Operator Admin can provide additional information or address the Regulator Admin’s requests, then resubmit the report for the next review.
