@@ -33,7 +33,7 @@ The form has three main parts:
    :target: _static/user_manual_images/UM_SER_33.png
 
 Once you have populated all required fields, click **Next**. In case you want to interrupt the process of reporting an incident, click **Cancel**. 
-If you click Next, you will be directed to the Legal bases form.
+If you click Next, you will be directed to the **Legal bases** form.
 
 Legal bases
 ~~~~~~~~~~~~~~
@@ -46,7 +46,7 @@ You may choose either regulation individually or both together. After making you
 
 Regulators
 ~~~~~~~~~~~~~~
-The next form is **Regulator**. As you can see, there is only one available option: ILR. 
+The next form is **Regulator**. As you can see, there is only one available option: **ILR**. 
 This field is mandatory and cannot be left blank. After selecting it, click **Next** to continue.
 
 .. figure:: _static/user_manual_images/UM_SER_35.png
@@ -63,7 +63,7 @@ On the **Sectors** form, you can indicate which sectors are affected by the inci
 •	Energy
 •	Health sector
 •	Transport
-For demonstration purposes, let’s choose two sectors (Digital Infrastructure, and Telecommunication services or network provider):
+For demonstration purposes, let’s choose two sectors (**Digital Infrastructure**, and **Telecommunication services or network provider**):
 
 .. figure:: _static/user_manual_images/UM_SER_36.png
    :alt: Sectors
@@ -80,10 +80,10 @@ From there, only minor adjustments should be needed, as typically there is littl
    :target: _static/user_manual_images/UM_SER_37.png
 
 If the detection date field is filled in correctly, click the **Next** button to complete the incident reporting process. 
-You will then be redirected to the main screen (Incident List View), where the newly created incident report will appear.
+You will then be redirected to the main screen (**Incident List View**), where the newly created incident report will appear.
 
 The table displays the information you entered during the incident report preparation, 
-along with additional columns such as Significant Impact, Incident Status, and Actions.
+along with additional columns such as **Significant Impact, Incident Status**, and **Actions**.
 
    .. note::
 
