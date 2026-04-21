@@ -52,6 +52,6 @@ Use the **Return to user interface** link in the top-right corner to go back to 
    - **Log out**: Use this link to log out of the application. In case you are not active, the system will log you out for security reasons.
 
 5.	**Contact**: Click the envelope icon to open the Contact form. By using the form, you can send a message to IRL.
-6.	**Language separator**: In the top right-hand corner, you can switch between English (EN), French (FR), Dutch (NL), and German (DE) languages.
+6.	**Language separator**: In the top right-hand corner, you can switch between English (**EN**), French (**FR**), Dutch (**NL**), and German (**DE**) languages.
 7.	**Incident notification**: Use this module to report cybersecurity incidents to the competent authority.
 8.	**Security objectives**: A self-assessment module to fulfill security objectives evaluation and provide evidence for security measures in place.
