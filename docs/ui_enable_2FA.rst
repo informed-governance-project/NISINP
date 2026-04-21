@@ -2,7 +2,8 @@ Enable two-factor authentication
 ----------------------------------
 
 Once you click **Register**, you are logged into the SERIMA Platform. Since this is your first login, 
-the system suggests you enable two-factor authentication. Click the button **Enable Two-Factor Authentication**.
+the system suggests you enable two-factor authentication. 
+Click the button **Enable Two-Factor Authentication**.
 
 .. figure:: _static/user_manual_images/UM_SER_3m.png
    :alt: Enable two-factor authentication
@@ -36,6 +37,7 @@ Then, open your authenticator on your smartphone and type in the randomly genera
    :target: _static/user_manual_images/UM_SER_7.png
 
 As an **Operator** or **User**, this is your main page where you land whenever you open this application. 
+
 Since this is your first login, there is no incident in the platform to show.
 
 .. figure:: _static/user_manual_images/UM_SER_8.png
