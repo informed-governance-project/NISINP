@@ -13,7 +13,7 @@ The incident notification dashboard is a central screen where you can manage all
 
 Due to the complexity of the screen, its different parts will be presented one by one, with numbered sections describing the functionality of each. 
 
-.. figure:: _static/user_manual_images/UM_SER_1.png
+.. figure:: _static/user_manual_images/UM_SER_16.png
    :alt: Overview of reported incidents
    :target: _static/user_manual_images/UM_SER_16.png
 
@@ -29,8 +29,8 @@ This screen will be described in detail in the “Report an incident” chapter.
 3.	**Search**: The search function can be very useful if there are many incidents and you want to filter among them 
 according to different aspects to find the incident you are looking for.
 
-4.	**Filter**: You can search among your incidents by Incident ID, status (Closed, or Ongoing), Significant impact 
-(Unknown, Yes, or No), and Impacted sectors (a list of available options appears).
+4.	**Filter**: You can search among your incidents by **Incident ID**, **status** (Closed, or Ongoing), **Significant impact** 
+(Unknown, Yes, or No), and **Impacted sectors** (a list of available options appears).
 
 .. figure:: _static/user_manual_images/UM_SER_18.png
    :alt: Filter
