@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
@@ -38,6 +39,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     render_to_string_multi_languages,
     sort_queryset_by_field,
+    translated_queryset,
     user_in_group,
 )
 from governanceplatform.models import (
@@ -47,6 +49,7 @@ from governanceplatform.models import (
 )
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
+    PARLER_DEFAULT_LANGUAGE_CODE,
     PUBLIC_URL,
     SITE_NAME,
     TIME_ZONE,
@@ -926,6 +929,22 @@ def export_incidents(request):
                             incident_data[f"{question} {idx}"] = item.strip()
                     else:
                         incident_data[f"{question}"] = str_answer
+
+                lang = get_language() or "en"
+
+                impacts = translated_queryset(
+                    last_report.impacts,
+                    lang,
+                    PARLER_DEFAULT_LANGUAGE_CODE,
+                    ["label"],
+                    True,
+                ).order_by("_label_sort")
+
+                for idx, impact in enumerate(impacts, start=1):
+                    for sector in impact.sectors.all():
+                        incident_data[
+                            f"{sector.get_safe_translation()} Impact {idx}"
+                        ] = impact.label
 
                 data.append(incident_data)
 
