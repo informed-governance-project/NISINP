@@ -19,7 +19,7 @@ keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-django = "^5.2.2"
+django = "^6.0"
 psycopg2-binary = "^2.8.4"
 cryptography = "^46.0.5"
 django-cors-headers = "^4.3.1"
@@ -32,7 +32,7 @@ django-two-factor-auth = "^1.15.5"
 phonenumbers = "^9.0.27"
 django-import-export = "^4.4.0"
 parler = "^1.0.1"
-django-parler = "^2.3"
+django-parler = {git = "https://github.com/informed-governance-project/django-parler", branch = "master"}
 django-countries = "^8.2.0"
 weasyprint = "^68.0"
 django-extensions = "^4.1"
