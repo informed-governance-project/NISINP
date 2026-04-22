@@ -36,7 +36,6 @@ Incident Notification Module
    modules
    architecture
    api-v1
-   exemple
 
 
 .. toctree::
@@ -98,8 +97,8 @@ The Incident Notification Module is developed and maintained by the
 `NC3-LU <https://github.com/NC3-LU>`_ team in the framework of the
 `Informed Governance Project <https://github.com/informed-governance-project>`_.
 
-The incident notification module is designed to serve as a national incident reporting tool. 
-It is multi-regulator, meaning that any regulator or competent authority in the country can use it and receive incident notifications. 
+The incident notification module is designed to serve as a national incident reporting tool.
+It is multi-regulator, meaning that any regulator or competent authority in the country can use it and receive incident notifications.
 
 It is also multi-regulation, meaning that it is fully configurable, and each regulator is responsible for configuring the regulations for which they are accountable.
 Operators under supervision can use the module to submit their incident notifications.
