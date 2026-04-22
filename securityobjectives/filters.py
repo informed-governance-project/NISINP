@@ -1,7 +1,8 @@
 import django_filters
-from django.db.models import F, Q
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from governanceplatform.helpers import get_sectors_grouped
 from governanceplatform.models import Company, Sector, User
 from incidents.forms import DropdownCheckboxSelectMultiple
 
@@ -17,18 +18,8 @@ class YearChoiceFilter(django_filters.ChoiceFilter):
 
 class StandardAnswerFilter(django_filters.FilterSet):
     year_of_submission = YearChoiceFilter()
-    sectors = django_filters.ModelMultipleChoiceFilter(
-        queryset=Sector.objects.filter(
-            ~Q(
-                id__in=Sector.objects.exclude(parent=None).values_list(
-                    "parent_id", flat=True
-                )
-            )
-            | Q(id=F("parent_id"))
-        ).order_by("parent"),
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 2"}
-        ),
+    sectors = django_filters.MultipleChoiceFilter(
+        widget=DropdownCheckboxSelectMultiple(), label=_("Sectors")
     )
     search = django_filters.CharFilter(method="filter_search", label=_("Search"))
 
@@ -64,6 +55,8 @@ class StandardAnswerFilter(django_filters.FilterSet):
         self.filters["year_of_submission"].extra["choices"] = [
             (year, year) for year in sorted(years)
         ]
+        grouped_choices = get_sectors_grouped(Sector.objects.all())
+        self.filters["sectors"].field.choices = grouped_choices
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
