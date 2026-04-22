@@ -361,12 +361,12 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
 # Remove languages are not translated
 def filter_languages_not_translated(form):
-    filtered_languages = [
-        lang for lang in form.context_data["language_tabs"] if lang[3] != "empty"
-    ]
-    form.context_data["language_tabs"].allow_deletion = False
-    form.context_data["language_tabs"] = filtered_languages
+    tabs = form.context_data.get("language_tabs")
+    if not tabs:
+        return form
 
+    tabs.allow_deletion = False
+    tabs[:] = [lang for lang in tabs if lang[3] != "empty"]
     return form
 
 
