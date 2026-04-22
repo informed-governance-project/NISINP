@@ -1,7 +1,7 @@
 Security Objectives Dashboard
 ----------------------------------
 
-The other main part of the SERIMA platform is the Security Objectives module. 
+The other main part of the **SERIMA** platform is the **Security Objectives module**. 
 
   **The security objectives module is a self-assessment tool used to evaluate security objectives and provide evidence of the security measures in place.**
 
@@ -20,7 +20,7 @@ Due to the complexity of the screen, its different parts will be presented one b
    :alt: Security Objectives Dashboard
    :target: _static/user_manual_images/UM_SER_42.png
 
-1.  **Dashboard**: By clicking the **Dashboard** link in the top-right corner, you can return to the landing page of the Security objectives dashboard.
+1. **Dashboard**: By clicking the **Dashboard** link in the top-right corner, you can return to the landing page of the Security objectives dashboard.
 2.	**New submission**: By clicking the red **New submission** button in the top-right corner, you can create a new security objectives entry. 
 The **Create a new security objectives** pop-up opens, where you can begin the process by using the dropdown menus to select the evaluation framework, 
 year, and sector options.
@@ -83,9 +83,10 @@ To hide a column, simply remove the checkmark next to the relevant column name.
    :alt: Choice of columns
    :target: _static/user_manual_images/UM_SER_48.png
 
+For example, if a column always contains the same value (the creator or the evaluation framework is the same), it is worth hiding those columns. Hiding them can make the security objectives list on the dashboard cleaner and easier to understand. Once you uncheck a checkbox, the relevant column/s immediately disappear/s from the dashboard. 
+
 8.	**Edit/Review**: Click the pencil icon to edit or review the selected entry. You can edit a security objective as long as it has not been submitted. 
-    Once it has been submitted, you can only review it; editing is no longer possible. 
-    If you hover your mouse over the pencil icon (highlighted in yellow in the screenshot below), a tooltip labeled **Edit** or **Review** will appear.
+Once it has been submitted, you can only review it; editing is no longer possible. If you hover your mouse over the pencil icon (highlighted in yellow in the screenshot below), a tooltip labeled **Edit** or **Review** will appear.
 
 .. figure:: _static/user_manual_images/UM_SER_49.png
    :alt: Edit icon
@@ -122,7 +123,9 @@ If you hover your mouse over the **Log** icon (highlighted in yellow in the scre
 
 Clicking the icon opens the log showing the **Date, Entity, User, Role**, and **Action** columns. 
 You can sort the columns by clicking the up- or down-pointing arrows beside each column header.
+
 In the example below, the **Date** column is sorted chronologically from oldest to newest (indicated by the upward-pointing arrow highlighted in yellow).
+
 This allows you to see the earliest record at the top and follow, step by step, on which day which user (and in what role) performed what action regarding the selected security objective.
 
 .. figure:: _static/user_manual_images/UM_SER_53.png
