@@ -1,4 +1,5 @@
 import secrets
+from collections import defaultdict
 from typing import Any, Optional
 
 import bleach
@@ -322,13 +323,33 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
 # Remove languages are not translated
 def filter_languages_not_translated(form):
-    filtered_languages = [
-        lang for lang in form.context_data["language_tabs"] if lang[3] != "empty"
-    ]
-    form.context_data["language_tabs"].allow_deletion = False
-    form.context_data["language_tabs"] = filtered_languages
+    tabs = form.context_data.get("language_tabs")
+    if not tabs:
+        return form
 
+    tabs.allow_deletion = False
+    tabs[:] = [lang for lang in tabs if lang[3] != "empty"]
     return form
+
+
+def get_sectors_grouped(sectors):
+    categs = defaultdict(list)
+    for sector in sectors:
+        sector_name = sector.get_safe_translation()
+
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs[parent_name].append([sector.id, sector_name])
+
+        if not sector.children.exists() and not sector.parent:
+            categs[sector_name].append([sector.id, sector_name])
+
+    sectors_grouped = (
+        (sector, sorted(options, key=lambda item: item[1]))
+        for sector, options in categs.items()
+    )
+
+    return sorted(sectors_grouped, key=lambda item: item[0])
 
 
 # From a queryset with translated fields, build a queryset that selects:
@@ -503,8 +524,10 @@ def render_to_string_multi_languages(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-            context["content"] = markdown(text=context["content"], output_format="html")
-            context["content"] = sanitize_html(context["content"])
+                context["content"] = markdown(
+                    text=context["content"], output_format="html"
+                )
+                context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
             if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:

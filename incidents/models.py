@@ -512,7 +512,7 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
 # incident
 class Incident(models.Model):
     # XXXXXXXXXX-SSS-SSS-NNNN-YYYY
-    incident_id = models.CharField(max_length=28, verbose_name=_("Incident ID"))
+    incident_id = models.CharField(max_length=28, verbose_name=_("Incident Reference"))
     incident_timezone = models.CharField(
         max_length=50,
         choices=[(tz, tz) for tz in pytz.all_timezones],
