@@ -90,6 +90,7 @@ class CustomAdminSite(admin.AdminSite):
                         ),  # Human-readable name
                         "object_name": ScriptLogEntry._meta.object_name,
                         "admin_url": "/admin/governanceplatform/scriptlogentry/",
+                        "view_only": True,
                         "perms": {
                             "add": False,
                             "change": False,
@@ -1604,7 +1605,10 @@ class ObserverAdmin(CustomTranslatableAdmin):
 
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin") and obj != user.observers.first():
+        if not (
+            user_in_group(user, "PlatformAdmin")
+            or (user_in_group(user, "ObserverAdmin") and obj == user.observers.first())
+        ):
             return False
         return super().has_change_permission(request, obj)
 
