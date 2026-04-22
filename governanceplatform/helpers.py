@@ -1,4 +1,5 @@
 import secrets
+from collections import defaultdict
 from typing import Any, Optional
 
 import bleach
@@ -329,6 +330,26 @@ def filter_languages_not_translated(form):
     tabs.allow_deletion = False
     tabs[:] = [lang for lang in tabs if lang[3] != "empty"]
     return form
+
+
+def get_sectors_grouped(sectors):
+    categs = defaultdict(list)
+    for sector in sectors:
+        sector_name = sector.get_safe_translation()
+
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs[parent_name].append([sector.id, sector_name])
+
+        if not sector.children.exists() and not sector.parent:
+            categs[sector_name].append([sector.id, sector_name])
+
+    sectors_grouped = (
+        (sector, sorted(options, key=lambda item: item[1]))
+        for sector, options in categs.items()
+    )
+
+    return sorted(sectors_grouped, key=lambda item: item[0])
 
 
 # From a queryset with translated fields, build a queryset that selects:
