@@ -8,8 +8,7 @@ In the screenshot below, the reported incident is highlighted in green.
    :alt: Overview of Reported Incidents
    :target: _static/user_manual_images/UM_SER_67.png
 
-The **Regulator Admin** can access all features described in previous chapters, such as version control, access logs, and downloading the report as a PDF.
-At this stage, these features are not critical, since the Admin has not yet reviewed the report’s content.
+The **Regulator Admin** can access all features described in previous chapters, such as version control, access logs, and downloading the report as a PDF. At this stage, these features are not critical, since the Admin has not yet reviewed the report’s content.
 
 The Regulator Admin can also click the **Contacts** icon on the far right (highlighted in yellow in the screenshot below) to see who submitted the 
 incident. If the Admin needs to contact the Operator Admin directly, this feature provides the reporter’s contact details in a pop-up.
@@ -27,7 +26,7 @@ incident. If the Admin needs to contact the Operator Admin directly, this featur
    :target: _static/user_manual_images/UM_SER_69.png
 
 2.	The Regulator Admin reviews the content of the forms (**Incident Timeline, Regulation, General Notification Information**) and adds a comment 
-while setting the report status on the Comment/Explanation form. 
+while setting the report status on the **Comment/Explanation** form. 
 
 The report status can be set to **Passed** if the Regulator accepts the content, or **Revision Required** if further information or corrections are needed.
 In the latter case, the Regulator should provide an explanation of what is missing or needs to be updated for the report to be approved.
@@ -69,7 +68,7 @@ If the report requires further revision, the Regulator Admin provides an explana
    :target: _static/user_manual_images/UM_SER_74.png
 
 After submitting, the platform returns the Regulator Admin to the **Overview of Reported Incidents** dashboard. 
-The Preliminary Incident Report is now displayed in red, with a red cross icon indicating its updated status.
+The **Preliminary Incident Report** is now displayed in red, with a red cross icon indicating its updated status.
 
 .. figure:: _static/user_manual_images/UM_SER_75.png
    :alt: Overview of Reported Incidents
