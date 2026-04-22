@@ -55,7 +55,7 @@ GROUP_PERMISSIONS = {
         "logreporting": ["view"],
         "configuration": ["add", "change", "delete"],
         "color": ["add", "change", "delete"],
-        "template": ["add", "change", "delete"],
+        "template": ["add", "change", "delete", "view"],
         "project": ["add", "change", "delete"],
         "companyproject": ["add", "change", "delete"],
         "generatedreport": ["add", "change", "delete"],
