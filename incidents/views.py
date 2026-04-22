@@ -787,8 +787,7 @@ def export_incidents(request):
                     incident_notification_date__date__lte=to_date,
                 ).order_by("-incident_notification_date")
 
-                if incidents.exists():
-                    are_incidents = True
+                are_incidents = incidents.exists()
 
             if is_observer_user(user):
                 all_incidents = (
@@ -805,8 +804,7 @@ def export_incidents(request):
                     and from_date <= i.incident_notification_date.date() <= to_date
                 ]
 
-                if incidents:
-                    are_incidents = True
+                are_incidents = bool(incidents)
 
             if not are_incidents:
                 messages.error(request, _("No incidents available for export."))
