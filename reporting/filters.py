@@ -1,62 +1,13 @@
 import django_filters
 from django.db.models import F, Q
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from governanceplatform.helpers import get_sectors_grouped
-from governanceplatform.models import Company, Regulation, Sector, User
+from governanceplatform.models import Regulation, Sector, User
 from incidents.forms import DropdownCheckboxSelectMultiple
 from securityobjectives.models import Standard
 
 from .models import CompanyProject, ObservationRecommendation, Project
-
-
-class YearChoiceFilter(django_filters.ChoiceFilter):
-    def filter(self, qs, value):
-        return qs
-
-
-class CompanyFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(
-        lookup_expr="icontains",
-        label=_("Operator"),
-    )
-
-    year = YearChoiceFilter(
-        label=_("Year"),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 2, timezone.now().year + 1)
-        ],
-    )
-
-    sectors = django_filters.ModelMultipleChoiceFilter(
-        queryset=Sector.objects.filter(
-            ~Q(
-                id__in=Sector.objects.exclude(parent=None).values_list(
-                    "parent_id", flat=True
-                )
-            )
-            | Q(id=F("parent_id"))
-        ).order_by("parent"),
-        widget=DropdownCheckboxSelectMultiple(),
-        method="filter_by_sector",
-        label=_("Sectors"),
-    )
-
-    search = django_filters.CharFilter(method="filter_search", label=_("Search"))
-
-    class Meta:
-        model = Company
-        fields = [
-            "name",
-        ]
-
-    def filter_by_sector(self, queryset, name, value):
-        return queryset
-
-    def filter_search(self, queryset, name, value):
-        return queryset
 
 
 class RecommendationFilter(django_filters.FilterSet):
@@ -137,13 +88,17 @@ class ProjectFilter(django_filters.FilterSet):
         ]
         self.filters["sectors"].field.choices = grouped_choices
         self.filters["author"].queryset = User.objects.filter(id__in=author_user_ids)
-        self.filters["author"].field.label_from_instance = user_label
+        self.filters["author"].field.label_from_instance = self.user_label
         self.filters["standard"].queryset = Standard.objects.filter(
             project__in=queryset
         ).distinct()
         self.filters["standard__regulation"].queryset = Regulation.objects.filter(
             standard__project__in=queryset
         ).distinct()
+
+    def user_label(self, user):
+        full_name = user.get_full_name()
+        return full_name if full_name else user.email
 
     def filter_search(self, queryset, name, value):
         query = (
@@ -201,8 +156,3 @@ class CompanyProjectFilter(django_filters.FilterSet):
             query |= Q(year=int(value))
 
         return queryset.filter(query).distinct()
-
-
-def user_label(user):
-    full_name = user.get_full_name()
-    return full_name if full_name else user.email
