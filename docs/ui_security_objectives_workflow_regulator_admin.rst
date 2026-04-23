@@ -120,7 +120,9 @@ In this case, the Regulator Admin receives the updated declaration and reviews i
 
   **The Security Objective declaration can be sent back and forth between the two parties until all forms are accepted by the Regulator Admin.**
 
-The process can be tracked easily and clearly using the version control function. On the Dashboard, in the **Actions** column, clicking the **Version Control** button opens the version control pop-up. This pop-up allows you to accurately track when each status change occurred and what the status was. Additionally, you can read the related comments by clicking the **Comment** icon in the Actions column.
+The process can be tracked easily and clearly using the version control function. On the Dashboard, in the **Actions** column, clicking the **Version Control** button opens the version control pop-up. 
+
+This pop-up allows you to accurately track when each status change occurred and what the status was. Additionally, you can read the related comments by clicking the **Comment** icon in the Actions column.
 
 .. figure:: _static/user_manual_images/UM_SER_108.png
    :alt: Security Objectives - update or review statement pop-up
