@@ -9,7 +9,7 @@ How does the Score system work?
 On each form, you can indicate the security measures in place, which correspond to your maturity level. 
 Each form has four maturity levels, ranging from 0 to 3. 
 
-Use the sliders in the **Measures Implemented** column to show the measures you have taken, and in the Justification column, 
+Use the sliders in the **Measures Implemented** column to show the measures you have taken, and in the **Justification** column, 
 you can explain why you believe you have reached that maturity level.
 
 .. figure:: _static/user_manual_images/UM_SER_110.png
@@ -19,6 +19,7 @@ you can explain why you believe you have reached that maturity level.
 The number of sliders in the **Measures Implemented** column may vary for each maturity level. 
 However, if all sliders within a given maturity level are green, that level is worth one point.
 If a maturity level has two sliders, each green slider is worth 0.5 points. 
+
 For a maturity level with three sliders, the total value is 1 point if all are green; otherwise, each green slider is worth 0.3 points. 
 For maturity level 3 with only one slider, setting it to green is worth a full point. If any maturity level is completed, you get one point.
 
@@ -43,9 +44,9 @@ At the bottom of each form is the **Planned Measures** field, where you can ente
 Please complete each form carefully. Review the maturity levels described on each form and select the level that applies to you. 
 Use the sliders where appropriate and provide a short explanation in the **Justification** column that corresponds to the selected maturity level and sliders.
 
-**Note that you can submit your Security Objectives entry only when all form numbers are green.**
+  **Note that you can submit your Security Objectives entry only when all form numbers are green.**
 
-The screenshot below shows a security objective in which forms 16, 17, and 22 are yellow. As a result, even though the Submit button is light green, the security objective report cannot be submitted.
+The screenshot below shows a security objective in which forms 16, 17, and 22 are yellow. As a result, even though the **Submit** button is light green, the security objective report cannot be submitted.
 
 .. figure:: _static/user_manual_images/UM_SER_91.png
    :alt: Security Objective forms
@@ -69,5 +70,5 @@ You can now click **Submit**. The Security Objective entry appears on the Dashbo
    :alt: Security Objective declaration - submitted
    :target: _static/user_manual_images/UM_SER_93.png
 
-The Operator Admin has submitted the declaration. It is now the Regulator’s responsibility to review it, report any issues, request additional information if needed, or accept the declaration if it is satisfactory.
+The **Operator Admin has submitted the declaration**. It is now the Regulator’s responsibility to review it, report any issues, request additional information if needed, or accept the declaration if it is satisfactory.
 
