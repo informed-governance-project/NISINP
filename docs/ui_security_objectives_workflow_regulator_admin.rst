@@ -70,12 +70,13 @@ The review comment contains the **Regulator’s comment**. If the Operator Admin
    :target: _static/user_manual_images/UM_SER_102.png
 
 In this case, the Operator Admin has nothing more to do, as **the Security Objective declaration has been accepted by the Regulator Admin**.
+
 However, not all declarations can be accepted by the Regulator Admin. In the following chapter, we will see what happens when, for any reason, the declaration is rejected, and the Operator Admin must fix the issues.
 
 The Regulator Admin denies the declaration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If any of the forms fail, the **Security Objective declaration fails**. In the screenshot below, Forms 2, 5, and 13 failed; therefore, their form numbers are shown in red. These forms were denied by the Regulator Admin, and the relevant comments explaining the reasons for failure were added to the **Review Comment pop-ups.
+If any of the forms fail, the **Security Objective declaration fails**. In the screenshot below, Forms 2, 5, and 13 failed; therefore, their form numbers are shown in red. These forms were denied by the Regulator Admin, and the relevant comments explaining the reasons for failure were added to the **Review Comment pop-ups**.
 
 .. figure:: _static/user_manual_images/UM_SER_103.png
    :alt: Security Objectives - declaration fails
@@ -98,6 +99,7 @@ If the Regulator Admin clicks the Send button and finalizes their decision, they
    :target: _static/user_manual_images/UM_SER_105.png
 
 The Operator Admin receives the failed Security Objectives declaration. When the Operator Admin logs in and there is a failed entry, the Admin can see a white **X icon** on a red circular background in the **Status** column of the dashboard. 
+
 In addition to the Status icon, the **blue dot** on the Review Comment icon indicates that **there is a comment** explaining the denial.
 
 .. figure:: _static/user_manual_images/UM_SER_106.png
@@ -112,9 +114,11 @@ If the admin does not want to make any changes in the first round and only wants
    :alt: Security Objectives - update or review statement pop-up
    :target: _static/user_manual_images/UM_SER_107.png
 
-If the Operator Admin chooses to **Review** the entry, they can view the Regulator Admin’s comments. If the Operator Admin chooses to **Update** the failed Security Objective, they can make changes, correct the forms, and send the updated Security Objective back to the Regulator Admin. In this case, the Regulator Admin receives the updated declaration and reviews it again. The Regulator Admin checks the content of the declaration and decides whether it can be approved or must be rejected again.
+If the Operator Admin chooses to **Review** the entry, they can view the Regulator Admin’s comments. If the Operator Admin chooses to **Update** the failed Security Objective, they can make changes, correct the forms, and send the updated Security Objective back to the Regulator Admin. 
 
-The Security Objective declaration can be sent back and forth between the two parties until all forms are accepted by the Regulator Admin.
+In this case, the Regulator Admin receives the updated declaration and reviews it again. The Regulator Admin checks the content of the declaration and decides whether it can be approved or must be rejected again.
+
+  **The Security Objective declaration can be sent back and forth between the two parties until all forms are accepted by the Regulator Admin.**
 
 The process can be tracked easily and clearly using the version control function. On the Dashboard, in the **Actions** column, clicking the **Version Control** button opens the version control pop-up. This pop-up allows you to accurately track when each status change occurred and what the status was. Additionally, you can read the related comments by clicking the **Comment** icon in the Actions column.
 
