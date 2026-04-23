@@ -65,8 +65,8 @@ class DomainResource(TranslationUpdateMixin, resources.ModelResource):
 class DomainAdmin(
     FunctionalityMixin,
     PermissionMixin,
-    ExportActionModelAdmin,
     CustomTranslatableAdmin,
+    ExportActionModelAdmin,
 ):
     resource_class = DomainResource
     should_escape_html = False
@@ -565,10 +565,10 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
 class SecurityObjectiveAdmin(
     FunctionalityMixin,
     PermissionMixin,
+    CustomTranslatableAdmin,
     ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
-    CustomTranslatableAdmin,
 ):
     resource_class = SecurityObjectiveResource
     should_escape_html = False
@@ -843,10 +843,10 @@ class SecurityMeasureAdminForm(TranslatableModelForm, PermissionMixin):
 class SecurityMeasureAdmin(
     FunctionalityMixin,
     PermissionMixin,
+    CustomTranslatableAdmin,
     ImportMixin,
     ImportExportModelAdmin,
     ExportActionModelAdmin,
-    CustomTranslatableAdmin,
 ):
     form = SecurityMeasureAdminForm
     resource_class = SecurityMeasureResource
@@ -979,9 +979,9 @@ class SOEmailResource(TranslationUpdateMixin, resources.ModelResource):
 class SOEmailAdmin(
     FunctionalityMixin,
     PermissionMixin,
+    CustomTranslatableAdmin,
     ImportMixin,
     ExportActionModelAdmin,
-    CustomTranslatableAdmin,
 ):
     list_display = [
         "name",
