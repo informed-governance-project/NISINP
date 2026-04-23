@@ -52,7 +52,6 @@ Incident Notification Module
    :maxdepth: 3
    :hidden:
 
-   ui_user
    ui_administrator
    ui_platformadmin
 
