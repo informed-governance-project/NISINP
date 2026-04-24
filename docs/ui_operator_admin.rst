@@ -48,21 +48,57 @@ When you select the **Approved** checkbox, you confirm that the user is valid an
 
 6.	**Delete**: The delete checkbox shows that the chosen user has been deleted and is not active in the system.
 
+Users
+~~~~~~~~~~~~~~~
 
+To view the number of users on the platform and their types, select the **Users** link in the **Governance** panel on the left. After clicking the **Users** link, you will be directed to the **Select User to Change** screen (also called the **User Table**). 
 
+The **Operator Admin** can create new **Operator Users** by clicking the **+Add** link or by using the **Add User** button in the top right-hand corner.
 
+.. figure:: _static/operator_admin_images/OpAdmin_05.png
+   :alt: Users
+   :target: _static/operator_admin_images/OpAdmin_05.png
 
+On the **Add User** screen, the Operator Admin can add new Operator Users by filling in the required fields (First name, Last name, Email address, and Phone number). The required field (Email address) is indicated with an asterisk (highlighted in yellow in the screenshot below). 
+The Operator Admin can create several users by using the **Save and add another** button (circled in red in the screenshot below).
 
+.. figure:: _static/operator_admin_images/OpAdmin_06.png
+   :alt: Users - email address
+   :target: _static/operator_admin_images/OpAdmin_06.png
 
+Once you have added a user and clicked **Save**, the user is linked to your company. The **Administration Console** informs you that the user was added successfully (1). If you click the **History button** (2), you can see when and by whom the selected user was added to your company. To edit the selected user, click **Save and continue editing** (3). To delete the user, click **Delete** (4).
 
+.. figure:: _static/operator_admin_images/OpAdmin_07.png
+   :alt: Users - added successfully
+   :target: _static/operator_admin_images/OpAdmin_07.png
 
+Once you have made the changes, you will be directed to the **Select User to Change** page. You can see that the newly added user has not enabled two-factor authentication (2FA) and that the email address is not verified.
 
+.. figure:: _static/operator_admin_images/OpAdmin_08.png
+   :alt: Users - added successfully
+   :target: _static/operator_admin_images/OpAdmin_08.png
 
+How to reset 2FA?
+^^^^^^^^^^^^^^^^^^^^^
 
+Choose a user by clicking the checkmark on the far left, before the **First Name** column. Then, go to the down-pointing arrow in the **Action** field and choose the option **Reset 2FA**.
 
+How to export selected users?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the **Action** field and choose the option **Export selected users**.
 
+.. figure:: _static/operator_admin_images/OpAdmin_09.png
+   :alt: Users - reset 2FA
+   :target: _static/operator_admin_images/OpAdmin_09.png
 
+How to filter among users?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Use the **Filter** section on the far right. The **Show counts** link displays how many users and in what roles can be found within your company. In the screenshot below, there are three users in total: two **Operator Users** and one **Operator Admin** (if you choose to filter by roles). 
+In case you do not want to see the numbers, click the **Hide counts** link.
 
+.. figure:: _static/operator_admin_images/OpAdmin_10.png
+   :alt: Users - Filter
+   :target: _static/operator_admin_images/OpAdmin_10.png
 
