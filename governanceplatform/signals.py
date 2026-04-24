@@ -232,6 +232,14 @@ def delete_user_groups(sender, instance, **kwargs):
                     if new_group:
                         user.groups.add(new_group)
 
+                    user.is_active = False
+                    user.save()
+
+                if group_name == "RegulatorUser":
+                    user.is_active = False
+                    user.save()
+                    return
+
         if not user.companyuser_set.exists():
             user.is_staff = False
             user.is_superuser = False

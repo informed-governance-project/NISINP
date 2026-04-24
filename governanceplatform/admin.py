@@ -19,6 +19,7 @@ from django_otp.decorators import otp_required
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
+from incidents.decorators import check_user_is_correct
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
@@ -69,6 +70,7 @@ class CustomAdminSite(admin.AdminSite):
 
     def admin_view(self, view, cacheable=False):
         decorated_view = otp_required(view)
+        decorated_view = check_user_is_correct(view)
         return super().admin_view(decorated_view, cacheable)
 
     def get_app_list(self, request, app_label=None):
@@ -192,29 +194,10 @@ class SettingsAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return SettingsDummy.objects.none()
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_module_permission(self, request):
-        return request.user.groups.filter(name="PlatformAdmin").exists()
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.groups.filter(name="PlatformAdmin").exists()
-
 
 @admin.register(Site, site=admin_site)
 class SiteAdmin(admin.ModelAdmin):
-    def has_module_permission(self, request):
-        user = request.user
-        if not user_in_group(user, "PlatformAdmin"):
-            return False
-        return super().has_module_permission(request)
+    pass
 
 
 @admin.register(Sector, site=admin_site)
@@ -225,18 +208,6 @@ class SectorAdmin(CustomTranslatableAdmin):
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
     translated_fields = ["name"]
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorUser"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_module_permission(self, request):
-        user = request.user
-        if user_in_group(user, "RegulatorUser"):
-            return False
-        return super().has_module_permission(request)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parent":
@@ -301,28 +272,6 @@ class EntityCategoryAdmin(CustomTranslatableAdmin):
         "code",
     )
     translated_fields = ["label"]
-
-    # Only accessible for platform admin
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
 
 
 for name, method in generate_display_methods(["label"]).items():
@@ -434,8 +383,7 @@ class CompanyUserInline(admin.TabularInline):
 
         if obj == user:
             return False
-        elif user_in_group(request.user, "RegulatorUser"):
-            return True
+
         return super().has_delete_permission(request, obj)
 
     def get_queryset(self, request):
@@ -1151,8 +1099,6 @@ class UserAdmin(admin.ModelAdmin):
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):
-            if obj and user_in_group(obj, "RegulatorUser"):
-                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
                 inline_instances = []
 
@@ -1292,7 +1238,7 @@ class UserAdmin(admin.ModelAdmin):
                 or user_in_group(obj, "OperatorAdmin")
             ) and obj.logentry_set.all().count() > 0:
                 return False
-        return True
+        return super().has_delete_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
         user = request.user
@@ -1345,8 +1291,9 @@ class UserAdmin(admin.ModelAdmin):
 
     # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
     def delete_model(self, request, obj):
-        if user_in_group(obj, "RegulatorUser"):
+        if user_in_group(obj, "PlatformAdmin") or is_user_regulator(obj):
             obj.is_active = False
+            obj.save()
         else:
             obj.delete()
 
@@ -1360,24 +1307,6 @@ class FunctionalityAdmin(CustomTranslatableAdmin):
     search_fields = ["translations__name"]
     order_list = ["type"]
     translated_fields = ["name"]
-
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
 
 
 for name, method in generate_display_methods(["name"]).items():
@@ -1424,12 +1353,6 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         return readonly_fields
 
     inlines = (userRegulatorMultipleInline,)
-
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
         user = request.user
@@ -1595,29 +1518,11 @@ class ObserverAdmin(CustomTranslatableAdmin):
 
         return base_fieldsets
 
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin") or user_in_group(
-            user, "ObserverAdmin"
-        ):
-            return False
-        return super().has_change_permission(request, obj)
-
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if not (
-            user_in_group(user, "PlatformAdmin")
-            or (user_in_group(user, "ObserverAdmin") and obj == user.observers.first())
-        ):
+        if user_in_group(user, "ObserverAdmin") and obj != user.observers.first():
             return False
         return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return super().has_delete_permission(request, obj)
-        else:
-            return False
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -1659,24 +1564,6 @@ class RegulationAdmin(CustomTranslatableAdmin):
     ]
     translated_fields = ["label"]
 
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_delete_permission(request, obj)
-
 
 for name, method in generate_display_methods(["label"]).items():
     setattr(RegulationAdmin, name, method)
@@ -1693,15 +1580,3 @@ class ScriptLogEntryAdmin(admin.ModelAdmin):
         "additional_info",
     ]
     search_fields = ["object_repr"]
-
-    def has_add_permission(self, request):
-        return False  # Disable adding custom logs manually
-
-    def has_change_permission(self, request, obj=None):
-        return False  # Disable changing logs
-
-    def has_delete_permission(self, request, obj=None):
-        return False  # Disable deleting logs
-
-    def has_module_permission(self, request, obj=None):
-        return is_user_regulator(request.user)

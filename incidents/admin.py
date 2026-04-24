@@ -152,14 +152,9 @@ class LogEntryAdmin(admin.ModelAdmin):
         ),
     ]
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
     def has_delete_permission(self, request, obj=None):
-        if obj is not None and obj.action_time:
+        module_permission = super().has_module_permission(request)
+        if module_permission and obj is not None and obj.action_time:
             actual_time = timezone.now()
             dt = actual_time - obj.action_time
             if (
@@ -167,7 +162,7 @@ class LogEntryAdmin(admin.ModelAdmin):
                 >= LOG_RETENTION_TIME_IN_DAY
             ):
                 return True
-        return False
+        return super().has_delete_permission(request, obj)
 
     def has_view_permission(self, request, obj=None):
         user = request.user
