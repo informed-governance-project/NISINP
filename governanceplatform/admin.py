@@ -19,6 +19,7 @@ from django_otp.decorators import otp_required
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
+from incidents.decorators import check_user_is_correct
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
@@ -69,6 +70,7 @@ class CustomAdminSite(admin.AdminSite):
 
     def admin_view(self, view, cacheable=False):
         decorated_view = otp_required(view)
+        decorated_view = check_user_is_correct(view)
         return super().admin_view(decorated_view, cacheable)
 
     def get_app_list(self, request, app_label=None):
@@ -1289,8 +1291,9 @@ class UserAdmin(admin.ModelAdmin):
 
     # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
     def delete_model(self, request, obj):
-        if user_in_group(obj, "RegulatorUser"):
+        if user_in_group(obj, "PlatformAdmin") or is_user_regulator(obj):
             obj.is_active = False
+            obj.save()
         else:
             obj.delete()
 
