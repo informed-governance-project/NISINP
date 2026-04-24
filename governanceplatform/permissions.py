@@ -76,7 +76,7 @@ GROUP_PERMISSIONS = {
     "RegulatorUser": {
         "user": ["add", "view", "import", "export"],
         "companyuser": ["add", "view", "change", "delete"],
-        "company": ["add", "view", "change", "delete"],
+        "company": ["add", "view", "change"],
         "sector": ["change"],
         "observationrecommendation": ["add", "view", "change", "delete"],
     },
