@@ -95,6 +95,10 @@ class RestrictViewsMiddleware:
     def __call__(self, request):
         user = request.user
         if user.is_authenticated:
+            # Superusers are not allowed to access the platform
+            if user.is_superuser:
+                raise Http404()
+
             if settings.DEBUG:
                 user.is_verified = lambda: True
 
