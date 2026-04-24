@@ -19,6 +19,7 @@ from markdown import markdown
 
 from incidents.models import (
     Answer,
+    Impact,
     Incident,
     PredefinedAnswer,
     Question,
@@ -328,6 +329,10 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
     # [SecurityObjectiveEmail] Set in use flag to false
     if isinstance(obj, SecurityObjectiveEmail):
+        in_use = False
+
+    # [Impact] Set in use flag to false
+    if isinstance(obj, Impact):
         in_use = False
 
     regulator = request.user.regulators.first()
