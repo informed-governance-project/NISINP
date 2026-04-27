@@ -58,23 +58,26 @@ The **script execution logs** screen shows the logs from your SERIMA server. The
 
 Click the header of any column to sort the entries by that column. An upward-facing triangle in the top-right corner of the column indicates that the entries are sorted in descending order, with older entries at the top and newer ones at the bottom.
 
-.. figure:: _static/regulator_admin_images/PLAT_ADM_21.png
+.. figure:: _static/platform_admin_images/PLAT_ADM_21.png
    :alt: script execution logs
-   :target: _static/regulator_admin_images/PLAT_ADM_21.png
+   :target: _static/platform_admin_images/PLAT_ADM_21.png
 
 Clicking the triangle again reverses the sorting order. When you hover the cursor over the triangle, a pop-up labeled **Toggle Sorting** appears. A downward-facing triangle then indicates that the newest entries are at the top, and older entries are below.
 
-.. figure:: _static/regulator_admin_images/PLAT_ADM_22.png
+.. figure:: _static/platform_admin_images/PLAT_ADM_22.png
    :alt: script execution logs
-   :target: _static/regulator_admin_images/PLAT_ADM_22.png
+   :target: _static/platform_admin_images/PLAT_ADM_22.png
 
+You can sort items by multiple columns. The column headers indicate the sort order, showing which column is first, second, or third in the sequence (and whether the sorting is in ascending or descending order).
 
+.. figure:: _static/platform_admin_images/PLAT_ADM_23.png
+   :alt: script execution logs
+   :target: _static/platform_admin_images/PLAT_ADM_23.png
 
+The **Object Representation** column shows what activity the script performed. In most cases, this involves deletions: typically of inactive users, users who registered but were not assigned to any company, or users who did not confirm their registration.
 
-
-
-
-
+Governance
+~~~~~~~~~~~~~~~~~~~
 
 
 
