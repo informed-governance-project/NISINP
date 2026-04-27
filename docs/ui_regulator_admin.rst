@@ -1,4 +1,4 @@
-REGULATOR ADMIN
+Regulator Admin
 -------------------------
   
 In Luxembourg, the regulator is **ILR**. `ILR <https://www.ilr.lu/>`_ can have two types of roles: **Regulator Admin** and **Regulator User**.
