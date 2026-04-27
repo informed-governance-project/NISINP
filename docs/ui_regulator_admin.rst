@@ -79,27 +79,58 @@ The **Object Representation** column shows what activity the script performed. I
 Governance
 ~~~~~~~~~~~~~~~~~~~
 
+In the Governance section, you can find the following functionalities:
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_06.png
+   :alt: Governance
+   :target: _static/regulator_admin_images/Reg_Admin_06.png
 
+On the left panel, you can see the functionalities and their links. To the right, you can see whether the Regulator Admin has write access (**Add/Change**) or only read access (**View**) for each functionality. **These permissions are set by the Platform Admin.**
 
+Entity categories
+^^^^^^^^^^^^^^^^^^^^^^^^
 
+Click the **Entity categories** link to go to the **Select entity category view** screen. On this screen, you can see what kind of entities are defined in your system. You can view an entity on the **View Entity category** screen by clicking on its link. You can set up an entity in four different languages.
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_07.png
+   :alt: Select entity category view
+   :target: _static/regulator_admin_images/Reg_Admin_07.png
 
+You only have read-only access to the Entity categories. Once you click the name of the Entity Category in the **Code** column, you will be directed to the **View Entity Category** screen:
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_09.png
+   :alt: View Entity Category
+   :target: _static/regulator_admin_images/Reg_Admin_09.png
 
+Functionalities
+^^^^^^^^^^^^^^^^^^^^^^^^
 
+Click the **Functionalities** link to go to the **Select Functionality to view** screen. On this screen, you can check what kind of functionalities are defined in your system. The screenshot below shows two configured functionalities (Reporting and Security Objective):
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_08.png
+   :alt: Select Functionality to view
+   :target: _static/regulator_admin_images/Reg_Admin_08.png
 
+You only have read-only access to the **Functionalities**. Once you click the name of the Functionality in the **Type** column, you will be directed to the **View Functionality** screen:
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_10.png
+   :alt: View Functionality
+   :target: _static/regulator_admin_images/Reg_Admin_10.png
 
+Observers
+^^^^^^^^^^^^^^^^^^^^^^^^
 
+Click the **Observers** link to go to the **Select Observers to change** screen. On this screen, you can see what kind of Observers are defined in your system. You only have view access to the Observers screen.
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_11.png
+   :alt: Select Observers to change
+   :target: _static/regulator_admin_images/Reg_Admin_11.png
 
+Click the name of the Observer in the **Name** column to view it. Once you click the name of an Observer, you will be directed to the **View Observer** screen. At the top, you can see the contact information of the chosen Observer, whereas further down, you can see the linked Observer Users and Observer Regulations.
 
-
-
-
-
+Operators
+^^^^^^^^^^^^^^^^^^^^^^^^
+20
 
 
 
