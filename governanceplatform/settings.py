@@ -323,7 +323,7 @@ CORS_EXPOSE_HEADERS = [
 BOOTSTRAP5 = {
     # The complete URL to the Bootstrap CSS file.
     # Note that a URL can be either a string
-    # ("https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"),
+    # ("https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"),
     # or a dict with keys `url`, `integrity` and `crossorigin` like the default value below.
     "css_url": {
         "url": "/static/npm_components/bootstrap/dist/css/bootstrap.min.css",
@@ -331,16 +331,13 @@ BOOTSTRAP5 = {
     },
     # The complete URL to the Bootstrap bundle JavaScript file.
     "javascript_url": {
-        "url": "/static/npm_components/bootstrap/dist/js/bootstrap.min.js",
-        "crossorigin": "anonymous",
-    },
-    # The URL to the jQuery JavaScript file (full)
-    "jquery_url": {
-        "url": "/static/npm_components/jquery/dist/jquery.min.js",
+        "url": "/static/npm_components/bootstrap/dist/js/bootstrap.bundle.min.js",
         "crossorigin": "anonymous",
     },
     # The complete URL to the Bootstrap CSS theme file (None means no theme).
     "theme_url": None,
+    # Color mode (None means do not set color mode).
+    "color_mode": None,
     # Put JavaScript in the HEAD section of the HTML document
     # (only relevant if you use bootstrap5.html).
     "javascript_in_head": False,
@@ -350,12 +347,17 @@ BOOTSTRAP5 = {
     # Wrapper class for inline fields.
     # The default value is empty, as Bootstrap5 example code doesn't use a wrapper class.
     "inline_wrapper_class": "",
+    # Field class for inline fields.
+    # the default value is "col-12". This class will combined with `inline_wrapper_class`.
+    "inline_field_class": "col-auto",
     # Label class to use in horizontal forms.
     "horizontal_label_class": "col-sm-2",
     # Field class to use in horizontal forms.
     "horizontal_field_class": "col-sm-10",
     # Field class used for horizontal fields withut a label.
     "horizontal_field_offset_class": "offset-sm-2",
+    # HTML attributes with any of these prefixes will have underscores converted to hyphens.
+    "hyphenate_attribute_prefixes": ["data"],
     # Set placeholder attributes to label if no placeholder is provided.
     "set_placeholder": True,
     # Class to indicate required field (better to set this in your Django form).
