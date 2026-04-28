@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-22 14:04+0200\n"
+"POT-Creation-Date: 2026-04-28 11:31+0200\n"
 "PO-Revision-Date: 2026-04-20 14:06+0000\n"
 "Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
 "Language-Team: \n"
@@ -14,39 +14,39 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 5.15.2\n"
 
-#: governanceplatform/admin.py:67 governanceplatform/context_processors.py:30
+#: governanceplatform/admin.py:68 governanceplatform/context_processors.py:30
 #: governanceplatform/views.py:98
 msgid "Settings"
 msgstr "Instellingen"
 
-#: governanceplatform/admin.py:172 governanceplatform/admin.py:173
+#: governanceplatform/admin.py:174 governanceplatform/admin.py:175
 msgid "Django Settings"
 msgstr "Django-instellingen"
 
-#: governanceplatform/admin.py:334
+#: governanceplatform/admin.py:283
 msgid "Contact for company"
 msgstr "Aanspreekpunt voor de onderneming"
 
-#: governanceplatform/admin.py:335
+#: governanceplatform/admin.py:284
 msgid "Contacts for company"
 msgstr "Aanspreekpunten voor de onderneming"
 
-#: governanceplatform/admin.py:484 governanceplatform/admin.py:982
-#: governanceplatform/admin.py:995
+#: governanceplatform/admin.py:432 governanceplatform/admin.py:930
+#: governanceplatform/admin.py:943
 msgid "Contact information"
 msgstr "Informatie aanspreekpunt"
 
-#: governanceplatform/admin.py:495
+#: governanceplatform/admin.py:443
 msgid "Configuration information"
 msgstr "Configuratiegegevens"
 
-#: governanceplatform/admin.py:504 governanceplatform/models.py:186
+#: governanceplatform/admin.py:452 governanceplatform/models.py:186
 #: governanceplatform/models.py:775
 msgid "Entity categories"
 msgstr "Categorieën van entiteiten"
 
-#: governanceplatform/admin.py:513 governanceplatform/models.py:81
-#: incidents/admin.py:477 incidents/admin.py:549 incidents/admin.py:888
+#: governanceplatform/admin.py:461 governanceplatform/models.py:81
+#: incidents/admin.py:472 incidents/admin.py:544 incidents/admin.py:889
 #: incidents/filters.py:20 incidents/forms.py:658 incidents/models.py:47
 #: incidents/models.py:330 incidents/views.py:1133 reporting/admin.py:69
 #: reporting/filters.py:38 reporting/forms.py:52 reporting/forms.py:179
@@ -57,66 +57,66 @@ msgstr "Categorieën van entiteiten"
 msgid "Sectors"
 msgstr "Sectoren"
 
-#: governanceplatform/admin.py:597
+#: governanceplatform/admin.py:545
 msgid "Suggestion to Link a User Account with Your Company"
 msgstr "Suggestie om een gebruikersaccount te linken aan uw onderneming"
 
-#: governanceplatform/admin.py:792
+#: governanceplatform/admin.py:740
 msgid "Reset 2FA"
 msgstr "2FA resetten"
 
-#: governanceplatform/admin.py:814 governanceplatform/models.py:279
+#: governanceplatform/admin.py:762 governanceplatform/models.py:279
 #: governanceplatform/models.py:486 governanceplatform/models.py:735
 #: governanceplatform/models.py:738 incidents/models.py:620
 #: incidents/views.py:1132
 msgid "Regulators"
 msgstr "Regulatoren"
 
-#: governanceplatform/admin.py:833 governanceplatform/models.py:457
+#: governanceplatform/admin.py:781 governanceplatform/models.py:457
 #: governanceplatform/models.py:546 governanceplatform/models.py:701
 #: governanceplatform/models.py:789
 msgid "Observer"
 msgstr "Waarnemer"
 
-#: governanceplatform/admin.py:852 governanceplatform/models.py:240
+#: governanceplatform/admin.py:800 governanceplatform/models.py:240
 #: governanceplatform/models.py:481
 msgid "Operators"
 msgstr "Operatoren"
 
-#: governanceplatform/admin.py:877 governanceplatform/models.py:558
+#: governanceplatform/admin.py:825 governanceplatform/models.py:558
 msgid "Roles"
 msgstr "Rollen"
 
-#: governanceplatform/admin.py:1015 governanceplatform/models.py:517
+#: governanceplatform/admin.py:963 governanceplatform/models.py:517
 #: governanceplatform/models.py:524
 msgid "Companies"
 msgstr "Ondernemingen"
 
-#: governanceplatform/admin.py:1043
+#: governanceplatform/admin.py:991
 msgid "Cookies acceptation has been reseted"
 msgstr "Aanvaarding cookies werd gereset"
 
-#: governanceplatform/admin.py:1051
+#: governanceplatform/admin.py:999
 msgid "Terms acceptation has been reset"
 msgstr "Aanvaarding voorwaarden werd gereset"
 
-#: governanceplatform/admin.py:1096 governanceplatform/models.py:825
+#: governanceplatform/admin.py:1044 governanceplatform/models.py:825
 msgid "Additional information"
 msgstr "Aanvullende informatie"
 
-#: governanceplatform/admin.py:1455 governanceplatform/models.py:809
+#: governanceplatform/admin.py:1378 governanceplatform/models.py:809
 msgid "Observer regulation"
 msgstr "Waarnemer regelgeving"
 
-#: governanceplatform/admin.py:1456 governanceplatform/models.py:810
+#: governanceplatform/admin.py:1379 governanceplatform/models.py:810
 msgid "Observer regulations"
 msgstr "Waarnemer regelgevingen"
 
-#: governanceplatform/admin.py:1463 governanceplatform/models.py:716
+#: governanceplatform/admin.py:1386 governanceplatform/models.py:716
 msgid "Observer user"
 msgstr "Waarnemer gebruiker"
 
-#: governanceplatform/admin.py:1464 governanceplatform/models.py:717
+#: governanceplatform/admin.py:1387 governanceplatform/models.py:717
 msgid "Observer users"
 msgstr "Waarnemer gebruikers"
 
@@ -326,7 +326,7 @@ msgstr "Beveiligingsdoelstelling"
 msgid "Reporting"
 msgstr "Reporting"
 
-#: governanceplatform/helpers.py:339
+#: governanceplatform/helpers.py:344
 #, python-brace-format
 msgid ""
 "<strong>Modification and deletion actions are not allowed.</strong><br>- "
@@ -353,7 +353,7 @@ msgstr "Het CSRF-token is verlopen. Probeer het nog eens."
 msgid "Session expired. Please log in again to continue."
 msgstr "De sessie is verlopen. Meld u opnieuw aan om door te gaan."
 
-#: governanceplatform/middleware.py:277
+#: governanceplatform/middleware.py:281
 msgid "For security reasons, you will need to log in again to access it."
 msgstr ""
 "Uit veiligheidsoverwegingen moet u zich opnieuw authenticeren om toegang te "
@@ -402,7 +402,7 @@ msgid "Creator"
 msgstr "Maker"
 
 #: governanceplatform/models.py:80 governanceplatform/models.py:88
-#: incidents/admin.py:591 reporting/models.py:30 reporting/models.py:303
+#: incidents/admin.py:586 reporting/models.py:30 reporting/models.py:303
 #: reporting/models.py:588
 msgid "Sector"
 msgstr "Sector"
@@ -467,7 +467,7 @@ msgid "E-mail address for incident notification"
 msgstr "E-mailadres voor melding van incidenten"
 
 #: governanceplatform/models.py:278 governanceplatform/models.py:534
-#: governanceplatform/models.py:668 incidents/admin.py:638
+#: governanceplatform/models.py:668 incidents/admin.py:639
 #: incidents/models.py:323 incidents/models.py:537 reporting/models.py:423
 #: securityobjectives/models.py:259
 msgid "Regulator"
@@ -567,7 +567,7 @@ msgstr "Gebruikers van de regulator"
 msgid "Label"
 msgstr "Label"
 
-#: governanceplatform/models.py:750 incidents/admin.py:586
+#: governanceplatform/models.py:750 incidents/admin.py:581
 msgid "Regulations"
 msgstr "Regelgevingen"
 
@@ -585,7 +585,7 @@ msgstr "Code"
 msgid "Entity category"
 msgstr "Categorie van de entiteit"
 
-#: governanceplatform/models.py:784 incidents/admin.py:498
+#: governanceplatform/models.py:784 incidents/admin.py:493
 #: incidents/models.py:42 incidents/models.py:318
 msgid "Legal basis"
 msgstr "Wettelijke basis"
@@ -602,7 +602,7 @@ msgid "Timestamp"
 msgstr "Tijdstempel"
 
 #: governanceplatform/models.py:819 incidents/admin.py:106
-#: incidents/admin.py:200
+#: incidents/admin.py:195
 msgid "Activity"
 msgstr "Activiteit"
 
@@ -739,62 +739,62 @@ msgstr "Uw bericht is verzonden."
 msgid "Invalid captcha"
 msgstr "Ongeldige captcha"
 
-#: incidents/admin.py:234 incidents/models.py:166 incidents/models.py:176
+#: incidents/admin.py:229 incidents/models.py:166 incidents/models.py:176
 msgid "Question"
 msgstr "Vraag"
 
-#: incidents/admin.py:235 incidents/models.py:1166
+#: incidents/admin.py:230 incidents/models.py:1166
 msgid "Questionnaire"
 msgstr "Vragenlijst"
 
-#: incidents/admin.py:274
+#: incidents/admin.py:269
 msgid "Predefined answer"
 msgstr "Vooraf gedefinieerd antwoord"
 
-#: incidents/admin.py:275
+#: incidents/admin.py:270
 msgid "Predefined answers"
 msgstr "Vooraf gedefinieerde antwoorden"
 
-#: incidents/admin.py:380 incidents/models.py:116
+#: incidents/admin.py:375 incidents/models.py:116
 msgid "Question Type"
 msgstr "Soort van vraag"
 
-#: incidents/admin.py:533 incidents/admin.py:770 incidents/admin.py:868
+#: incidents/admin.py:528 incidents/admin.py:771 incidents/admin.py:869
 #: securityobjectives/admin.py:208
 msgid "General"
 msgstr "Algemeen"
 
-#: incidents/admin.py:540 incidents/admin.py:878
+#: incidents/admin.py:535 incidents/admin.py:879
 msgid "Supervision"
 msgstr "Toezicht"
 
-#: incidents/admin.py:607
+#: incidents/admin.py:602
 msgid "Sub-sector"
 msgstr "Subsector"
 
-#: incidents/admin.py:655
+#: incidents/admin.py:656
 msgid "Email type"
 msgstr "E-mailtype"
 
-#: incidents/admin.py:711 incidents/models.py:220
+#: incidents/admin.py:712 incidents/models.py:220
 #: securityobjectives/admin.py:1007 securityobjectives/models.py:219
 msgid "Content"
 msgstr "Inhoud"
 
-#: incidents/admin.py:718 securityobjectives/admin.py:1017
+#: incidents/admin.py:719 securityobjectives/admin.py:1017
 msgid "HTML preview"
 msgstr "HTML voorvertoning"
 
-#: incidents/admin.py:721 securityobjectives/admin.py:1020
+#: incidents/admin.py:722 securityobjectives/admin.py:1020
 msgid "No preview yet"
 msgstr "Nog geen voorvertoning"
 
-#: incidents/admin.py:777 incidents/admin.py:894
+#: incidents/admin.py:778 incidents/admin.py:895
 #: securityobjectives/admin.py:215
 msgid "Notification Email"
 msgstr "Meldingsmail"
 
-#: incidents/admin.py:826 incidents/admin.py:958
+#: incidents/admin.py:827 incidents/admin.py:959
 #, python-brace-format
 msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
@@ -803,17 +803,17 @@ msgstr ""
 "<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in gebruik."
 "<br>"
 
-#: incidents/admin.py:845 incidents/models.py:304 incidents/models.py:379
+#: incidents/admin.py:846 incidents/models.py:304 incidents/models.py:379
 #: incidents/models.py:921
 msgid "Incident report"
 msgstr "Incidentrapport"
 
-#: incidents/admin.py:846 incidents/models.py:303 incidents/models.py:326
+#: incidents/admin.py:847 incidents/models.py:303 incidents/models.py:326
 #: incidents/models.py:605
 msgid "Incident reports"
 msgstr "Incidentrapporten"
 
-#: incidents/admin.py:949
+#: incidents/admin.py:950
 #, python-brace-format
 msgid ""
 "<strong>Deletion is not allowed.</strong><br>- This {object_name} is either "
@@ -822,7 +822,7 @@ msgstr ""
 "<strong>Verwijdering is niet toegestaan.</strong><br>- {object_name} is "
 "ofwel in gebruik ofwel <br>.- U bent niet de maker ({creator_name})"
 
-#: incidents/decorators.py:39
+#: incidents/decorators.py:40
 msgid ""
 "The user account has currently no associated entities. Please contact the "
 "administrator."
