@@ -346,11 +346,11 @@ msgstr "L'utilisateur doit avoir une adresse électronique"
 msgid "Superuser must have is_staff=True."
 msgstr "Le Superuser doit avoir is_staff=True."
 
-#: governanceplatform/middleware.py:34
+#: governanceplatform/middleware.py:47
 msgid "CSRF token expired. Please try again."
 msgstr "Le jeton CSRF a expiré. Veuillez réessayer."
 
-#: governanceplatform/middleware.py:46
+#: governanceplatform/middleware.py:59
 msgid "Session expired. Please log in again to continue."
 msgstr "La session a expiré. Veuillez vous reconnecter pour continuer."
 
