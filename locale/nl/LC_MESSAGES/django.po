@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-28 11:31+0200\n"
-"PO-Revision-Date: 2026-04-20 14:06+0000\n"
-"Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
+"PO-Revision-Date: 2026-04-28 09:34+0000\n"
+"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -164,8 +164,7 @@ msgstr "6 maanden"
 
 #: governanceplatform/config.py:151 governanceplatform/config_dev.py:154
 msgid "Cookie essential for maintaining user session options."
-msgstr ""
-"Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
+msgstr "Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
 
 #: governanceplatform/config.py:153 governanceplatform/config_dev.py:156
 msgid "Session ID"
@@ -333,9 +332,9 @@ msgid ""
 "This {object_name} is either in use.<br>- You are not its creator "
 "({creator_name})"
 msgstr ""
-"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</"
-"strong><br>- {object_name} is ofwel in gebruik<br> - of u bent niet de maker "
-"({creator_name})"
+"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</strong>"
+"<br>- {object_name} is ofwel in gebruik<br> - of u bent niet de maker ("
+"{creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
@@ -800,8 +799,8 @@ msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
 "<br>"
 msgstr ""
-"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in gebruik."
-"<br>"
+"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in "
+"gebruik.<br>"
 
 #: incidents/admin.py:846 incidents/models.py:304 incidents/models.py:379
 #: incidents/models.py:921
@@ -1326,8 +1325,8 @@ msgid ""
 "{to_date}.)"
 msgstr ""
 "Er werden in totaal {count} incidenten geëxporteerd uit regelgeving "
-"{regulation} [{sectorregulation} - ({workflow})] binnen datumbereik "
-"({from_date} - {to_date}.)"
+"{regulation} [{sectorregulation} - ({workflow})] binnen datumbereik ("
+"{from_date} - {to_date}.)"
 
 #: incidents/views.py:1033
 #, python-brace-format
@@ -1339,8 +1338,8 @@ msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentrapporten is bereikt. Probeer morgen nog eens, a.u."
-"b."
+"De daglimiet voor incidentrapporten is bereikt. Probeer morgen nog eens, "
+"a.u.b."
 
 #: incidents/views.py:1131
 msgid "Legal bases"
