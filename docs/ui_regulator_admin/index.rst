@@ -10,7 +10,7 @@ To return to the user interface, click the **Return to user interface** link in 
 
 .. figure:: _static/regulator_admin_images/Reg_Admin_01.png
    :alt: Regulator Admin - Site administration
-   :target: _static/regulator_admin_images/OpAdmin_01.png
+   :target: _static/regulator_admin_images/Reg_Admin_01.png
 
 The **Site Administration screen** (the Administration Interface) offers the most extensive set of features compared with the **Operator Admin**, 
 **Regulator User**, and **Platform Admin** user types.
