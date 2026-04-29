@@ -48,6 +48,7 @@ from governanceplatform.helpers import (
     user_in_group,
 )
 from governanceplatform.models import Company, Sector
+from reporting.models import CompanyProject
 
 from .email import send_email
 from .filters import StandardAnswerFilter
@@ -729,6 +730,17 @@ def review_comment_declaration(request, standard_answer_id: int):
                     standard_answer.standard.security_objective_status_changed_email,
                     standard_answer,
                 )
+
+            company = standard_answer.submitter_company
+            sectors = standard_answer.sectors.all()
+            year = standard_answer.year_of_submission
+            for sector in sectors:
+                has_security_objectives = company.security_objective_exists(
+                    year, sector
+                )
+                CompanyProject.objects.filter(
+                    company=company, year=year, sector=sector
+                ).update(has_security_objectives=has_security_objectives)
 
             with override(settings.PARLER_DEFAULT_LANGUAGE_CODE):
                 status_label = dict(STANDARD_ANSWER_REVIEW_STATUS).get(
