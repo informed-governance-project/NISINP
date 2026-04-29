@@ -85,18 +85,9 @@ Incident Notification Module
    ui_admin_introduction
    ui_operator_admin
    ui_regulator_user
-   ui_regulator_admin
-   
-.. toctree::
-   :maxdepth: 2
-
-   administration/index
-   governance/index
-   incident_notification/index
-   reporting/index
-   security_objectives/index
-
+   ui_regulator_admin/index
    ui_platform_admin
+
 
 Presentation
 ------------
