@@ -234,16 +234,30 @@ Choose a user by clicking the checkmark on the far left, before the First Name c
 Incident Notification
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+You should use this section to create your incident notification workflow.
 
+Emails
+^^^^^^^^^^^^^^^^^^^^^
 
+By clicking the **Emails** link in the **Incident Notification** section, you can view the email templates that have been set up in your **SERIMA** instance. These email templates are available on the **Select Email to Change** screen and are used during the incident notification workflow.
 
+The email templates are shown as a list in a table with the columns Name, **Subject**, and **Content**.
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_23.png
+   :alt: Select Email to Change
+   :target: _static/regulator_admin_images/Reg_Admin_23.png
 
+Click the name of the template to see its content. The screenshot below shows an example of the **New Incident Notification** template. You can see the Name, the Subject, and the Content of the email:
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_24.png
+   :alt: New Incident Notification
+   :target: _static/regulator_admin_images/Reg_Admin_24.png
 
+Beneath the Content area, you can see the usable placeholders you can use to replace the relevant information in your template. 
 
-
-
+.. figure:: _static/regulator_admin_images/Reg_Admin_64.png
+   :alt: New Incident Notification
+   :target: _static/regulator_admin_images/Reg_Admin_64.png
 
 
 
