@@ -203,7 +203,47 @@ To view the users and their types, select the **Users** link in the **Governance
 
 The User table contains several columns (Active, First Name, Last Name, Email Address, etc.). If you have many users, you can search among them using the **Search** field or filter them using the **Filter** panel on the right.
 
-24
+.. figure:: _static/regulator_admin_images/Reg_Admin_19.png
+   :alt: Filter users
+   :target: _static/regulator_admin_images/Reg_Admin_19.png
+
+On the **Add User** screen, you can add new users by filling in the required fields (First name, Last name, Email address, and Phone number). The required field (Email address) is indicated with an asterisk. You can create several users by using the **Save and add another** button (circled in red in the screenshot below).
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_20.png
+   :alt: Add User screen
+   :target: _static/regulator_admin_images/Reg_Admin_20.png
+
+**Please note that as a Regulator Admin, you can only create regulator users and regulator admins (you cannot create operator admins).**
+
+How to filter among users?
+"""""""""""""""""""""
+Use the Filter section on the far right. The **Show counts** link displays how many users and in what roles can be found in your platform. 
+
+How to reset 2FA?
+"""""""""""""""""""""
+Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the Action field and choose the option **Reset 2FA**.
+
+How to export selected users?
+"""""""""""""""""""""
+Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the Action field and choose the option **Export selected users**.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_21.png
+   :alt: Reset 2FA and export users
+   :target: _static/regulator_admin_images/Reg_Admin_21.png
+
+Incident Notification
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+
+
+
+
+
 
 
 
