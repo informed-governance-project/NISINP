@@ -85,7 +85,7 @@ Incident Notification Module
    ui_admin_introduction
    ui_operator_admin
    ui_regulator_user
-   ui_regulator_admin/index.rst
+   ui_regulator_admin
    ui_platform_admin
 
 
