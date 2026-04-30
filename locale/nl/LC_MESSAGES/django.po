@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 11:31+0200\n"
+"POT-Creation-Date: 2026-04-30 14:25+0200\n"
 "PO-Revision-Date: 2026-04-28 09:34+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
@@ -345,11 +345,11 @@ msgstr "De gebruiker moet een e-mailadres hebben"
 msgid "Superuser must have is_staff=True."
 msgstr "Superuser moet is_staff=True hebben."
 
-#: governanceplatform/middleware.py:47
+#: governanceplatform/middleware.py:34
 msgid "CSRF token expired. Please try again."
 msgstr "Het CSRF-token is verlopen. Probeer het nog eens."
 
-#: governanceplatform/middleware.py:59
+#: governanceplatform/middleware.py:46
 msgid "Session expired. Please log in again to continue."
 msgstr "De sessie is verlopen. Meld u opnieuw aan om door te gaan."
 
@@ -1285,10 +1285,10 @@ msgstr "Het incident is afgesloten"
 #: incidents/views.py:443 incidents/views.py:453 incidents/views.py:508
 #: incidents/views.py:571 incidents/views.py:608 incidents/views.py:647
 #: incidents/views.py:682 incidents/views.py:706 reporting/views.py:114
-#: reporting/views.py:550 reporting/views.py:1000 reporting/views.py:1027
-#: reporting/views.py:1034 reporting/views.py:1629
-#: securityobjectives/views.py:919 securityobjectives/views.py:925
-#: securityobjectives/views.py:1183
+#: reporting/views.py:550 reporting/views.py:1010 reporting/views.py:1037
+#: reporting/views.py:1044 reporting/views.py:1639
+#: securityobjectives/views.py:931 securityobjectives/views.py:937
+#: securityobjectives/views.py:1195
 msgid "Forbidden"
 msgstr "Verboden"
 
@@ -1298,7 +1298,7 @@ msgid "No incident report could be found."
 msgstr "Geen incidentrapport gevonden."
 
 #: incidents/views.py:615 incidents/views.py:653
-#: securityobjectives/views.py:879
+#: securityobjectives/views.py:891
 msgid "An error occurred while generating the report."
 msgstr "Er is een fout opgetreden bij het genereren van het rapport."
 
@@ -1896,7 +1896,7 @@ msgstr ""
 msgid "No project found"
 msgstr ""
 
-#: reporting/views.py:487 reporting/views.py:699
+#: reporting/views.py:487 reporting/views.py:704
 msgid "Failed to start report generation. Please try again."
 msgstr ""
 
@@ -1917,7 +1917,7 @@ msgstr "Niets geselecteerd"
 msgid "%(sector)s forbidden"
 msgstr "%(sector)s verboden"
 
-#: reporting/views.py:567
+#: reporting/views.py:565
 msgid "No reporting data"
 msgstr "Geen rapporteringsgegevens"
 
@@ -1937,85 +1937,91 @@ msgstr ""
 msgid "annual_report"
 msgstr ""
 
-#: reporting/views.py:690
+#: reporting/views.py:692
+msgid ""
+"Reports are being generated with some issues. Please check the error log in "
+"the download zip file for more details."
+msgstr ""
+
+#: reporting/views.py:695
 msgid "Reports are being generated."
 msgstr ""
 
-#: reporting/views.py:693
+#: reporting/views.py:698
 msgid "Report is being generated."
 msgstr ""
 
-#: reporting/views.py:725
+#: reporting/views.py:734
 msgid "Report generation failed."
 msgstr ""
 
-#: reporting/views.py:728
+#: reporting/views.py:737
 msgid "The report has been generated successfully."
 msgstr ""
 
-#: reporting/views.py:731
+#: reporting/views.py:740
 msgid "Report generation was cancelled."
 msgstr ""
 
-#: reporting/views.py:894
+#: reporting/views.py:904
 msgid "Recommendations have been added successfully"
 msgstr "Aanbevelingen werden toegevoegd"
 
-#: reporting/views.py:930
+#: reporting/views.py:940
 #, python-brace-format
 msgid "No recommendations from {last_year}"
 msgstr "Geen aanbevelingen van {last_year}"
 
-#: reporting/views.py:938
+#: reporting/views.py:948
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
 msgstr "Aanbevelingen werden gekopieerd van {last_year}"
 
-#: reporting/views.py:971
+#: reporting/views.py:981
 msgid "No report recommendation found"
 msgstr "Geen rapportaanbeveling gevonden"
 
-#: reporting/views.py:975
+#: reporting/views.py:985
 msgid "The report recommendation has been deleted."
 msgstr "De rapportaanbeveling is verwijderd."
 
-#: reporting/views.py:1042 securityobjectives/views.py:935
+#: reporting/views.py:1052 securityobjectives/views.py:947
 msgid "Invalid request"
 msgstr "Ongeldig verzoek"
 
-#: reporting/views.py:1132
+#: reporting/views.py:1142
 msgid "Risk analysis successfully imported"
 msgstr "De risicoanalyse werd geïmporteerd"
 
-#: reporting/views.py:1573
+#: reporting/views.py:1583
 msgid "Uploaded file is not a JSON file."
 msgstr "Het geüploade bestand is geen JSON-bestand."
 
-#: reporting/views.py:1578
+#: reporting/views.py:1588
 msgid "Uploaded file contains invalid JSON."
 msgstr "Het geüpload bestand bevat ongeldige JSON."
 
-#: reporting/views.py:1581
+#: reporting/views.py:1591
 msgid "JSON file must contain an object at the root."
 msgstr "JSON-bestand moet een object bevatten in de root."
 
-#: reporting/views.py:1584
+#: reporting/views.py:1594
 msgid "Missing 'instances' key in the JSON file."
 msgstr "Ontbrekende 'instances'-sleutel in het JSON-bestand."
 
-#: reporting/views.py:1598
+#: reporting/views.py:1608
 msgid "No company found"
 msgstr "Geen onderneming gevonden"
 
-#: reporting/views.py:1607
+#: reporting/views.py:1617
 msgid "No sector found"
 msgstr "Geen sector gevonden"
 
-#: reporting/views.py:1616
+#: reporting/views.py:1626
 msgid "Year value is not a valid number"
 msgstr "Jaarwaarde is geen geldig getal"
 
-#: reporting/views.py:1624
+#: reporting/views.py:1634
 msgid "Invalid year. Please provide a valid year."
 msgstr "Ongeldig jaartal. Geef een geldig jaartal op."
 
@@ -2185,50 +2191,50 @@ msgstr "Geplande maatregelen"
 msgid "It is completely filled out"
 msgstr "Het is volledig ingevuld"
 
-#: securityobjectives/views.py:199 securityobjectives/views.py:894
+#: securityobjectives/views.py:200 securityobjectives/views.py:906
 msgid "No data available"
 msgstr "Geen gegevens beschikbaar"
 
-#: securityobjectives/views.py:229
+#: securityobjectives/views.py:230
 msgid "Standard does not exist"
 msgstr "Norm bestaat niet"
 
-#: securityobjectives/views.py:250 securityobjectives/views.py:254
-#: securityobjectives/views.py:532 securityobjectives/views.py:632
-#: securityobjectives/views.py:666 securityobjectives/views.py:681
-#: securityobjectives/views.py:773 securityobjectives/views.py:794
+#: securityobjectives/views.py:251 securityobjectives/views.py:255
+#: securityobjectives/views.py:533 securityobjectives/views.py:633
+#: securityobjectives/views.py:667 securityobjectives/views.py:682
+#: securityobjectives/views.py:785 securityobjectives/views.py:806
 msgid "Declaration not found"
 msgstr "Verklaring niet gevonden"
 
-#: securityobjectives/views.py:523
+#: securityobjectives/views.py:524
 msgid "No sectors data available"
 msgstr "Geen sectorgegevens beschikbaar"
 
-#: securityobjectives/views.py:613
+#: securityobjectives/views.py:614
 msgid "The security objectives declaration has been duplicated."
 msgstr "De verklaring van de beveiligingsdoelstellingen is gedupliceerd."
 
-#: securityobjectives/views.py:644
+#: securityobjectives/views.py:645
 msgid "The security objectives declaration has been submitted."
 msgstr "De verklaring van de beveiligingsdoelstellingen is ingediend."
 
-#: securityobjectives/views.py:663
+#: securityobjectives/views.py:664
 msgid "The security objectives declaration has been deleted."
 msgstr "De verklaring van de beveiligingsdoelstellingen is verwijderd."
 
-#: securityobjectives/views.py:717
+#: securityobjectives/views.py:718
 msgid "The security objectives review has been sent."
 msgstr "De controle van de beveiligingsdoelstellingen is verzonden."
 
-#: securityobjectives/views.py:955
+#: securityobjectives/views.py:967
 msgid "Error opening the file: {}"
 msgstr "Fout bij het openen van het bestand: {}"
 
-#: securityobjectives/views.py:974
+#: securityobjectives/views.py:986
 msgid "No users for this company"
 msgstr "Geen gebruikers voor deze onderneming"
 
-#: securityobjectives/views.py:1004
+#: securityobjectives/views.py:1016
 msgid "An error occurred while importing the declaration file."
 msgstr ""
 "Er is een fout opgetreden tijdens het importeren van het verklaringsbestand."

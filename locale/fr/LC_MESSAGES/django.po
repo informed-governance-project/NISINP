@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 11:31+0200\n"
+"POT-Creation-Date: 2026-04-30 14:25+0200\n"
 "PO-Revision-Date: 2026-04-28 09:34+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: fr\n"
@@ -346,11 +346,11 @@ msgstr "L'utilisateur doit avoir une adresse électronique"
 msgid "Superuser must have is_staff=True."
 msgstr "Le Superuser doit avoir is_staff=True."
 
-#: governanceplatform/middleware.py:47
+#: governanceplatform/middleware.py:34
 msgid "CSRF token expired. Please try again."
 msgstr "Le jeton CSRF a expiré. Veuillez réessayer."
 
-#: governanceplatform/middleware.py:59
+#: governanceplatform/middleware.py:46
 msgid "Session expired. Please log in again to continue."
 msgstr "La session a expiré. Veuillez vous reconnecter pour continuer."
 
@@ -1290,10 +1290,10 @@ msgstr "L'incident est clos"
 #: incidents/views.py:443 incidents/views.py:453 incidents/views.py:508
 #: incidents/views.py:571 incidents/views.py:608 incidents/views.py:647
 #: incidents/views.py:682 incidents/views.py:706 reporting/views.py:114
-#: reporting/views.py:550 reporting/views.py:1000 reporting/views.py:1027
-#: reporting/views.py:1034 reporting/views.py:1629
-#: securityobjectives/views.py:919 securityobjectives/views.py:925
-#: securityobjectives/views.py:1183
+#: reporting/views.py:550 reporting/views.py:1010 reporting/views.py:1037
+#: reporting/views.py:1044 reporting/views.py:1639
+#: securityobjectives/views.py:931 securityobjectives/views.py:937
+#: securityobjectives/views.py:1195
 msgid "Forbidden"
 msgstr "Interdit"
 
@@ -1303,7 +1303,7 @@ msgid "No incident report could be found."
 msgstr "Aucun rapport d'incident n'a été trouvé."
 
 #: incidents/views.py:615 incidents/views.py:653
-#: securityobjectives/views.py:879
+#: securityobjectives/views.py:891
 msgid "An error occurred while generating the report."
 msgstr "Une erreur s'est produite lors de la génération du rapport."
 
@@ -1903,7 +1903,7 @@ msgstr "Projet introuvable"
 msgid "No project found"
 msgstr "Aucun projet trouvé"
 
-#: reporting/views.py:487 reporting/views.py:699
+#: reporting/views.py:487 reporting/views.py:704
 msgid "Failed to start report generation. Please try again."
 msgstr "Échec du lancement de la génération des rapports. Veuillez réessayer."
 
@@ -1924,7 +1924,7 @@ msgstr "Rien de sélectionné"
 msgid "%(sector)s forbidden"
 msgstr "%(sector)s interdit"
 
-#: reporting/views.py:567
+#: reporting/views.py:565
 msgid "No reporting data"
 msgstr "Aucune donnée disponible"
 
@@ -1944,85 +1944,91 @@ msgstr "Pas de modèle de rapport"
 msgid "annual_report"
 msgstr "rapport_annuel"
 
-#: reporting/views.py:690
+#: reporting/views.py:692
+msgid ""
+"Reports are being generated with some issues. Please check the error log in "
+"the download zip file for more details."
+msgstr ""
+
+#: reporting/views.py:695
 msgid "Reports are being generated."
 msgstr "Rapports en cours de génération"
 
-#: reporting/views.py:693
+#: reporting/views.py:698
 msgid "Report is being generated."
 msgstr "Rapport en cours de génération."
 
-#: reporting/views.py:725
+#: reporting/views.py:734
 msgid "Report generation failed."
 msgstr "La génération des rapports a échoué."
 
-#: reporting/views.py:728
+#: reporting/views.py:737
 msgid "The report has been generated successfully."
 msgstr "Le rapport a été généré avec succès."
 
-#: reporting/views.py:731
+#: reporting/views.py:740
 msgid "Report generation was cancelled."
 msgstr "La génération des rapports a été annulée."
 
-#: reporting/views.py:894
+#: reporting/views.py:904
 msgid "Recommendations have been added successfully"
 msgstr "Les recommandations ont été ajoutées avec succès"
 
-#: reporting/views.py:930
+#: reporting/views.py:940
 #, python-brace-format
 msgid "No recommendations from {last_year}"
 msgstr "Aucune recommandations pour {last_year}"
 
-#: reporting/views.py:938
+#: reporting/views.py:948
 #, python-brace-format
 msgid "Recommendations have been copied from {last_year}"
 msgstr "Les recommandations de {last_year} ont été copiées"
 
-#: reporting/views.py:971
+#: reporting/views.py:981
 msgid "No report recommendation found"
 msgstr "Aucune recommandation trouvée"
 
-#: reporting/views.py:975
+#: reporting/views.py:985
 msgid "The report recommendation has been deleted."
 msgstr "La recommandation a été supprimée."
 
-#: reporting/views.py:1042 securityobjectives/views.py:935
+#: reporting/views.py:1052 securityobjectives/views.py:947
 msgid "Invalid request"
 msgstr "Requête non valide"
 
-#: reporting/views.py:1132
+#: reporting/views.py:1142
 msgid "Risk analysis successfully imported"
 msgstr "Analyse des risques importée avec succès"
 
-#: reporting/views.py:1573
+#: reporting/views.py:1583
 msgid "Uploaded file is not a JSON file."
 msgstr "Le fichier téléchargé n'est pas un fichier JSON."
 
-#: reporting/views.py:1578
+#: reporting/views.py:1588
 msgid "Uploaded file contains invalid JSON."
 msgstr "Le fichier téléchargé contient un JSON invalide."
 
-#: reporting/views.py:1581
+#: reporting/views.py:1591
 msgid "JSON file must contain an object at the root."
 msgstr "Le fichier JSON doit contenir un objet à la racine."
 
-#: reporting/views.py:1584
+#: reporting/views.py:1594
 msgid "Missing 'instances' key in the JSON file."
 msgstr "Clé « instances » manquante dans le fichier JSON."
 
-#: reporting/views.py:1598
+#: reporting/views.py:1608
 msgid "No company found"
 msgstr "Aucune entreprise trouvée"
 
-#: reporting/views.py:1607
+#: reporting/views.py:1617
 msgid "No sector found"
 msgstr "Aucun secteur trouvé"
 
-#: reporting/views.py:1616
+#: reporting/views.py:1626
 msgid "Year value is not a valid number"
 msgstr "La valeur de l'année n'est pas valide"
 
-#: reporting/views.py:1624
+#: reporting/views.py:1634
 msgid "Invalid year. Please provide a valid year."
 msgstr "Année non valide. Veuillez indiquer une année valide."
 
@@ -2194,50 +2200,50 @@ msgstr "Mesures planifiées"
 msgid "It is completely filled out"
 msgstr "C'est entièrement rempli"
 
-#: securityobjectives/views.py:199 securityobjectives/views.py:894
+#: securityobjectives/views.py:200 securityobjectives/views.py:906
 msgid "No data available"
 msgstr "Aucune donnée disponible"
 
-#: securityobjectives/views.py:229
+#: securityobjectives/views.py:230
 msgid "Standard does not exist"
 msgstr "Le standard n'existe pas"
 
-#: securityobjectives/views.py:250 securityobjectives/views.py:254
-#: securityobjectives/views.py:532 securityobjectives/views.py:632
-#: securityobjectives/views.py:666 securityobjectives/views.py:681
-#: securityobjectives/views.py:773 securityobjectives/views.py:794
+#: securityobjectives/views.py:251 securityobjectives/views.py:255
+#: securityobjectives/views.py:533 securityobjectives/views.py:633
+#: securityobjectives/views.py:667 securityobjectives/views.py:682
+#: securityobjectives/views.py:785 securityobjectives/views.py:806
 msgid "Declaration not found"
 msgstr "Déclaration introuvable"
 
-#: securityobjectives/views.py:523
+#: securityobjectives/views.py:524
 msgid "No sectors data available"
 msgstr "Aucune donnée sectorielle disponible"
 
-#: securityobjectives/views.py:613
+#: securityobjectives/views.py:614
 msgid "The security objectives declaration has been duplicated."
 msgstr "La déclaration des objectifs de sécurité a été dupliquée."
 
-#: securityobjectives/views.py:644
+#: securityobjectives/views.py:645
 msgid "The security objectives declaration has been submitted."
 msgstr "La déclaration des objectifs de sécurité a été soumise."
 
-#: securityobjectives/views.py:663
+#: securityobjectives/views.py:664
 msgid "The security objectives declaration has been deleted."
 msgstr "La déclaration relative aux objectifs de sécurité a été supprimée."
 
-#: securityobjectives/views.py:717
+#: securityobjectives/views.py:718
 msgid "The security objectives review has been sent."
 msgstr "La revue des objectifs de sécurité a été envoyée."
 
-#: securityobjectives/views.py:955
+#: securityobjectives/views.py:967
 msgid "Error opening the file: {}"
 msgstr "Erreur lors de l'ouverture du fichier : {}"
 
-#: securityobjectives/views.py:974
+#: securityobjectives/views.py:986
 msgid "No users for this company"
 msgstr "Aucun utilisateur pour cette entreprise"
 
-#: securityobjectives/views.py:1004
+#: securityobjectives/views.py:1016
 msgid "An error occurred while importing the declaration file."
 msgstr ""
 "Une erreur s'est produite lors de l'importation du fichier de la déclaration."
