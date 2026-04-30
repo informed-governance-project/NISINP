@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim  AS npmbuilder
+FROM node:current-slim AS npmbuilder
 
 WORKDIR /app
 
