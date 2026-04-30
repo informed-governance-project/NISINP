@@ -6,7 +6,7 @@ COPY package.json package-lock.json /app/
 
 RUN npm ci
 
-FROM ubuntu:24.04
+FROM ubuntu:latest
 
 ARG APP_VERSION
 ARG GUNICORN_VERSION=23.0
