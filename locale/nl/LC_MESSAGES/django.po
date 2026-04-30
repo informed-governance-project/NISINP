@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-30 14:25+0200\n"
-"PO-Revision-Date: 2026-04-28 09:34+0000\n"
+"PO-Revision-Date: 2026-04-30 12:29+0000\n"
 "Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -164,8 +164,7 @@ msgstr "6 maanden"
 
 #: governanceplatform/config.py:151 governanceplatform/config_dev.py:154
 msgid "Cookie essential for maintaining user session options."
-msgstr ""
-"Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
+msgstr "Essentiële cookie voor het behoud van de opties voor gebruikerssessies."
 
 #: governanceplatform/config.py:153 governanceplatform/config_dev.py:156
 msgid "Session ID"
@@ -333,9 +332,9 @@ msgid ""
 "This {object_name} is either in use.<br>- You are not its creator "
 "({creator_name})"
 msgstr ""
-"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</"
-"strong><br>- {object_name} is ofwel in gebruik<br> - of u bent niet de maker "
-"({creator_name})"
+"<strong>Wijzigings- en verwijderingsacties zijn niet toegestaan.</strong>"
+"<br>- {object_name} is ofwel in gebruik<br> - of u bent niet de maker ("
+"{creator_name})"
 
 #: governanceplatform/managers.py:15
 msgid "User must have an email address"
@@ -800,8 +799,8 @@ msgid ""
 "<strong>Deletion forbidden</strong><br>- This {object_name} is either in use."
 "<br>"
 msgstr ""
-"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in gebruik."
-"<br>"
+"<strong>Verwijdering verboden</strong><br>- Dit {object_name} is in "
+"gebruik.<br>"
 
 #: incidents/admin.py:846 incidents/models.py:304 incidents/models.py:379
 #: incidents/models.py:921
@@ -1326,8 +1325,8 @@ msgid ""
 "{to_date}.)"
 msgstr ""
 "Er werden in totaal {count} incidenten geëxporteerd uit regelgeving "
-"{regulation} [{sectorregulation} - ({workflow})] binnen datumbereik "
-"({from_date} - {to_date}.)"
+"{regulation} [{sectorregulation} - ({workflow})] binnen datumbereik ("
+"{from_date} - {to_date}.)"
 
 #: incidents/views.py:1033
 #, python-brace-format
@@ -1339,8 +1338,8 @@ msgid ""
 "The daily limit of incident reports has been reached. Please try again "
 "tomorrow."
 msgstr ""
-"De daglimiet voor incidentrapporten is bereikt. Probeer morgen nog eens, a.u."
-"b."
+"De daglimiet voor incidentrapporten is bereikt. Probeer morgen nog eens, "
+"a.u.b."
 
 #: incidents/views.py:1131
 msgid "Legal bases"
@@ -1383,7 +1382,7 @@ msgstr "Alleen .docx bestanden zijn toegelaten."
 
 #: reporting/forms.py:142
 msgid "Project name"
-msgstr ""
+msgstr "Projectnaam"
 
 #: reporting/forms.py:154 reporting/models.py:429 reporting/models.py:527
 #: securityobjectives/admin.py:629 securityobjectives/admin.py:907
@@ -1394,11 +1393,11 @@ msgstr "Norm"
 
 #: reporting/forms.py:163 reporting/models.py:558
 msgid "Base year"
-msgstr ""
+msgstr "Basisjaar"
 
 #: reporting/forms.py:173
 msgid "Comparison years"
-msgstr ""
+msgstr "Vergelijkingsjaren"
 
 #: reporting/forms.py:185 reporting/models.py:556
 msgid "Languages"
@@ -1439,11 +1438,11 @@ msgstr "Sectorgemiddelde"
 
 #: reporting/globals.py:16
 msgid "Downward"
-msgstr ""
+msgstr "Omlaag"
 
 #: reporting/globals.py:17
 msgid "Stable"
-msgstr ""
+msgstr "Stabiel"
 
 #: reporting/globals.py:18
 msgid "Upward"
@@ -1459,7 +1458,7 @@ msgstr ""
 
 #: reporting/globals.py:21
 msgid "Operator scores"
-msgstr ""
+msgstr "Operator scores"
 
 #: reporting/globals.py:22 securityobjectives/models.py:122
 msgid "Objective"
@@ -1484,7 +1483,7 @@ msgstr "Kwetsbaarheid"
 
 #: reporting/globals.py:27
 msgid "Current risk (max)"
-msgstr ""
+msgstr "Huidig risico (max.)"
 
 #: reporting/globals.py:28 reporting/models.py:207
 msgid "Residual risk"
@@ -1492,23 +1491,23 @@ msgstr "Restrisico"
 
 #: reporting/globals.py:29
 msgid "Treatment"
-msgstr ""
+msgstr "Behandeling"
 
 #: reporting/globals.py:31
 msgid "Treated Risks"
-msgstr ""
+msgstr "Behandelde risico's"
 
 #: reporting/globals.py:32
 msgid "Untreated Risks"
-msgstr ""
+msgstr "Onbehandelde risico’s"
 
 #: reporting/globals.py:33
 msgid "Average treated current risks"
-msgstr ""
+msgstr "Gemiddelde gewogen risico’s"
 
 #: reporting/globals.py:34
 msgid "High risks"
-msgstr ""
+msgstr "Hoge risico's"
 
 #: reporting/globals.py:35
 msgid "Average high risks"
@@ -1516,23 +1515,23 @@ msgstr "Gemiddelde tot hoge risico's"
 
 #: reporting/globals.py:36
 msgid "Average residual risks"
-msgstr ""
+msgstr "Gemiddelde restrisico’s"
 
 #: reporting/globals.py:37
 msgid "Reduced risks"
-msgstr ""
+msgstr "Verminderde risico's"
 
 #: reporting/globals.py:38
 msgid "Rejected risks"
-msgstr ""
+msgstr "Afgewezen risico’s"
 
 #: reporting/globals.py:39
 msgid "Accepted risks"
-msgstr ""
+msgstr "Aanvaarde risico's"
 
 #: reporting/globals.py:40
 msgid "Shared risks"
-msgstr ""
+msgstr "Gedeelde risico’s"
 
 #: reporting/globals.py:41 reporting/models.py:274
 msgid "Recommendation"
@@ -1540,7 +1539,7 @@ msgstr "Aanbeveling"
 
 #: reporting/globals.py:42
 msgid "Deadline"
-msgstr ""
+msgstr "Deadline"
 
 #: reporting/globals.py:43 securityobjectives/models.py:428
 #: securityobjectives/models.py:532
@@ -1549,19 +1548,19 @@ msgstr "Status"
 
 #: reporting/globals.py:47
 msgid "Failed"
-msgstr ""
+msgstr "Mislukt"
 
 #: reporting/globals.py:48
 msgid "Successful"
-msgstr ""
+msgstr "Succesvol"
 
 #: reporting/globals.py:49
 msgid "Aborted"
-msgstr ""
+msgstr "Stopgezet"
 
 #: reporting/globals.py:50
 msgid "Running"
-msgstr ""
+msgstr "Lopend"
 
 #: reporting/helpers.py:658
 msgid "Postponed"
@@ -1573,7 +1572,7 @@ msgstr "Te controleren"
 
 #: reporting/helpers.py:667
 msgid "New"
-msgstr ""
+msgstr "Nieuw"
 
 #: reporting/helpers.py:702
 msgid "All services"
