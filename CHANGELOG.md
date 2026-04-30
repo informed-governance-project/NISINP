@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bootstrap version update in governance settings
 
 ### Changed
+- `pyproject.toml` migrated to Poetry 2.0 / PEP 621: metadata moved to `[project]` table, dependencies converted to PEP 508 syntax, `poetry-core>=2.0.0` pinned in `[build-system]`
 - Superuser access restricted in `RestrictViewsMiddleware` (#646)
 - Removed 'delete' permission for 'company' in RegulatorUser group (#646)
 - Permissions cleanup: consolidated controls into `permission.py` (#646)
