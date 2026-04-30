@@ -84,7 +84,7 @@ RUN python -m pip install \
     --no-cache-dir \
     "gunicorn~=${GUNICORN_VERSION}" \
     . \
-  && plotly_get_chrome
+  && echo y | plotly_get_chrome
 
 COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
 
