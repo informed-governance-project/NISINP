@@ -9,7 +9,6 @@ RUN npm ci
 FROM ubuntu:24.04
 
 ARG APP_VERSION
-ARG GUNICORN_VERSION=23.0
 ENV APP_VERSION=$APP_VERSION \
     DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -68,7 +67,6 @@ RUN python -m pip install \
     --user \
     --break-system-packages \
     --no-cache-dir \
-    "gunicorn~=${GUNICORN_VERSION}" \
     .
 
 COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
