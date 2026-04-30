@@ -5,7 +5,7 @@ description = "Governance Platform - NISINP"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
 keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4"
 authors = [
     { name = "Cédric Bonhomme", email = "cedric.bonhomme@nc3.lu" },
     { name = "Jérôme Lombardi", email = "jerome.lombardi@nc3.lu" },
