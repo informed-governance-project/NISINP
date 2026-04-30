@@ -153,6 +153,19 @@ poetry run flake8
 | Add a Celery task | `governanceplatform/tasks.py` or `incidents/tasks.py` |
 | Generate model diagram | `make models` |
 
+## Changelog
+
+`CHANGELOG.md` lives at the repo root and follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+**Every PR that ships user-facing changes must include a `CHANGELOG.md` update.**
+
+Rules:
+- Add entries under `## [Unreleased]` — never edit a released version's section.
+- Use the correct category: `Added` (new feature), `Changed` (behaviour change), `Fixed` (bug fix).
+- Reference the GitHub issue number where one exists, e.g. `Fixed: foo bar (#123)`.
+- When a version is released, rename `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD` and add a fresh empty `[Unreleased]` block above it. Also add the comparison link at the bottom of the file.
+- Omit pure chore entries (dependency bumps, translation updates, theme submodule bumps) unless they affect end-users.
+
 ## CI/CD
 
 GitHub Actions workflows:
