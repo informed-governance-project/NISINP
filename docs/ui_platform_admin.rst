@@ -1,5 +1,5 @@
-PLATFORM ADMIN
-------------------
+Platform Admin
+-------------------
 
 If you are a **Platform Admin**, you can use the **Administration Console** as described below. 
 
