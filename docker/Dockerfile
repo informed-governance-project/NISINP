@@ -1,4 +1,4 @@
-FROM node:current-slim AS npmbuilder
+FROM node:22-bookworm-slim AS npmbuilder
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY package.json package-lock.json /app/
 
 RUN npm ci
 
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 ARG APP_VERSION
 ARG GUNICORN_VERSION=23.0

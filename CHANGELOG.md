@@ -19,8 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bootstrap version update in governance settings
 
 ### Changed
-- Docker `npmbuilder` stage updated from `node:24-bookworm-slim` to `node:current-slim`
-- Docker runtime stage updated from `ubuntu:24.04` to `ubuntu:latest`
+- Docker `npmbuilder` stage updated from `node:24-bookworm-slim` to `node:22-bookworm-slim` (Node 22 LTS, supported until April 2027)
 - Superuser access restricted in `RestrictViewsMiddleware` (#646)
 - Removed 'delete' permission for 'company' in RegulatorUser group (#646)
 - Permissions cleanup: consolidated controls into `permission.py` (#646)
