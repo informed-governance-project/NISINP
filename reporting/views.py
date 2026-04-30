@@ -556,9 +556,7 @@ def generate_report_project(request, report_project_id: int):
             )
         except CompanyReporting.DoesNotExist:
             if is_multiple_selected_companies:
-                error_message = (
-                    f"No reporting data found in sector: {str(sector)} and year: {year}"
-                )
+                error_message = f"[{company}][{sector}][{year}]: Missing risk analysis and security objectives data"
                 error_messages.append(error_message)
                 continue
 
@@ -579,7 +577,9 @@ def generate_report_project(request, report_project_id: int):
 
         if not security_objectives_declaration:
             if is_multiple_selected_companies:
-                error_message = f"{company}: No security objective data found in sector: {str(sector)} and year: {year}"
+                error_message = (
+                    f"[{company}][{sector}][{year}]: No security objective data found"
+                )
                 error_messages.append(error_message)
                 continue
 
@@ -591,7 +591,7 @@ def generate_report_project(request, report_project_id: int):
 
         if not risk_analysis_stats:
             if is_multiple_selected_companies:
-                error_message = f"{company}: No risk data found in sector: {str(sector)} and year: {year}"
+                error_message = f"[{company}][{sector}][{year}]: No risk data found"
                 error_messages.append(error_message)
                 continue
 
@@ -687,7 +687,12 @@ def generate_report_project(request, report_project_id: int):
                 | cleanup_files.si(project_id, task_id)
             ).on_error(on_chord_error.s(project_id, task_id))
             chord(group(report_generation_tasks))(callback)
-            success_message = _("Reports are being generated.")
+            if error_messages:
+                warning_message = _(
+                    "Reports are being generated with some issues. Please check the error log in the download zip file for more details."
+                )
+            else:
+                success_message = _("Reports are being generated.")
         else:
             task.delay()
             success_message = _("Report is being generated.")
@@ -700,7 +705,11 @@ def generate_report_project(request, report_project_id: int):
         )
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    messages.success(request, success_message)
+    if is_multiple_selected_companies and error_messages:
+        messages.warning(request, warning_message)
+    elif success_message:
+        messages.success(request, success_message)
+
     return redirect("reporting")
 
 
@@ -736,8 +745,9 @@ def report_generation_status(request, report_project_id: int):
     except GeneratedReport.DoesNotExist:
         pass
 
-    rendered_messages = render_error_messages(request)
-    reponse["messages"] = rendered_messages
+    if messages.get_messages(request):
+        rendered_messages = render_error_messages(request)
+        reponse["messages"] = rendered_messages
 
     return JsonResponse(reponse)
 
