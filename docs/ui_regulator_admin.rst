@@ -215,16 +215,16 @@ On the **Add User** screen, you can add new users by filling in the required fie
 
 **Please note that as a Regulator Admin, you can only create regulator users and regulator admins (you cannot create operator admins).**
 
-How to filter among users?
-"""""""""""""""""""""
+  *How to filter among users?*
+
 Use the Filter section on the far right. The **Show counts** link displays how many users and in what roles can be found in your platform. 
 
-How to reset 2FA?
-"""""""""""""""""""""
+  *How to reset 2FA?*
+
 Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the Action field and choose the option **Reset 2FA**.
 
-How to export selected users?
-"""""""""""""""""""""
+  *How to export selected users?*
+
 Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the Action field and choose the option **Export selected users**.
 
 .. figure:: _static/regulator_admin_images/Reg_Admin_21.png
@@ -234,7 +234,7 @@ Choose a user by clicking the checkmark on the far left, before the First Name c
 Incident Notification
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-You should use this section to create your incident notification workflow.
+Use this section to create your incident notification workflow.
 
 Emails
 ^^^^^^^^^^^^^^^^^^^^^
@@ -259,8 +259,72 @@ Beneath the Content area, you can see the usable placeholders you can use to rep
    :alt: New Incident Notification
    :target: _static/regulator_admin_images/Reg_Admin_64.png
 
+These placeholders are automatically populated and replace the relevant information whenever the email is sent. You can set up your template emails in four languages: English, French, Dutch, and German. English is the platform’s default language, so email templates are typically created in English and translated into other languages when needed.
+
+You can switch between these four languages on the platform using the **language selector dropdown** in the top-right corner of the application. The default language is English. If you switch to another language, but the email template has not been translated into that language, the platform will fall back to English and display the English version of the email.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_25.png
+   :alt: language selector dropdown
+   :target: _static/regulator_admin_images/Reg_Admin_25.png
+
+Impact
+^^^^^^^^^^^^^^^^^^^^^
+
+Click the **Impact** link to go to the **Select Impacts to change** screen. On this screen, you can check which impacts are defined in your system. On the Select Impacts to change screen, you can see the impacts list in a table format with the columns **Regulations, Sector, Sub-sector**, and **Title**.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_26.png
+   :alt: Select Impacts to change
+   :target: _static/regulator_admin_images/Reg_Admin_26.png
+
+Depending on your needs (such as the regulations you are subject to or the sectors you operate in), you can set up different impacts. As shown in the screenshot above, you can configure impacts for the same regulation, sector, and sub-sector, with variations based on the number of users.
+
+You can set up an impact named **DNS 1h** for a one-hour DNS service outage and add the following description (as can be seen in the screenshot below): *Moderate impact on DNS service for at least 1 hour (e.g., between 2 and 5 percent of domains unresolved or a decrease of 5 to 10 percent in DNS traffic or unavailability of 2 name servers)*.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_63.png
+   :alt: Change Impacts
+   :target: _static/regulator_admin_images/Reg_Admin_63.png
+
+If you have many impacts, you can use the **Search** and **Filter** features to find specific ones. In the Filter section on the right side of the screen, you can narrow down your impacts by sector or legal basis.
+
+  *How to export selected impacts?*
+
+Select the impact or impacts you want to export by checking the box next to each relevant impact. If you want to select all impacts at once, use the first checkbox on the left of the Regulations column header.
+
+Then, open the **Action** dropdown menu, choose **Export Selected Impact**, and click **Go**. The selected impacts will be exported to a CSV file.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_27.png
+   :alt: Export Selected Impact
+   :target: _static/regulator_admin_images/Reg_Admin_27.png
+
+  *How to delete selected impacts?*
+
+Select the impact or impacts you want to delete by checking the box next to each relevant impact. Then, open the **Action** dropdown menu, choose **Delete Selected Impact**, and click **Go**. The selected impacts will be deleted.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_28.png
+   :alt: Delete Selected Impact
+   :target: _static/regulator_admin_images/Reg_Admin_28.png
 
 
+Incident notification workflow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The incident notification workflow is the most important part of the application. It allows you to set up the **environment** (entities, observers, operators, regulators, and more) and define the building blocks of a **workflow** (emails, impacts, reports, questions, and more) to create a mechanism for managing reported incidents and maintaining communication among all system stakeholders. This mechanism is the heart of the process and is called the **incident notification workflow**.
+
+Based on the above, you can create a workflow only after the required components (essentially the entire system) have been set up, including regulators, operators, and email templates.
+
+Click the **Incident notification workflows** link to go to the **Select Incident notification workflow to change** screen. On this screen, you can check what kind of incident notification workflows are defined in your system. 
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_30.png
+   :alt: Select Incident notification workflow to change
+   :target: _static/regulator_admin_images/Reg_Admin_30.png
+
+Click the name of the workflow you want to open. The **Change Incident Notification Workflow** screen is complex and contains several sections. 
+
+At the top is the **General** section, which displays the workflow name. Below it is the **Supervision** section, showing the **Legal basis** (regulation) and the **Regulator** (in this case, ILR). The third section (**Sectors**) lists the sectors selected for this workflow.
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_31.png
+   :alt: NIS Workflow
+   :target: _static/regulator_admin_images/Reg_Admin_31.png
 
 
 
