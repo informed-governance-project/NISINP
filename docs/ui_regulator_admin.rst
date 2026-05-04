@@ -326,8 +326,33 @@ At the top is the **General** section, which displays the workflow name. Below i
    :alt: NIS Workflow
    :target: _static/regulator_admin_images/Reg_Admin_31.png
 
+When you set up a new workflow, you can select a different regulation (Legal basis) or regulator using the dropdown menus, provided these options have already been configured in your **SERIMA** instance.
 
+The fourth section is **Notification Email**. This section contains the email templates you set up on the **Select Email to Change** screen (Incident Notification -> Emails). In a typical workflow, there are at least three email templates you should use: an opening email, a status update email, and a closing email.
 
+.. figure:: _static/regulator_admin_images/Reg_Admin_32.png
+   :alt: Notification Email
+   :target: _static/regulator_admin_images/Reg_Admin_32.png
+
+When an operator reports an incident, they will receive an opening email confirming that the incident has been successfully reported. An example template for an **Opening email** can be seen below:
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_22.png
+   :alt: Change Email screen
+   :target: _static/regulator_admin_images/Reg_Admin_22.png
+
+When the status of the incident changes, the **Status update email** is sent out. When the incident is closed, the **Closing email** is used. When you set up a new workflow (or change an existing one), use the dropdown menus next to the email templates and choose a different email template –if needed:
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_33.png
+   :alt: Available email templates
+   :target: _static/regulator_admin_images/Reg_Admin_33.png
+
+Next to the dropdown menus, you can see the following icons,
+
+.. figure:: _static/regulator_admin_images/Reg_Admin_65.png
+   :alt: Notification email icons
+   :target: _static/regulator_admin_images/Reg_Admin_65.png
+
+31
 
 
 
