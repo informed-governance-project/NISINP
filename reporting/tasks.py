@@ -1,6 +1,7 @@
 import base64
 import datetime
 import json
+import logging
 import os
 import shutil
 import uuid
@@ -36,6 +37,10 @@ from .helpers import (
 from .models import Configuration, GeneratedReport, Project, Template
 
 logger = get_task_logger(__name__)
+
+# Reduce noise from external libs
+logging.getLogger("kaleido").setLevel(logging.WARNING)
+logging.getLogger("choreographer").setLevel(logging.WARNING)
 
 
 @shared_task(bind=True, ignore_result=True)

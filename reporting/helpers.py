@@ -12,9 +12,12 @@ from pathlib import Path
 from statistics import mean
 from typing import List
 
+import kaleido
 import plotly.colors as pc
 import plotly.graph_objects as go
+import plotly.io as pio
 import psutil
+from celery.signals import worker_process_init, worker_process_shutdown
 from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
@@ -847,7 +850,9 @@ def get_charts(so_data, risk_data, colors):
         ),
     }
 
-    return charts
+    charts_base64 = {key: convert_graph_to_base64(fig) for key, fig in charts.items()}
+
+    return charts_base64
 
 
 def sort_legends(data):
@@ -1024,9 +1029,7 @@ def generate_bar_chart(data, labels, colors, is_rate=False):
     if is_rate:
         fig.update_layout(yaxis_tickformat=".0%")
 
-    graph = convert_graph_to_base64(fig)
-
-    return graph
+    return fig
 
 
 def generate_radar_chart(data, labels, levels, colors):
@@ -1102,9 +1105,7 @@ def generate_radar_chart(data, labels, levels, colors):
         margin=dict(l=0, r=0, t=50, b=0),
     )
 
-    graph = convert_graph_to_base64(fig)
-
-    return graph
+    return fig
 
 
 def text_wrap(text, max_line_length=20):
@@ -1119,8 +1120,19 @@ def text_wrap(text, max_line_length=20):
     return text_wrapped
 
 
+# Kaleido server mamagement
+@worker_process_init.connect
+def init_kaleido(**kwargs):
+    kaleido.start_sync_server(n=2, mathjax=None)
+
+
+@worker_process_shutdown.connect
+def shutdown_kaleido(**kwargs):
+    kaleido.stop_sync_server()
+
+
 def convert_graph_to_base64(fig, export_format="png"):
-    image_bytes = fig.to_image(format=export_format, scale=3)
+    image_bytes = pio.to_image(fig, format=export_format, scale=2)
     return base64.b64encode(image_bytes).decode("utf-8")
 
 
