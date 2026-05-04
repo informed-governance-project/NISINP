@@ -47,6 +47,7 @@ dependencies = [
     "redis>=7.4.0,<8",
     "markdown>=3.10.1,<4",
     "bleach>=6.3.0,<7",
+    "gunicorn>=25.0.0,<26",
 ]
 
 [project.urls]

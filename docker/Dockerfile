@@ -9,7 +9,6 @@ RUN npm ci
 FROM ubuntu:24.04
 
 ARG APP_VERSION
-ARG GUNICORN_VERSION=23.0
 ENV APP_VERSION=$APP_VERSION \
     DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -76,15 +75,16 @@ COPY --chown=www-data templates /app/templates
 
 COPY --chown=www-data pyproject.toml /app/pyproject.toml
 COPY --chown=www-data README.md /app/README.md
+COPY --chown=www-data README.md /app/LICENSE
 COPY --chown=www-data manage.py /app/manage.py
 
 RUN python -m pip install \
     --user \
     --break-system-packages \
     --no-cache-dir \
-    "gunicorn~=${GUNICORN_VERSION}" \
-    . \
-  && echo y | plotly_get_chrome
+    .
+
+RUN plotly_get_chrome -y
 
 COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
 
