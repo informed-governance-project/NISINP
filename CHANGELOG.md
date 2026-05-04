@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Chrome runtime shared libraries in Docker image required by kaleido v1 for static image export (#679)
 - Django 6 upgrade with custom django-parler fork
 - Enhanced sectors filter in incident notifications (#670)
 - Impacts choices in incident export (#677)
@@ -18,7 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - User deactivation via signals and improved user validation decorator (#646)
 - Bootstrap version update in governance settings
 
+### Fixed
+- `plotly_get_chrome` now runs non-interactively during Docker build to avoid `EOFError` (#679)
+
 ### Changed
+- `cryptography` updated from 46.x to 47.x (#679)
+- `kaleido` updated from 0.2.1 to 1.2.0; Chrome must now be installed explicitly (#679)
 - `pyproject.toml` migrated to Poetry 2.0 / PEP 621: metadata moved to `[project]` table, dependencies converted to PEP 508 syntax, `poetry-core>=2.0.0` pinned in `[build-system]`
 - `COPYING` renamed to `LICENSE`; `[project.license]` updated to SPDX expression format with `license-files` reference
 - Superuser access restricted in `RestrictViewsMiddleware` (#646)
