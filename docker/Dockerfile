@@ -35,6 +35,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     libjpeg-dev \
     libopenjp2-7-dev \
+    # Chrome runtime dependencies (required by kaleido v1 for static image export)
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0t64 \
+    libatk-bridge2.0-0t64 \
+    libcups2t64 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2t64 \
     # Other dependencies
     gettext \
     git \
@@ -68,6 +82,9 @@ RUN python -m pip install \
     --break-system-packages \
     --no-cache-dir \
     .
+    "gunicorn~=${GUNICORN_VERSION}" \
+    . \
+  && echo y | plotly_get_chrome
 
 COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
 
