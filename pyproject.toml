@@ -3,7 +3,8 @@ name = "governanceplatform"
 version = "0.5.13+reporting"
 description = "Governance Platform - NISINP"
 readme = "README.md"
-license = { text = "AGPL-3.0-or-later" }
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
 keywords = ["NC3-LU", "NIS", "NIS2", "incident-notification"]
 requires-python = ">=3.12,<4"
 authors = [
