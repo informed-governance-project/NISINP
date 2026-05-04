@@ -25,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `cryptography` updated from 46.x to 47.x (#679)
 - `kaleido` updated from 0.2.1 to 1.2.0; Chrome must now be installed explicitly (#679)
-### Changed
 - `pyproject.toml` migrated to Poetry 2.0 / PEP 621: metadata moved to `[project]` table, dependencies converted to PEP 508 syntax, `poetry-core>=2.0.0` pinned in `[build-system]`
 - `gunicorn` moved from a standalone Dockerfile `pip install` step into `pyproject.toml` dependencies, tracked in `poetry.lock` (#686)
 - `COPYING` renamed to `LICENSE`; `[project.license]` updated to SPDX expression format with `license-files` reference
