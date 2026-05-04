@@ -75,6 +75,7 @@ COPY --chown=www-data templates /app/templates
 
 COPY --chown=www-data pyproject.toml /app/pyproject.toml
 COPY --chown=www-data README.md /app/README.md
+COPY --chown=www-data README.md /app/LICENSE
 COPY --chown=www-data manage.py /app/manage.py
 
 RUN python -m pip install \
@@ -82,9 +83,8 @@ RUN python -m pip install \
     --break-system-packages \
     --no-cache-dir \
     .
-    "gunicorn~=${GUNICORN_VERSION}" \
-    . \
-  && echo y | plotly_get_chrome
+
+RUN plotly_get_chrome -y
 
 COPY celery_worker.py celery_beat.py docker/docker-init.sh /app/
 
