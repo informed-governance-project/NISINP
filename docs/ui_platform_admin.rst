@@ -196,17 +196,27 @@ To create Observer users, use the **Observers** link. To create Regulator users,
    :alt: Add another Observer user
    :target: _static/platform_admin_images/PLAT_ADM_17.png
 
-58
+In case you have many users in your **SERIMA** instance, use the **Filter** on the right. You can filter users by regulators, observers, or roles. By default, all options are displayed. To narrow the list, click the specific link you are looking for. For example, under **By Roles**, clicking **Regulator Admin** will display only the Regulator Admins in your system.
 
+.. figure:: _static/platform_admin_images/PLAT_ADM_15.png
+   :alt: Filter among users
+   :target: _static/platform_admin_images/PLAT_ADM_15.png
 
+Besides filtering, you can sort users by clicking the heading of the column you want to sort, either in ascending or descending order. To manage users, first select the checkbox in front of the user you want to modify, then choose the desired action from the **Actions** dropdown menu.
 
+The screenshot below shows that three out of eight users have been selected. By choosing an action from the **Action** dropdown and clicking the **Go** button, the selected action is performed: for example, resetting 2FA or exporting the three selected users.
 
+.. figure:: _static/platform_admin_images/PLAT_ADM_16.png
+   :alt: Action dropdown
+   :target: _static/platform_admin_images/PLAT_ADM_16.png
 
+Export selected Users
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Select the users you want to export by checking the box next to each relevant user. Then, open the **Action** dropdown menu, choose **Export Selected Users**, and click **Go**. The selected users will be exported to a CSV file.
 
+Sites
+~~~~~~~~~~~~~~~~~~~~~
 
-
-
-
-
+This feature is for the **platform configuration**. This is where you can **set up the URL of your SERIMA instance**. You may right-click on the site URL to open it on a new tab, where you can **edit the Domain name and Display name of your platform**.
 
