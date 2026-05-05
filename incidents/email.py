@@ -190,9 +190,6 @@ def send_email(email, incident, send_to_observers=False):
 
 
 def create_or_update_rt_ticket(recipient, subject, content, incident):
-    is_new_ticket = not RTTicket.objects.filter(
-        incident=incident, observer=recipient
-    ).exists()
     base_url = recipient.rt_url.rstrip("/")
     try:
         validate_rt_url(base_url)
