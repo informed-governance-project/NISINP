@@ -218,19 +218,13 @@ def delete_user_groups(sender, instance, **kwargs):
                     ).exists()
                 ):
                     user.groups.remove(group)
-                    new_group, created = Group.objects.get_or_create(
-                        name="OperatorUser"
-                    )
-                    if new_group:
-                        user.groups.add(new_group)
+                    new_group, _ = Group.objects.get_or_create(name="OperatorUser")
+                    user.groups.add(new_group)
 
                 if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
                     user.groups.remove(group)
-                    new_group, created = Group.objects.get_or_create(
-                        name="RegulatorUser"
-                    )
-                    if new_group:
-                        user.groups.add(new_group)
+                    new_group, _ = Group.objects.get_or_create(name="RegulatorUser")
+                    user.groups.add(new_group)
 
                     user.is_active = False
                     user.save()
@@ -243,10 +237,9 @@ def delete_user_groups(sender, instance, **kwargs):
         if not user.companyuser_set.exists():
             user.is_staff = False
             user.is_superuser = False
-            new_group, created = Group.objects.get_or_create(name="IncidentUser")
-            if new_group:
-                user.groups.clear()
-                user.groups.add(new_group)
+            new_group, _ = Group.objects.get_or_create(name="IncidentUser")
+            user.groups.clear()
+            user.groups.add(new_group)
 
             # Clear contact_user for incidents
             user.incident_set.filter(company__isnull=False).update(contact_user=None)
