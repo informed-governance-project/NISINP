@@ -1052,9 +1052,11 @@ def generate_radar_chart(data, labels, levels, colors):
             marker_color = "#222A2A"
             symbol = "triangle-up"
 
+        r_values = [float(v) for v in values]
+
         fig.add_trace(
             go.Scatterpolar(
-                r=values + [values[0]],
+                r=r_values + [r_values[0]],
                 theta=labels + [labels[0]],
                 name=str(name),
                 fillcolor="rgba(0,0,0,0)",
