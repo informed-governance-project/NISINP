@@ -3,7 +3,7 @@ Importing and exporting database tables (currently disabled for security reasons
 
 Some models of the application can be exported and/or imported. The import / export is done **language by language**. So, if you want to export in two languages, you have to do 2 exports. Same for the import.
 
- .. figure:: _static/ui_admin_export.png
+ .. figure:: /_static/ui_admin_export.png
     :alt: import / export.
     :target: _static/ui_admin_export.png
 
@@ -11,7 +11,7 @@ Some models of the application can be exported and/or imported. The import / exp
 
 1. Button to import. When you click on import, you can choose the format of your file. And the view shows you the available field to import. **If you want to create, it's preferable to not put the id field**.After clicking on that button, you have to select the file and the format (e.g. xlsx) and click on submit. **Take care of choosing the right language, it will import in the language you have chosen**. After that you have this view :
 
- .. figure:: _static/ui_admin_import.png
+ .. figure:: /_static/ui_admin_import.png
     :alt: import view.
     :target: _static/ui_admin_import.png
 

@@ -72,7 +72,6 @@ Incident Notification Module
    ui_incident_reporting_workflow_regulator_admin
    ui_security_objectives_dashboard
    ui_how_to_submit_a_security_objective
-   ui_how_does_the_score_system_work
    ui_security_objectives_workflow_score_system
    ui_security_objectives_workflow_operator_admin
    ui_security_objectives_workflow_regulator_admin
@@ -105,7 +104,7 @@ Operators under supervision can use the module to submit their incident notifica
 This project is lead by `NC3-LU <https://www.nc3.lu>`__ and developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 `IBPT.be <https://www.ibpt.be>`_.
 
-.. figure:: _static/folder1/Overview.png
+.. figure:: /_static/folder1/Overview.png
    :alt: Screenshot of the list of incidents from the regulator view.
    :target: _static/screenshot_incidents-page.png
 

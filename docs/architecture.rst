@@ -5,7 +5,7 @@ Architecture
 High-level architecture
 -----------------------
 
-.. figure:: _static/global-architecture.png
+.. figure:: /_static/global-architecture.png
    :alt: High level architecture
    :target: _static/app-models.png
 
@@ -15,7 +15,7 @@ High-level architecture
 Models
 ------
 
-.. figure:: _static/app-models.png
+.. figure:: /_static/app-models.png
    :alt: Apllication models
    :target: _static/app-models.png
 
