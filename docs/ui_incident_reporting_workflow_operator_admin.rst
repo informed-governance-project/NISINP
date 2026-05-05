@@ -17,32 +17,32 @@ Operator Admin’s Workflow
 
 1. The **Operator Admin** goes to the Incident Notification dashboard and clicks the button **Notify an incident**.
 
-.. figure:: /_static/user_manual_images/UM_SER_59.png
+.. figure:: _static/user_manual_images/UM_SER_59.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_59.png
 
 2.	The Operator Admin completes the **Contact, Legal Bases**, and **Regulators** forms, then clicks **Next**.
 
-.. figure:: /_static/user_manual_images/UM_SER_60.png
+.. figure:: _static/user_manual_images/UM_SER_60.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_60.png
 
 3.	The Operator Admin completes the **Sectors** and **Detection Date** forms, then clicks **Next**.
 
-.. figure:: /_static/user_manual_images/UM_SER_61.png
+.. figure:: _static/user_manual_images/UM_SER_61.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_61.png
 
 4.	As the next step, the Operator Admin fills out the **Incident Timeline** form, providing information about the incident itself, including the incident timezone, notification date, detection date, start date, and resolution date (the screenshot below has been truncated):
 
-.. figure:: /_static/user_manual_images/UM_SER_62.png
+.. figure:: _static/user_manual_images/UM_SER_62.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_62.png
 
 5.	Next, in the **Regulation form**, the Operator Admin selects the affected regulation(s) and NIS services.
 When finished, the Operator Admin clicks **Next** (the screenshot below has been truncated):
 
-.. figure:: /_static/user_manual_images/UM_SER_63.png
+.. figure:: _static/user_manual_images/UM_SER_63.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_63.png
 
@@ -50,7 +50,7 @@ When finished, the Operator Admin clicks **Next** (the screenshot below has been
 
 The Operator Admin can also indicate whether support is required from **GovCERT** or **CIRCL**. (The screenshot below has been truncated.)
 
-.. figure:: /_static/user_manual_images/UM_SER_64.png
+.. figure:: _static/user_manual_images/UM_SER_64.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_64.png
 
@@ -59,13 +59,13 @@ The Operator Admin can also indicate whether support is required from **GovCERT*
 The reference number (highlighted in green) is important, as it allows the Operator Admin to search for the reported incidents.
 As shown in the screenshot below, the status of the report (under the Report column) is **Preliminary Incident Report**, indicated by a clock icon (highlighted in yellow). Both the status and icon are displayed in grey.
 
-.. figure:: /_static/user_manual_images/UM_SER_65.png
+.. figure:: _static/user_manual_images/UM_SER_65.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_65.png
 
 Clicking the **version control** icon in the **Actions** column opens a pop-up showing that the **Preliminary Incident Report** with reference **OP1_DIn_DIn_0007_2025** was created (including time and date), and its status is **Under Review**.
 
-.. figure:: /_static/user_manual_images/UM_SER_66.png
+.. figure:: _static/user_manual_images/UM_SER_66.png
    :alt: Incident notification
    :target: _static/user_manual_images/UM_SER_66.png
 
@@ -77,13 +77,13 @@ If the report is accepted by the Regulator Admin
 
 If the report is accepted by the Regulator Admin, the **Preliminary Incident Report** is displayed with a green background.
 
-.. figure:: /_static/user_manual_images/UM_SER_80.png
+.. figure:: _static/user_manual_images/UM_SER_80.png
    :alt: Preliminary Incident Report
    :target: _static/user_manual_images/UM_SER_80.png
 
 If the Operator Admin hovers the mouse over the report, a pop-up appears indicating that the **report has passed**.
 
-.. figure:: /_static/user_manual_images/UM_SER_81.png
+.. figure:: _static/user_manual_images/UM_SER_81.png
    :alt: Preliminary Incident Report - passed
    :target: _static/user_manual_images/UM_SER_81.png
 
@@ -92,7 +92,7 @@ which indicates that a comment is available. The comment displays the text enter
 (see the step describing the Regulator Admin’s workflow).
 Clicking the icon opens a pop-up showing the comment of the Regulator Admin.
 
-.. figure:: /_static/user_manual_images/UM_SER_82.png
+.. figure:: _static/user_manual_images/UM_SER_82.png
    :alt: Preliminary Incident Report - resolved
    :target: _static/user_manual_images/UM_SER_82.png
 
@@ -101,13 +101,13 @@ If the report is NOT accepted by the Regulator Admin
 
 If the report is not accepted by the Regulator Admin, the Preliminary Incident Report is displayed with a red background.
 
-.. figure:: /_static/user_manual_images/UM_SER_77.png
+.. figure:: _static/user_manual_images/UM_SER_77.png
    :alt: Preliminary Incident Report - not passed
    :target: _static/user_manual_images/UM_SER_77.png
 
 If the Operator Admin hovers the mouse over the report, a pop-up appears indicating that the **report has failed**.
 
-.. figure:: /_static/user_manual_images/UM_SER_78.png
+.. figure:: _static/user_manual_images/UM_SER_78.png
    :alt: Preliminary Incident Report - failed
    :target: _static/user_manual_images/UM_SER_78.png
 
@@ -116,7 +116,7 @@ which indicates that a comment is available. The comment displays the text enter
 (see the step describing the Regulator Admin’s workflow).
 Clicking the icon opens a pop-up showing the reason why the report was not accepted.
 
-.. figure:: /_static/user_manual_images/UM_SER_79.png
+.. figure:: _static/user_manual_images/UM_SER_79.png
    :alt: Preliminary Incident Report - not resolved
    :target: _static/user_manual_images/UM_SER_79.png
 

@@ -13,7 +13,7 @@ the following roles have access to the ``site administration`` interface, that a
 - OperatorAdmin : can create OperatorUser for its company and other operator administrators
 - ObserverAdmin : can create ObserverUser for its Observer entity
 
-.. figure:: /_static/ui_admin_overview.png
+.. figure:: _static/ui_admin_overview.png
    :alt: admin page.
    :target: _static/ui_admin_overview.png
 
@@ -33,7 +33,7 @@ Standard list view
 If you click on a module (for example, “Impacts,” as shown below), you will see a list of objects of that type,
 along with the available actions. The actions may vary depending on the object type and your role.
 
-.. figure:: /_static/ui_standard_list.png
+.. figure:: _static/ui_standard_list.png
    :alt: edit page.
    :target: _static/ui_standard_list.png
 
@@ -54,7 +54,7 @@ If you click the "Add" button or the first field of an object, you are directed 
 When editing an existing object, the values are prefilled with the current properties of the object.
 When adding a new object, the form is blank.
 
-.. figure:: /_static/ui_standard_add_edit.png
+.. figure:: _static/ui_standard_add_edit.png
    :alt: edit page.
    :target: _static/ui_standard_add_edit.png
 

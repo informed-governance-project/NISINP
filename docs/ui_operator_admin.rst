@@ -5,13 +5,13 @@ If you are an **Operator Admin**, you can use the **Administration Console** as 
 
 To access the Administration Console, once you have logged in as an Operator Admin, click the **Settings** button.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_01.png
+.. figure:: _static/operator_admin_images/OpAdmin_01.png
    :alt: Operator Admin - settings
    :target: _static/operator_admin_images/OpAdmin_01.png
 
 After clicking **Settings**, you will be directed to the **Administration Console**. As an Operator Admin, you have access only to the **Operators** and **Users** sections in the left panel, called **Governance**:
 
-.. figure:: /_static/operator_admin_images/OpAdmin_03.png
+.. figure:: _static/operator_admin_images/OpAdmin_03.png
    :alt: Governance
    :target: _static/operator_admin_images/OpAdmin_03.png
 
@@ -22,13 +22,13 @@ If you click the **Operators** link, you will be directed to the **Select the Op
 
 At the top, you can view and edit the operator’s **Contact Information** (name, address, country, email address, and phone number). Fields marked with a red asterisk are mandatory. Beneath the **Contact Information** section, you can view (but cannot edit) the **Configuration Information** and the **Entity Categories**.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_02.png
+.. figure:: _static/operator_admin_images/OpAdmin_02.png
    :alt: Change Operator
    :target: _static/operator_admin_images/OpAdmin_02.png
 
 At the bottom of the screen, you can find the **Contacts for Company** section, which lists all users linked to the selected company. The following section describes the buttons available in the interface and their corresponding functionalities.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_04.png
+.. figure:: _static/operator_admin_images/OpAdmin_04.png
    :alt: Contacts for Company
    :target: _static/operator_admin_images/OpAdmin_04.png
 
@@ -55,26 +55,26 @@ To view the number of users on the platform and their types, select the **Users*
 
 The **Operator Admin** can create new **Operator Users** by clicking the **+Add** link or by using the **Add User** button in the top right-hand corner.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_05.png
+.. figure:: _static/operator_admin_images/OpAdmin_05.png
    :alt: Users
    :target: _static/operator_admin_images/OpAdmin_05.png
 
 On the **Add User** screen, the Operator Admin can add new Operator Users by filling in the required fields (First name, Last name, Email address, and Phone number). The required field (Email address) is indicated with an asterisk (highlighted in yellow in the screenshot below).
 The Operator Admin can create several users by using the **Save and add another** button (circled in red in the screenshot below).
 
-.. figure:: /_static/operator_admin_images/OpAdmin_06.png
+.. figure:: _static/operator_admin_images/OpAdmin_06.png
    :alt: Users - email address
    :target: _static/operator_admin_images/OpAdmin_06.png
 
 Once you have added a user and clicked **Save**, the user is linked to your company. The **Administration Console** informs you that the user was added successfully (1). If you click the **History button** (2), you can see when and by whom the selected user was added to your company. To edit the selected user, click **Save and continue editing** (3). To delete the user, click **Delete** (4).
 
-.. figure:: /_static/operator_admin_images/OpAdmin_07.png
+.. figure:: _static/operator_admin_images/OpAdmin_07.png
    :alt: Users - added successfully
    :target: _static/operator_admin_images/OpAdmin_07.png
 
 Once you have made the changes, you will be directed to the **Select User to Change** page. You can see that the newly added user has not enabled two-factor authentication (2FA) and that the email address is not verified.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_08.png
+.. figure:: _static/operator_admin_images/OpAdmin_08.png
    :alt: Users - added successfully
    :target: _static/operator_admin_images/OpAdmin_08.png
 
@@ -88,7 +88,7 @@ How to export selected users?
 
 Choose a user by clicking the checkmark on the far left, before the First Name column. Then, go to the down-pointing arrow in the **Action** field and choose the option **Export selected users**.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_09.png
+.. figure:: _static/operator_admin_images/OpAdmin_09.png
    :alt: Users - reset 2FA
    :target: _static/operator_admin_images/OpAdmin_09.png
 
@@ -98,6 +98,6 @@ How to filter among users?
 Use the **Filter** section on the far right. The **Show counts** link displays how many users and in what roles can be found within your company. In the screenshot below, there are three users in total: two **Operator Users** and one **Operator Admin** (if you choose to filter by roles).
 In case you do not want to see the numbers, click the **Hide counts** link.
 
-.. figure:: /_static/operator_admin_images/OpAdmin_10.png
+.. figure:: _static/operator_admin_images/OpAdmin_10.png
    :alt: Users - Filter
    :target: _static/operator_admin_images/OpAdmin_10.png

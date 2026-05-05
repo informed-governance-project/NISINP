@@ -4,7 +4,7 @@ Regulator User
 In the user interface, click the **Settings** link to go to the **Site Administration** screen (the **Administration Interface**).
 To return to the user interface, click the **Return to user interface** link in the upper right-hand corner (circled in red in the screenshot below).
 
-.. figure:: /_static/regulator_user_images/Reg_User_01.png
+.. figure:: _static/regulator_user_images/Reg_User_01.png
    :alt: Site administration
    :target: _static/regulator_user_images/Reg_User_01.png
 
@@ -19,13 +19,13 @@ Operators
 In the Governance section, you can manage the Operators and Users (you can add, delete, and update them).
 A Regulator User can ‘convert’ Operator Users into Operator Admins by checking the **Is Administrator** checkbox in the Contacts for Company section:
 
-.. figure:: /_static/regulator_user_images/Reg_User_05.png
+.. figure:: _static/regulator_user_images/Reg_User_05.png
    :alt: Governance - is administrator
    :target: _static/regulator_user_images/Reg_User_05.png
 
 The Regulator Users can add new or change existing Operators as well. First, the Regulator User should populate the **Contact Information** section of the Operator, then add an acronym for the **Operator** (in the Configuration information section) and set the **Entity categories**:
 
-.. figure:: /_static/regulator_user_images/Reg_User_06.png
+.. figure:: _static/regulator_user_images/Reg_User_06.png
    :alt: Governance - Add Operator
    :target: _static/regulator_user_images/Reg_User_06.png
 
@@ -50,14 +50,14 @@ At least one sector must be selected. You can select multiple sectors at a time,
 
 If you do not choose a sector, then the recommendation will be linked to all sectors.
 
-.. figure:: /_static/regulator_user_images/Reg_User_02.png
+.. figure:: _static/regulator_user_images/Reg_User_02.png
    :alt: Reporting - Recommendations
    :target: _static/regulator_user_images/Reg_User_02.png
 
 You can **Save** your changes, **Save and add another** recommendation, or **Save and continue editing** to modify the recommendation further.
 Once your changes are saved, the application confirms that the recommendation was added successfully, and the newly created entry appears in the recommendations list, showing its name, description, and the selected sectors.
 
-.. figure:: /_static/regulator_user_images/Reg_User_03.png
+.. figure:: _static/regulator_user_images/Reg_User_03.png
    :alt: Reporting - Recommendation added
    :target: _static/regulator_user_images/Reg_User_03.png
 
@@ -67,6 +67,6 @@ Recent actions
 As the name suggests, the **Recent Actions** section shows your most recent actions.
 In the previous chapter, a new recommendation was created; therefore, this action appears at the top of the **Recent Actions** list.
 
-.. figure:: /_static/regulator_user_images/Reg_User_04.png
+.. figure:: _static/regulator_user_images/Reg_User_04.png
    :alt: Reporting - Recent actions
    :target: _static/regulator_user_images/Reg_User_04.png

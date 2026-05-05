@@ -5,20 +5,20 @@ If you do not have an account yet, create one by using the **Report an incident 
 or by clicking the **Create account** link in the top right corner.
 Populate the required fields and provide a password you would like to use.
 
-.. figure:: /_static/user_manual_images/UM_SER_4.png
+.. figure:: _static/user_manual_images/UM_SER_4.png
    :alt: Create an account
    :target: _static/user_manual_images/UM_SER_4.png
 
 After you complete the required fields and accept the terms of service,
 you will receive an email, and the following message will appear on the **SERIMA** platform.
 
-.. figure:: /_static/user_manual_images/UM_SER_5.png
+.. figure:: _static/user_manual_images/UM_SER_5.png
    :alt: Account created
    :target: _static/user_manual_images/UM_SER_5.png
 
 Open your email received from the SERIMA platform and click the activation link:
 
-.. figure:: /_static/user_manual_images/UM_SER_6.png
+.. figure:: _static/user_manual_images/UM_SER_6.png
    :alt: Activation link in the confirmation email
    :target: _static/user_manual_images/UM_SER_6.png
 

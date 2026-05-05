@@ -13,7 +13,7 @@ To the right (**2**), the name of the **Company** submitting the security object
 The third column (**3**) in the header shows the names of the sectors selected by the Operator Admin in the initial pop-up
 when creating the security objective.
 
-.. figure:: /_static/user_manual_images/UM_SER_87.png
+.. figure:: _static/user_manual_images/UM_SER_87.png
    :alt: Security Objective header
    :target: _static/user_manual_images/UM_SER_87.png
 
@@ -24,7 +24,7 @@ The active form is indicated by a slightly larger icon than the others.
 In the screenshot below, the first form is active, as shown by its slightly larger icon.
 Below the row of icons, you can see that this is the first form and its topic.
 
-.. figure:: /_static/user_manual_images/UM_SER_88.png
+.. figure:: _static/user_manual_images/UM_SER_88.png
    :alt: Security Objective header
    :target: _static/user_manual_images/UM_SER_88.png
 

@@ -6,7 +6,7 @@ log-in
 
 On this page you can log in or create an account in case you have to notify an incident and you don't have credentials.
 
-.. figure:: /_static/ui_user_login_page.png
+.. figure:: _static/ui_user_login_page.png
    :alt: Login page.
    :target: _static/ui_user_login_page.png
 
@@ -19,7 +19,7 @@ At the first login, you need to activate the 2FA.
 Standard functionnality
 -----------------------------------
 
-.. figure:: /_static/ui_platform_admin.png
+.. figure:: _static/ui_platform_admin.png
    :alt: Main page.
    :target: _static/ui_platform_admin.png
 
@@ -32,7 +32,7 @@ Definition of observers
 
 To define the rules of incident reception for observer, you need firt to create ``Entity categories`` (e.g. Private, Public, Critical infrastructure, etc.).
 
-.. figure:: /_static/ui_platform_admin_observer.png
+.. figure:: _static/ui_platform_admin_observer.png
    :alt: Definition of an observer.
    :target: _static/ui_platform_admin_observer.png
 
@@ -41,7 +41,7 @@ To define the rules of incident reception for observer, you need firt to create 
 
 - The checkbox ``Receives all incidents``, if it's checked the observer will receive all incidents, **no matter of the regulation**. If you need specific rules you have to define ``observer regulations``
 
-.. figure:: /_static/ui_observer_regulation.png
+.. figure:: _static/ui_observer_regulation.png
    :alt: Observer regulation.
    :target: _static/ui_observer_regulation.png
 
@@ -75,7 +75,7 @@ PRIVATE, CRITICAL_INFRA and PUBLIC are ``code`` from ``Entity Category``.
 
 If the observer should receive all incidents of a regulation the ``incident rules`` should be {}.
 
-.. figure:: /_static/ui_observer_regulation_CER.png
+.. figure:: _static/ui_observer_regulation_CER.png
    :alt: Observer regulation.
    :target: _static/ui_observer_regulation_CER.png
 

@@ -5,13 +5,13 @@ Once you click **Register**, you are logged into the SERIMA Platform. Since this
 the system suggests you enable two-factor authentication.
 Click the button **Enable Two-Factor Authentication**.
 
-.. figure:: /_static/user_manual_images/UM_SER_3m.png
+.. figure:: _static/user_manual_images/UM_SER_3m.png
    :alt: Enable two-factor authentication
    :target: _static/user_manual_images/UM_SER_3m.png
 
 Follow the steps in the wizard to enable 2FA: first, click the **Next** button.
 
-.. figure:: /_static/user_manual_images/UM_SER_4m.png
+.. figure:: _static/user_manual_images/UM_SER_4m.png
    :alt: Enable two-factor authentication and start the wizard
    :target: _static/user_manual_images/UM_SER_4m.png
 
@@ -19,20 +19,20 @@ Then either use your smartphone and scan the QR code from the screen, or use the
 to set up **TOTP** (Time-based One-Time Password) in your authenticator or password manager manually.
 As the last step, please enter the token (a six-digit number) into the Token field and click **Next**.
 
-.. figure:: /_static/user_manual_images/UM_SER_5m.png
+.. figure:: _static/user_manual_images/UM_SER_5m.png
    :alt: Two-factor authentication - QR code
    :target: _static/user_manual_images/UM_SER_5m.png
 
 In case you have successfully enabled two-factor authentication, you are greeted with the following screen:
 
-.. figure:: /_static/user_manual_images/UM_SER_6m.png
+.. figure:: _static/user_manual_images/UM_SER_6m.png
    :alt: Two-factor authentication has been set
    :target: _static/user_manual_images/UM_SER_6m.png
 
 Please click the grey button and log in again. Provide your email address and password and click **Log in**.
 Then, open your authenticator on your smartphone and type in the randomly generated Token and click **Log in**.
 
-.. figure:: /_static/user_manual_images/UM_SER_7.png
+.. figure:: _static/user_manual_images/UM_SER_7.png
    :alt: Enable two-factor authentication - token
    :target: _static/user_manual_images/UM_SER_7.png
 
@@ -40,6 +40,6 @@ As an **Operator** or **User**, this is your main page where you land whenever y
 
 Since this is your first login, there is no incident in the platform to show.
 
-.. figure:: /_static/user_manual_images/UM_SER_8.png
+.. figure:: _static/user_manual_images/UM_SER_8.png
    :alt: Two-factor authentication is enabled - you logged in
    :target: _static/user_manual_images/UM_SER_8.png

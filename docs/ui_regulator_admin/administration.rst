@@ -3,7 +3,7 @@ Administration
 
 In the Administration section, you can check the **Log entries** and the **Script execution logs**.
 
-.. figure:: /_static/regulator_admin_images/Reg_Admin_03.png
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_03.png
    :alt: Regulator Admin - Log entries
    :target: /_static/regulator_admin_images/Reg_Admin_03.png
 
@@ -12,7 +12,7 @@ Log entries
 
 Click either the **Log Entries** or **View links** to go to the **Select log entry view** screen. On this screen, you can check and filter what activity was performed, when the change occurred, which user made it, and what content type was updated. Use the **Search** field or the **Filter** section to narrow down the list.
 
-.. figure:: /_static/regulator_admin_images/Reg_Admin_04.png
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_04.png
    :alt: Regulator Admin - Select log entry view
    :target: /_static/regulator_admin_images/Reg_Admin_04.png
 
@@ -22,7 +22,7 @@ To sort the list items, first, select the column you want to sort and choose the
 
 When more than one column is used for sorting, numbers appear next to the up or down arrows to indicate the **sorting sequence**. In the example below, the list of entries is sorted first by **Action Time** (descending), then by **User** (ascending), and finally by **Content Type** (descending).
 
-.. figure:: /_static/regulator_admin_images/Reg_Admin_05.png
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_05.png
    :alt: Select log entry view - sorting
    :target: /_static/regulator_admin_images/Reg_Admin_05.png
 
@@ -35,19 +35,19 @@ The **script execution logs** screen shows the logs from your SERIMA server. The
 
 Click the header of any column to sort the entries by that column. An upward-facing triangle in the top-right corner of the column indicates that the entries are sorted in descending order, with older entries at the top and newer ones at the bottom.
 
-.. figure:: /_static/platform_admin_images/PLAT_ADM_21.png
+.. figure:: ../_static/platform_admin_images/PLAT_ADM_21.png
    :alt: script execution logs
    :target: /_static/platform_admin_images/PLAT_ADM_21.png
 
 Clicking the triangle again reverses the sorting order. When you hover the cursor over the triangle, a pop-up labeled **Toggle Sorting** appears. A downward-facing triangle then indicates that the newest entries are at the top, and older entries are below.
 
-.. figure:: /_static/platform_admin_images/PLAT_ADM_22.png
+.. figure:: ../_static/platform_admin_images/PLAT_ADM_22.png
    :alt: script execution logs
    :target: /_static/platform_admin_images/PLAT_ADM_22.png
 
 You can sort items by multiple columns. The column headers indicate the sort order, showing which column is first, second, or third in the sequence (and whether the sorting is in ascending or descending order).
 
-.. figure:: /_static/platform_admin_images/PLAT_ADM_23.png
+.. figure:: ../_static/platform_admin_images/PLAT_ADM_23.png
    :alt: script execution logs
    :target: /_static/platform_admin_images/PLAT_ADM_23.png
 

@@ -4,13 +4,13 @@ Reported incidents view
 The reported incidents view (**Overview of reported incidents** screen) summarizes the list of incidents created by the operator (or end user).
 It is in a table format with the following columns:
 
-.. figure:: /_static/user_manual_images/UM_SER_39.png
+.. figure:: _static/user_manual_images/UM_SER_39.png
    :alt: reported incidents view
    :target: _static/user_manual_images/UM_SER_39.png
 
 The description of the columns is as follows:
 
-.. figure:: /_static/user_manual_images/UM_SER_39M.png
+.. figure:: _static/user_manual_images/UM_SER_39M.png
    :alt: reported incidents view table
    :target: _static/user_manual_images/UM_SER_39M.png
 
@@ -28,7 +28,7 @@ If there are many incidents in the table, you can sort them in alphabetical orde
 Only one sorting aspect can be active at a time, and the active aspect is shown by a darker grey triangle.
 In the screenshot below, the list is sorted by creation date in ascending order (the oldest report is at the top, and the newest report is at the bottom):
 
-.. figure:: /_static/user_manual_images/UM_SER_40.png
+.. figure:: _static/user_manual_images/UM_SER_40.png
    :alt: reported incidents view table - sorting
    :target: _static/user_manual_images/UM_SER_40.png
 

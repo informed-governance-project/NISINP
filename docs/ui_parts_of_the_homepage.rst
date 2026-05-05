@@ -2,7 +2,7 @@ Parts of the homepage
 ----------------------
 On the homepage, you will find the following main functionalities (as numbered in the screenshot below):
 
-.. figure:: /_static/user_manual_images/UM_SER_9.png
+.. figure:: _static/user_manual_images/UM_SER_9.png
    :alt: Home page
    :target: _static/user_manual_images/UM_SER_9.png
 
@@ -10,14 +10,14 @@ On the homepage, you will find the following main functionalities (as numbered i
 2.  **Module selector**: By clicking it, a dropdown menu will appear showing the available modules
     (You can also see the available modules in the centre of the screen, shown as options 7 and 8).
 
-.. figure:: /_static/user_manual_images/UM_SER_10.png
+.. figure:: _static/user_manual_images/UM_SER_10.png
    :alt: Module selector
    :target: _static/user_manual_images/UM_SER_10.png
 
 3. **Settings**: This option takes you to the settings page. The content of the Settings page may vary depending on the type of user
    account you are logged in with. For an **Operator Admin** account, the Settings page appears as follows:
 
-.. figure:: /_static/user_manual_images/UM_SER_11.png
+.. figure:: _static/user_manual_images/UM_SER_11.png
    :alt: Operator Admin settings page
    :target: _static/user_manual_images/UM_SER_11.png
 
@@ -25,7 +25,7 @@ Use the **Return to user interface** link in the top-right corner to go back to 
 
 4. **Account type**: Use the downward-pointing arrow next to the user type to open the drop-down menu.
 
-   .. figure:: /_static/user_manual_images/UM_SER_12.png
+   .. figure:: _static/user_manual_images/UM_SER_12.png
       :alt: Operator Admin settings page
       :target: _static/user_manual_images/UM_SER_12.png
 
@@ -33,7 +33,7 @@ Use the **Return to user interface** link in the top-right corner to go back to 
      You may change your first name, last name, and phone number.
      To proceed, you will need to log in again and provide a token to access the **Account Management** screen.
 
-     .. figure:: /_static/user_manual_images/UM_SER_13.png
+     .. figure:: _static/user_manual_images/UM_SER_13.png
         :alt: Operator Admin settings page
         :target: _static/user_manual_images/UM_SER_13.png
 
@@ -45,7 +45,7 @@ Use the **Return to user interface** link in the top-right corner to go back to 
        There, you can update your password. You must enter your current password and then type your new password twice
        (Please make sure to follow the password requirements).
 
-     .. figure:: /_static/user_manual_images/UM_SER_14.png
+     .. figure:: _static/user_manual_images/UM_SER_14.png
         :alt: Operator Admin settings page
         :target: _static/user_manual_images/UM_SER_14.png
 
