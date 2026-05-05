@@ -91,7 +91,7 @@ def send_html_email(subject, content, recipient_list):
             subject, content, settings.EMAIL_SENDER, bcc=recipient_list
         )
         email.content_subtype = "html"
-        email.send(fail_silently=True)
+        email.send()
 
 
 def get_emails_from_qs(queryset):
