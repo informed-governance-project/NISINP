@@ -196,7 +196,10 @@ def get_incidents(request):
     )
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
-    incident_list = f.qs
+    incident_list = f.qs.prefetch_related(
+        "sector_regulation__workflows__sectorregulationworkflow_set",
+        "incidentworkflow_set__workflow__sectorregulationworkflow_set",
+    )
 
     per_page = incidents_filter_params.get("per_page", 10)
     page_number = incidents_filter_params.get("page")
