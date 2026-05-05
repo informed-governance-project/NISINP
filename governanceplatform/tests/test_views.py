@@ -136,6 +136,10 @@ def test_superuser_restricted_access(otp_client, populate_db):
     u.is_superuser = True
     u.save()
     client = otp_client(u)
-    for url in list_urls(get_resolver().url_patterns):
+    all_urls = list_urls(get_resolver().url_patterns)
+    # Exclude parameterised patterns: raw strings like "<int:pk>" don't resolve,
+    # so Django would 404 for the wrong reason (no URL match, not middleware block).
+    simple_urls = [url for url in all_urls if "<" not in url]
+    for url in simple_urls:
         response = client.get(url)
         assert response.status_code == 404
