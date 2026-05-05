@@ -12,12 +12,10 @@ from pathlib import Path
 from statistics import mean
 from typing import List
 
-import kaleido
 import plotly.colors as pc
 import plotly.graph_objects as go
 import plotly.io as pio
 import psutil
-from celery.signals import worker_process_init, worker_process_shutdown
 from django.db.models import Avg, Count, F, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Floor
 from django.forms.models import model_to_dict
@@ -1120,17 +1118,6 @@ def text_wrap(text, max_line_length=20):
     else:
         return None
     return text_wrapped
-
-
-# Kaleido server mamagement
-@worker_process_init.connect
-def init_kaleido(**kwargs):
-    kaleido.start_sync_server(n=2, mathjax=None)
-
-
-@worker_process_shutdown.connect
-def shutdown_kaleido(**kwargs):
-    kaleido.stop_sync_server()
 
 
 def convert_graph_to_base64(fig, export_format="png"):

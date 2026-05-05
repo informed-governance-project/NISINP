@@ -1,6 +1,6 @@
-import os
 import subprocess
 
+import kaleido
 from celery.signals import worker_process_init, worker_process_shutdown
 from celery.utils.log import get_task_logger
 from django.apps import apps
@@ -178,13 +178,19 @@ def delete_orphaned_recommendationdata(sender, instance, **kwargs):
 
 @worker_process_init.connect
 def cleanup_stale_soffice(**kwargs):
-    pipe_name = f"update_toc_{os.getpid()}"
-    subprocess.run(["pkill", "-f", f"pipe,name={pipe_name}"], capture_output=True)
-    logger.info("Soft orphan cleanup on startup : %s", pipe_name)
+    result = subprocess.run(["pkill", "-f", "soffice.*update_toc"], capture_output=True)
+    if result.returncode == 0:
+        logger.info("Cleaned up stale soffice pipes on worker startup")
+
+
+@worker_process_init.connect
+def init_kaleido(**kwargs):
+    try:
+        kaleido.start_sync_server(n=4, mathjax=None)
+    except Exception as e:
+        logger.critical("Kaleido failed to start: %s", e)
 
 
 @worker_process_shutdown.connect
-def kill_soffice_on_shutdown(**kwargs):
-    pipe_name = f"update_toc_{os.getpid()}"
-    subprocess.run(["pkill", "-f", f"pipe,name={pipe_name}"], capture_output=True)
-    logger.info("soffice shut down properly : %s", pipe_name)
+def shutdown_kaleido(**kwargs):
+    kaleido.stop_sync_server()
