@@ -683,13 +683,11 @@ def delete_incident(request, incident_id: int):
         return redirect("incidents")
 
     try:
-        incident = Incident.objects.get(pk=incident_id)
-        if incident is not None:
-            if incident.workflows.count() == 0:
-                incident.delete()
-                messages.success(request, _("The incident has been deleted."))
-            else:
-                messages.error(request, _("The incident could not be deleted."))
+        if incident.workflows.count() == 0:
+            incident.delete()
+            messages.success(request, _("The incident has been deleted."))
+        else:
+            messages.error(request, _("The incident could not be deleted."))
     except Exception:
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
