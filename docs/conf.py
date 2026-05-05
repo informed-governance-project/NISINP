@@ -90,7 +90,7 @@ latex_documents = [
     ("index", "nisinp.tex", "NIS Incident Notification Platform", "NC3-LU", "howto"),
 ]
 
-latex_show_urls = True
+latex_show_urls = "footnote"
 latex_show_pagerefs = True
 
 ADDITIONAL_PREAMBLE = r"""
