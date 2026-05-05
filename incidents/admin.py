@@ -367,7 +367,7 @@ def duplicate_objects(modeladmin, request, queryset):
                     request, f"Successfully duplicated {original_label} {model_name}"
                 )
         except Exception as e:
-            logger.exception(f"Error duplicating object {obj.pk}: {e}")
+            logger.exception("Error duplicating object %s: %s", obj.pk, e)
             messages.error(request, f"Error duplicating '{obj}': {str(e)}")
 
 
