@@ -223,12 +223,10 @@ class SectorAdmin(CustomTranslatableAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            try:
-                obj.creator_name = request.user.regulators.all().first().name
-                obj.creator_id = request.user.regulators.all().first().id
-            except Exception:
-                obj.creator_name = Regulator.objects.all().first().name
-                obj.creator_id = Regulator.objects.all().first().id
+            regulator = request.user.regulators.all().first()
+            if regulator is not None:
+                obj.creator_name = regulator.name
+                obj.creator_id = regulator.id
 
         if obj.id and obj.parent is not None:
             if obj.id == obj.parent.id:
