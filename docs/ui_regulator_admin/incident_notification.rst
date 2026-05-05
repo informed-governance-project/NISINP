@@ -116,3 +116,84 @@ Next to the dropdown menus, you can see the following icons,
 .. figure:: ../_static/regulator_admin_images/Reg_Admin_65.png
    :alt: Notification email icons
    :target: /_static/regulator_admin_images/Reg_Admin_65.png
+
+The fifth section is called **Incident Reports**. Here you can view the incident reports set up in the system. 
+
+   **Please note that you must set up incident reports first (using Incident Notification -> Incident Reports) before selecting       the ones you want to use in the workflows.**
+
+The screenshot below shows an example of a workflow: the NIS workflow uses two reports (the **Preliminary Incident Report** and the **Final Incident Report**).
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_34.png
+   :alt: Preliminary Incident Report
+   :target: /_static/regulator_admin_images/Reg_Admin_34.png
+
+In the **Position** field, a smaller number indicates that the step occurs before a larger number. This feature is especially useful when you have multiple reports, as it allows you to define the order in which reports should be used.
+
+The **Deadline in Hours** field specifies, in hours, the latest time by which the report should be sent after the Event Triggering Deadline. This is the timeframe within which the Operator User must fill out the preliminary notification.
+
+The **Event Triggering Deadline** can have different values: None, Notification Date, Detection Date, or Previous Workflow. It defines the reference point from which the workflow element should be triggered. 
+
+For example, as shown in the screenshot above, the **Preliminary Incident Report** should be activated no later than 24 hours after the **Detection Date**. As also shown in the screenshot above, once the **Preliminary Incident Report** has been created, the **Final Incident Report** must be completed no later than 360 hours afterward.
+
+Incident reports
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Click the **Incident reports** link to go to the **Select Incident report to change** screen. On this screen, you can check what kind of incident reports are defined in your system. The reports are in a table format with the following columns: **Name, Label, Description, Impacts Disclosure Required, Submission Email**, and **Creator**.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_29.png
+   :alt: Select Incident report to change
+   :target: /_static/regulator_admin_images/Reg_Admin_29.png
+
+Reports are the building blocks of a workflow; they are the steps you create to assemble a process called a workflow. You can configure different workflows to best suit your needs. You can create new reports either by clicking the **Add** link in the Incident Notification section on the left, or by clicking the **Add Notification Report** button in the top-right corner.
+
+   **How to delete a selected incident report?**
+
+Select the incident report or reports you want to delete by checking the box next to each relevant report. Then, open the **Action** dropdown menu, choose **Delete Selected Incident Reports**, and click **Go**. The selected reports will be deleted.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_28.png
+   :alt: Delete selected Incident reports
+   :target: /_static/regulator_admin_images/Reg_Admin_28.png
+
+   **How to check the details of a report?**
+
+Click the name of a report to view its details. You will then be directed to the **Change Incident Report** screen. At the top of this screen is the **General** section, which displays the name, label, and description of the report. The second section is the **Notification email**, where you can set which email template you want to use for the selected report. 
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_35.png
+   :alt: Change Incident reports
+   :target: /_static/regulator_admin_images/Reg_Admin_35.png
+
+The third section is the **Questionnaire**, which displays all the questions you have set up for the report. In the first column of the table (**Question**), you can see the questions themselves. The second column (**Mandatory**) contains a checkbox; if selected, the question is marked as mandatory, meaning the person completing the questionnaire must answer it.
+
+The **Position** column determines the order of the questions. When you hover your mouse over this field, up and down arrows appear, making it straightforward to change the position value.
+
+The **Category Option** column can have different values, such as Regulation, General Notification Information, Nature of the Incident, and Handling of the Incident. You can select the appropriate category from the dropdown menu.
+
+Next to the Category Option column, you will find the Edit, Add, Delete, and View icons, which allow you to modify the selected question directly if needed.
+
+Finally, the **Delete** column includes a checkbox. If you select this checkbox and click Save at the bottom of the screen, the chosen question will be removed from the list.
+
+The screenshot below shows the columns described above. Please note that this screenshot is only an example and is truncated; in practice, you will typically create many more than four questions in your reports.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_36.png
+   :alt: Questionnaire
+   :target: /_static/regulator_admin_images/Reg_Admin_36.png
+
+In front of each question title, you can see a number in square brackets. This number represents the reference of the selected question in the database. The next chapter explains the questions in more detail.
+
+First, you need to create your questions under **Incident Notification -> Questions**. You can then select the questions you need to build the questionnaire for your report. 
+
+In this example, the first question in the questionnaire is **Affected telecommunication services** with the reference number [**23**], but you can select a different question by using the dropdown menu.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_37.png
+   :alt: Affected telecommunication services
+   :target: /_static/regulator_admin_images/Reg_Admin_37.png
+
+Once you have made your changes, click the Save button at the bottom of the screen to save them.
+
+Questions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+
+
