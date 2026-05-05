@@ -241,6 +241,8 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
 
 def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     regulator = request.user.regulators.first()
+    if regulator is None:
+        return obj
     if not change:
         obj.creator_name = regulator
         obj.creator_id = regulator.id
