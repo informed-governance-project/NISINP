@@ -157,11 +157,8 @@ def registration_view(request, *args, **kwargs):
             user.accepted_terms_date = Now()
             user.save()
             # default give the role IncidentUser
-            new_group, created = Group.objects.get_or_create(name="IncidentUser")
-            if new_group:
-                user.groups.add(new_group)
-            else:
-                user.groups.add(created)
+            new_group, _ = Group.objects.get_or_create(name="IncidentUser")
+            user.groups.add(new_group)
 
             # Send password reset email
             reset_form = PasswordResetForm({"email": user.email})
