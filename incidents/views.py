@@ -507,8 +507,6 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.error(request, _("No incident report could be found."))
-    return redirect("incidents")
 
 
 @login_required
