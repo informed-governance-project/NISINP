@@ -23,6 +23,7 @@ The Site administration screen has the following parts: Administration, Governan
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    administration
    governance
