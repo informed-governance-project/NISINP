@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils.timezone import now
@@ -111,31 +112,32 @@ def update_user_incidents(sender, instance, **kwargs):
         .exclude(approved=False)
         .exists()
     ):
-        current_year = date.today().year
-        incidents = user.incident_set.filter(
-            company__isnull=True, regulator__isnull=True
-        )
-        incidents_per_company = (
-            company.incident_set.exclude(contact_user=user)
-            .filter(incident_notification_date__year=current_year)
-            .count()
-        )
-        for incident in incidents:
-            sector_for_ref = ""
-            subsector_for_ref = ""
-            sector = incident.affected_sectors.first()
-            if sector:
-                subsector_for_ref = sector.acronym[:3]
-                if sector.parent:
-                    sector_for_ref = sector.parent.acronym[:3]
+        with transaction.atomic():
+            current_year = date.today().year
+            incidents = user.incident_set.filter(
+                company__isnull=True, regulator__isnull=True
+            )
+            incidents_per_company = (
+                company.incident_set.exclude(contact_user=user)
+                .filter(incident_notification_date__year=current_year)
+                .count()
+            )
+            for incident in incidents:
+                sector_for_ref = ""
+                subsector_for_ref = ""
+                sector = incident.affected_sectors.first()
+                if sector:
+                    subsector_for_ref = sector.acronym[:3]
+                    if sector.parent:
+                        sector_for_ref = sector.parent.acronym[:3]
 
-            incidents_per_company += 1
-            number_of_incident = f"{incidents_per_company:04}"
+                incidents_per_company += 1
+                number_of_incident = f"{incidents_per_company:04}"
 
-            incident.incident_id = f"{company.identifier}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{current_year}"
-            incident.company = company
-            incident.company_name = company.identifier
-            incident.save()
+                incident.incident_id = f"{company.identifier}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{current_year}"
+                incident.company = company
+                incident.company_name = company.identifier
+                incident.save()
 
 
 @receiver(post_save, sender=RegulatorUser)
