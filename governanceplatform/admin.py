@@ -70,7 +70,7 @@ class CustomAdminSite(admin.AdminSite):
 
     def admin_view(self, view, cacheable=False):
         decorated_view = otp_required(view)
-        decorated_view = check_user_is_correct(view)
+        decorated_view = check_user_is_correct(decorated_view)
         return super().admin_view(decorated_view, cacheable)
 
     def get_app_list(self, request, app_label=None):
