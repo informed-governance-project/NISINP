@@ -786,6 +786,11 @@ def export_incidents(request):
                     sector_regulation__regulator__in=user.regulators.all(),
                     incident_notification_date__date__gte=from_date,
                     incident_notification_date__date__lte=to_date,
+                ).prefetch_related(
+                    "affected_sectors",
+                    "incidentworkflow_set__answer_set__question_options__question",
+                    "incidentworkflow_set__answer_set__predefined_answers",
+                    "incidentworkflow_set__impacts__sectors",
                 ).order_by("-incident_notification_date")
 
                 are_incidents = incidents.exists()
