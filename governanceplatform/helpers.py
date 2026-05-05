@@ -333,6 +333,7 @@ def filter_languages_not_translated(form):
 
 
 def get_sectors_grouped(sectors):
+    sectors = sectors.prefetch_related("children")
     categs = defaultdict(list)
     for sector in sectors:
         sector_name = sector.get_safe_translation()
