@@ -227,7 +227,7 @@ def select_company(request):
             return index(request)
 
     else:
-        form = form = SelectCompany(
+        form = SelectCompany(
             companies=request.user.companies.filter(
                 companyuser__approved=True
             ).distinct(),
