@@ -305,9 +305,9 @@ def get_incidents(request):
 @otp_required
 @check_user_is_correct
 def get_form_list(request, form_list=None):
+    """Initialize data for the preliminary notification."""
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
-    """Initialize data for the preliminary notification."""
     if form_list is None:
         form_list = get_forms_list()
     return FormWizardView.as_view(
