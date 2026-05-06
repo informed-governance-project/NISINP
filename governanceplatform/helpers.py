@@ -67,7 +67,7 @@ def is_observer_user(user: User) -> bool:
     return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
 
-def is_observer_user_viewving_all_incident(user: User) -> bool:
+def is_observer_user_viewing_all_incident(user: User) -> bool:
     if not is_observer_user(user):
         return False
     observer = user.observers.first()
@@ -132,7 +132,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     ):
         return True
     # ObserverUser access all incident if he is in a observer who can access all incident.
-    if is_observer_user_viewving_all_incident(user):
+    if is_observer_user_viewing_all_incident(user):
         return True
     if is_observer_user(user):
         incident_lists = user.observers.first().get_incidents()
