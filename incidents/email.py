@@ -85,13 +85,47 @@ def replace_email_variables(content, incident):
 
 
 def send_html_email(subject, content, recipient_list):
-    recipient_list = [email for email in recipient_list if is_valid_email(email)]
-    if recipient_list:
-        email = EmailMessage(
-            subject, content, settings.EMAIL_SENDER, bcc=recipient_list
+    valid_recipient_list = [email for email in recipient_list if is_valid_email(email)]
+    if not valid_recipient_list:
+        logger.warning(
+            "Email not sent: no valid recipients",
+            extra={"original_recipients": recipient_list},
         )
-        email.content_subtype = "html"
-        email.send(fail_silently=True)
+        return False
+
+    email = EmailMessage(
+        subject,
+        content,
+        settings.EMAIL_SENDER,
+        bcc=valid_recipient_list,
+    )
+    email.content_subtype = "html"
+
+    try:
+        sent_count = email.send()
+
+        if sent_count == 0:
+            logger.error(
+                "Email send returned 0 (no email sent)",
+                extra={
+                    "subject": subject,
+                    "recipients": valid_recipient_list,
+                },
+            )
+            return False
+
+        return True
+
+    except Exception:
+        logger.exception(
+            "Email sending failed",
+            extra={
+                "subject": subject,
+                "recipients": valid_recipient_list,
+                "sender": settings.EMAIL_SENDER,
+            },
+        )
+        return False
 
 
 def get_emails_from_qs(queryset):
