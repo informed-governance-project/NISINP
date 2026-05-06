@@ -68,7 +68,10 @@ def is_observer_user(user: User) -> bool:
 
 
 def is_observer_user_viewving_all_incident(user: User) -> bool:
-    return (is_observer_user(user)) and user.observers.first().is_receiving_all_incident
+    if not is_observer_user(user):
+        return False
+    observer = user.observers.first()
+    return observer is not None and observer.is_receiving_all_incident
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
