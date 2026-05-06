@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 from django.utils.translation import activate
 
 import governanceplatform.tests.conftest as gp_conftest
@@ -7,9 +8,13 @@ from securityobjectives.models import (
     Domain,
     MaturityLevel,
     SecurityMeasure,
+    SecurityMeasureAnswer,
     SecurityObjective,
     SecurityObjectivesInStandard,
+    SecurityObjectiveStatus,
     Standard,
+    StandardAnswer,
+    StandardAnswerGroup,
 )
 from securityobjectives.tests.so_data import (
     domains,
@@ -27,7 +32,7 @@ def populate_db(db):
 
 
 @pytest.fixture
-def populate_so_db(populate_db):
+def populate_so_db(populate_db, create_standard_answer_group, create_standard_answer):
     """
     Populate the DB
     """
@@ -48,9 +53,101 @@ def populate_so_db(populate_db):
     )
     # link SOs into standard
     for i, so in enumerate(populate_db["so_security_objectives"]):
-        std = Standard.objects.get(pk=1)
+        std = populate_db["so_standard"][0]
         SecurityObjectivesInStandard.objects.create(
             standard=std, security_objective=so, position=i
         )
-
+    sags = []
+    sas = []
+    users = populate_db["users"]
+    standards = populate_db["so_standard"]
+    # operator admin
+    user = next((u for u in users if u.email == "opadmin@com1.lu"), None)
+    sag = create_standard_answer_group(company=user.companies.first())
+    sa = create_standard_answer(
+        standard=standards[0],
+        submitter_user=user,
+        submitter_company=user.companies.first(),
+        creator_name="opadmin",
+        creator_company_name="com1",
+        sectors=populate_db["sectors"],
+        group=sag,
+    )
+    sas.append(sa)
+    sags.append(sag)
+    populate_db["sas"] = sas
+    populate_db["sags"] = sags
+    for sa in sas:
+        for sm in populate_db["so_security_measures"]:
+            SecurityMeasureAnswer.objects.create(
+                security_measure_notification_date=timezone.now(),
+                standard_answer=sa,
+                security_measure=sm,
+            )
+        for so in sa.standard.security_objectives.all():
+            SecurityObjectiveStatus.objects.create(
+                security_objective=so,
+                standard_answer=sa,
+                status="NOT_REVIEWED",
+            )
     return populate_db
+
+
+@pytest.fixture
+def create_standard_answer_group():
+    """
+    Fixture to create a standard answer group
+    """
+
+    def _create_standard_answer_group(
+        company,
+        group_id="XXXXXXXXXX-FFFFFFFFFF-SSS-SSS-NNNN-YYYY",
+    ):
+        sag = StandardAnswerGroup.objects.create(
+            company=company,
+            notification_date=timezone.now(),
+            group_id=group_id,
+        )
+        return sag
+
+    return _create_standard_answer_group
+
+
+@pytest.fixture
+def create_standard_answer():
+    """
+    Fixture to create a standard answer
+    """
+
+    def _create_standard_answer(
+        standard,
+        submitter_user,
+        submitter_company,
+        creator_name,
+        creator_company_name,
+        sectors,
+        group,
+        status="DELIV",
+        year_of_submission=2026,
+        review_comment=None,
+    ):
+        sa = StandardAnswer.objects.create(
+            standard=standard,
+            submitter_user=submitter_user,
+            submitter_company=submitter_company,
+            creator_name=creator_name,
+            creator_company_name=creator_company_name,
+            group=group,
+            creation_date=timezone.now(),
+            last_update=timezone.now(),
+            submit_date=timezone.now(),
+            status=status,
+            year_of_submission=year_of_submission,
+            review_comment=review_comment,
+        )
+        if sectors:
+            sa.sectors.set(sectors)
+        sa.save()
+        return sa
+
+    return _create_standard_answer

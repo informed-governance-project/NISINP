@@ -107,6 +107,7 @@ def test_get_with_otp(otp_client, users=None, authorized_users=None, url=""):
     users = users or []
     authorized_users = authorized_users or []
     for u in users:
+        print(u)
         client = otp_client(u)
         response = client.get(url)
         if u in authorized_users:

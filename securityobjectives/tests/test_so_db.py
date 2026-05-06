@@ -8,6 +8,8 @@ from securityobjectives.models import (
     SecurityObjective,
     SecurityObjectivesInStandard,
     Standard,
+    StandardAnswer,
+    StandardAnswerGroup,
 )
 
 
@@ -23,3 +25,5 @@ def test_so_elements_in_db(populate_so_db):
     assert SecurityMeasure.objects.count() == 174
     assert SecurityObjective.objects.count() == 29
     assert SecurityObjectivesInStandard.objects.count() == 29
+    assert StandardAnswer.objects.count() == 1
+    assert StandardAnswerGroup.objects.count() == 1
