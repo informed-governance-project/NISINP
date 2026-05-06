@@ -98,12 +98,10 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
             pk=incident.id, sector_regulation__regulator=user.regulators.first()
         ).exists()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        return bool(sectors)
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
+
     # RegulatorAdmin can access only incidents from accessible regulators.
     if (
         user_in_group(user, "RegulatorAdmin")
@@ -223,12 +221,9 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         user_in_group(user, "RegulatorUser")
         and incident.sector_regulation.regulator == user.regulators.first()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        return bool(sectors)
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
 
     return False
 
