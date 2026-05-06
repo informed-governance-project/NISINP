@@ -51,7 +51,7 @@ def test_incidents_admin_roles_addition_rights(otp_client, populate_incident_db)
     for u in list_admin_add_urls("incidents"):
         if any(model in u for model in regulator_admin_rights):
             url = "/" + u
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
 
 
 @pytest.mark.django_db
@@ -75,7 +75,7 @@ def test_pdf_download_of_operator_incident(otp_client, populate_incident_db):
         (u for u in incidents if u.incident_id == "XXXX-SSS-SSS-0001-2005"), None
     )
     url = "/incidents/download-pdf/" + str(incident.id)
-    test_get_with_otp(otp_client, users, authorized_users, url)
+    test_get_with_otp(otp_client, users, authorized_users, [], url)
 
     # Add a sector to test RegUser see the incident
     sectors = populate_incident_db["sectors"]
@@ -91,7 +91,7 @@ def test_pdf_download_of_operator_incident(otp_client, populate_incident_db):
             url = "/incidents/download-pdf/" + str(incident.id)
             authorized_users.append(regulator_user)
             ru.sectors.add(sector)
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
 
 
 @pytest.mark.django_db
@@ -272,7 +272,7 @@ def test_access_to_incident_log(otp_client, populate_incident_db):
         (u for u in incidents if u.incident_id == "XXXX-SSS-SSS-0001-2005"), None
     )
     url = "/incidents/access_log/" + str(incident.id)
-    test_get_with_otp(otp_client, users, authorized_users, url)
+    test_get_with_otp(otp_client, users, authorized_users, [], url)
 
     authorized_users = [
         u
@@ -286,4 +286,4 @@ def test_access_to_incident_log(otp_client, populate_incident_db):
         (u for u in incidents if u.incident_id == "RRR-SSS-SSS-0001-2005"), None
     )
     url = "/incidents/access_log/" + str(incident.id)
-    test_get_with_otp(otp_client, users, authorized_users, url)
+    test_get_with_otp(otp_client, users, authorized_users, [], url)

@@ -81,7 +81,7 @@ def test_user_access_admin_with_2FA(otp_client, populate_db):
         or user_in_group(u, "ObserverAdmin")
         or user_in_group(u, "PlatformAdmin")
     ]
-    test_get_with_otp(otp_client, users, authorized_users, url)
+    test_get_with_otp(otp_client, users, authorized_users, [], url)
 
 
 @pytest.mark.django_db
@@ -101,10 +101,10 @@ def test_roles_addition_rights(otp_client, populate_db):
         url = "/" + u
         if any(model in u for model in platform_admin_rights):
             authorized_users = [u for u in users if user_in_group(u, "PlatformAdmin")]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "sector":
             authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "company":
             authorized_users = [
                 u
@@ -112,7 +112,7 @@ def test_roles_addition_rights(otp_client, populate_db):
                 if user_in_group(u, "RegulatorUser")
                 or user_in_group(u, "RegulatorAdmin")
             ]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "user":
             authorized_users = [
                 u
@@ -123,7 +123,7 @@ def test_roles_addition_rights(otp_client, populate_db):
                 or user_in_group(u, "RegulatorAdmin")
                 or user_in_group(u, "PlatformAdmin")
             ]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
 
 
 @pytest.mark.django_db
