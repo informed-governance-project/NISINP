@@ -28,3 +28,6 @@ The Site administration screen has the following parts: Administration, Governan
    administration
    governance
    incident_notification
+   reporting
+   security_objectives
+   recent actions
