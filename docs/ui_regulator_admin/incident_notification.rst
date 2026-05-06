@@ -193,7 +193,39 @@ Once you have made your changes, click the Save button at the bottom of the scre
 Questions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Click the **Questions** link to go to the **Select Question to change** screen. On this screen, you can check what kind of questions are defined in your system. The questions you create here can be used in **Incident Reports**. When creating reports, you can link these questions to build a questionnaire within the report.
 
+The questions are in a table format with the following columns: **Reference, Label, Question Type, Predefined answers**, and **Creator**.
 
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_38.png
+   :alt: Select Question to change
+   :target: /_static/regulator_admin_images/Reg_Admin_38.png
 
+Click either the **Reference** number or the **Label** of the question to view it. Once you click, you will be directed to the **Select Questions to change** screen. At the top, you can see the **Question Type**, the **Reference**, and the **Label**. 
 
+If you click the **Question Type** dropdown menu, you will see several options, such as **Freetext, Multiple Choice**, and **Single Option Choice**.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_39.png
+   :alt: Select Question type
+   :target: /_static/regulator_admin_images/Reg_Admin_39.png
+
+Beneath that, you can find the **Predefined Answers** section. Here, you can also use the **Position** and the **Delete** options to manage the order of the answers or delete selected answers.
+
+Reminder emails
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Click the **Reminder emails** link to go to the **Select Reminder email to change** screen. On this screen, you can check what kind of reminder emails are defined in your system. You can add reminder emails either by clicking the **Add** link in the **Incident Notification** section on the left, or by using the **Add reminder email** button in the top right-hand corner.
+
+The emails are shown in a table with the following columns: **Regulation, Report, Email subject, Trigger event**, and **Delays in hours**.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_40.png
+   :alt: Select Reminder email to change
+   :target: /_static/regulator_admin_images/Reg_Admin_40.png
+
+You can link the selected reminder email to a specific report by choosing the appropriate option from the **Report** dropdown.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_42.png
+   :alt: Change Reminder email
+   :target: /_static/regulator_admin_images/Reg_Admin_42.png
+
+You can also use the **Email** dropdown to choose the appropriate email template and the **Trigger event** dropdown to choose the trigger event you want to use.
