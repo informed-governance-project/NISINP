@@ -67,16 +67,11 @@ def is_observer_user(user: User) -> bool:
     return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
 
-<<<<<<< fix/698-observer-function-name-typo
 def is_observer_user_viewing_all_incident(user: User) -> bool:
-    return (is_observer_user(user)) and user.observers.first().is_receiving_all_incident
-=======
-def is_observer_user_viewving_all_incident(user: User) -> bool:
     if not is_observer_user(user):
         return False
     observer = user.observers.first()
     return observer is not None and observer.is_receiving_all_incident
->>>>>>> dev
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
