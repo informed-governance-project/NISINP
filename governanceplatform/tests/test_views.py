@@ -133,9 +133,12 @@ def test_superuser_restricted_access(otp_client, populate_db):
     """
     users = populate_db["users"]
     u = users[0]
-    u.is_superuser = True
-    u.save()
-    client = otp_client(u)
-    for url in list_urls(get_resolver().url_patterns):
-        response = client.get(url)
-        assert response.status_code == 404
+    for u in users:
+        u.is_superuser = True
+        u.save()
+        client = otp_client(u)
+        for url in list_urls(get_resolver().url_patterns):
+            response = client.get(url)
+            assert response.status_code == 404
+        u.is_superuser = False
+        u.save()
