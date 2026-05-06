@@ -100,18 +100,22 @@ def list_url_freetext_filter(freetext="", exclude=""):
     return filtered
 
 
-def test_get_with_otp(otp_client, users=None, authorized_users=None, url=""):
+def test_get_with_otp(
+    otp_client, users=None, authorized_users=None, module_unaccess_user=None, url=""
+):
     """
     Function to test the get with a connected user via 2FA
     """
     users = users or []
     authorized_users = authorized_users or []
+    module_unaccess_user = module_unaccess_user or []
     for u in users:
-        print(u)
         client = otp_client(u)
         response = client.get(url)
         if u in authorized_users:
             assert response.status_code == 200
+        elif u in module_unaccess_user:
+            assert response.status_code == 404
         else:
             assert response.status_code in (302, 403)
 

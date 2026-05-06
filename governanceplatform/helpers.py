@@ -78,8 +78,11 @@ def is_observer_user(user: User) -> bool:
     return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
 
-def is_observer_user_viewving_all_incident(user: User) -> bool:
-    return (is_observer_user(user)) and user.observers.first().is_receiving_all_incident
+def is_observer_user_viewing_all_incident(user: User) -> bool:
+    if not is_observer_user(user):
+        return False
+    observer = user.observers.first()
+    return observer is not None and observer.is_receiving_all_incident
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
@@ -140,7 +143,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     ):
         return True
     # ObserverUser access all incident if he is in a observer who can access all incident.
-    if is_observer_user_viewving_all_incident(user):
+    if is_observer_user_viewing_all_incident(user):
         return True
     if is_observer_user(user):
         incident_lists = user.observers.first().get_incidents()
@@ -252,6 +255,8 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
 
 def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     regulator = request.user.regulators.first()
+    if regulator is None:
+        return obj
     if not change:
         obj.creator_name = regulator
         obj.creator_id = regulator.id
@@ -376,6 +381,7 @@ def filter_languages_not_translated(form):
 
 
 def get_sectors_grouped(sectors):
+    sectors = sectors.prefetch_related("children")
     categs = defaultdict(list)
     for sector in sectors:
         sector_name = sector.get_safe_translation()
