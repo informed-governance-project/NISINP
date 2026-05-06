@@ -196,7 +196,10 @@ def get_incidents(request):
     )
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
-    incident_list = f.qs
+    incident_list = f.qs.prefetch_related(
+        "sector_regulation__workflows__sectorregulationworkflow_set",
+        "incidentworkflow_set__workflow__sectorregulationworkflow_set",
+    )
 
     per_page = incidents_filter_params.get("per_page", 10)
     page_number = incidents_filter_params.get("page")
@@ -507,8 +510,6 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.error(request, _("No incident report could be found."))
-    return redirect("incidents")
 
 
 @login_required
@@ -683,13 +684,11 @@ def delete_incident(request, incident_id: int):
         return redirect("incidents")
 
     try:
-        incident = Incident.objects.get(pk=incident_id)
-        if incident is not None:
-            if incident.workflows.count() == 0:
-                incident.delete()
-                messages.success(request, _("The incident has been deleted."))
-            else:
-                messages.error(request, _("The incident could not be deleted."))
+        if incident.workflows.count() == 0:
+            incident.delete()
+            messages.success(request, _("The incident has been deleted."))
+        else:
+            messages.error(request, _("The incident could not be deleted."))
     except Exception:
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
@@ -785,6 +784,11 @@ def export_incidents(request):
                     sector_regulation__regulator__in=user.regulators.all(),
                     incident_notification_date__date__gte=from_date,
                     incident_notification_date__date__lte=to_date,
+                ).prefetch_related(
+                    "affected_sectors",
+                    "incidentworkflow_set__answer_set__question_options__question",
+                    "incidentworkflow_set__answer_set__predefined_answers",
+                    "incidentworkflow_set__impacts__sectors",
                 ).order_by("-incident_notification_date")
 
                 are_incidents = incidents.exists()

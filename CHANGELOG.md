@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `plotly_get_chrome` now runs non-interactively during Docker build to avoid `EOFError` (#679)
+- Email formatting: markdown and sanitization steps now correctly scoped inside the per-language conditional block in `render_to_string_multi_languages` (#668)
 
 ### Changed
 - `cryptography` updated from 46.x to 47.x (#679)
