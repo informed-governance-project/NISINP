@@ -150,9 +150,7 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     if instance.is_regulator_administrator:
         set_regulator_admin_permissions(user)
         return
-    else:
-        set_regulator_staff_permissions(user)
-        return
+    set_regulator_staff_permissions(user)
 
 
 @receiver(post_save, sender=ObserverUser)
@@ -167,9 +165,7 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
     if instance.is_observer_administrator:
         set_observer_admin_permissions(user)
         return
-    else:
-        set_observer_user_permissions(user)
-        return
+    set_observer_user_permissions(user)
 
 
 # mark use for deletion to avoid removing group on inexisting object
