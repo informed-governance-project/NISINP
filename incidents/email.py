@@ -231,7 +231,7 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
     try:
         validate_rt_url(base_url)
     except ValidationError:
-        logger.error(f"Blocked unsafe RT URL: {base_url}")
+        logger.error("Blocked unsafe RT URL: %s", base_url)
         return None
 
     headers = {
@@ -270,9 +270,9 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
                     ticket_id=ticket_data.get("id"),
                 )
         else:
-            logger.error(f"RT API Error {response.status_code}: {response.text}")
+            logger.error("RT API Error %s: %s", response.status_code, response.text)
     except requests.RequestException as e:
-        logger.error(f"Error connecting to RT API: {e}")
+        logger.error("Error connecting to RT API: %s", e)
 
 
 def check_rt_config(observer):
@@ -299,5 +299,5 @@ def check_rt_config(observer):
             )
         return False
     except requests.RequestException as e:
-        logger.error(f"Error connecting to RT API: {e}")
+        logger.error("Error connecting to RT API: %s", e)
         return False
