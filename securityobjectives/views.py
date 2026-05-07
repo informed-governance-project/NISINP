@@ -36,6 +36,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import override
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
+from weasyprint import CSS, HTML
 from weasyprint.text.fonts import FontConfiguration
 
 from governanceplatform.helpers import (
@@ -73,12 +74,7 @@ from .models import (
 )
 
 # Increasing weasyprint log level
-for logger_name in [
-    "weasyprint",
-    "weasyprint.progress",
-    "fontTools",
-    "fontTools.subset",
-]:
+for logger_name in ["weasyprint", "fontTools", "fontTools.subset"]:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.ERROR)
 
@@ -870,8 +866,6 @@ def download_declaration_pdf(request, standard_answer_id: int):
             },
             request=request,
         )
-
-        from weasyprint import CSS, HTML
 
         htmldoc = HTML(string=output_from_parsed_template, base_url=static_theme_dir)
 
