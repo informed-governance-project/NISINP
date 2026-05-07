@@ -162,20 +162,20 @@ def get_or_create_related(related_model, val: dict):
         raise ValueError(f"Unexpected value {related_model.__name__}: {val}")
 
     lookup = get_unique_lookup(related_model, val, False, True)
-    object = None
+    found_obj = None
     if not lookup:
         # bypass when there is no unique field in the model, only get, no create
-        object = related_model.objects.filter(**lookup).first()
-        if not object:
+        found_obj = related_model.objects.filter(**lookup).first()
+        if not found_obj:
             raise ValueError(
                 f"Unexpected lookup for {related_model.__name__} with data={val}"
             )
 
-    if not object:
+    if not found_obj:
         obj, created = related_model.objects.get_or_create(**lookup)
     else:
         created = False
-        obj = object
+        obj = found_obj
 
     if created:
         # update other field

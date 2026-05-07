@@ -1,4 +1,5 @@
 import csv
+import logging
 import re
 from collections import OrderedDict
 from datetime import date
@@ -79,6 +80,8 @@ from .models import (
     Workflow,
 )
 from .pdf_generation import get_pdf_report
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -308,9 +311,9 @@ def get_incidents(request):
 @otp_required
 @check_user_is_correct
 def get_form_list(request, form_list=None):
+    """Initialize data for the preliminary notification."""
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
-    """Initialize data for the preliminary notification."""
     if form_list is None:
         form_list = get_forms_list()
     return FormWizardView.as_view(
@@ -613,6 +616,15 @@ def download_incident_pdf(request, incident_id: int):
         pdf_report = get_pdf_report(incident, None, request)
         create_entry_log(user, incident, None, "DOWNLOAD", request)
     except Exception:
+        logger.error(
+            "Error generating incident PDF report",
+            extra={
+                "incident_id": incident.id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
@@ -651,6 +663,16 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         pdf_report = get_pdf_report(incident, incident_workflow, request)
         create_entry_log(user, incident, incident_workflow, "DOWNLOAD", request)
     except Exception:
+        logger.error(
+            "Error generating incident PDF report",
+            extra={
+                "incident_id": incident.id,
+                "incident_workflow_id": incident_workflow_id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
@@ -690,6 +712,15 @@ def delete_incident(request, incident_id: int):
         else:
             messages.error(request, _("The incident could not be deleted."))
     except Exception:
+        logger.error(
+            "Error deleting incident",
+            extra={
+                "incident_id": incident_id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
@@ -778,18 +809,22 @@ def export_incidents(request):
             are_incidents = False
 
             if user_in_group(user, "RegulatorAdmin"):
-                incidents = Incident.objects.filter(
-                    sector_regulation=sectorregulation,
-                    sector_regulation__regulation=regulation,
-                    sector_regulation__regulator__in=user.regulators.all(),
-                    incident_notification_date__date__gte=from_date,
-                    incident_notification_date__date__lte=to_date,
-                ).prefetch_related(
-                    "affected_sectors",
-                    "incidentworkflow_set__answer_set__question_options__question",
-                    "incidentworkflow_set__answer_set__predefined_answers",
-                    "incidentworkflow_set__impacts__sectors",
-                ).order_by("-incident_notification_date")
+                incidents = (
+                    Incident.objects.filter(
+                        sector_regulation=sectorregulation,
+                        sector_regulation__regulation=regulation,
+                        sector_regulation__regulator__in=user.regulators.all(),
+                        incident_notification_date__date__gte=from_date,
+                        incident_notification_date__date__lte=to_date,
+                    )
+                    .prefetch_related(
+                        "affected_sectors",
+                        "incidentworkflow_set__answer_set__question_options__question",
+                        "incidentworkflow_set__answer_set__predefined_answers",
+                        "incidentworkflow_set__impacts__sectors",
+                    )
+                    .order_by("-incident_notification_date")
+                )
 
                 are_incidents = incidents.exists()
 

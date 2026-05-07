@@ -112,15 +112,10 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
             pk=incident.id, sector_regulation__regulator=user.regulators.first()
         ).exists()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        if len(sectors) > 0:
-            return True
-        else:
-            return False
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
+
     # RegulatorAdmin can access only incidents from accessible regulators.
     if (
         user_in_group(user, "RegulatorAdmin")
@@ -240,15 +235,9 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         user_in_group(user, "RegulatorUser")
         and incident.sector_regulation.regulator == user.regulators.first()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        if len(sectors) > 0:
-            return True
-        else:
-            return False
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
 
     return False
 
@@ -268,17 +257,21 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
 
 
 def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool:
-    if not hasattr(request, "_can_change_or_delete_obj"):
-        request._can_change_or_delete_obj = True
-    else:
-        return request._can_change_or_delete_obj
+    # Cache per (type, pk) so multiple objects in one request are each evaluated once.
+    cache = getattr(request, "_can_change_or_delete_obj", {})
+    cache_key = (type(obj).__name__, getattr(obj, "pk", None))
+    if cache_key in cache:
+        return cache[cache_key]
+    request._can_change_or_delete_obj = cache
 
     if not obj.pk:
+        cache[cache_key] = True
         return True
 
     creator = getattr(obj, "creator", getattr(obj, "regulator", None))
 
     if not creator:
+        cache[cache_key] = True
         return True
 
     in_use = True
@@ -342,6 +335,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
     regulator = request.user.regulators.first()
     if creator == regulator and not in_use:
+        cache[cache_key] = True
         return True
 
     if not message:
@@ -364,8 +358,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
             creator_name=creator_name,
         ),
     )
-    request._can_change_or_delete_obj = False
-
+    cache[cache_key] = False
     return False
 
 

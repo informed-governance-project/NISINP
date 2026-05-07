@@ -31,6 +31,7 @@ from .helpers import (
     is_user_operator,
     is_user_regulator,
     render_to_string_multi_languages,
+    set_creator,
     user_in_group,
 )
 from .mixins import ShowReminderForTranslationsMixin
@@ -222,24 +223,13 @@ class SectorAdmin(CustomTranslatableAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            try:
-                obj.creator_name = request.user.regulators.all().first().name
-                obj.creator_id = request.user.regulators.all().first().id
-            except Exception:
-                obj.creator_name = Regulator.objects.all().first().name
-                obj.creator_id = Regulator.objects.all().first().id
+        set_creator(request, obj, change)
 
-        if obj.id and obj.parent is not None:
-            if obj.id == obj.parent.id:
-                messages.set_level(request, messages.WARNING)
-                messages.add_message(
-                    request, messages.ERROR, "A sector cannot have itself as a parent"
-                )
-            else:
-                super().save_model(request, obj, form, change)
-        else:
-            super().save_model(request, obj, form, change)
+        if obj.pk and obj.parent_id and obj.pk == obj.parent_id:
+            messages.error(request, "A sector cannot have itself as a parent")
+            return
+
+        super().save_model(request, obj, form, change)
 
 
 for name, method in generate_display_methods(["name"]).items():
