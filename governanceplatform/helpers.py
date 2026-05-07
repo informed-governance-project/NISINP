@@ -529,15 +529,13 @@ def render_to_string_multi_languages(
                 context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
-            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
+            if rendered == baseline and lang_code != settings.LANGUAGE_CODE:
                 continue
 
-            parts.append(
-                f"""
+            parts.append(f"""
                 <h3>{translation.gettext(lang_name)} ({lang_code})</h3>
                 {rendered}
-                """.strip()
-            )
+                """.strip())
     if not parts:
         return baseline
     return "<hr>".join(parts)

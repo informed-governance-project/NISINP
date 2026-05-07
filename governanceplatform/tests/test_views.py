@@ -97,15 +97,15 @@ def test_roles_addition_rights(otp_client, populate_db):
         "functionality",
         "entitycategory",
     ]
-    for u in list_admin_add_urls("governanceplatform"):
-        url = "/" + u
-        if any(model in u for model in platform_admin_rights):
+    for url_path in list_admin_add_urls("governanceplatform"):
+        url = "/" + url_path
+        if any(model in url_path for model in platform_admin_rights):
             authorized_users = [u for u in users if user_in_group(u, "PlatformAdmin")]
             test_get_with_otp(otp_client, users, authorized_users, [], url)
-        elif u == "sector":
+        elif url_path == "sector":
             authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]
             test_get_with_otp(otp_client, users, authorized_users, [], url)
-        elif u == "company":
+        elif url_path == "company":
             authorized_users = [
                 u
                 for u in users
@@ -113,7 +113,7 @@ def test_roles_addition_rights(otp_client, populate_db):
                 or user_in_group(u, "RegulatorAdmin")
             ]
             test_get_with_otp(otp_client, users, authorized_users, [], url)
-        elif u == "user":
+        elif url_path == "user":
             authorized_users = [
                 u
                 for u in users
