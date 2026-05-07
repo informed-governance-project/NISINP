@@ -5,7 +5,7 @@ All notable changes to NISINP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.14] - 2026-05-08
 
 ### Added
 - Chrome runtime shared libraries in Docker image required by kaleido v1 for static image export (#679)
@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bootstrap version update in governance settings
 
 ### Fixed
+- Code review (#745)
 - `plotly_get_chrome` now runs non-interactively during Docker build to avoid `EOFError` (#679)
 - Email formatting: markdown and sanitization steps now correctly scoped inside the per-language conditional block in `render_to_string_multi_languages` (#668)
 
@@ -526,7 +527,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Email notifications for incident events
 - Bootstrap 5 frontend
 
-[Unreleased]: https://github.com/informed-governance-project/NISINP/compare/v0.5.13...HEAD
+[0.5.14]: https://github.com/informed-governance-project/NISINP/compare/v0.5.13...v0.5.14
 [0.5.13]: https://github.com/informed-governance-project/NISINP/compare/v0.5.12...v0.5.13
 [0.5.12]: https://github.com/informed-governance-project/NISINP/compare/v0.5.11...v0.5.12
 [0.5.11]: https://github.com/informed-governance-project/NISINP/compare/v0.5.10...v0.5.11
