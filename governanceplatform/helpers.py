@@ -246,17 +246,21 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
 
 
 def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool:
-    if not hasattr(request, "_can_change_or_delete_obj"):
-        request._can_change_or_delete_obj = True
-    else:
-        return request._can_change_or_delete_obj
+    # Cache per (type, pk) so multiple objects in one request are each evaluated once.
+    cache = getattr(request, "_can_change_or_delete_obj", {})
+    cache_key = (type(obj).__name__, getattr(obj, "pk", None))
+    if cache_key in cache:
+        return cache[cache_key]
+    request._can_change_or_delete_obj = cache
 
     if not obj.pk:
+        cache[cache_key] = True
         return True
 
     creator = getattr(obj, "creator", getattr(obj, "regulator", None))
 
     if not creator:
+        cache[cache_key] = True
         return True
 
     in_use = True
@@ -288,6 +292,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
     regulator = request.user.regulators.first()
     if creator == regulator and not in_use:
+        cache[cache_key] = True
         return True
 
     if not message:
@@ -310,8 +315,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
             creator_name=creator_name,
         ),
     )
-    request._can_change_or_delete_obj = False
-
+    cache[cache_key] = False
     return False
 
 
