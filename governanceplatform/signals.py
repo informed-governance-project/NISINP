@@ -212,20 +212,8 @@ def delete_user_groups(sender, instance, **kwargs):
     if is_user_being_deleted(user):
         return
 
-    # Preload groups once
-    groups = {
-        name: Group.objects.get_or_create(name=name)[0]
-        for name in [
-            "PlatformAdmin",
-            "RegulatorAdmin",
-            "RegulatorUser",
-            "OperatorAdmin",
-            "OperatorUser",
-            "IncidentUser",
-            "ObserverAdmin",
-            "ObserverUser",
-        ]
-    }
+    def get_group(name):
+        return Group.objects.get_or_create(name=name)[0]
 
     changed = False
 
@@ -235,8 +223,8 @@ def delete_user_groups(sender, instance, **kwargs):
             user.groups.filter(name="RegulatorAdmin").exists()
             and user.regulators.count() == 0
         ):
-            user.groups.remove(groups["RegulatorAdmin"])
-            user.groups.add(groups["RegulatorUser"])
+            user.groups.remove(get_group("RegulatorAdmin"))
+            user.groups.add(get_group("RegulatorUser"))
             user.is_active = False
             changed = True
 
@@ -244,21 +232,27 @@ def delete_user_groups(sender, instance, **kwargs):
             user.is_active = False
             changed = True
 
+        if changed:
+            user.save()
+            force_logout_user(user)
+        return
+
     # --- COMPANY LOGIC ---
     if sender is CompanyUser:
-        if user.groups.filter(name="OperatorAdmin").exists():
-            if not user.companyuser_set.filter(is_company_administrator=True).exists():
-                user.groups.remove(groups["OperatorAdmin"])
-                user.groups.add(groups["OperatorUser"])
-                changed = True
+        if (
+            user.groups.filter(name="OperatorAdmin").exists()
+            and not user.companyuser_set.filter(is_company_administrator=True).exists()
+        ):
+            user.groups.remove(get_group("OperatorAdmin"))
+            user.groups.add(get_group("OperatorUser"))
+            changed = True
 
     # --- GLOBAL CLEANUP ---
     if not user.companyuser_set.exists():
         user.is_staff = False
         user.is_superuser = False
         user.groups.clear()
-        user.groups.add(groups["IncidentUser"])
-
+        user.groups.add(get_group("IncidentUser"))
         user.incident_set.filter(company__isnull=False).update(contact_user=None)
         changed = True
     else:
