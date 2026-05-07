@@ -140,7 +140,7 @@ def update_user_incidents(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=RegulatorUser)
-def force_logout_regulator_user(sender, instance, created, **kwargs):
+def force_logout_regulator_user(sender, instance, **kwargs):
     user = instance.user
 
     if instance.pk:
@@ -167,7 +167,7 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
 
 
 @receiver(pre_save, sender=ObserverUser)
-def force_logout_observer_user(sender, instance, created, **kwargs):
+def force_logout_observer_user(sender, instance, **kwargs):
     user = instance.user
 
     if instance.pk:
