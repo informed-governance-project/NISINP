@@ -5,7 +5,6 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Group
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.sessions.models import Session
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
@@ -140,13 +139,26 @@ def update_user_incidents(sender, instance, **kwargs):
                 incident.save()
 
 
+@receiver(pre_save, sender=RegulatorUser)
+def force_logout_regulator_user(sender, instance, **kwargs):
+    user = instance.user
+
+    if instance.pk:
+        old_instance = sender.objects.get(pk=instance.pk)
+
+        if (
+            old_instance.is_regulator_administrator
+            != instance.is_regulator_administrator
+        ):
+            force_logout_user(user)
+
+
 @receiver(post_save, sender=RegulatorUser)
 def update_regulator_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
-
-    force_logout_user(user)
+    user.is_active = True
 
     # Regulator Administrator permissions
     if instance.is_regulator_administrator:
@@ -155,13 +167,23 @@ def update_regulator_user_groups(sender, instance, created, **kwargs):
     set_regulator_staff_permissions(user)
 
 
+@receiver(pre_save, sender=ObserverUser)
+def force_logout_observer_user(sender, instance, **kwargs):
+    user = instance.user
+
+    if instance.pk:
+        old_instance = sender.objects.get(pk=instance.pk)
+
+        if old_instance.is_observer_administrator != instance.is_observer_administrator:
+            force_logout_user(user)
+
+
 @receiver(post_save, sender=ObserverUser)
 def update_observer_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
-
-    force_logout_user(user)
+    user.is_active = True
 
     # Regulator Administrator permissions
     if instance.is_observer_administrator:
@@ -189,73 +211,77 @@ def is_user_being_deleted(user):
 def delete_user_groups(sender, instance, **kwargs):
     user = instance.user
 
-    if not is_user_being_deleted(user):
-        group_names = [
-            "PlatformAdmin",
-            "RegulatorAdmin",
-            "RegulatorUser",
-            "OperatorAdmin",
-            "OperatorUser",
-            "IncidentUser",
-            "ObserverAdmin",
-            "ObserverUser",
-        ]
+    if is_user_being_deleted(user):
+        return
 
-        for group_name in group_names:
-            try:
-                group = Group.objects.get(name=group_name)
-            except ObjectDoesNotExist:
-                group = None
+    def get_group(name):
+        return Group.objects.get_or_create(name=name)[0]
 
-            if group and user.groups.filter(name=group_name).exists():
-                # remove roles only if there is no linked company/regulator
-                if (
-                    group_name == "OperatorAdmin"
-                    and not user.companyuser_set.filter(
-                        is_company_administrator=True
-                    ).exists()
-                ):
-                    user.groups.remove(group)
-                    new_group, _ = Group.objects.get_or_create(name="OperatorUser")
-                    user.groups.add(new_group)
+    # --- REGULATOR ---
+    if sender is RegulatorUser:
+        if (
+            user.groups.filter(name="RegulatorAdmin").exists()
+            and not user.regulatoruser_set.exists()
+        ):
+            user.groups.remove(get_group("RegulatorAdmin"))
+            user.groups.add(get_group("RegulatorUser"))
+            user.is_active = False
 
-                if group_name == "RegulatorAdmin" and user.regulators.count() < 1:
-                    user.groups.remove(group)
-                    new_group, _ = Group.objects.get_or_create(name="RegulatorUser")
-                    user.groups.add(new_group)
-
-                    user.is_active = False
-                    user.save()
-
-                if group_name == "RegulatorUser":
-                    user.is_active = False
-                    user.save()
-                    return
-
-        if not user.companyuser_set.exists():
-            user.is_staff = False
-            user.is_superuser = False
-            new_group, _ = Group.objects.get_or_create(name="IncidentUser")
-            user.groups.clear()
-            user.groups.add(new_group)
-
-            # Clear contact_user for incidents
-            user.incident_set.filter(company__isnull=False).update(contact_user=None)
-        else:
-            user_companies = user.companyuser_set.values_list("company_id", flat=True)
-            user.incident_set.filter(company__isnull=False).exclude(
-                company__in=user_companies
-            ).update(contact_user=None)
+        elif user.groups.filter(name="RegulatorUser").exists():
+            user.is_active = False
 
         user.save()
-
         force_logout_user(user)
+        return
+
+    # --- OBSERVER  ---
+    if sender is ObserverUser:
+        if (
+            user.groups.filter(name="ObserverAdmin").exists()
+            and not user.observeruser_set.filter(
+                is_observer_administrator=True
+            ).exists()
+        ):
+            user.is_active = False
+
+        user.save()
+        force_logout_user(user)
+        return
+
+    # --- OPERATOR ---
+    if sender is CompanyUser:
+        if (
+            user.groups.filter(name="OperatorAdmin").exists()
+            and not user.companyuser_set.filter(is_company_administrator=True).exists()
+        ):
+            user.groups.remove(get_group("OperatorAdmin"))
+            user.groups.add(get_group("OperatorUser"))
+
+    # --- GLOBAL CLEANUP ---
+    if not user.companyuser_set.exists():
+        user.is_staff = False
+        user.is_superuser = False
+        user.groups.clear()
+        user.groups.add(get_group("IncidentUser"))
+        user.incident_set.filter(company__isnull=False).update(contact_user=None)
+    else:
+        user_companies = user.companyuser_set.values_list("company_id", flat=True)
+        user.incident_set.filter(company__isnull=False).exclude(
+            company__in=user_companies
+        ).update(contact_user=None)
+
+    user.save()
+    force_logout_user(user)
 
 
 def force_logout_user(user):
-    # get the active sessions
-    sessions = Session.objects.filter(expire_date__gte=now())
-    for session in sessions:
-        data = session.get_decoded()
-        if data.get("_auth_user_id") == str(user.id):
-            session.delete()
+    user_id = str(user.id)
+
+    sessions_to_delete = [
+        session.session_key
+        for session in Session.objects.filter(expire_date__gte=now()).iterator()
+        if session.get_decoded().get("_auth_user_id") == user_id
+    ]
+
+    if sessions_to_delete:
+        Session.objects.filter(session_key__in=sessions_to_delete).delete()
