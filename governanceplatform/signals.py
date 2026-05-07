@@ -215,8 +215,6 @@ def delete_user_groups(sender, instance, **kwargs):
     def get_group(name):
         return Group.objects.get_or_create(name=name)[0]
 
-    changed = False
-
     # --- REGULATOR LOGIC ---
     if sender is RegulatorUser:
         if (
@@ -226,15 +224,12 @@ def delete_user_groups(sender, instance, **kwargs):
             user.groups.remove(get_group("RegulatorAdmin"))
             user.groups.add(get_group("RegulatorUser"))
             user.is_active = False
-            changed = True
 
         elif user.groups.filter(name="RegulatorUser").exists():
             user.is_active = False
-            changed = True
 
-        if changed:
-            user.save()
-            force_logout_user(user)
+        user.save()
+        force_logout_user(user)
         return
 
     # --- COMPANY LOGIC ---
@@ -245,7 +240,6 @@ def delete_user_groups(sender, instance, **kwargs):
         ):
             user.groups.remove(get_group("OperatorAdmin"))
             user.groups.add(get_group("OperatorUser"))
-            changed = True
 
     # --- GLOBAL CLEANUP ---
     if not user.companyuser_set.exists():
@@ -254,16 +248,14 @@ def delete_user_groups(sender, instance, **kwargs):
         user.groups.clear()
         user.groups.add(get_group("IncidentUser"))
         user.incident_set.filter(company__isnull=False).update(contact_user=None)
-        changed = True
     else:
         user_companies = user.companyuser_set.values_list("company_id", flat=True)
         user.incident_set.filter(company__isnull=False).exclude(
             company__in=user_companies
         ).update(contact_user=None)
 
-    if changed:
-        user.save()
-        force_logout_user(user)
+    user.save()
+    force_logout_user(user)
 
 
 def force_logout_user(user):
