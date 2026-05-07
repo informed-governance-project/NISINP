@@ -39,6 +39,7 @@ repos:
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-merge-conflict
+      - id: detect-private-key
   - repo: https://github.com/pypa/pip-audit
     rev: v2.9.0
     hooks:
