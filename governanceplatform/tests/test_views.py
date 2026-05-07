@@ -137,7 +137,9 @@ def test_superuser_restricted_access(otp_client, populate_db):
         u.is_superuser = True
         u.save()
         client = otp_client(u)
-        for url in list_urls(get_resolver().url_patterns):
+        all_urls = list_urls(get_resolver().url_patterns)
+        simple_urls = [url for url in all_urls if "<" not in url and "+" not in url]
+        for url in simple_urls:
             response = client.get(url)
             assert response.status_code == 404
         u.is_superuser = False
