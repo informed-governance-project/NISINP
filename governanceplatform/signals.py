@@ -216,11 +216,11 @@ def delete_user_groups(sender, instance, **kwargs):
     def get_group(name):
         return Group.objects.get_or_create(name=name)[0]
 
-    # --- REGULATOR LOGIC ---
+    # --- REGULATOR ---
     if sender is RegulatorUser:
         if (
             user.groups.filter(name="RegulatorAdmin").exists()
-            and user.regulators.count() == 0
+            and not user.regulatoruser_set.exists()
         ):
             user.groups.remove(get_group("RegulatorAdmin"))
             user.groups.add(get_group("RegulatorUser"))
@@ -233,7 +233,21 @@ def delete_user_groups(sender, instance, **kwargs):
         force_logout_user(user)
         return
 
-    # --- COMPANY LOGIC ---
+    # --- OBSERVER  ---
+    if sender is ObserverUser:
+        if (
+            user.groups.filter(name="ObserverAdmin").exists()
+            and not user.observeruser_set.filter(
+                is_observer_administrator=True
+            ).exists()
+        ):
+            user.is_active = False
+
+        user.save()
+        force_logout_user(user)
+        return
+
+    # --- OPERATOR ---
     if sender is CompanyUser:
         if (
             user.groups.filter(name="OperatorAdmin").exists()
