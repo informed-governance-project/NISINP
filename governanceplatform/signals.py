@@ -260,10 +260,12 @@ def delete_user_groups(sender, instance, **kwargs):
 
 def force_logout_user(user):
     user_id = str(user.id)
-    # get the active sessions
-    sessions = Session.objects.filter(expire_date__gte=now())
 
-    for session in sessions.iterator():
-        data = session.get_decoded()
-        if data.get("_auth_user_id") == user_id:
-            session.delete()
+    sessions_to_delete = [
+        session.session_key
+        for session in Session.objects.filter(expire_date__gte=now()).iterator()
+        if session.get_decoded().get("_auth_user_id") == user_id
+    ]
+
+    if sessions_to_delete:
+        Session.objects.filter(session_key__in=sessions_to_delete).delete()
