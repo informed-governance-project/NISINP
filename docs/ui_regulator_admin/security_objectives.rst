@@ -42,9 +42,30 @@ You can delete or export selected email templates by using the **Actions** dropd
 You can view existing email templates by clicking the relevant name of the template in the **Name** column. 
 In the **Change Email template** screen, you can see the details of the email template: its **Name, Subject**, and **Content**.
 
-.. figure:: ../_static/regulator_admin_images/Reg_Admin_4.png
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_48.png
    :alt: Change Email template
    :target: /_static/regulator_admin_images/Reg_Admin_48.png
+
+When creating a new email template, you can **Save, Save and add another, Delete**, and **review*/ the template’s history, if available.
+
+Maturity levels
+^^^^^^^^^^^^^^^^^^^^^
+
+Click the **Maturity levels** link to go to the **Select Maturity level to change** screen. On this screen, you can check what kind of maturity levels have been set up. You can add new maturity levels either by clicking the **Add** link in the **Security Objectives** section on the left or by using the **Add Maturity Level** button in the top right-hand corner.
+
+.. figure:: ../_static/regulator_admin_images/Reg_Admin_49.png
+   :alt: Select Maturity level to change
+   :target: /_static/regulator_admin_images/Reg_Admin_49.png
+
+The maturity levels are displayed in a table with the following columns: **Level, Label**, and **Creator**. You can delete or export selected maturity levels by using the **Actions** dropdown menu and choosing the relevant option. You can also use the **Import** and **Export** buttons in the top right-hand corner of the screen.
+
+You can view existing maturity levels by clicking the corresponding number in the **Level** column. In the **View Maturity level** screen, you can see the **Level** and **Label** of the selected maturity level and review its history, if available.
+
+42
+
+
+
+
 
 
 
