@@ -183,6 +183,7 @@ def update_observer_user_groups(sender, instance, created, **kwargs):
     user = instance.user
     user.is_staff = False
     user.is_superuser = False
+    user.is_active = True
 
     # Regulator Administrator permissions
     if instance.is_observer_administrator:
