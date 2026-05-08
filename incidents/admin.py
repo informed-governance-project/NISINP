@@ -592,9 +592,6 @@ class ImpactAdmin(PermissionMixin, CustomTranslatableAdmin):
                 if sector.parent
                 else sector.get_safe_translation()
             )
-            # if we don't want to see the duplicate sectors:
-            # if sector_name not in sectors:
-            #     sectors.append(sector_name)
             sectors.append(sector_name)
 
         return sectors
