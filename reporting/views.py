@@ -1100,9 +1100,6 @@ def import_risk_analysis(request):
                             observation__company_reporting=company_reporting_obj
                         )
                     )
-                    logs = list(
-                        LogReporting.objects.filter(reporting=company_reporting_obj)
-                    )
 
                     comment = (
                         str(company_reporting_obj.comment)
@@ -1114,19 +1111,6 @@ def import_risk_analysis(request):
                     company_reporting_obj = CompanyReporting.objects.create(
                         company=company, year=year, sector=sector, comment=comment
                     )
-
-                    if logs:
-                        new_logs = [
-                            LogReporting(
-                                reporting=company_reporting_obj,
-                                user=log.user,
-                                user_full_name=log.user_full_name,
-                                action=log.action,
-                                timestamp=log.timestamp,
-                            )
-                            for log in logs
-                        ]
-                        LogReporting.objects.bulk_create(new_logs)
 
                     if report_recommendations:
                         add_new_report_recommendations(
