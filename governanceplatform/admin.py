@@ -16,12 +16,10 @@ from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user, user_has_device
 from django_otp.decorators import otp_required
-from import_export import fields, resources
-from import_export.admin import ExportActionModelAdmin
-from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin, TranslatableTabularInline
 
 from governanceplatform.settings import PARLER_DEFAULT_LANGUAGE_CODE
+from incidents.decorators import check_user_is_correct
 from incidents.email import send_html_email
 
 from .forms import CustomObserverAdminForm, CustomTranslatableAdminForm
@@ -29,14 +27,14 @@ from .formset import CompanyUserInlineFormset
 from .helpers import (
     generate_display_methods,
     get_active_company_from_session,
-    instance_user_in_group,
     is_observer_user,
     is_user_operator,
     is_user_regulator,
     render_to_string_multi_languages,
+    set_creator,
     user_in_group,
 )
-from .mixins import ShowReminderForTranslationsMixin, TranslationUpdateMixin
+from .mixins import ShowReminderForTranslationsMixin
 from .models import (  # OperatorType,; Service,
     ApplicationConfig,
     Company,
@@ -55,7 +53,6 @@ from .models import (  # OperatorType,; Service,
 )
 from .permissions import set_platform_admin_permissions
 from .settings import SITE_NAME
-from .widgets import TranslatedNameM2MWidget, TranslatedNameWidget
 
 
 # get the id of a group by name
@@ -74,6 +71,7 @@ class CustomAdminSite(admin.AdminSite):
 
     def admin_view(self, view, cacheable=False):
         decorated_view = otp_required(view)
+        decorated_view = check_user_is_correct(decorated_view)
         return super().admin_view(decorated_view, cacheable)
 
     def get_app_list(self, request, app_label=None):
@@ -83,7 +81,7 @@ class CustomAdminSite(admin.AdminSite):
         app_list = super().get_app_list(request, app_label)
 
         user = request.user
-        has_permission = user.has_module_perms("scriptlogentry")
+        has_permission = user.has_perm("governanceplatform.view_scriptlogentry")
 
         # change the place of scriptlogentry to have it under the administration
         for app in app_list:
@@ -95,6 +93,7 @@ class CustomAdminSite(admin.AdminSite):
                         ),  # Human-readable name
                         "object_name": ScriptLogEntry._meta.object_name,
                         "admin_url": "/admin/governanceplatform/scriptlogentry/",
+                        "view_only": True,
                         "perms": {
                             "add": False,
                             "change": False,
@@ -196,77 +195,20 @@ class SettingsAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return SettingsDummy.objects.none()
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_module_permission(self, request):
-        return request.user.groups.filter(name="PlatformAdmin").exists()
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.groups.filter(name="PlatformAdmin").exists()
-
 
 @admin.register(Site, site=admin_site)
 class SiteAdmin(admin.ModelAdmin):
-    def has_module_permission(self, request):
-        user = request.user
-        if not user_in_group(user, "PlatformAdmin"):
-            return False
-        return super().has_module_permission(request)
-
-
-class SectorResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id", readonly=True)
-
-    name = fields.Field(
-        column_name="name",
-        attribute="name",
-    )
-
-    parent = fields.Field(
-        column_name="parent",
-        attribute="parent",
-        widget=TranslatedNameWidget(Sector, field="name"),
-    )
-
-    acronym = fields.Field(
-        column_name="acronym",
-        attribute="acronym",
-    )
-
-    class Meta:
-        model = Sector
-        export_order = ["id", "parent"]
-        exclude = ("creator", "creator_name")
+    pass
 
 
 @admin.register(Sector, site=admin_site)
-class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
+class SectorAdmin(CustomTranslatableAdmin):
     list_display = ["acronym", "name_display", "parent"]
     list_display_links = ["acronym", "name_display"]
     search_fields = ["translations__name", "acronym", "parent__translations__name"]
-    resource_class = SectorResource
     fields = ("name", "parent", "acronym")
     ordering = ["id", "parent"]
     translated_fields = ["name"]
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorUser"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_module_permission(self, request):
-        user = request.user
-        if user_in_group(user, "RegulatorUser"):
-            return False
-        return super().has_module_permission(request)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parent":
@@ -281,62 +223,23 @@ class SectorAdmin(ExportActionModelAdmin, CustomTranslatableAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            try:
-                obj.creator_name = request.user.regulators.all().first().name
-                obj.creator_id = request.user.regulators.all().first().id
-            except Exception:
-                obj.creator_name = Regulator.objects.all().first().name
-                obj.creator_id = Regulator.objects.all().first().id
+        set_creator(request, obj, change)
 
-        if obj.id and obj.parent is not None:
-            if obj.id == obj.parent.id:
-                messages.set_level(request, messages.WARNING)
-                messages.add_message(
-                    request, messages.ERROR, "A sector cannot have itself as a parent"
-                )
-            else:
-                super().save_model(request, obj, form, change)
-        else:
-            super().save_model(request, obj, form, change)
+        if obj.pk and obj.parent_id and obj.pk == obj.parent_id:
+            messages.error(request, "A sector cannot have itself as a parent")
+            return
+
+        super().save_model(request, obj, form, change)
 
 
 for name, method in generate_display_methods(["name"]).items():
     setattr(SectorAdmin, name, method)
-
-# class ServiceResource(TranslationUpdateMixin, resources.ModelResource):
-#     id = fields.Field(
-#         column_name="id",
-#         attribute="id",
-#     )
-
-#     name = fields.Field(
-#         column_name="name",
-#         attribute="name",
-#     )
-
-#     acronym = fields.Field(
-#         column_name="acronym",
-#         attribute="acronym",
-#     )
-
-#     sector = fields.Field(
-#         column_name="sector",
-#         attribute="sector",
-#         widget=TranslatedNameWidget(Sector, field="name"),
-#     )
-
-#     class Meta:
-#         model = Service
-#         export_order = ["sector"]
-
 
 # @admin.register(Service, site=admin_site)
 # class ServiceAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
 #     list_display_links = ["acronym", "name"]
 #     search_fields = ["translations__name"]
-#     resource_class = ServiceResource
 #     fields = ("name", "acronym", "sector")
 #     ordering = ["sector"]
 
@@ -349,15 +252,8 @@ for name, method in generate_display_methods(["name"]).items():
 #         return obj.sector.name if obj.sector.parent else None
 
 
-class EntityCategoryResource(resources.ModelResource):
-    class Meta:
-        model = EntityCategory
-
-
 @admin.register(EntityCategory, site=admin_site)
 class EntityCategoryAdmin(CustomTranslatableAdmin):
-    resource_class = EntityCategoryResource
-
     list_display = ["code", "label_display"]
     search_fields = ["translations__label", "code"]
     order_list = ["code"]
@@ -367,49 +263,9 @@ class EntityCategoryAdmin(CustomTranslatableAdmin):
     )
     translated_fields = ["label"]
 
-    # Only accessible for platform admin
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
 
 for name, method in generate_display_methods(["label"]).items():
     setattr(EntityCategoryAdmin, name, method)
-
-
-class CompanyResource(resources.ModelResource):
-    id = fields.Field(column_name="id", attribute="id")
-    identifier = fields.Field(column_name="identifier", attribute="identifier")
-    name = fields.Field(column_name="name", attribute="name")
-    address = fields.Field(column_name="address", attribute="address")
-    country = fields.Field(column_name="country", attribute="country")
-    email = fields.Field(column_name="email", attribute="email")
-    phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    entity_categories = fields.Field(
-        column_name="entity_categories", attribute="entity_categories"
-    )
-
-    class Meta:
-        import_id_fields = ("identifier",)
-        model = Company
-        exclude = "types"
 
 
 class CompanyUserInline(admin.TabularInline):
@@ -517,8 +373,7 @@ class CompanyUserInline(admin.TabularInline):
 
         if obj == user:
             return False
-        elif user_in_group(request.user, "RegulatorUser"):
-            return True
+
         return super().has_delete_permission(request, obj)
 
     def get_queryset(self, request):
@@ -543,8 +398,7 @@ class CompanyUserMultipleInline(CompanyUserInline):
 
 
 @admin.register(Company, site=admin_site)
-class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
-    resource_class = CompanyResource
+class CompanyAdmin(admin.ModelAdmin):
     list_display = [
         "identifier",
         "name",
@@ -620,7 +474,7 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         user = request.user
         # Operator Admin
         if user_in_group(user, "OperatorAdmin"):
-            readonly_fields += ("identifier",)
+            readonly_fields += ("identifier", "sectors")
         if not (
             user_in_group(user, "RegulatorUser")
             or user_in_group(user, "RegulatorAdmin")
@@ -747,104 +601,6 @@ class CompanyAdmin(ExportActionModelAdmin, admin.ModelAdmin):
             ).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
-
-
-class UserResource(resources.ModelResource):
-    first_name = fields.Field(column_name="firstname", attribute="first_name")
-    last_name = fields.Field(column_name="lastname", attribute="last_name")
-    email = fields.Field(column_name="email", attribute="email")
-    phone_number = fields.Field(column_name="phone_number", attribute="phone_number")
-    companies = fields.Field(
-        column_name="companies",
-        attribute="companies",
-        widget=ManyToManyWidget(Company, field="name", separator="|"),
-    )
-    # regulators = fields.Field(
-    #     column_name="regulators",
-    #     attribute="regulators",
-    #     widget=ManyToManyWidget(Company, field="name", separator="|"),
-    # )
-    sectors = fields.Field(
-        column_name="sectors",
-        attribute="sectors",
-        widget=TranslatedNameM2MWidget(CompanyUser, separator="|"),
-    )
-
-    # override save_m2m to save the through table SectorCompanyContact
-    def save_m2m(self, obj, data, using_transactions, dry_run):
-        """
-        Saves m2m fields.
-
-        Model instance need to have a primary key value before
-        a many-to-many relationship can be used.
-        """
-
-        if (not using_transactions and dry_run) or self._meta.use_bulk:
-            # we don't have transactions and we want to do a dry_run
-            # OR use_bulk is enabled (m2m operations are not supported
-            # for bulk operations)
-            pass
-        else:
-            companies = None
-            sectors = None
-            if "companies" in data and "sectors" in data:
-                if data["companies"]:
-                    data_companies = data["companies"].split("|")
-                    companies = Company.objects.filter(name__in=data_companies)
-                    data_sectors = data["sectors"].split("|")
-                    sectors = Sector.objects.filter(translations__name__in=data_sectors)
-                    if sectors is not None and companies is not None:
-                        for company in companies:
-                            for sector in sectors:
-                                if not CompanyUser.objects.filter(
-                                    user=obj, sector=sector, company=company
-                                ).exists():
-                                    sc = CompanyUser(
-                                        user=obj, sector=sector, company=company
-                                    )
-                                    if "administrator" in data:
-                                        if data["administrator"] is True:
-                                            sc.is_company_administrator = True
-                                        elif data["administrator"] is False:
-                                            sc.is_company_administrator = False
-                                    sc.save()
-
-    # override skip_row to enforce role checking, we only modify Operators/incidentUser with import
-    def skip_row(self, instance, original, row, import_validation_errors=None):
-        if original.pk:
-            if (
-                instance_user_in_group(instance, "OperatorUser")
-                or instance_user_in_group(instance, "OperatorAdmin")
-                or instance_user_in_group(instance, "IncidentUser")
-                or instance.groups.count() == 0
-            ):
-                return False
-            else:
-                return True
-
-        return super().skip_row(
-            instance, original, row, import_validation_errors=import_validation_errors
-        )
-
-    # override to put by default IncidentUser group to user without group
-    def after_import_row(self, row, row_result, row_number=None, **kwargs):
-        user = User.objects.get(pk=row_result.object_id)
-        if user.groups.count() == 0:
-            user.groups.add(Group.objects.get(name="IncidentUser").id)
-            user.save()
-
-    class Meta:
-        model = User
-        import_id_fields = ("email",)
-        skip_unchanged = True
-        fields = (
-            "first_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "companies",
-            "sectors",
-        )
 
 
 class userRegulatorInline(admin.TabularInline):
@@ -1126,8 +882,7 @@ class UserPermissionsGroupListFilter(SimpleListFilter):
 
 
 @admin.register(User, site=admin_site)
-class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
-    resource_class = UserResource
+class UserAdmin(admin.ModelAdmin):
     list_display = [
         "is_active",
         "first_name",
@@ -1143,7 +898,16 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
         "email_verified",
         "date_joined",
     ]
-    search_fields = ["first_name", "last_name", "email", "phone_number"]
+    search_fields = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "companies__name",
+        "regulators__translations__name",
+        "observers__translations__name",
+        "groups__name",
+    ]
     list_filter = [
         UserRegulatorsListFilter,
         ObserverUsersListFilter,
@@ -1325,8 +1089,6 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
         # RegulatorUser inlines
         if user_in_group(user, "RegulatorUser"):
-            if obj and user_in_group(obj, "RegulatorUser"):
-                inline_instances = [userRegulatorInline(self.model, self.admin_site)]
             if obj and user_in_group(obj, "OperatorAdmin"):
                 inline_instances = []
 
@@ -1466,7 +1228,7 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
                 or user_in_group(obj, "OperatorAdmin")
             ) and obj.logentry_set.all().count() > 0:
                 return False
-        return True
+        return super().has_delete_permission(request, obj)
 
     def save_model(self, request, obj, form, change):
         user = request.user
@@ -1519,30 +1281,14 @@ class UserAdmin(ExportActionModelAdmin, admin.ModelAdmin):
 
     # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
     def delete_model(self, request, obj):
-        if user_in_group(obj, "RegulatorUser"):
+        if user_in_group(obj, "PlatformAdmin") or is_user_regulator(obj):
             obj.is_active = False
+            obj.save()
         else:
             obj.delete()
 
     def has_export_permission(self, request):
         return self.has_view_permission(request)
-
-
-class FunctionalityResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    name = fields.Field(
-        column_name="name",
-        attribute="name",
-    )
-
-    type = fields.Field(
-        column_name="type",
-        attribute="type",
-    )
 
 
 @admin.register(Functionality, site=admin_site)
@@ -1551,68 +1297,17 @@ class FunctionalityAdmin(CustomTranslatableAdmin):
     search_fields = ["translations__name"]
     order_list = ["type"]
     translated_fields = ["name"]
-    resource_class = FunctionalityResource
-
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return True
-        return False
 
 
 for name, method in generate_display_methods(["name"]).items():
     setattr(FunctionalityAdmin, name, method)
 
-# class OperatorTypeResource(TranslationUpdateMixin, resources.ModelResource):
-#     id = fields.Field(
-#         column_name="id",
-#         attribute="id",
-#     )
-
-#     type = fields.Field(
-#         column_name="type",
-#         attribute="type",
-#     )
-
-#     functionalities = fields.Field(
-#         column_name="functionalities",
-#         attribute="functionalities",
-#         widget=ForeignKeyWidget(Functionality, field="name"),
-#     )
-
-#     class Meta:
-#         model = Functionality
-
-
 # @admin.register(OperatorType, site=admin_site)
 # class OperatorTypeAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
 #     list_display = ["type"]
 #     search_fields = ["translations__type"]
-#     resource_class = OperatorTypeResource
 #     fields = ("type", "functionalities")
 #     filter_horizontal = ["functionalities"]
-
-
-class RegulatorResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    class Meta:
-        model = Regulator
 
 
 @admin.register(Regulator, site=admin_site)
@@ -1623,7 +1318,6 @@ class RegulatorAdmin(CustomTranslatableAdmin):
         "translations__full_name",
         "translations__description",
     ]
-    resource_class = RegulatorResource
     fields = (
         "name",
         "full_name",
@@ -1650,12 +1344,6 @@ class RegulatorAdmin(CustomTranslatableAdmin):
 
     inlines = (userRegulatorMultipleInline,)
 
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
-
     def has_change_permission(self, request, obj=None):
         user = request.user
         if user_in_group(user, "RegulatorAdmin") and obj != user.regulators.first():
@@ -1673,16 +1361,6 @@ for name, method in generate_display_methods(
     ["name", "full_name", "description"]
 ).items():
     setattr(RegulatorAdmin, name, method)
-
-
-class ObserverResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    class Meta:
-        model = Observer
 
 
 class ObserverRegulationInline(admin.TabularInline):
@@ -1788,7 +1466,6 @@ class ObserverAdmin(CustomTranslatableAdmin):
         "translations__full_name",
         "translations__description",
     ]
-    resource_class = ObserverResource
     filter_horizontal = [
         "functionalities",
     ]
@@ -1831,26 +1508,11 @@ class ObserverAdmin(CustomTranslatableAdmin):
 
         return base_fieldsets
 
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin") or user_in_group(
-            user, "ObserverAdmin"
-        ):
-            return False
-        return super().has_change_permission(request, obj)
-
     def has_change_permission(self, request, obj=None):
         user = request.user
-        if user_in_group(user, "RegulatorAdmin") and obj != user.observers.first():
+        if user_in_group(user, "ObserverAdmin") and obj != user.observers.first():
             return False
         return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "PlatformAdmin"):
-            return super().has_delete_permission(request, obj)
-        else:
-            return False
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -1879,21 +1541,10 @@ for name, method in generate_display_methods(
     setattr(ObserverAdmin, name, method)
 
 
-class RegulationResource(TranslationUpdateMixin, resources.ModelResource):
-    id = fields.Field(
-        column_name="id",
-        attribute="id",
-    )
-
-    class Meta:
-        model = Regulation
-
-
 @admin.register(Regulation, site=admin_site)
 class RegulationAdmin(CustomTranslatableAdmin):
     list_display = ["label_display", "get_regulators"]
     search_fields = ["translations__label", "regulators__translations__name"]
-    resource_class = RegulationResource
     fields = (
         "label",
         "regulators",
@@ -1902,24 +1553,6 @@ class RegulationAdmin(CustomTranslatableAdmin):
         "regulators",
     ]
     translated_fields = ["label"]
-
-    def has_add_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_change_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        user = request.user
-        if user_in_group(user, "RegulatorAdmin"):
-            return False
-        return super().has_delete_permission(request, obj)
 
 
 for name, method in generate_display_methods(["label"]).items():
@@ -1937,15 +1570,3 @@ class ScriptLogEntryAdmin(admin.ModelAdmin):
         "additional_info",
     ]
     search_fields = ["object_repr"]
-
-    def has_add_permission(self, request):
-        return False  # Disable adding custom logs manually
-
-    def has_change_permission(self, request, obj=None):
-        return False  # Disable changing logs
-
-    def has_delete_permission(self, request, obj=None):
-        return False  # Disable deleting logs
-
-    def has_module_permission(self, request, obj=None):
-        return is_user_regulator(request.user)

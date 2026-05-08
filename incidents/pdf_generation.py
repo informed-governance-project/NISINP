@@ -9,8 +9,9 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from weasyprint import CSS, HTML
+from weasyprint.text.fonts import FontConfiguration
 
-from governanceplatform.utils.weasyprint_fetcher import restricted_url_fetcher
+from governanceplatform.utils.weasyprint_fetcher import RestrictedURLFetcher
 
 from .globals import REGIONAL_AREA
 from .models import Answer, Incident, IncidentWorkflow
@@ -104,6 +105,7 @@ def get_pdf_report(
     # Render the HTML file
 
     static_theme_dir = settings.STATIC_THEME_DIR
+    font_config = FontConfiguration()
 
     output_from_parsed_template = render_to_string(
         "report/incidents/template.html",
@@ -121,15 +123,17 @@ def get_pdf_report(
     htmldoc = HTML(
         string=output_from_parsed_template,
         base_url=static_theme_dir,
-        url_fetcher=restricted_url_fetcher,
+        url_fetcher=RestrictedURLFetcher(),
     )
 
     stylesheets = [
-        CSS(os.path.join(static_theme_dir, "css/custom.css")),
-        CSS(os.path.join(static_theme_dir, "css/report.css")),
+        CSS(os.path.join(static_theme_dir, "css/custom.css"), font_config=font_config),
+        CSS(os.path.join(static_theme_dir, "css/report.css"), font_config=font_config),
     ]
 
-    return htmldoc.write_pdf(stylesheets=stylesheets, pdf_variant="pdf/ua-1")
+    return htmldoc.write_pdf(
+        stylesheets=stylesheets, pdf_variant="pdf/ua-1", font_config=font_config
+    )
 
 
 def populate_questions_answers(answer: Answer, preliminary_questions_answers: Dict):

@@ -1,4 +1,5 @@
 import secrets
+from collections import defaultdict
 from typing import Any, Optional
 
 import bleach
@@ -66,8 +67,11 @@ def is_observer_user(user: User) -> bool:
     return user_in_group(user, "ObserverAdmin") or user_in_group(user, "ObserverUser")
 
 
-def is_observer_user_viewving_all_incident(user: User) -> bool:
-    return (is_observer_user(user)) and user.observers.first().is_receiving_all_incident
+def is_observer_user_viewing_all_incident(user: User) -> bool:
+    if not is_observer_user(user):
+        return False
+    observer = user.observers.first()
+    return observer is not None and observer.is_receiving_all_incident
 
 
 def get_active_company_from_session(request) -> Optional[Company]:
@@ -97,15 +101,10 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
             pk=incident.id, sector_regulation__regulator=user.regulators.first()
         ).exists()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        if len(sectors) > 0:
-            return True
-        else:
-            return False
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
+
     # RegulatorAdmin can access only incidents from accessible regulators.
     if (
         user_in_group(user, "RegulatorAdmin")
@@ -128,7 +127,7 @@ def can_access_incident(user: User, incident: Incident, company_id=-1) -> bool:
     ):
         return True
     # ObserverUser access all incident if he is in a observer who can access all incident.
-    if is_observer_user_viewving_all_incident(user):
+    if is_observer_user_viewing_all_incident(user):
         return True
     if is_observer_user(user):
         incident_lists = user.observers.first().get_incidents()
@@ -225,21 +224,17 @@ def can_edit_incident_report(user: User, incident: Incident, company_id=-1) -> b
         user_in_group(user, "RegulatorUser")
         and incident.sector_regulation.regulator == user.regulators.first()
     ):
-        sectors = [
-            sector
-            for sector in incident.affected_sectors.all()
-            if sector in user.get_sectors().all()
-        ]
-        if len(sectors) > 0:
-            return True
-        else:
-            return False
+        return incident.affected_sectors.filter(
+            id__in=user.get_sectors().all()
+        ).exists()
 
     return False
 
 
 def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
     regulator = request.user.regulators.first()
+    if regulator is None:
+        return obj
     if not change:
         obj.creator_name = regulator
         obj.creator_id = regulator.id
@@ -251,17 +246,21 @@ def set_creator(request: HttpRequest, obj: Any, change: bool) -> Any:
 
 
 def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool:
-    if not hasattr(request, "_can_change_or_delete_obj"):
-        request._can_change_or_delete_obj = True
-    else:
-        return request._can_change_or_delete_obj
+    # Cache per (type, pk) so multiple objects in one request are each evaluated once.
+    cache = getattr(request, "_can_change_or_delete_obj", {})
+    cache_key = (type(obj).__name__, getattr(obj, "pk", None))
+    if cache_key in cache:
+        return cache[cache_key]
+    request._can_change_or_delete_obj = cache
 
     if not obj.pk:
+        cache[cache_key] = True
         return True
 
     creator = getattr(obj, "creator", getattr(obj, "regulator", None))
 
     if not creator:
+        cache[cache_key] = True
         return True
 
     in_use = True
@@ -293,6 +292,7 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
 
     regulator = request.user.regulators.first()
     if creator == regulator and not in_use:
+        cache[cache_key] = True
         return True
 
     if not message:
@@ -315,20 +315,40 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
             creator_name=creator_name,
         ),
     )
-    request._can_change_or_delete_obj = False
-
+    cache[cache_key] = False
     return False
 
 
 # Remove languages are not translated
 def filter_languages_not_translated(form):
-    filtered_languages = [
-        lang for lang in form.context_data["language_tabs"] if lang[3] != "empty"
-    ]
-    form.context_data["language_tabs"].allow_deletion = False
-    form.context_data["language_tabs"] = filtered_languages
+    tabs = form.context_data.get("language_tabs")
+    if not tabs:
+        return form
 
+    tabs.allow_deletion = False
+    tabs[:] = [lang for lang in tabs if lang[3] != "empty"]
     return form
+
+
+def get_sectors_grouped(sectors):
+    sectors = sectors.prefetch_related("children")
+    categs = defaultdict(list)
+    for sector in sectors:
+        sector_name = sector.get_safe_translation()
+
+        if sector.parent:
+            parent_name = sector.parent.get_safe_translation()
+            categs[parent_name].append([sector.id, sector_name])
+
+        if not sector.children.exists() and not sector.parent:
+            categs[sector_name].append([sector.id, sector_name])
+
+    sectors_grouped = (
+        (sector, sorted(options, key=lambda item: item[1]))
+        for sector, options in categs.items()
+    )
+
+    return sorted(sectors_grouped, key=lambda item: item[0])
 
 
 # From a queryset with translated fields, build a queryset that selects:
@@ -503,8 +523,10 @@ def render_to_string_multi_languages(
                     content.safe_translation_getter("content", language_code=lang_code),
                     object,
                 )
-            context["content"] = markdown(text=context["content"], output_format="html")
-            context["content"] = sanitize_html(context["content"])
+                context["content"] = markdown(
+                    text=context["content"], output_format="html"
+                )
+                context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
             if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:

@@ -1,4 +1,5 @@
 import csv
+import logging
 import re
 from collections import OrderedDict
 from datetime import date
@@ -11,7 +12,6 @@ from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db.models import CharField, F, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_countries import countries
@@ -38,6 +39,7 @@ from governanceplatform.helpers import (
     is_user_regulator,
     render_to_string_multi_languages,
     sort_queryset_by_field,
+    translated_queryset,
     user_in_group,
 )
 from governanceplatform.models import (
@@ -47,6 +49,7 @@ from governanceplatform.models import (
 )
 from governanceplatform.settings import (
     MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER,
+    PARLER_DEFAULT_LANGUAGE_CODE,
     PUBLIC_URL,
     SITE_NAME,
     TIME_ZONE,
@@ -77,6 +80,8 @@ from .models import (
     Workflow,
 )
 from .pdf_generation import get_pdf_report
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -194,7 +199,10 @@ def get_incidents(request):
     )
 
     f = IncidentFilter(incidents_filter_params, queryset=incidents)
-    incident_list = f.qs
+    incident_list = f.qs.prefetch_related(
+        "sector_regulation__workflows__sectorregulationworkflow_set",
+        "incidentworkflow_set__workflow__sectorregulationworkflow_set",
+    )
 
     per_page = incidents_filter_params.get("per_page", 10)
     page_number = incidents_filter_params.get("page")
@@ -303,9 +311,9 @@ def get_incidents(request):
 @otp_required
 @check_user_is_correct
 def get_form_list(request, form_list=None):
+    """Initialize data for the preliminary notification."""
     if is_incidents_report_limit_reached(request):
         return HttpResponseRedirect("/incidents")
-    """Initialize data for the preliminary notification."""
     if form_list is None:
         form_list = get_forms_list()
     return FormWizardView.as_view(
@@ -505,8 +513,6 @@ def edit_workflow(request):
     else:
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    messages.error(request, _("No incident report could be found."))
-    return redirect("incidents")
 
 
 @login_required
@@ -610,6 +616,15 @@ def download_incident_pdf(request, incident_id: int):
         pdf_report = get_pdf_report(incident, None, request)
         create_entry_log(user, incident, None, "DOWNLOAD", request)
     except Exception:
+        logger.error(
+            "Error generating incident PDF report",
+            extra={
+                "incident_id": incident.id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
@@ -648,6 +663,16 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
         pdf_report = get_pdf_report(incident, incident_workflow, request)
         create_entry_log(user, incident, incident_workflow, "DOWNLOAD", request)
     except Exception:
+        logger.error(
+            "Error generating incident PDF report",
+            extra={
+                "incident_id": incident.id,
+                "incident_workflow_id": incident_workflow_id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while generating the report."))
         return HttpResponseRedirect("/incidents")
 
@@ -681,14 +706,21 @@ def delete_incident(request, incident_id: int):
         return redirect("incidents")
 
     try:
-        incident = Incident.objects.get(pk=incident_id)
-        if incident is not None:
-            if incident.workflows.count() == 0:
-                incident.delete()
-                messages.success(request, _("The incident has been deleted."))
-            else:
-                messages.error(request, _("The incident could not be deleted."))
+        if incident.workflows.count() == 0:
+            incident.delete()
+            messages.success(request, _("The incident has been deleted."))
+        else:
+            messages.error(request, _("The incident could not be deleted."))
     except Exception:
+        logger.error(
+            "Error deleting incident",
+            extra={
+                "incident_id": incident_id,
+                "user_id": user.id,
+                "company_id": company_id,
+            },
+            exc_info=True,
+        )
         messages.error(request, _("An error occurred while deleting the incident."))
         return redirect("incidents")
     return redirect("incidents")
@@ -777,16 +809,24 @@ def export_incidents(request):
             are_incidents = False
 
             if user_in_group(user, "RegulatorAdmin"):
-                incidents = Incident.objects.filter(
-                    sector_regulation=sectorregulation,
-                    sector_regulation__regulation=regulation,
-                    sector_regulation__regulator__in=user.regulators.all(),
-                    incident_notification_date__date__gte=from_date,
-                    incident_notification_date__date__lte=to_date,
-                ).order_by("-incident_notification_date")
+                incidents = (
+                    Incident.objects.filter(
+                        sector_regulation=sectorregulation,
+                        sector_regulation__regulation=regulation,
+                        sector_regulation__regulator__in=user.regulators.all(),
+                        incident_notification_date__date__gte=from_date,
+                        incident_notification_date__date__lte=to_date,
+                    )
+                    .prefetch_related(
+                        "affected_sectors",
+                        "incidentworkflow_set__answer_set__question_options__question",
+                        "incidentworkflow_set__answer_set__predefined_answers",
+                        "incidentworkflow_set__impacts__sectors",
+                    )
+                    .order_by("-incident_notification_date")
+                )
 
-                if incidents.exists():
-                    are_incidents = True
+                are_incidents = incidents.exists()
 
             if is_observer_user(user):
                 all_incidents = (
@@ -803,8 +843,7 @@ def export_incidents(request):
                     and from_date <= i.incident_notification_date.date() <= to_date
                 ]
 
-                if incidents:
-                    are_incidents = True
+                are_incidents = bool(incidents)
 
             if not are_incidents:
                 messages.error(request, _("No incidents available for export."))
@@ -927,6 +966,22 @@ def export_incidents(request):
                     else:
                         incident_data[f"{question}"] = str_answer
 
+                lang = get_language() or "en"
+
+                impacts = translated_queryset(
+                    last_report.impacts,
+                    lang,
+                    PARLER_DEFAULT_LANGUAGE_CODE,
+                    ["label"],
+                    True,
+                ).order_by("_label_sort")
+
+                for idx, impact in enumerate(impacts, start=1):
+                    for sector in impact.sectors.all():
+                        incident_data[
+                            f"{sector.get_safe_translation()} Impact {idx}"
+                        ] = impact.label
+
                 data.append(incident_data)
 
             if not data:
@@ -983,11 +1038,9 @@ def export_incidents(request):
                     row = {key: entry.get(key, "") for key in keys}
                     writer.writerow(row)
 
-            LogEntry.objects.log_action(
+            LogEntry.objects.log_actions(
                 user_id=user.id,
-                content_type_id=ContentType.objects.get_for_model(Incident).id,
-                object_id="",
-                object_repr=_("Incidents Export"),
+                queryset=incidents,
                 action_flag=7,
                 change_message=_(
                     "A total of {count} incidents were exported from regulation "

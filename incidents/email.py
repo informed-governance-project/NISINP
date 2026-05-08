@@ -85,13 +85,47 @@ def replace_email_variables(content, incident):
 
 
 def send_html_email(subject, content, recipient_list):
-    recipient_list = [email for email in recipient_list if is_valid_email(email)]
-    if recipient_list:
-        email = EmailMessage(
-            subject, content, settings.EMAIL_SENDER, bcc=recipient_list
+    valid_recipient_list = [email for email in recipient_list if is_valid_email(email)]
+    if not valid_recipient_list:
+        logger.warning(
+            "Email not sent: no valid recipients",
+            extra={"original_recipients": recipient_list},
         )
-        email.content_subtype = "html"
-        email.send(fail_silently=True)
+        return False
+
+    email = EmailMessage(
+        subject,
+        content,
+        settings.EMAIL_SENDER,
+        bcc=valid_recipient_list,
+    )
+    email.content_subtype = "html"
+
+    try:
+        sent_count = email.send()
+
+        if sent_count == 0:
+            logger.error(
+                "Email send returned 0 (no email sent)",
+                extra={
+                    "subject": subject,
+                    "recipients": valid_recipient_list,
+                },
+            )
+            return False
+
+        return True
+
+    except Exception:
+        logger.exception(
+            "Email sending failed",
+            extra={
+                "subject": subject,
+                "recipients": valid_recipient_list,
+                "sender": settings.EMAIL_SENDER,
+            },
+        )
+        return False
 
 
 def get_emails_from_qs(queryset):
@@ -190,14 +224,11 @@ def send_email(email, incident, send_to_observers=False):
 
 
 def create_or_update_rt_ticket(recipient, subject, content, incident):
-    is_new_ticket = not RTTicket.objects.filter(
-        incident=incident, observer=recipient
-    ).exists()
     base_url = recipient.rt_url.rstrip("/")
     try:
         validate_rt_url(base_url)
     except ValidationError:
-        logger.error(f"Blocked unsafe RT URL: {base_url}")
+        logger.error("Blocked unsafe RT URL: %s", base_url)
         return None
 
     headers = {
@@ -236,9 +267,9 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
                     ticket_id=ticket_data.get("id"),
                 )
         else:
-            logger.error(f"RT API Error {response.status_code}: {response.text}")
+            logger.error("RT API Error %s: %s", response.status_code, response.text)
     except requests.RequestException as e:
-        logger.error(f"Error connecting to RT API: {e}")
+        logger.error("Error connecting to RT API: %s", e)
 
 
 def check_rt_config(observer):
@@ -265,5 +296,5 @@ def check_rt_config(observer):
             )
         return False
     except requests.RequestException as e:
-        logger.error(f"Error connecting to RT API: {e}")
+        logger.error("Error connecting to RT API: %s", e)
         return False

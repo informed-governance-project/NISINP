@@ -18,11 +18,11 @@ os.environ["READTHEDOCS"] = "True"
 django.setup()
 
 project = "NIS Incident Notification Platform"
-copyright = "2023-2024 Luxembourg House of Cybersecurity"
+copyright = "2023-2026 Luxembourg House of Cybersecurity"
 author = "NC3 Team <info@nc3.lu>"
 
 # The full version, including alpha/beta/rc tags
-release = "0.5.13"
+release = "0.5.14"
 
 
 # -- General configuration ---------------------------------------------------

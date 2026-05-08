@@ -1,7 +1,7 @@
 import pytest
-from django.urls import reverse
+from django.urls import get_resolver, reverse
 
-from conftest import list_admin_add_urls, test_get_with_otp
+from conftest import list_admin_add_urls, list_urls, test_get_with_otp
 from governanceplatform.helpers import user_in_group
 
 # Restricted URL
@@ -81,7 +81,7 @@ def test_user_access_admin_with_2FA(otp_client, populate_db):
         or user_in_group(u, "ObserverAdmin")
         or user_in_group(u, "PlatformAdmin")
     ]
-    test_get_with_otp(otp_client, users, authorized_users, url)
+    test_get_with_otp(otp_client, users, authorized_users, [], url)
 
 
 @pytest.mark.django_db
@@ -101,10 +101,10 @@ def test_roles_addition_rights(otp_client, populate_db):
         url = "/" + u
         if any(model in u for model in platform_admin_rights):
             authorized_users = [u for u in users if user_in_group(u, "PlatformAdmin")]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "sector":
             authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "company":
             authorized_users = [
                 u
@@ -112,7 +112,7 @@ def test_roles_addition_rights(otp_client, populate_db):
                 if user_in_group(u, "RegulatorUser")
                 or user_in_group(u, "RegulatorAdmin")
             ]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "user":
             authorized_users = [
                 u
@@ -123,4 +123,23 @@ def test_roles_addition_rights(otp_client, populate_db):
                 or user_in_group(u, "RegulatorAdmin")
                 or user_in_group(u, "PlatformAdmin")
             ]
-            test_get_with_otp(otp_client, users, authorized_users, url)
+            test_get_with_otp(otp_client, users, authorized_users, [], url)
+
+
+@pytest.mark.django_db
+def test_superuser_restricted_access(otp_client, populate_db):
+    """
+    Verify that a superuser cannot access the platform
+    """
+    users = populate_db["users"]
+    for u in users:
+        u.is_superuser = True
+        u.save()
+        client = otp_client(u)
+        all_urls = list_urls(get_resolver().url_patterns)
+        simple_urls = [url for url in all_urls if "<" not in url and "+" not in url]
+        for url in simple_urls:
+            response = client.get(url)
+            assert response.status_code == 404
+        u.is_superuser = False
+        u.save()

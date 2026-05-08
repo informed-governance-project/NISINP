@@ -97,6 +97,6 @@ def cookiebanner_version(request):
     try:
         cfg = ApplicationConfig.objects.get(key="cookiebanner")
         version = cfg.value
-    except Exception:
+    except ApplicationConfig.DoesNotExist:
         version = 0
     return {"cookiebanner_version": version}
