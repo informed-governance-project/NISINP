@@ -23,8 +23,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import activate, deactivate_all
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import override
 from django.views.decorators.http import require_http_methods
 from django_otp.decorators import otp_required
 
@@ -641,34 +641,34 @@ def generate_report_project(request, report_project_id: int):
                     "dashboard_report_project", report_project_id=project.id
                 )
 
-            activate(language)
-            sector.set_current_language(language)
-            task_data = {
-                **base_data,
-                "language": language,
-                "template_id": template.pk,
-                "report_configuration_id": template.configuration.pk,
-                "sector": {**model_to_dict(sector), "name": str(sector)},
-            }
+            with override(language):
+                sector.set_current_language(language)
+                task_data = {
+                    **base_data,
+                    "language": language,
+                    "template_id": template.pk,
+                    "report_configuration_id": template.configuration.pk,
+                    "sector": {**model_to_dict(sector), "name": str(sector)},
+                }
 
-            prefix = f"{language}_" if len(languages) > 1 else ""
-            sector_name = sector.get_safe_translation()
-            annual_report_label = _("annual_report")
-            filename = urlquote(
-                f"{prefix}{annual_report_label}_{year}_{company.name}_{sector_name}.{extention}"
-            )
-            task = get_report(
-                request,
-                task_data,
-                filename,
-                extention,
-                project_id,
-                task_id,
-                is_multiple_selected_companies,
-            )
-            report_generation_tasks.append(
-                task.on_error(on_chord_error.s(project_id, task_id))
-            )
+                prefix = f"{language}_" if len(languages) > 1 else ""
+                sector_name = sector.get_safe_translation()
+                annual_report_label = _("annual_report")
+                filename = urlquote(
+                    f"{prefix}{annual_report_label}_{year}_{company.name}_{sector_name}.{extention}"
+                )
+                task = get_report(
+                    request,
+                    task_data,
+                    filename,
+                    extention,
+                    project_id,
+                    task_id,
+                    is_multiple_selected_companies,
+                )
+                report_generation_tasks.append(
+                    task.on_error(on_chord_error.s(project_id, task_id))
+                )
 
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
@@ -1239,21 +1239,20 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
                     return new_object
 
                 if is_new_version and languageCode:
-                    activate(languageCode)
-                    new_object.set_current_language(languageCode)
-                    new_object.name = translations
+                    with override(languageCode):
+                        new_object.set_current_language(languageCode)
+                        new_object.name = translations
                 else:
                     for lang_index, lang_code in LANG_VALUES.items():
                         name_value = translations.get(
                             field_name + str(lang_index), None
                         )
                         if name_value:
-                            activate(lang_code)
-                            new_object.set_current_language(lang_code)
-                            new_object.name = name_value
+                            with override(lang_code):
+                                new_object.set_current_language(lang_code)
+                                new_object.name = name_value
 
                 new_object.save()
-                deactivate_all()
 
             return new_object
 
