@@ -132,7 +132,6 @@ def test_superuser_restricted_access(otp_client, populate_db):
     Verify that a superuser cannot access the platform
     """
     users = populate_db["users"]
-    u = users[0]
     for u in users:
         u.is_superuser = True
         u.save()
