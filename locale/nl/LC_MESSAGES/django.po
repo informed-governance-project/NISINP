@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-08 08:24+0200\n"
-"PO-Revision-Date: 2026-04-30 12:29+0000\n"
-"Last-Translator: Weblate Admin <admin@users.noreply.weblate.nc3.lu>\n"
+"PO-Revision-Date: 2026-05-09 10:27+0000\n"
+"Last-Translator: Christophe Vermeulen <Christophe.Vermeulen@ibpt.be>\n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1447,15 +1447,15 @@ msgstr "Stabiel"
 
 #: reporting/globals.py:18
 msgid "Upward"
-msgstr ""
+msgstr "Omhoog"
 
 #: reporting/globals.py:19
 msgid "Sector ranking"
-msgstr ""
+msgstr "Sectorranglijst"
 
 #: reporting/globals.py:20
 msgid "Sector scores"
-msgstr ""
+msgstr "Sectorscores"
 
 #: reporting/globals.py:21
 msgid "Operator scores"
@@ -1467,7 +1467,7 @@ msgstr "Doel"
 
 #: reporting/globals.py:23
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: reporting/globals.py:24 reporting/models.py:61 reporting/models.py:126
 #: reporting/models.py:188
