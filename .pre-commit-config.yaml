@@ -32,6 +32,7 @@ repos:
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-merge-conflict
+      - id: detect-private-key
 
   # ── Dependency export (keeps docs/requirements-app.txt in sync) ──────────────
   - repo: https://github.com/python-poetry/poetry-plugin-export
