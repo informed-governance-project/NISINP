@@ -43,9 +43,7 @@ class Impact(TranslatableModel):
         related_name="regulations",
     )
 
-    sectors = models.ManyToManyField(
-        "governanceplatform.Sector", default=None, blank=True, verbose_name=_("Sectors")
-    )
+    sectors = models.ManyToManyField("governanceplatform.Sector", default=None, blank=True, verbose_name=_("Sectors"))
 
     # name of the regulator who create the object
     creator_name = models.CharField(
@@ -65,9 +63,7 @@ class Impact(TranslatableModel):
     )
 
     def __str__(self):
-        headline_translation = self.safe_translation_getter(
-            "headline", any_language=True
-        )
+        headline_translation = self.safe_translation_getter("headline", any_language=True)
         return headline_translation or ""
 
     class Meta:
@@ -77,9 +73,7 @@ class Impact(TranslatableModel):
 
 # category for the question (to order)
 class QuestionCategory(TranslatableModel):
-    translations = TranslatedFields(
-        label=models.CharField(verbose_name=_("Label"), max_length=255)
-    )
+    translations = TranslatedFields(label=models.CharField(verbose_name=_("Label"), max_length=255))
     # name of the regulator who create the object
     creator_name = models.CharField(
         verbose_name=_("Creator name"),
@@ -143,10 +137,7 @@ class Question(TranslatableModel):
 
     @admin.display(description=_("Answers"))
     def get_predefined_answers(self):
-        return [
-            predefined_answer.predefined_answer
-            for predefined_answer in self.predefinedanswer_set.all()
-        ]
+        return [predefined_answer.predefined_answer for predefined_answer in self.predefinedanswer_set.all()]
 
     def get_question_label_with_reference(self):
         if self.reference:
@@ -156,8 +147,7 @@ class Question(TranslatableModel):
     def __str__(self):
         return (
             self.safe_translation_getter("label", any_language=True)
-            if self.language_code
-            and self.safe_translation_getter("label", any_language=True)
+            if self.language_code and self.safe_translation_getter("label", any_language=True)
             else ""
         )
 
@@ -168,9 +158,7 @@ class Question(TranslatableModel):
 
 # answers for the question
 class PredefinedAnswer(TranslatableModel):
-    translations = TranslatedFields(
-        predefined_answer=models.TextField(verbose_name=_("Answer"))
-    )
+    translations = TranslatedFields(predefined_answer=models.TextField(verbose_name=_("Answer")))
     question = models.ForeignKey(
         Question,
         verbose_name=_("Question"),
@@ -199,8 +187,7 @@ class PredefinedAnswer(TranslatableModel):
     def __str__(self):
         return (
             self.safe_translation_getter("predefined_answer", any_language=True)
-            if self.language_code
-            and self.safe_translation_getter("predefined_answer", any_language=True)
+            if self.language_code and self.safe_translation_getter("predefined_answer", any_language=True)
             else ""
         )
 
@@ -260,13 +247,9 @@ class Workflow(TranslatableModel):
 
     translations = TranslatedFields(
         label=models.CharField(verbose_name=_("Label"), max_length=255),
-        description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Description")
-        ),
+        description=models.TextField(blank=True, default="", null=True, verbose_name=_("Description")),
     )
-    is_impact_needed = models.BooleanField(
-        default=False, verbose_name=_("Impacts disclosure required")
-    )
+    is_impact_needed = models.BooleanField(default=False, verbose_name=_("Impacts disclosure required"))
 
     submission_email = models.ForeignKey(
         Email,
@@ -322,16 +305,10 @@ class SectorRegulation(TranslatableModel):
         on_delete=models.CASCADE,
         verbose_name=_("Regulator"),
     )
-    workflows = models.ManyToManyField(
-        Workflow, through="SectorRegulationWorkflow", verbose_name=_("Incident reports")
-    )
+    workflows = models.ManyToManyField(Workflow, through="SectorRegulationWorkflow", verbose_name=_("Incident reports"))
 
-    sectors = models.ManyToManyField(
-        "governanceplatform.Sector", verbose_name=_("Sectors"), default=None, blank=True
-    )
-    is_detection_date_needed = models.BooleanField(
-        default=False, verbose_name=_("Incident detection date required")
-    )
+    sectors = models.ManyToManyField("governanceplatform.Sector", verbose_name=_("Sectors"), default=None, blank=True)
+    is_detection_date_needed = models.BooleanField(default=False, verbose_name=_("Incident detection date required"))
     # email
     opening_email = models.ForeignKey(
         Email,
@@ -372,19 +349,11 @@ class SectorRegulation(TranslatableModel):
 
 # link between sector regulation and workflows
 class SectorRegulationWorkflow(models.Model):
-    sector_regulation = models.ForeignKey(
-        SectorRegulation, verbose_name=_("Workflow"), on_delete=models.CASCADE
-    )
-    workflow = models.ForeignKey(
-        Workflow, verbose_name=_("Incident report"), on_delete=models.CASCADE
-    )
-    position = models.IntegerField(
-        verbose_name=_("Position"), blank=True, default=0, null=True
-    )
+    sector_regulation = models.ForeignKey(SectorRegulation, verbose_name=_("Workflow"), on_delete=models.CASCADE)
+    workflow = models.ForeignKey(Workflow, verbose_name=_("Incident report"), on_delete=models.CASCADE)
+    position = models.IntegerField(verbose_name=_("Position"), blank=True, default=0, null=True)
     # the delay after the trigger event
-    delay_in_hours_before_deadline = models.IntegerField(
-        verbose_name=_("Deadline in hours"), default=0
-    )
+    delay_in_hours_before_deadline = models.IntegerField(verbose_name=_("Deadline in hours"), default=0)
     trigger_event_before_deadline = models.CharField(
         verbose_name=_("Event triggering deadline"),
         max_length=15,
@@ -392,9 +361,7 @@ class SectorRegulationWorkflow(models.Model):
         blank=False,
         default=SECTOR_REGULATION_WORKFLOW_TRIGGER_EVENT[0][0],
     )
-    emails = models.ManyToManyField(
-        Email, verbose_name=_("Emails"), through="SectorRegulationWorkflowEmail"
-    )
+    emails = models.ManyToManyField(Email, verbose_name=_("Emails"), through="SectorRegulationWorkflowEmail")
 
     class Meta:
         constraints = [
@@ -408,11 +375,7 @@ class SectorRegulationWorkflow(models.Model):
         verbose_name = _("Reports")
 
     def __str__(self):
-        return (
-            self.sector_regulation.name + " : " + self.workflow.name
-            if self.workflow and self.sector_regulation
-            else ""
-        )
+        return self.sector_regulation.name + " : " + self.workflow.name if self.workflow and self.sector_regulation else ""
 
     def get_previous_report(self):
         previous = (
@@ -444,10 +407,7 @@ class SectorRegulationWorkflow(models.Model):
             dt = actual_time - incident.incident_notification_date
 
         # detection date
-        elif (
-            trigger_event == "DETECT_DATE"
-            and incident.incident_detection_date is not None
-        ):
+        elif trigger_event == "DETECT_DATE" and incident.incident_detection_date is not None:
             dt = actual_time - incident.incident_detection_date
 
         # previous incident_workflow
@@ -496,9 +456,7 @@ class SectorRegulationWorkflowEmail(TranslatableModel):
         verbose_name = _("Reminder email")
 
     def __str__(self):
-        headline_translation = self.safe_translation_getter(
-            "headline", any_language=True
-        )
+        headline_translation = self.safe_translation_getter("headline", any_language=True)
         return headline_translation or ""
 
     @admin.display(
@@ -521,9 +479,7 @@ class Incident(models.Model):
     incident_notification_date = models.DateTimeField(default=timezone.now)
     incident_detection_date = models.DateTimeField(blank=True, null=True)
     incident_last_update = models.DateTimeField(blank=True, null=True)
-    company_name = models.CharField(
-        max_length=100, verbose_name=_("Name of the Operator")
-    )
+    company_name = models.CharField(max_length=100, verbose_name=_("Name of the Operator"))
     company = models.ForeignKey(
         "governanceplatform.Company",
         verbose_name=_("Operator"),
@@ -549,46 +505,22 @@ class Incident(models.Model):
         blank=True,
         default=None,
     )
-    contact_lastname = models.CharField(
-        max_length=100, verbose_name=_("Contact last name")
-    )
-    contact_firstname = models.CharField(
-        max_length=100, verbose_name=_("Contact first name")
-    )
-    contact_title = models.CharField(
-        max_length=100, verbose_name=_("Contact job title")
-    )
+    contact_lastname = models.CharField(max_length=100, verbose_name=_("Contact last name"))
+    contact_firstname = models.CharField(max_length=100, verbose_name=_("Contact first name"))
+    contact_title = models.CharField(max_length=100, verbose_name=_("Contact job title"))
     contact_email = models.CharField(max_length=100, verbose_name=_("Contact email"))
-    contact_telephone = models.CharField(
-        max_length=100, verbose_name=_("Contact telephone")
-    )
+    contact_telephone = models.CharField(max_length=100, verbose_name=_("Contact telephone"))
     # technical contact
-    technical_lastname = models.CharField(
-        max_length=100, verbose_name=_("Technical last name")
-    )
-    technical_firstname = models.CharField(
-        max_length=100, verbose_name=_("Technical first name")
-    )
-    technical_title = models.CharField(
-        max_length=100, verbose_name=_("Technical job title")
-    )
-    technical_email = models.CharField(
-        max_length=100, verbose_name=_("Technical email")
-    )
-    technical_telephone = models.CharField(
-        max_length=100, verbose_name=_("Technical telephone")
-    )
+    technical_lastname = models.CharField(max_length=100, verbose_name=_("Technical last name"))
+    technical_firstname = models.CharField(max_length=100, verbose_name=_("Technical first name"))
+    technical_title = models.CharField(max_length=100, verbose_name=_("Technical job title"))
+    technical_email = models.CharField(max_length=100, verbose_name=_("Technical email"))
+    technical_telephone = models.CharField(max_length=100, verbose_name=_("Technical telephone"))
 
-    incident_reference = models.CharField(
-        verbose_name=_("Internal incident reference"), max_length=255
-    )
-    complaint_reference = models.CharField(
-        verbose_name=_("Criminal complaint file number"), max_length=255
-    )
+    incident_reference = models.CharField(verbose_name=_("Internal incident reference"), max_length=255)
+    complaint_reference = models.CharField(verbose_name=_("Criminal complaint file number"), max_length=255)
 
-    affected_services = models.ManyToManyField(
-        "governanceplatform.Service", verbose_name=_("Impacted service")
-    )
+    affected_services = models.ManyToManyField("governanceplatform.Service", verbose_name=_("Impacted service"))
     sector_regulation = models.ForeignKey(
         SectorRegulation,
         verbose_name=_("Workflow"),
@@ -598,20 +530,14 @@ class Incident(models.Model):
         default=None,
     )
     # keep a trace of selected sectors
-    affected_sectors = models.ManyToManyField(
-        "governanceplatform.Sector", verbose_name=_("Impacted sectors")
-    )
-    workflows = models.ManyToManyField(
-        Workflow, through="IncidentWorkflow", verbose_name=_("Incident reports")
-    )
+    affected_sectors = models.ManyToManyField("governanceplatform.Sector", verbose_name=_("Impacted sectors"))
+    workflows = models.ManyToManyField(Workflow, through="IncidentWorkflow", verbose_name=_("Incident reports"))
     impacts = models.ManyToManyField(
         Impact,
         verbose_name=_("Impacts"),
         default=None,
     )
-    is_significative_impact = models.BooleanField(
-        default=False, verbose_name=_("Significant impact")
-    )
+    is_significative_impact = models.BooleanField(default=False, verbose_name=_("Significant impact"))
 
     # notification dispatching
     authorities = models.ManyToManyField(
@@ -697,17 +623,11 @@ class Incident(models.Model):
         return impacts.count() > 0
 
     def get_all_workflows(self):
-        workflows = self.sector_regulation.workflows.all().order_by(
-            "sectorregulationworkflow__position"
-        )
+        workflows = self.sector_regulation.workflows.all().order_by("sectorregulationworkflow__position")
         return list(workflows)
 
     def get_workflows_completed(self):
-        workflows = (
-            self.incidentworkflow_set.all()
-            .order_by("workflow__sectorregulationworkflow__position", "-timestamp")
-            .distinct()
-        )
+        workflows = self.incidentworkflow_set.all().order_by("workflow__sectorregulationworkflow__position", "-timestamp").distinct()
         return workflows
 
     def get_latest_incident_workflows(self, timestamp_order="-timestamp"):
@@ -842,19 +762,12 @@ class Incident(models.Model):
             return None
         else:
             deadline = None
-            if (
-                next_srw.trigger_event_before_deadline is not None
-                and next_srw.delay_in_hours_before_deadline is not None
-            ):
+            if next_srw.trigger_event_before_deadline is not None and next_srw.delay_in_hours_before_deadline is not None:
                 if next_srw.trigger_event_before_deadline == "DETECT_DATE":
                     if self.incident_detection_date is not None:
-                        deadline = self.incident_detection_date + timedelta(
-                            hours=next_srw.delay_in_hours_before_deadline
-                        )
+                        deadline = self.incident_detection_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
                 elif next_srw.trigger_event_before_deadline == "NOTIF_DATE":
-                    deadline = self.incident_notification_date + timedelta(
-                        hours=next_srw.delay_in_hours_before_deadline
-                    )
+                    deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
                 elif next_srw.trigger_event_before_deadline == "PREV_WORK":
                     previous_workflow = self.get_previous_workflow(next_srw.workflow)
                     if previous_workflow:
@@ -865,9 +778,7 @@ class Incident(models.Model):
                             .first()
                         )
                         if previous_incident_workflow is not None:
-                            deadline = previous_incident_workflow.timestamp + timedelta(
-                                hours=next_srw.delay_in_hours_before_deadline
-                            )
+                            deadline = previous_incident_workflow.timestamp + timedelta(hours=next_srw.delay_in_hours_before_deadline)
             return deadline
 
     @property
@@ -892,15 +803,9 @@ class Incident(models.Model):
 
 
 class ReportTimeline(models.Model):
-    incident_detection_date = models.DateTimeField(
-        blank=True, null=True, verbose_name=_("Incident detection date")
-    )
-    incident_starting_date = models.DateTimeField(
-        blank=True, null=True, verbose_name=_("Incident starting date")
-    )
-    incident_resolution_date = models.DateTimeField(
-        blank=True, null=True, verbose_name=_("Incident resolution date")
-    )
+    incident_detection_date = models.DateTimeField(blank=True, null=True, verbose_name=_("Incident detection date"))
+    incident_starting_date = models.DateTimeField(blank=True, null=True, verbose_name=_("Incident starting date"))
+    incident_resolution_date = models.DateTimeField(blank=True, null=True, verbose_name=_("Incident resolution date"))
     report_timeline_timezone = models.CharField(
         max_length=50,
         choices=[(tz, tz) for tz in pytz.all_timezones],
@@ -911,9 +816,7 @@ class ReportTimeline(models.Model):
 
 # link between incident and workflow
 class IncidentWorkflow(models.Model):
-    incident = models.ForeignKey(
-        Incident, on_delete=models.CASCADE, verbose_name=_("Incident")
-    )
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE, verbose_name=_("Incident"))
     workflow = models.ForeignKey(
         Workflow,
         on_delete=models.SET_NULL,
@@ -934,9 +837,7 @@ class IncidentWorkflow(models.Model):
         verbose_name=_("Impacts"),
         default=None,
     )
-    comment = models.TextField(
-        verbose_name=_("Comment/Explanation"), null=True, blank=True
-    )
+    comment = models.TextField(verbose_name=_("Comment/Explanation"), null=True, blank=True)
     report_timeline = models.ForeignKey(
         ReportTimeline,
         on_delete=models.SET_NULL,
@@ -1094,9 +995,7 @@ class QuestionOptionsHistory(models.Model):
 
 
 class QuestionOptions(models.Model):
-    report = models.ForeignKey(
-        Workflow, on_delete=models.CASCADE, null=True, blank=True
-    )
+    report = models.ForeignKey(Workflow, on_delete=models.CASCADE, null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     position = models.IntegerField(verbose_name=_("Position"))
@@ -1105,13 +1004,9 @@ class QuestionOptions(models.Model):
         on_delete=models.PROTECT,
     )
     # creation date by default before the creation of app
-    updated_at = models.DateTimeField(
-        verbose_name=_("Updated at"), default=timezone.make_aware(datetime(2000, 1, 1))
-    )
+    updated_at = models.DateTimeField(verbose_name=_("Updated at"), default=timezone.make_aware(datetime(2000, 1, 1)))
     historic = models.ManyToManyField(QuestionOptionsHistory, blank=True)
-    deleted_date = models.DateTimeField(
-        verbose_name=_("Deleted date"), default=None, blank=True, null=True
-    )
+    deleted_date = models.DateTimeField(verbose_name=_("Deleted date"), default=None, blank=True, null=True)
 
     def is_deleted(self):
         if self.deleted_date is not None:
@@ -1182,7 +1077,5 @@ class Answer(models.Model):
 class RTTicket(models.Model):
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE)
     ticket_id = models.CharField(max_length=50)
-    observer = models.ForeignKey(
-        "governanceplatform.Observer", on_delete=models.CASCADE
-    )
+    observer = models.ForeignKey("governanceplatform.Observer", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

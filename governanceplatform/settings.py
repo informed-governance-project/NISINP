@@ -14,10 +14,10 @@ import os
 
 DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
-    import governanceplatform.config as config  # type: ignore
+    import governanceplatform.config as config
 except ModuleNotFoundError as exc:  # pragma: no cover
     if DJANGO_CI:
-        import governanceplatform.config_dev as config  # type: ignore
+        import governanceplatform.config_dev as config
     else:
         raise ImportError("The configuration file cannot be found") from exc
 
@@ -71,9 +71,7 @@ try:
 
     COOKIEBANNER = config.COOKIEBANNER
 
-    MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = (
-        config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
-    )
+    MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER = config.MAX_PRELIMINARY_NOTIFICATION_PER_DAY_PER_USER
     try:
         LOG_RETENTION_TIME_IN_DAY = config.LOG_RETENTION_TIME_IN_DAY
     except AttributeError:
@@ -563,9 +561,7 @@ except AttributeError:
     RT_SECRET_KEY = HASH_KEY
 
 try:
-    DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = (
-        config.DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT
-    )
+    DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = config.DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT
 except AttributeError:
     DAY_BEFORE_DELETING_INC_USER_WITHOUT_INCIDENT = 90
 
