@@ -43,7 +43,6 @@ jobs:
             --local \
             --format cyclonedx-json \
             --output pip-audit-results.json
-        continue-on-error: true
 
       # Django's own system check framework — catches misconfigurations
       - name: Run Django system checks
