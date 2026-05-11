@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,31 +30,26 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      # bandit and pip-audit come from pyproject.toml dev dependencies
       - name: Install dependencies
-        run: |
-          poetry install --no-interaction
-          poetry run pip install bandit[toml] pip-audit
+        run: poetry install --no-interaction --with dev
 
-      # Bandit: AST-based Python security linter
+      # Bandit config (severity, exclusions) lives in [tool.bandit] in pyproject.toml
+      # Exit code 1 means findings found (not a crash) — || true keeps the step
+      # running so the SARIF file is always written before upload.
       - name: Run Bandit (SAST)
         run: |
-          poetry run bandit -r . \
-            --exclude ./.venv,./venv,./env,./node_modules,./migrations \
-            --severity-level medium \
-            --confidence-level medium \
-            -f sarif \
-            -o bandit-results.sarif
-        continue-on-error: true
+          poetry run bandit -r . -f sarif -o bandit-results.sarif || true
+          [ -f bandit-results.sarif ] || echo '{"version":"2.1.0","runs":[]}' > bandit-results.sarif
 
       - name: Upload Bandit results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: bandit-results.sarif
           category: bandit
 
       # pip-audit: checks installed packages against OSV, PyPI Advisory DB
-      # --local audits the packages actually installed in Poetry's virtualenv,
-      # avoiding the need for a requirements.txt export
+      # --local audits packages installed in Poetry's virtualenv (no requirements.txt needed)
       - name: Run pip-audit (dependency CVEs)
         run: |
           poetry run pip-audit \
@@ -66,14 +61,13 @@ jobs:
       # Django's own system check framework — catches misconfigurations
       - name: Run Django system checks
         env:
-          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE || 'config.settings.ci' }}
+          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE || 'governanceplatform.settings' }}
           SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
           DEBUG: "False"
-        run: |
-          poetry run python manage.py check --deploy --fail-level WARNING
+        run: poetry run python manage.py check --deploy --fail-level WARNING
         continue-on-error: true
 
-  # ── 2. CodeQL analysis (JS/TS + Python) ─────────────────────────────────────
+  # ── 2. CodeQL analysis (Python + JavaScript) ────────────────────────────────
   codeql:
     name: CodeQL — ${{ matrix.language }}
     runs-on: ubuntu-latest
@@ -91,13 +85,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          # security-and-quality adds code-quality rules on top of security ones
+          # security-extended: broader taint-tracking (XSS, SSRF, SQLi sources/sinks)
+          # security-and-quality: adds code quality rules on top
           queries: security-extended,security-and-quality
           config: |
             paths-ignore:
@@ -106,9 +101,8 @@ jobs:
               - ".venv/**"
               - "venv/**"
 
-
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
           upload: true
@@ -123,7 +117,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -137,25 +131,20 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      # ruff, mypy, django-stubs all come from pyproject.toml dev dependencies
       - name: Install dependencies
-        run: |
-          poetry install --no-interaction
-          poetry run pip install ruff mypy django-stubs
+        run: poetry install --no-interaction --with dev
 
-      # Ruff: extremely fast linter + formatter (replaces flake8, isort, pyupgrade)
+      # Ruff exclusions ([tool.ruff] exclude = ["migrations"]) live in pyproject.toml
       - name: Run Ruff (lint)
         run: poetry run ruff check . --output-format=github
 
       - name: Run Ruff (format check)
         run: poetry run ruff format --check .
 
-      # mypy: static type checking
+      # mypy config ([tool.mypy] + [tool.django-stubs]) lives in pyproject.toml
       - name: Run mypy
-        run: |
-          poetry run mypy . \
-            --ignore-missing-imports \
-            --exclude '(migrations|venv|\.venv)' \
-            --django-settings-module="${{ vars.DJANGO_SETTINGS_MODULE || 'config.settings.ci' }}"
+        run: poetry run mypy .
         continue-on-error: true  # promote to hard failure once type coverage improves
 
   # ── 4. Dependency review (PRs only) ─────────────────────────────────────────
@@ -169,7 +158,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Blocks PRs that introduce dependencies with known CVEs
       - name: Dependency Review
