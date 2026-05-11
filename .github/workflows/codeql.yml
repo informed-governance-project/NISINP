@@ -52,7 +52,7 @@ jobs:
           SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
           DEBUG: "False"
           DJANGO_CI: "True"
-         run: |
+        run: |
           poetry run python manage.py check --deploy \
             --fail-level ERROR \
             --silenced-system-checks security.W008 security.W012 security.W016 staticfiles.W004
