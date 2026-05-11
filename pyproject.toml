@@ -98,7 +98,6 @@ warn_unreachable = true
 show_error_context = true
 pretty = true
 plugins = ["mypy_django_plugin.main"]
-disable_error_code = ["django-manager-missing"]
 exclude = [
     "migrations/",
     "theme/",
@@ -108,6 +107,7 @@ exclude = [
 ]
 
 [tool.django-stubs]
+strict_settings = false
 django_settings_module = "governanceplatform.settings"
 
 [tool.ruff]
