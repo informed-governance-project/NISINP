@@ -67,6 +67,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE || 'governanceplatform.settings' }}
           SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
           DEBUG: "False"
+          DJANGO_CI: "True"
         run: poetry run python manage.py check --deploy --fail-level WARNING
         continue-on-error: true
 
