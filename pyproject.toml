@@ -106,9 +106,13 @@ django_settings_module = "governanceplatform.settings"
 [tool.ruff]
 exclude = ["migrations"]
 target-version = "py312"
+line-length = 140
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP"]
+select = ["E", "F", "W", "I", "UP", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 36
 
 [tool.bandit]
 exclude_dirs = [".venv", "venv", "env", "node_modules", "migrations", "tests"]
