@@ -106,12 +106,7 @@ def test_roles_addition_rights(otp_client, populate_db):
             authorized_users = [u for u in users if user_in_group(u, "RegulatorAdmin")]
             test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "company":
-            authorized_users = [
-                u
-                for u in users
-                if user_in_group(u, "RegulatorUser")
-                or user_in_group(u, "RegulatorAdmin")
-            ]
+            authorized_users = [u for u in users if user_in_group(u, "RegulatorUser") or user_in_group(u, "RegulatorAdmin")]
             test_get_with_otp(otp_client, users, authorized_users, [], url)
         elif u == "user":
             authorized_users = [
@@ -132,7 +127,6 @@ def test_superuser_restricted_access(otp_client, populate_db):
     Verify that a superuser cannot access the platform
     """
     users = populate_db["users"]
-    u = users[0]
     for u in users:
         u.is_superuser = True
         u.save()

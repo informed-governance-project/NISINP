@@ -102,10 +102,9 @@ Almost all domain models inherit from `parler.models.TranslatableModel` with a `
 ```python
 from parler.models import TranslatableModel, TranslatedFields
 
+
 class MyModel(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(max_length=100)
-    )
+    translations = TranslatedFields(name=models.CharField(max_length=100))
 ```
 
 When writing fixtures or test data, always call `obj.set_current_language("en")` before setting translated fields. The `import_from_json` helper in `conftest.py` handles this automatically.
