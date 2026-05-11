@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -107,7 +107,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -151,7 +151,7 @@ jobs:
 
       # Blocks PRs that introduce dependencies with known CVEs
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
