@@ -474,7 +474,7 @@ def render_to_string_multi_languages(
                 context["content"] = sanitize_html(context["content"])
             rendered = render_to_string(template_name, context)
 
-            if rendered == baseline and lang_code not in settings.LANGUAGE_CODE:
+            if rendered == baseline and lang_code != settings.LANGUAGE_CODE:
                 continue
 
             parts.append(
