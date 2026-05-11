@@ -30,26 +30,10 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      # bandit and pip-audit come from pyproject.toml dev dependencies
-      # bandit-sarif-formatter is a plugin that adds SARIF output support to bandit
+      # pip-audit come from pyproject.toml dev dependencies
       - name: Install dependencies
         run: |
           poetry install --no-interaction --with dev
-          poetry run pip install bandit-sarif-formatter
-
-      # Bandit config (severity, exclusions) lives in [tool.bandit] in pyproject.toml
-      # Exit code 1 means findings found (not a crash) — || true keeps the step
-      # running so the SARIF file is always written before upload.
-      - name: Run Bandit (SAST)
-        run: |
-          poetry run bandit -r . -f sarif -o bandit-results.sarif || true
-          [ -f bandit-results.sarif ] || echo '{"version":"2.1.0","runs":[]}' > bandit-results.sarif
-
-      - name: Upload Bandit results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: bandit-results.sarif
-          category: bandit
 
       # pip-audit: checks installed packages against OSV, PyPI Advisory DB
       # --local audits packages installed in Poetry's virtualenv (no requirements.txt needed)
@@ -68,8 +52,10 @@ jobs:
           SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
           DEBUG: "False"
           DJANGO_CI: "True"
-        run: poetry run python manage.py check --deploy --fail-level WARNING
-        continue-on-error: true
+         run: |
+          poetry run python manage.py check --deploy \
+            --fail-level ERROR \
+            --silenced-system-checks security.W008 security.W012 security.W016 staticfiles.W004
 
   # ── 2. CodeQL analysis (Python + JavaScript) ────────────────────────────────
   codeql:

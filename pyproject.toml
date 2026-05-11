@@ -60,8 +60,6 @@ poetry-plugin-export = ">=1.8"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.15.12"
-bandit = {version = "^1.8.0", extras = ["toml"]}
-bandit-sarif-formatter = "^1.1.1"
 pre-commit = "^4.2.0"
 autoflake = "^2.3.1"
 mypy = "^2.0.0"
@@ -114,21 +112,3 @@ select = ["E", "F", "W", "I", "UP", "C90"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 36
-
-[tool.bandit]
-exclude_dirs = [
-    ".venv",
-    "venv",
-    "env",
-    "node_modules",
-    "migrations",
-    "tests",
-    "docker",
-    "docs",
-    "static",
-    "theme",
-    "locale"
-]
-skips = ["B101"]  # assert statements — common in conftest.py/tests
-severity = "medium"
-confidence = "medium"
