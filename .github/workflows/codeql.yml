@@ -52,7 +52,6 @@ jobs:
           SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
           DEBUG: "False"
           DJANGO_CI: "True"
-          DJANGO_SILENCED_SYSTEM_CHECKS: "security.W008,security.W012,security.W016,staticfiles.W004"
         run: poetry run python manage.py check --deploy --fail-level ERROR
 
   # ── 2. CodeQL analysis (Python + JavaScript) ────────────────────────────────
