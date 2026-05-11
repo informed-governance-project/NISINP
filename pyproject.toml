@@ -116,6 +116,19 @@ select = ["E", "F", "W", "I", "UP", "C90"]
 max-complexity = 36
 
 [tool.bandit]
-exclude_dirs = [".venv", "venv", "env", "node_modules", "migrations", "tests"]
+exclude_dirs = [
+    ".venv",
+    "venv",
+    "env",
+    "node_modules",
+    "migrations",
+    "tests",
+    "docker",
+    "docs",
+    "static",
+    "theme",
+    "locale"
+]
+skips = ["B101"]  # assert statements — common in conftest.py/tests
 severity = "medium"
 confidence = "medium"
