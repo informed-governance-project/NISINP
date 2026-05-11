@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0  # keep in sync with ruff version in pyproject.toml
+    rev: v0.15.12  # keep in sync with ruff version in pyproject.toml
     hooks:
       - id: ruff
         args: [--fix, --output-format=full]
