@@ -14,10 +14,10 @@ import os
 
 DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
-    import governanceplatform.config as config  # type: ignore
+    import governanceplatform.config as config
 except ModuleNotFoundError as exc:  # pragma: no cover
     if DJANGO_CI:
-        import governanceplatform.config_dev as config  # type: ignore
+        import governanceplatform.config_dev as config
     else:
         raise ImportError("The configuration file cannot be found") from exc
 
