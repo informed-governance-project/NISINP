@@ -98,6 +98,13 @@ warn_unreachable = true
 show_error_context = true
 pretty = true
 plugins = ["mypy_django_plugin.main"]
+exclude = [
+    "migrations/",
+    "theme/",
+    "docker/",
+    "docs/",
+    "node_modules/",
+]
 
 [tool.django-stubs]
 django_settings_module = "governanceplatform.settings"
