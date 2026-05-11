@@ -132,6 +132,8 @@ jobs:
 
       # mypy config ([tool.mypy] + [tool.django-stubs]) lives in pyproject.toml
       - name: Run mypy
+        env:
+          DJANGO_CI: "True"
         run: poetry run mypy .
         continue-on-error: true  # promote to hard failure once type coverage improves
 
