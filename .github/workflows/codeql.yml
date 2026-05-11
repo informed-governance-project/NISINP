@@ -1,30 +1,83 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
-name: "CodeQL"
+name: "CodeQL Security & Quality"
 
 on:
   push:
   pull_request:
 
 jobs:
-  analyze:
-    name: Analyze
-    # Runner size impacts CodeQL analysis time. To learn more, please see:
-    #   - https://gh.io/recommended-hardware-resources-for-running-codeql
-    #   - https://gh.io/supported-runners-and-hardware-resources
-    #   - https://gh.io/using-larger-runners
-    # Consider using larger runners for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
-    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+  # ── 1. Django-specific security linting ─────────────────────────────────────
+  django-security:
+    name: Django Security Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
+          poetry run pip install bandit[toml] pip-audit
+
+      # Bandit: AST-based Python security linter
+      - name: Run Bandit (SAST)
+        run: |
+          poetry run bandit -r . \
+            --exclude ./.venv,./venv,./env,./node_modules,./migrations \
+            --severity-level medium \
+            --confidence-level medium \
+            -f sarif \
+            -o bandit-results.sarif
+        continue-on-error: true
+
+      - name: Upload Bandit results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+      # pip-audit: checks installed packages against OSV, PyPI Advisory DB
+      # --local audits the packages actually installed in Poetry's virtualenv,
+      # avoiding the need for a requirements.txt export
+      - name: Run pip-audit (dependency CVEs)
+        run: |
+          poetry run pip-audit \
+            --local \
+            --format cyclonedx-json \
+            --output pip-audit-results.json
+        continue-on-error: true
+
+      # Django's own system check framework — catches misconfigurations
+      - name: Run Django system checks
+        env:
+          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE || 'config.settings.ci' }}
+          SECRET_KEY: "ci-insecure-placeholder-key-not-used-in-production"
+          DEBUG: "False"
+        run: |
+          poetry run python manage.py check --deploy --fail-level WARNING
+        continue-on-error: true
+
+  # ── 2. CodeQL analysis (JS/TS + Python) ─────────────────────────────────────
+  codeql:
+    name: CodeQL — ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       actions: read
       contents: read
@@ -33,45 +86,94 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'python' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift' ]
-        # Use only 'java' to analyze code written in Java, Kotlin or both
-        # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
-        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+        language: [ "python", "javascript" ]
+        # Remove 'javascript' if you have no JS/TS frontend in this repo
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # security-and-quality adds code-quality rules on top of security ones
+          queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - "*/migrations/*"
+              - "*/tests/*"
+              - ".venv/**"
+              - "venv/**"
 
-        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
 
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: true
 
-    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+  # ── 3. Code quality ──────────────────────────────────────────────────────────
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    #   If the Autobuild fails above, remove it and uncomment the following three lines.
-    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
 
-    # - run: |
-    #     echo "Run, Build Application using script"
-    #     ./location_of_script_within_repo/buildscript.sh
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
+          poetry run pip install ruff mypy django-stubs
+
+      # Ruff: extremely fast linter + formatter (replaces flake8, isort, pyupgrade)
+      - name: Run Ruff (lint)
+        run: poetry run ruff check . --output-format=github
+
+      - name: Run Ruff (format check)
+        run: poetry run ruff format --check .
+
+      # mypy: static type checking
+      - name: Run mypy
+        run: |
+          poetry run mypy . \
+            --ignore-missing-imports \
+            --exclude '(migrations|venv|\.venv)' \
+            --django-settings-module="${{ vars.DJANGO_SETTINGS_MODULE || 'config.settings.ci' }}"
+        continue-on-error: true  # promote to hard failure once type coverage improves
+
+  # ── 4. Dependency review (PRs only) ─────────────────────────────────────────
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Blocks PRs that introduce dependencies with known CVEs
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: always
