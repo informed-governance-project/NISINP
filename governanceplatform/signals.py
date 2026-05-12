@@ -30,13 +30,12 @@ _thread_locals.deleting_users = set()
 
 @receiver(pre_save, sender=User)
 def save_old_password(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            user = User.objects.get(pk=instance.pk)
-            if user.password != instance.password:
-                PasswordUserHistory.objects.create(user=user, hashed_password=user.password)
-        except User.DoesNotExist:
-            pass
+    if not instance.pk:
+        return
+    old_password = sender.objects.filter(pk=instance.pk).values_list("password", flat=True).first()
+
+    if old_password and old_password != instance.password:
+        PasswordUserHistory.objects.create(user=instance, hashed_password=old_password)
 
 
 # Add logs for user connection
