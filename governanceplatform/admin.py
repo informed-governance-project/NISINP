@@ -219,22 +219,6 @@ class SectorAdmin(CustomTranslatableAdmin):
 for name, method in generate_display_methods(["name"]).items():
     setattr(SectorAdmin, name, method)
 
-# @admin.register(Service, site=admin_site)
-# class ServiceAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
-#     list_display = ["acronym", "name", "get_sector_name", "get_subsector_name"]
-#     list_display_links = ["acronym", "name"]
-#     search_fields = ["translations__name"]
-#     fields = ("name", "acronym", "sector")
-#     ordering = ["sector"]
-
-#     @admin.display(description="Sector")
-#     def get_sector_name(self, obj):
-#         return obj.sector.name if not obj.sector.parent else obj.sector.parent
-
-#     @admin.display(description="Sub-sector")
-#     def get_subsector_name(self, obj):
-#         return obj.sector.name if obj.sector.parent else None
-
 
 @admin.register(EntityCategory, site=admin_site)
 class EntityCategoryAdmin(CustomTranslatableAdmin):
@@ -1206,13 +1190,6 @@ class FunctionalityAdmin(CustomTranslatableAdmin):
 
 for name, method in generate_display_methods(["name"]).items():
     setattr(FunctionalityAdmin, name, method)
-
-# @admin.register(OperatorType, site=admin_site)
-# class OperatorTypeAdmin(ImportExportModelAdmin, CustomTranslatableAdmin):
-#     list_display = ["type"]
-#     search_fields = ["translations__type"]
-#     fields = ("type", "functionalities")
-#     filter_horizontal = ["functionalities"]
 
 
 @admin.register(Regulator, site=admin_site)

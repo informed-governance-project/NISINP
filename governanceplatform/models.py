@@ -344,55 +344,6 @@ class Observer(TranslatableModel):
 
         return base_qs.filter(final_q).distinct()
 
-    # def get_incidents(self):
-    #     if self.is_receiving_all_incident:
-    #         return (
-    #             Incident.objects.all()
-    #             .exclude(sector_regulation__isnull=True)
-    #         )
-
-    #     observer_regulations = self.observerregulation_set.all()
-
-    #     if not observer_regulations:
-    #         return Incident.objects.none()
-
-    #     querysets = []
-    #     for observer_regulation in observer_regulations:
-    #         filter_conditions = observer_regulation.incident_rule
-    #         regulation = observer_regulation.regulation
-    #         query = Incident.objects.filter(
-    #             sector_regulation__regulation=regulation
-    #         ).exclude(sector_regulation__isnull=True)
-    #         conditions = filter_conditions.get("conditions", [])
-    #         if conditions:
-    #             for condition in conditions:
-    #                 include_entity_categories = condition.get("include", [])
-    #                 exclude_entity_categories = condition.get("exclude", [])
-    #                 query_filtered = query
-    #                 if include_entity_categories:
-    #                     for entity_category_code in include_entity_categories:
-    #                         query_filtered = query_filtered.filter(
-    #                             company__entity_categories__code=entity_category_code
-    #                         )
-
-    #                 if exclude_entity_categories:
-    #                     for entity_category_code in exclude_entity_categories:
-    #                         query_filtered = query_filtered.exclude(
-    #                             company__entity_categories__code=entity_category_code
-    #                         )
-    #                 querysets.append(query_filtered)
-    #         else:
-    #             querysets.append(query)
-
-    #     if querysets:
-    #         combined_queryset = querysets[0]
-    #         for qs in querysets[1:]:
-    #             combined_queryset = combined_queryset.union(qs)
-    #     else:
-    #         combined_queryset = Incident.objects.none()
-
-    #     return combined_queryset
-
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
             return True

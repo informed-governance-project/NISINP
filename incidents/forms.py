@@ -748,16 +748,6 @@ class ImpactForm(forms.Form):
                     ]
                 )
 
-        # Not needed anymore : just keep in case
-        # impacts_without_sector = Impact.objects.all().filter(
-        #     regulation=incident.sector_regulation.regulation, sectors=None
-        # )
-        # if impacts_without_sector.count() > 0:
-        #     subgroup = []
-        #     for impact in impacts_without_sector:
-        #         subgroup.append([impact.id, impact.label])
-        #     impacts_array.append(['others', subgroup])
-
         return impacts_array
 
     def __init__(self, *args, **kwargs):
