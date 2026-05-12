@@ -1556,8 +1556,8 @@ def save_answers(data=None, incident=None, workflow=None, report_timeline=None):
         question_id = None
         try:
             question_id = int(key)
-        except Exception:
-            pass
+        except (ValueError, TypeError):
+            continue
         if question_id:
             predefined_answers = []
             question_option = QuestionOptions.objects.get(pk=key)
