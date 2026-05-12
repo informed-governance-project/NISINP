@@ -915,6 +915,7 @@ class IncidentWorkflow(models.Model):
 
         if dt and dt.total_seconds() / 60 / 60 >= delay_in_hours:
             return True
+        return False
 
     def save(self, *args, **kwargs):
         if self.is_late() and self.review_status == WORKFLOW_REVIEW_STATUS[0][0]:
