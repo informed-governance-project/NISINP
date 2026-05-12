@@ -284,7 +284,7 @@ class CompanyUserInline(admin.TabularInline):
                     .order_by("email")
                 )
 
-            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
@@ -563,8 +563,7 @@ class userRegulatorInline(admin.TabularInline):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return qs.filter(is_regulator_administrator=True)
-        else:
-            return qs
+        return qs
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "sectors":
@@ -1264,8 +1263,7 @@ class ObserverUserInline(admin.TabularInline):
         # Platform Admin
         if user_in_group(user, "PlatformAdmin"):
             return qs.filter(is_observer_administrator=True)
-        else:
-            return qs
+        return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":

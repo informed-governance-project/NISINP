@@ -367,7 +367,7 @@ def annotate_translated_field_from_related_models(
     lang_key = f"_{translated_field}_lang"
     default_key = f"_{translated_field}_default"
 
-    qs = qs.annotate(
+    return qs.annotate(
         **{
             lang_key: Max(
                 f"{relation_path}__translations__{translated_field}",
@@ -387,8 +387,6 @@ def annotate_translated_field_from_related_models(
             )
         }
     )
-
-    return qs
 
 
 def generate_display_methods(translated_fields, related_fields=None):

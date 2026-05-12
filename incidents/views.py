@@ -342,14 +342,13 @@ def create_workflow(request):
     if not can_create_incident_report(user, incident, company_id):
         messages.error(request, _("Forbidden"))
         return redirect("incidents")
-    else:
-        form_list = get_forms_list(incident=incident)
-        request.incident = incident_id
-        request.workflow = workflow
-        request.incident_workflow = None
-        return WorkflowWizardView.as_view(
-            form_list,
-        )(request)
+    form_list = get_forms_list(incident=incident)
+    request.incident = incident_id
+    request.workflow = workflow
+    request.incident_workflow = None
+    return WorkflowWizardView.as_view(
+        form_list,
+    )(request)
 
 
 @login_required
@@ -388,9 +387,8 @@ def review_workflow(request):
             form_list,
             read_only=True,
         )(request)
-    else:
-        messages.error(request, _("Forbidden"))
-        return redirect("incidents")
+    messages.error(request, _("Forbidden"))
+    return redirect("incidents")
 
 
 @login_required
@@ -406,7 +404,7 @@ def edit_workflow(request):
     if not workflow_id and not incident_id and not incident_workflow_id:
         messages.error(request, _("No incident report could be found."))
         return redirect("incidents")
-    elif workflow_id and incident_id:
+    if workflow_id and incident_id:
         incident = Incident.objects.filter(pk=incident_id).first()
         workflow = Workflow.objects.filter(id=workflow_id).first()
         if not workflow:
@@ -456,7 +454,7 @@ def edit_workflow(request):
             return WorkflowWizardView.as_view(
                 form_list,
             )(request)
-    elif incident_workflow and can_edit_incident_report(user, incident_workflow.incident, company_id):
+    if incident_workflow and can_edit_incident_report(user, incident_workflow.incident, company_id):
         is_regulator_incident = (
             True if incident_workflow.incident.regulator == user.regulators.first() and is_regulator_incidents else False
         )
@@ -473,9 +471,9 @@ def edit_workflow(request):
         return WorkflowWizardView.as_view(
             form_list,
         )(request)
-    else:
-        messages.error(request, _("Forbidden"))
-        return redirect("incidents")
+
+    messages.error(request, _("Forbidden"))
+    return redirect("incidents")
 
 
 @login_required
@@ -962,13 +960,12 @@ def export_incidents(request):
 
             return response
 
-    else:
-        form = ExportIncidentsForm(
-            regulation_qs=regulation_qs,
-            sectorregulation_qs=sectorregulation_qs,
-            workflow_qs=workflow_qs,
-        )
-        return render(request, "modals/export_incidents.html", {"form": form})
+    form = ExportIncidentsForm(
+        regulation_qs=regulation_qs,
+        sectorregulation_qs=sectorregulation_qs,
+        workflow_qs=workflow_qs,
+    )
+    return render(request, "modals/export_incidents.html", {"form": form})
 
 
 def group_keys_by_index(keys, length_fixed_values):

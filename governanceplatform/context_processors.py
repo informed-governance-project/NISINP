@@ -37,12 +37,10 @@ def get_version(request):
 
 
 def instance_configurations(request):
-    configurations = {
+    return {
         "regulator": REGULATOR_CONTACT,
         "cookiebanner": COOKIEBANNER,
     }
-
-    return configurations
 
 
 def user_modules(request):

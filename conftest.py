@@ -84,14 +84,12 @@ def list_admin_add_urls(module_name: str):
     get the 'add/' road of the given module.
     """
     all_urls = list_urls(get_resolver().url_patterns)
-    filtered = [url for url in all_urls if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")]
-    return filtered
+    return [url for url in all_urls if url.startswith(f"admin/{module_name}/") and url.endswith("/add/")]
 
 
 def list_url_freetext_filter(freetext="", exclude=""):
     all_urls = list_urls(get_resolver().url_patterns)
-    filtered = [url for url in all_urls if url.find(freetext) != -1 and url.find(exclude) == -1]
-    return filtered
+    return [url for url in all_urls if url.find(freetext) != -1 and url.find(exclude) == -1]
 
 
 def test_get_with_otp(otp_client, users=None, authorized_users=None, module_unaccess_user=None, url=""):

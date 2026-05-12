@@ -630,8 +630,7 @@ class EmailTypeListFilter(SimpleListFilter):
             emails_ids = SectorRegulation.objects.values_list("report_status_changed_email__id", flat=True)
         if emails_ids is None:
             return queryset
-        else:
-            return queryset.filter(pk__in=emails_ids)
+        return queryset.filter(pk__in=emails_ids)
 
 
 @admin.register(Email, site=admin_site)

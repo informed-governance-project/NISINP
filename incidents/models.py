@@ -591,8 +591,7 @@ class Incident(models.Model):
         )
         if len(regulation) > 0:
             return regulation[0]
-        else:
-            return None
+        return None
 
     def get_next_step(self):
         current_workflow = (
@@ -612,8 +611,7 @@ class Incident(models.Model):
         )
         if len(regulation) > 0:
             return regulation[0].workflow
-        else:
-            return None
+        return None
 
     def are_impacts_present(self):
         impacts = Impact.objects.filter(
@@ -627,11 +625,10 @@ class Incident(models.Model):
         return list(workflows)
 
     def get_workflows_completed(self):
-        workflows = self.incidentworkflow_set.all().order_by("workflow__sectorregulationworkflow__position", "-timestamp").distinct()
-        return workflows
+        return self.incidentworkflow_set.all().order_by("workflow__sectorregulationworkflow__position", "-timestamp").distinct()
 
     def get_latest_incident_workflows(self, timestamp_order="-timestamp"):
-        incident_workflows = (
+        return (
             IncidentWorkflow.objects.filter(
                 incident=self,
             )
@@ -639,10 +636,8 @@ class Incident(models.Model):
             .distinct("workflow")
         )
 
-        return incident_workflows
-
     def get_latest_incident_workflow(self):
-        incident_workflow = (
+        return (
             IncidentWorkflow.objects.filter(
                 incident=self,
             )
@@ -650,10 +645,8 @@ class Incident(models.Model):
             .first()
         )
 
-        return incident_workflow
-
     def get_latest_incident_workflow_by_workflow(self, workflow):
-        incident_workflow = (
+        return (
             IncidentWorkflow.objects.filter(
                 incident=self,
                 workflow=workflow,
@@ -661,8 +654,6 @@ class Incident(models.Model):
             .order_by("-timestamp")
             .first()
         )
-
-        return incident_workflow
 
     def get_previous_workflow(self, workflow):
         current = (
@@ -760,26 +751,25 @@ class Incident(models.Model):
         next_srw = self.get_next_sector_regulation_workflow()
         if next_srw is None:
             return None
-        else:
-            deadline = None
-            if next_srw.trigger_event_before_deadline is not None and next_srw.delay_in_hours_before_deadline is not None:
-                if next_srw.trigger_event_before_deadline == "DETECT_DATE":
-                    if self.incident_detection_date is not None:
-                        deadline = self.incident_detection_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
-                elif next_srw.trigger_event_before_deadline == "NOTIF_DATE":
-                    deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
-                elif next_srw.trigger_event_before_deadline == "PREV_WORK":
-                    previous_workflow = self.get_previous_workflow(next_srw.workflow)
-                    if previous_workflow:
-                        previous_incident_workflow = (
-                            IncidentWorkflow.objects.all()
-                            .filter(incident=self, workflow=previous_workflow.workflow)
-                            .order_by("-timestamp")
-                            .first()
-                        )
-                        if previous_incident_workflow is not None:
-                            deadline = previous_incident_workflow.timestamp + timedelta(hours=next_srw.delay_in_hours_before_deadline)
-            return deadline
+        deadline = None
+        if next_srw.trigger_event_before_deadline is not None and next_srw.delay_in_hours_before_deadline is not None:
+            if next_srw.trigger_event_before_deadline == "DETECT_DATE":
+                if self.incident_detection_date is not None:
+                    deadline = self.incident_detection_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+            elif next_srw.trigger_event_before_deadline == "NOTIF_DATE":
+                deadline = self.incident_notification_date + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+            elif next_srw.trigger_event_before_deadline == "PREV_WORK":
+                previous_workflow = self.get_previous_workflow(next_srw.workflow)
+                if previous_workflow:
+                    previous_incident_workflow = (
+                        IncidentWorkflow.objects.all()
+                        .filter(incident=self, workflow=previous_workflow.workflow)
+                        .order_by("-timestamp")
+                        .first()
+                    )
+                    if previous_incident_workflow is not None:
+                        deadline = previous_incident_workflow.timestamp + timedelta(hours=next_srw.delay_in_hours_before_deadline)
+        return deadline
 
     @property
     def company_or_regulator_name(self):

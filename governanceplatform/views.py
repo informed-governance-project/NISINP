@@ -147,7 +147,7 @@ def registration_view(request, *args, **kwargs):
     user = request.user
     if user.is_authenticated:
         return redirect("index")
-    elif request.method == "POST":
+    if request.method == "POST":
         form = RegistrationForm(request.POST, request=request)
         if form.is_valid():
             user = form.save()
@@ -176,8 +176,7 @@ def registration_view(request, *args, **kwargs):
             )
 
             return redirect("login")
-        else:
-            context["form"] = form
+        context["form"] = form
 
     else:
         form = RegistrationForm(request=request)
@@ -265,11 +264,10 @@ def contact(request):
 
             messages.success(request, _("Your message has been sent."))
             return redirect("contact")
-        else:
-            captcha_errors = form.errors.get("captcha")
-            if captcha_errors:
-                messages.error(request, _("Invalid captcha"))
-            context["form"] = form
+        captcha_errors = form.errors.get("captcha")
+        if captcha_errors:
+            messages.error(request, _("Invalid captcha"))
+        context["form"] = form
     else:
         form = ContactForm(user=user)
         context["form"] = form

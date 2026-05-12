@@ -70,10 +70,9 @@ class Sector(TranslatableModel):
         if name and self.parent:
             parent_name = self.parent.safe_translation_getter("name", any_language=True)
             return parent_name + " → " + name
-        elif name and self.parent is None:
+        if name and self.parent is None:
             return name
-        else:
-            return ""
+        return ""
 
     class Meta:
         verbose_name = _("Sector")
@@ -526,9 +525,8 @@ class CompanyUser(models.Model):
         if is_incident_user and self.is_company_administrator and not self.approved:
             raise ValidationError(_("Incident users can only become administrator after being approved."))
 
-        else:
-            if not has_admin and not self.is_company_administrator:
-                raise ValidationError(_("The first user of an operator must be an administrator."))
+        if not has_admin and not self.is_company_administrator:
+            raise ValidationError(_("The first user of an operator must be an administrator."))
 
 
 # link between the admin regulator users and the regulators.

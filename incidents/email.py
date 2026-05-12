@@ -209,7 +209,7 @@ def create_or_update_rt_ticket(recipient, subject, content, incident):
         validate_rt_url(base_url)
     except ValidationError:
         logger.error("Blocked unsafe RT URL: %s", base_url)
-        return None
+        return
 
     headers = {
         "Content-Type": "application/json",
@@ -266,7 +266,7 @@ def check_rt_config(observer):
         response = requests.get(url, headers=headers, timeout=5)
         if response.status_code == 200:
             return True
-        elif response.status_code == 401:
+        if response.status_code == 401:
             logger.warning("RT token unauthorized (401) for %s", str(observer))
         elif response.status_code == 404:
             logger.warning("RT queue '%s' not found at %s", observer.rt_queue, url)
