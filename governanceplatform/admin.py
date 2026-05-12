@@ -5,6 +5,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models import Count, Max, Model, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Coalesce
@@ -111,7 +112,7 @@ admin_site = CustomAdminSite()
 class CustomTranslatableAdmin(ShowReminderForTranslationsMixin, TranslatableAdmin):
     form = CustomTranslatableAdminForm
 
-    translated_fields = []
+    translated_fields: list[str] = []
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -458,19 +459,14 @@ class CompanyAdmin(admin.ModelAdmin):
 
     # we don't delete company with users
     def delete_queryset(self, request, queryset):
-        all_deleted = True
-        for object in queryset:
-            if object.user_set.count() > 0:
-                all_deleted = False
-                queryset = queryset.exclude(id=object.id)
-
-        if not all_deleted:
+        annotated = queryset.annotate(_user_count=Count("user"))
+        if annotated.filter(_user_count__gt=0).exists():
             messages.add_message(
                 request,
                 messages.WARNING,
-                "Some companies haven't been deleted because they contains users",
+                "Some companies haven't been deleted because they contain users",
             )
-        queryset.delete()
+        annotated.filter(_user_count=0).delete()
 
     def delete_model(self, request, obj):
         if obj.user_set.count() > 0:
@@ -491,50 +487,64 @@ class CompanyAdmin(admin.ModelAdmin):
 
             send_html_email(subject, html_message, email_list)
 
-        instances = formset.save(commit=False)
         company = formset.instance
         admins_qs = company.companyuser_set.filter(is_company_administrator=True).select_related("user")
 
-        for instance in instances:
-            if user_in_group(instance.user, "IncidentUser") and user_in_group(request.user, "RegulatorUser"):
-                instance.approved = False
-                user = instance.user
-                if user and company and not user.companyuser_set.exclude(pk=instance.pk).exists() and admins_qs:
-                    context = {
-                        "operator_admin_name": None,
-                        "new_user_name": user.get_full_name(),
-                        "new_user_email": user.email,
-                        "regulator": request.user.regulators.first().full_name,
-                    }
+        # Collect email tasks to send after the atomic block
+        pending_emails = []
 
-                    if company.email:
-                        context["operator_admin_name"] = None
-                        send_suggestion_email(
-                            context,
-                            [company.email],
-                        )
+        with transaction.atomic():
+            instances = formset.save(commit=False)
 
-                    for operator_admin in admins_qs:
-                        admin_user = operator_admin.user
-                        admin_email = admin_user.email
-                        context["operator_admin_name"] = admin_user.get_full_name()
-                        send_suggestion_email(
-                            context,
-                            [admin_email],
-                        )
+            for instance in instances:
+                if user_in_group(instance.user, "IncidentUser") and user_in_group(request.user, "RegulatorUser"):
+                    instance.approved = False
+                    user = instance.user
+                    if user and company and not user.companyuser_set.exclude(pk=instance.pk).exists() and admins_qs:
+                        base_context = {
+                            "operator_admin_name": None,
+                            "new_user_name": user.get_full_name(),
+                            "new_user_email": user.email,
+                            "regulator": request.user.regulators.first().full_name,
+                        }
 
-                if not admins_qs:
+                        if company.email:
+                            pending_emails.append(
+                                (
+                                    dict(base_context, operator_admin_name=None),
+                                    [company.email],
+                                )
+                            )
+
+                        for operator_admin in admins_qs:
+                            admin_user = operator_admin.user
+                            admin_email = admin_user.email
+                            pending_emails.append(
+                                (
+                                    dict(
+                                        base_context,
+                                        operator_admin_name=admin_user.get_full_name(),
+                                    ),
+                                    [admin_email],
+                                )
+                            )
+
+                    if not admins_qs:
+                        instance.approved = True
+
+                if not user_in_group(instance.user, "IncidentUser"):
                     instance.approved = True
 
-            if not user_in_group(instance.user, "IncidentUser"):
-                instance.approved = True
+                instance.save()
 
-            instance.save()
+            for obj in formset.deleted_objects:
+                obj.delete()
 
-        for obj in formset.deleted_objects:
-            obj.delete()
+            formset.save_m2m()
 
-        formset.save_m2m()
+        # Send emails outside the atomic block
+        for context, email_list in pending_emails:
+            send_suggestion_email(context, email_list)
 
     def has_export_permission(self, request):
         return self.has_view_permission(request)
@@ -876,7 +886,10 @@ class UserAdmin(admin.ModelAdmin):
 
     @admin.display(description=_("Companies"))
     def get_companies_for_operator_admin(self, obj):
-        user = getattr(self, "_request", None).user
+        _req = getattr(self, "_request", None)
+        if _req is None:
+            return "-"
+        user = _req.user
         return obj.get_companies_for_operator_admin(op_admin=user)
 
     def get_urls(self):
@@ -1123,49 +1136,38 @@ class UserAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         user = request.user
+        super().save_model(request, obj, form, change)
         if not change:
             # in ObserverAdmin we can only add user for our Observer entity and default is ObserverUser
             if user_in_group(user, "ObserverAdmin"):
-                super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="ObserverUser")
+                group, _ = Group.objects.get_or_create(name="ObserverUser")
                 obj.observers.add(user.observers.first())
-                if new_group:
-                    obj.groups.add(new_group)
+                obj.groups.add(group)
 
             # in RegulatorAdmin we can only add user for regulator and default is RegulatorUser
             if user_in_group(user, "RegulatorAdmin"):
-                super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="RegulatorUser")
-                if new_group:
-                    obj.groups.add(new_group)
+                group, _ = Group.objects.get_or_create(name="RegulatorUser")
+                obj.groups.add(group)
 
             # in RegulatorUser or OperatorAdmin we can only add user for operators and default is OperatorUser
             # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
-                super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="OperatorUser")
-                if new_group:
-                    obj.groups.add(new_group)
+                group, _ = Group.objects.get_or_create(name="OperatorUser")
+                obj.groups.add(group)
 
             if user_in_group(user, "OperatorAdmin"):
-                super().save_model(request, obj, form, change)
                 company_in_use = get_active_company_from_session(request)
                 if company_in_use:
                     obj.companies.add(company_in_use)
-                new_group, created = Group.objects.get_or_create(name="OperatorUser")
-                if new_group:
-                    obj.groups.add(new_group)
+                group, _ = Group.objects.get_or_create(name="OperatorUser")
+                obj.groups.add(group)
 
             # in PlatformAdmin we add by default platformadmin
             # if we are not in a popup we create a platformAdmin
             if user_in_group(user, "PlatformAdmin") and "to_field=id&_popup" not in request.get_full_path():
-                super().save_model(request, obj, form, change)
-                new_group, created = Group.objects.get_or_create(name="PlatformAdmin")
-                if new_group:
-                    obj.groups.add(new_group)
+                group, _ = Group.objects.get_or_create(name="PlatformAdmin")
+                obj.groups.add(group)
                 set_platform_admin_permissions(obj)
-
-        super().save_model(request, obj, form, change)
 
     # override delete to don't delete RegulatorAdmin RegulatorUser and PlatformAdmin (put them inactive)
     def delete_model(self, request, obj):
