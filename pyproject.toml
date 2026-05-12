@@ -120,19 +120,27 @@ line-length = 140
 select = [
     "E",
     "F",
-    "W",
     "I",
     "Q",
+    "W",
+    "PD",
+    "TC",
     "UP",
+    "C90",
+    "FLY",
     "INT",
     "ISC",
     "ICN",
     "LOG",
+    "NPY",
     "PIE",
+    "PLE",
+    "PLW",
     "PYI",
     "RET",
     "T20",
-    "C90"
+    "TID",
+    "SLOT",
 ]
 
 [tool.ruff.lint.mccabe]
