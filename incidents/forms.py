@@ -658,7 +658,7 @@ def get_forms_list(
             is_new_incident_workflow,
         )
 
-        for _category in categories:
+        for _ in categories:
             category_tree.append(QuestionForm)
 
         if workflow.is_impact_needed:
