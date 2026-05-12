@@ -374,24 +374,23 @@ def review_workflow(request):
 
     is_regulator_incident = True if incident.regulator == user.regulators.first() and is_regulator_incidents else False
 
-    if incident_workflow:
-        if can_access_incident(user, incident, company_id):
-            form_list = get_forms_list(
-                incident=incident_workflow.incident,
-                workflow=incident_workflow.workflow,
-                incident_workflow=incident_workflow,
-                is_regulator=is_user_regulator(user),
-                is_regulator_incident=is_regulator_incident,
-                read_only=True,
-            )
-            request.incident_workflow = incident_workflow.id
-            return WorkflowWizardView.as_view(
-                form_list,
-                read_only=True,
-            )(request)
-        else:
-            messages.error(request, _("Forbidden"))
-            return redirect("incidents")
+    if can_access_incident(user, incident, company_id):
+        form_list = get_forms_list(
+            incident=incident_workflow.incident,
+            workflow=incident_workflow.workflow,
+            incident_workflow=incident_workflow,
+            is_regulator=is_user_regulator(user),
+            is_regulator_incident=is_regulator_incident,
+            read_only=True,
+        )
+        request.incident_workflow = incident_workflow.id
+        return WorkflowWizardView.as_view(
+            form_list,
+            read_only=True,
+        )(request)
+    else:
+        messages.error(request, _("Forbidden"))
+        return redirect("incidents")
 
 
 @login_required
