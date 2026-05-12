@@ -69,7 +69,6 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
                 choices = [(option_value, option_label)]
             groups.append((group_name, subgroup, index))
 
-            # other_choices = []
             for subvalue, sublabel in choices:
                 selected = (not has_selected or self.allow_multiple_selected) and str(subvalue) in value
                 has_selected |= selected
