@@ -476,7 +476,7 @@ class ContactForm(forms.Form):
         ),
     )
 
-    def prepare_initial_value(**kwargs):
+    def prepare_initial_value(self, **kwargs):
         request = kwargs.pop("request")
         user = request.user
         if user.is_authenticated:

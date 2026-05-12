@@ -296,9 +296,10 @@ def get_form_list(request, form_list=None):
         return HttpResponseRedirect("/incidents")
     if form_list is None:
         form_list = get_forms_list()
+    contact_form = ContactForm()
     return FormWizardView.as_view(
         form_list,
-        initial_dict={"0": ContactForm.prepare_initial_value(request=request)},
+        initial_dict={"0": contact_form.prepare_initial_value(request=request)},
         condition_dict={
             "3": lambda wizard: show_form_condition(wizard).get("has_sector", False),
             "4": lambda wizard: show_form_condition(wizard).get("detection_date_needed", False),
