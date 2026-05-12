@@ -396,14 +396,15 @@ class QuestionAdmin(
     list_filter = [QuestionTypeListFilter]
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ("creator",)
-        return ()
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj and "creator" not in readonly_fields:
+            readonly_fields.append("creator")
+        return readonly_fields
 
     def get_fields(self, request, obj=None):
-        fields = super().get_fields(request, obj)
-        if obj:
-            return fields + ["creator"]
+        fields = list(super().get_fields(request, obj))
+        if obj and "creator" not in fields:
+            fields.append("creator")
         return fields
 
     def save_model(self, request, obj, form, change):
@@ -729,9 +730,10 @@ class WorkflowAdmin(PermissionMixin, CustomTranslatableAdmin):
     ]
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ("creator",)
-        return ()
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if obj and "creator" not in readonly_fields:
+            readonly_fields.append("creator")
+        return readonly_fields
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = list(super().get_fieldsets(request, obj))
