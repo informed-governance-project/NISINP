@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import logging
 import os
+import sys
+
+logger = logging.getLogger(__name__)
 
 DJANGO_CI = os.getenv("DJANGO_CI") == "True"
 try:
@@ -93,10 +97,9 @@ try:
     PARLER_LANGUAGES = config.PARLER_LANGUAGES
     PARLER_ENABLE_CACHING = False
 
-except AttributeError as e:
-    print("Please check you configuration file for the missing configuration variable:")
-    print(f"  {e}")
-    exit(1)
+except AttributeError:
+    logger.error("Missing configuration variable. Please check your configuration file.", exc_info=True)
+    sys.exit(1)
 
 try:
     CSRF_TRUSTED_ORIGINS = config.CSRF_TRUSTED_ORIGINS
@@ -112,10 +115,9 @@ try:
     if LOG_DIRECTORY:
         # if not logging in stdout
         os.makedirs(LOG_DIRECTORY, exist_ok=True)
-except Exception as e:
-    print("Impossible to create the log directory:")
-    print(f"  {e}")
-    exit(1)
+except Exception:
+    logger.error("Impossible to create the log directory.", exc_info=True)
+    sys.exit(1)
 
 
 # Application definition
