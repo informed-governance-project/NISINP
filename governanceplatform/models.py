@@ -70,10 +70,9 @@ class Sector(TranslatableModel):
         if name and self.parent:
             parent_name = self.parent.safe_translation_getter("name", any_language=True)
             return parent_name + " → " + name
-        elif name and self.parent is None:
+        if name and self.parent is None:
             return name
-        else:
-            return ""
+        return ""
 
     class Meta:
         verbose_name = _("Sector")
@@ -83,9 +82,7 @@ class Sector(TranslatableModel):
 # esssential services
 class Service(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(_("Name"), max_length=100))
-    sector = models.ForeignKey(
-        Sector, verbose_name=_("Sector"), on_delete=models.CASCADE
-    )
+    sector = models.ForeignKey(Sector, verbose_name=_("Sector"), on_delete=models.CASCADE)
     acronym = models.CharField(verbose_name=_("Acronym"), max_length=4)
 
     def __str__(self):
@@ -98,9 +95,7 @@ class Service(TranslatableModel):
 
 
 class Functionality(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(verbose_name=_("Name"), max_length=100)
-    )
+    translations = TranslatedFields(name=models.CharField(verbose_name=_("Name"), max_length=100))
 
     type = models.CharField(
         verbose_name=_("Type"),
@@ -128,9 +123,7 @@ class Functionality(TranslatableModel):
 
 # operator has type (critical, essential, etc.) who give access to functionalities
 class OperatorType(TranslatableModel):
-    translations = TranslatedFields(
-        type=models.CharField(verbose_name=_("Type"), max_length=100)
-    )
+    translations = TranslatedFields(type=models.CharField(verbose_name=_("Type"), max_length=100))
     functionalities = models.ManyToManyField(
         Functionality,
         verbose_name=_("Functionalities"),
@@ -198,17 +191,13 @@ class Company(models.Model):
         if not (year and sector):
             return False
 
-        return self.standardanswer_set.filter(
-            year_of_submission=year, sectors__in=[sector.id], status="PASS"
-        ).exists()
+        return self.standardanswer_set.filter(year_of_submission=year, sectors__in=[sector.id], status="PASS").exists()
 
     def risk_analysis_exists(self, year=None, sector=None):
         if not (year and sector):
             return False
 
-        return self.companyreporting_set.filter(
-            year=year, sector=sector, servicestat__isnull=False
-        ).exists()
+        return self.companyreporting_set.filter(year=year, sector=sector, servicestat__isnull=False).exists()
 
     class Meta:
         verbose_name = _("Operator")
@@ -219,12 +208,8 @@ class Company(models.Model):
 class Regulator(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=64, verbose_name=_("Name")),
-        full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Full name")
-        ),
-        description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Description")
-        ),
+        full_name=models.TextField(blank=True, default="", null=True, verbose_name=_("Full name")),
+        description=models.TextField(blank=True, default="", null=True, verbose_name=_("Description")),
     )
     country = models.CharField(
         max_length=200,
@@ -258,12 +243,8 @@ class Regulator(TranslatableModel):
 class Observer(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(default="", max_length=64, verbose_name=_("Name")),
-        full_name=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Full name")
-        ),
-        description=models.TextField(
-            blank=True, default="", null=True, verbose_name=_("Description")
-        ),
+        full_name=models.TextField(blank=True, default="", null=True, verbose_name=_("Full name")),
+        description=models.TextField(blank=True, default="", null=True, verbose_name=_("Description")),
     )
     country = models.CharField(
         max_length=200,
@@ -278,9 +259,7 @@ class Observer(TranslatableModel):
         blank=True,
         null=True,
     )
-    is_receiving_all_incident = models.BooleanField(
-        default=False, verbose_name=_("Receives all incident notifications")
-    )
+    is_receiving_all_incident = models.BooleanField(default=False, verbose_name=_("Receives all incident notifications"))
     functionalities = models.ManyToManyField(
         Functionality,
         verbose_name=_("Functionalities"),
@@ -307,11 +286,7 @@ class Observer(TranslatableModel):
 
     @property
     def rt_token(self):
-        if (
-            self._rt_token is None
-            or self._rt_token == ""
-            or self._rt_token.strip() == ""
-        ):
+        if self._rt_token is None or self._rt_token == "" or self._rt_token.strip() == "":
             return ""
         try:
             cipher_suite = Fernet(RT_SECRET_KEY)
@@ -331,9 +306,7 @@ class Observer(TranslatableModel):
         enc_val = cipher_suite.encrypt(str.encode(val))
         self._rt_token = enc_val.decode()
 
-    rt_queue = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_("Queue")
-    )
+    rt_queue = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Queue"))
 
     def get_incidents(self):
         base_qs = Incident.objects.exclude(sector_regulation__isnull=True)
@@ -369,55 +342,6 @@ class Observer(TranslatableModel):
                 final_q |= regulation_q
 
         return base_qs.filter(final_q).distinct()
-
-    # def get_incidents(self):
-    #     if self.is_receiving_all_incident:
-    #         return (
-    #             Incident.objects.all()
-    #             .exclude(sector_regulation__isnull=True)
-    #         )
-
-    #     observer_regulations = self.observerregulation_set.all()
-
-    #     if not observer_regulations:
-    #         return Incident.objects.none()
-
-    #     querysets = []
-    #     for observer_regulation in observer_regulations:
-    #         filter_conditions = observer_regulation.incident_rule
-    #         regulation = observer_regulation.regulation
-    #         query = Incident.objects.filter(
-    #             sector_regulation__regulation=regulation
-    #         ).exclude(sector_regulation__isnull=True)
-    #         conditions = filter_conditions.get("conditions", [])
-    #         if conditions:
-    #             for condition in conditions:
-    #                 include_entity_categories = condition.get("include", [])
-    #                 exclude_entity_categories = condition.get("exclude", [])
-    #                 query_filtered = query
-    #                 if include_entity_categories:
-    #                     for entity_category_code in include_entity_categories:
-    #                         query_filtered = query_filtered.filter(
-    #                             company__entity_categories__code=entity_category_code
-    #                         )
-
-    #                 if exclude_entity_categories:
-    #                     for entity_category_code in exclude_entity_categories:
-    #                         query_filtered = query_filtered.exclude(
-    #                             company__entity_categories__code=entity_category_code
-    #                         )
-    #                 querysets.append(query_filtered)
-    #         else:
-    #             querysets.append(query)
-
-    #     if querysets:
-    #         combined_queryset = querysets[0]
-    #         for qs in querysets[1:]:
-    #             combined_queryset = combined_queryset.union(qs)
-    #     else:
-    #         combined_queryset = Incident.objects.none()
-
-    #     return combined_queryset
 
     def can_access_incident(self, incident):
         if incident in self.get_incidents():
@@ -469,9 +393,7 @@ class User(AbstractUser, PermissionsMixin):
     is_staff = models.BooleanField(
         verbose_name=_("Administrator"),
         default=False,
-        help_text=_(
-            "Determines if the user can log in via the administration interface."
-        ),
+        help_text=_("Determines if the user can log in via the administration interface."),
     )
 
     email_verified = models.BooleanField(
@@ -500,9 +422,7 @@ class User(AbstractUser, PermissionsMixin):
         ordering="companies__name",
     )
     def get_companies_for_operator_admin(self, op_admin):
-        companies = (
-            self.companies.all().distinct() & op_admin.companies.all().distinct()
-        )
+        companies = self.companies.all().distinct() & op_admin.companies.all().distinct()
         return ", ".join([company.name for company in companies.all().distinct()])
 
     @admin.display(
@@ -510,24 +430,14 @@ class User(AbstractUser, PermissionsMixin):
         ordering="regulators__translations__name",
     )
     def get_regulators(self):
-        return ", ".join(
-            [
-                regulator.safe_translation_getter("name", any_language=True)
-                for regulator in self.regulators.all()
-            ]
-        )
+        return ", ".join([regulator.safe_translation_getter("name", any_language=True) for regulator in self.regulators.all()])
 
     @admin.display(
         description=_("Observer"),
         ordering="observers__translations__name",
     )
     def get_observers(self):
-        return ", ".join(
-            [
-                observer.safe_translation_getter("name", any_language=True)
-                for observer in self.observers.all()
-            ]
-        )
+        return ", ".join([observer.safe_translation_getter("name", any_language=True) for observer in self.observers.all()])
 
     @admin.display(
         description=_("Roles"),
@@ -590,17 +500,13 @@ class CompanyUser(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("User"),
     )
-    is_company_administrator = models.BooleanField(
-        default=False, verbose_name=_("Is administrator")
-    )
+    is_company_administrator = models.BooleanField(default=False, verbose_name=_("Is administrator"))
 
     approved = models.BooleanField(default=False, verbose_name=_("Approved"))
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["user", "company"], name="unique_CompanyUser"
-            ),
+            models.UniqueConstraint(fields=["user", "company"], name="unique_CompanyUser"),
         ]
         verbose_name = _("Company User")
         verbose_name_plural = _("Company Users")
@@ -612,22 +518,15 @@ class CompanyUser(models.Model):
         is_incident_user = self.user.groups.filter(name="IncidentUser").exists()
         # manage the case of the creation of the company pk is none
         if self.company.pk is not None:
-            has_admin = self.company.companyuser_set.filter(
-                is_company_administrator=True
-            ).exists()
+            has_admin = self.company.companyuser_set.filter(is_company_administrator=True).exists()
         else:
             has_admin = False
 
         if is_incident_user and self.is_company_administrator and not self.approved:
-            raise ValidationError(
-                _("Incident users can only become administrator after being approved.")
-            )
+            raise ValidationError(_("Incident users can only become administrator after being approved."))
 
-        else:
-            if not has_admin and not self.is_company_administrator:
-                raise ValidationError(
-                    _("The first user of an operator must be an administrator.")
-                )
+        if not has_admin and not self.is_company_administrator:
+            raise ValidationError(_("The first user of an operator must be an administrator."))
 
 
 # link between the admin regulator users and the regulators.
@@ -642,19 +541,13 @@ class RegulatorUser(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Regulator"),
     )
-    is_regulator_administrator = models.BooleanField(
-        default=False, verbose_name=_("Is administrator")
-    )
-    can_export_incidents = models.BooleanField(
-        default=False, verbose_name=_("Can export incidents")
-    )
+    is_regulator_administrator = models.BooleanField(default=False, verbose_name=_("Is administrator"))
+    can_export_incidents = models.BooleanField(default=False, verbose_name=_("Can export incidents"))
     sectors = models.ManyToManyField(Sector, blank=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["user", "regulator"], name="unique_RegulatorUser"
-            ),
+            models.UniqueConstraint(fields=["user", "regulator"], name="unique_RegulatorUser"),
         ]
         verbose_name = _("Regulator user")
         verbose_name_plural = _("Regulator users")
@@ -675,18 +568,12 @@ class ObserverUser(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Observer"),
     )
-    is_observer_administrator = models.BooleanField(
-        default=False, verbose_name=_("Is administrator")
-    )
-    can_export_incidents = models.BooleanField(
-        default=False, verbose_name=_("Can export incidents")
-    )
+    is_observer_administrator = models.BooleanField(default=False, verbose_name=_("Is administrator"))
+    can_export_incidents = models.BooleanField(default=False, verbose_name=_("Can export incidents"))
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["user", "observer"], name="unique_ObserverUser"
-            ),
+            models.UniqueConstraint(fields=["user", "observer"], name="unique_ObserverUser"),
         ]
         verbose_name = _("Observer user")
         verbose_name_plural = _("Observer users")
@@ -712,10 +599,7 @@ class Regulation(TranslatableModel):
 
     @admin.display(description=_("Regulators"))
     def get_regulators(self):
-        return [
-            regulator.safe_translation_getter("name", any_language=True)
-            for regulator in self.regulators.all()
-        ]
+        return [regulator.safe_translation_getter("name", any_language=True) for regulator in self.regulators.all()]
 
     def __str__(self):
         label_translation = self.safe_translation_getter("label", any_language=True)
@@ -777,9 +661,7 @@ class ObserverRegulation(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["regulation", "observer"], name="unique_Observerregulation"
-            ),
+            models.UniqueConstraint(fields=["regulation", "observer"], name="unique_Observerregulation"),
         ]
         verbose_name = _("Observer regulation")
         verbose_name_plural = _("Observer regulations")
@@ -793,12 +675,8 @@ class ScriptLogEntry(models.Model):
     action_time = models.DateTimeField(auto_now=True, verbose_name=_("Timestamp"))
     action_flag = models.PositiveSmallIntegerField(verbose_name=_("Activity"))
     object_id = models.TextField(null=True, blank=True, verbose_name=_("Object id"))
-    object_repr = models.CharField(
-        max_length=200, verbose_name=_("Object representation")
-    )
-    additional_info = models.TextField(
-        null=True, blank=True, verbose_name=_("Additional information")
-    )
+    object_repr = models.CharField(max_length=200, verbose_name=_("Object representation"))
+    additional_info = models.TextField(null=True, blank=True, verbose_name=_("Additional information"))
 
     class Meta:
         verbose_name = _("Script execution logs")
