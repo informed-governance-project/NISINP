@@ -488,7 +488,7 @@ class ContactForm(forms.Form):
 
 # prepare an array of sector and services
 def construct_services_array(root_sectors):
-    categs = dict()
+    categs = {}
     services = Service.objects.filter(Q(sector__in=root_sectors) | Q(sector__parent__in=root_sectors))
 
     final_categs = []

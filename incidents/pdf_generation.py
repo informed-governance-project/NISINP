@@ -61,7 +61,7 @@ def get_pdf_report(incident: Incident, incident_workflow: IncidentWorkflow, requ
 
     for incident_workflow in report_list:
         workflow_name = incident_workflow.workflow
-        incident_workflows_answer.setdefault(workflow_name, dict())
+        incident_workflows_answer.setdefault(workflow_name, {})
         incident_workflows_impact.setdefault(workflow_name, [])
 
         answers = Answer.objects.filter(incident_workflow=incident_workflow).order_by("question_options__position")
