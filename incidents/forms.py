@@ -140,13 +140,10 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
                 choices = [(option_value, option_label)]
             groups.append((group_name, subgroup, index))
 
-            # other_choices = []
             for subvalue, sublabel in choices:
                 selected = (not has_selected or self.allow_multiple_selected) and str(subvalue) in value
                 has_selected |= selected
-                # add CSS class on the one who need additional answer
-                # if sublabel.allowed_additional_answer:
-                #     attrs["class"] = attrs["class"] + "need-additional-answer"
+
                 subgroup.append(
                     self.create_option(
                         name,
@@ -158,8 +155,7 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
                         attrs=attrs,
                     )
                 )
-                # if option_label.allowed_additional_answer:
-                #     other_choices.append(sublabel)
+
                 if subindex is not None:
                     subindex += 1
         return groups
