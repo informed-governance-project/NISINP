@@ -360,8 +360,7 @@ class QuestionTypeListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() is not None:
             return queryset.filter(question_type=self.value())
-        else:
-            return queryset
+        return queryset
 
 
 @admin.register(Question, site=admin_site)
@@ -463,6 +462,7 @@ class ImpactSectorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(Q(sectors=self.value()) | Q(sectors__parent=self.value())).distinct()
+        return queryset
 
 
 class ImpactRegulationListFilter(SimpleListFilter):
@@ -478,6 +478,7 @@ class ImpactRegulationListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(Q(regulations=self.value()))
+        return queryset
 
 
 @admin.register(Impact, site=admin_site)
@@ -602,6 +603,7 @@ class EmailRegulatorListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(Q(creator_id=self.value()))
+        return queryset
 
 
 class EmailTypeListFilter(SimpleListFilter):
