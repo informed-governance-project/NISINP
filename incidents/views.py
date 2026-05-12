@@ -871,7 +871,7 @@ def export_incidents(request):
 
                 for idx, impact in enumerate(impacts, start=1):
                     for sector in impact.sectors.all():
-                        incident_data[f"{sector.get_safe_translation()} Impact {idx}"] = impact._label
+                        incident_data[f"{sector.get_safe_translation()} Impact {idx}"] = impact.label
 
                 data.append(incident_data)
 
