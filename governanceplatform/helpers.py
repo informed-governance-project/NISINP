@@ -263,8 +263,6 @@ def can_change_or_delete_obj(request: HttpRequest, obj: Any, message="") -> bool
             "- This {object_name} is either in use.<br>"
             "- You are not its creator ({creator_name})"
         )
-    else:
-        message = message
 
     object_name = obj._meta.verbose_name.lower()
     creator_name = creator
