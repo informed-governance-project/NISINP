@@ -13,6 +13,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import CharField, F, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -590,7 +591,7 @@ def download_incident_pdf(request, incident_id: int):
     latest_workflow = incident.get_latest_incident_workflow()
     timestamp = latest_workflow.timestamp if latest_workflow else incident.incident_notification_date
     filename = f"Incident_{incident.incident_id}_{timestamp:%Y-%m-%d}.pdf"
-    response["Content-Disposition"] = f"attachment;filename={filename}"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
     return response
 
@@ -635,7 +636,7 @@ def download_incident_report_pdf(request, incident_workflow_id: int):
     report_name = incident_workflow.workflow.name
     filename = f"{incident.incident_id}_{report_name}_{timestamp:%Y-%m-%d}.pdf"
 
-    response["Content-Disposition"] = f"attachment;filename={filename}"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
     return response
 
@@ -870,7 +871,7 @@ def export_incidents(request):
 
                 for idx, impact in enumerate(impacts, start=1):
                     for sector in impact.sectors.all():
-                        incident_data[f"{sector.get_safe_translation()} Impact {idx}"] = impact.label
+                        incident_data[f"{sector.get_safe_translation()} Impact {idx}"] = impact._label
 
                 data.append(incident_data)
 
@@ -1128,89 +1129,97 @@ class FormWizardView(SessionWizardView):
             incident_detection_date = local_dt.astimezone(pytz.utc)
 
         for sector_regulation in sector_regulations:
-            incident = Incident.objects.create(
-                contact_lastname=data.get("contact_lastname"),
-                contact_firstname=data.get("contact_firstname"),
-                contact_title=data.get("contact_title"),
-                contact_email=data.get("contact_email"),
-                contact_telephone=data.get("contact_telephone"),
-                # technical contact
-                technical_lastname=data.get("technical_lastname"),
-                technical_firstname=data.get("technical_firstname"),
-                technical_title=data.get("technical_title"),
-                technical_email=data.get("technical_email"),
-                technical_telephone=data.get("technical_telephone"),
-                incident_reference=data.get("incident_reference"),
-                complaint_reference=data.get("complaint_reference"),
-                contact_user=user,
-                company=company,
-                regulator=regulator,
-                company_name=company_name,
-                sector_regulation=sector_regulation,
-                incident_timezone=data.get("incident_timezone", TIME_ZONE),
-                incident_detection_date=incident_detection_date,
-            )
-            if incident:
-                # Detect if a regulator is submitting the incident
-                is_regulator_incidents = self.request.session.get("is_regulator_incidents", False)
-
-                self.is_regulator_incident = True if regulator and is_regulator_incidents else False
-                # check if the detection date is over
-                if sector_regulation.is_detection_date_needed:
-                    sr_workflow = (
-                        SectorRegulationWorkflow.objects.all()
-                        .filter(
-                            sector_regulation=sector_regulation,
-                        )
-                        .order_by("position")
-                        .first()
-                    )
-                    # TO DO get the correct detection date
-                    if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
-                        dt = timezone.now() - incident.incident_detection_date
-                        if round(dt.total_seconds() / 60 / 60, 0) > sr_workflow.delay_in_hours_before_deadline:
-                            sr_workflow.review_status = "OUT"
-                            sr_workflow.save()
-
-                sec = sector_regulation.sectors.values_list("id", flat=True)
-                selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
-                affected_sectors = selected_sectors & sec
-                incident.affected_sectors.set(affected_sectors)
-                # incident reference
-
-                company_for_ref = company.identifier if company else data.get("company_name", "")[:10]
-                sector_for_ref = ""
-                subsector_for_ref = ""
-
-                for sector in sector_regulation.sectors.all():
-                    if sector.id in sectors_id:
-                        if subsector_for_ref == "":
-                            subsector_for_ref = sector.acronym[:3]
-                            if sector.parent:
-                                sector_for_ref = sector.parent.acronym[:3]
-
-                incidents_per_company = (
-                    company.incident_set.filter(incident_notification_date__year=date.today().year).count() if company else 1
+            opening_email_to_send = None
+            with transaction.atomic():
+                incident = Incident.objects.create(
+                    contact_lastname=data.get("contact_lastname"),
+                    contact_firstname=data.get("contact_firstname"),
+                    contact_title=data.get("contact_title"),
+                    contact_email=data.get("contact_email"),
+                    contact_telephone=data.get("contact_telephone"),
+                    # technical contact
+                    technical_lastname=data.get("technical_lastname"),
+                    technical_firstname=data.get("technical_firstname"),
+                    technical_title=data.get("technical_title"),
+                    technical_email=data.get("technical_email"),
+                    technical_telephone=data.get("technical_telephone"),
+                    incident_reference=data.get("incident_reference"),
+                    complaint_reference=data.get("complaint_reference"),
+                    contact_user=user,
+                    company=company,
+                    regulator=regulator,
+                    company_name=company_name,
+                    sector_regulation=sector_regulation,
+                    incident_timezone=data.get("incident_timezone", TIME_ZONE),
+                    incident_detection_date=incident_detection_date,
                 )
-                if self.is_regulator_incident:
+                if incident:
+                    # Detect if a regulator is submitting the incident
+                    is_regulator_incidents = self.request.session.get("is_regulator_incidents", False)
+
+                    self.is_regulator_incident = True if regulator and is_regulator_incidents else False
+                    # check if the detection date is over
+                    if sector_regulation.is_detection_date_needed:
+                        sr_workflow = (
+                            SectorRegulationWorkflow.objects.all()
+                            .filter(
+                                sector_regulation=sector_regulation,
+                            )
+                            .order_by("position")
+                            .first()
+                        )
+                        # TO DO get the correct detection date
+                        if sr_workflow.trigger_event_before_deadline == "DETECT_DATE":
+                            dt = timezone.now() - incident.incident_detection_date
+                            if round(dt.total_seconds() / 60 / 60, 0) > sr_workflow.delay_in_hours_before_deadline:
+                                sr_workflow.review_status = "OUT"
+                                sr_workflow.save()
+
+                    sec = sector_regulation.sectors.values_list("id", flat=True)
+                    selected_sectors = Sector.objects.filter(id__in=sectors_id).values_list("id", flat=True)
+                    affected_sectors = selected_sectors & sec
+                    incident.affected_sectors.set(affected_sectors)
+                    # incident reference
+
+                    company_for_ref = company.identifier if company else data.get("company_name", "")[:10]
+                    sector_for_ref = ""
+                    subsector_for_ref = ""
+
+                    for sector in sector_regulation.sectors.all():
+                        if sector.id in sectors_id:
+                            if subsector_for_ref == "":
+                                subsector_for_ref = sector.acronym[:3]
+                                if sector.parent:
+                                    sector_for_ref = sector.parent.acronym[:3]
+
                     incidents_per_company = (
-                        regulator.incident_set.filter(incident_notification_date__year=date.today().year).count() if regulator else 1
+                        company.incident_set.filter(incident_notification_date__year=date.today().year).count() if company else 1
+                    )
+                    if self.is_regulator_incident:
+                        incidents_per_company = (
+                            regulator.incident_set.filter(incident_notification_date__year=date.today().year).count() if regulator else 1
+                        )
+
+                    number_of_incident = f"{incidents_per_company:04}"
+                    incident.incident_id = (
+                        f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{date.today().year}"
                     )
 
-                number_of_incident = f"{incidents_per_company:04}"
-                incident.incident_id = f"{company_for_ref}_{sector_for_ref}_{subsector_for_ref}_{number_of_incident}_{date.today().year}"
+                    incident.save()
 
-                incident.save()
+                    create_entry_log(user, incident, None, "CREATE", self.request)
 
-                create_entry_log(user, incident, None, "CREATE", self.request)
+                    # capture email to send after the atomic block
+                    if sector_regulation.opening_email is not None:
+                        opening_email_to_send = sector_regulation.opening_email
 
-                # send The email notification opening
-                if sector_regulation.opening_email is not None:
-                    send_email(
-                        sector_regulation.opening_email,
-                        incident,
-                        send_to_observers=True,
-                    )
+            # send The email notification opening — outside the atomic block
+            if opening_email_to_send is not None:
+                send_email(
+                    opening_email_to_send,
+                    incident,
+                    send_to_observers=True,
+                )
 
         if sector_regulations.count() > 1:
             return redirect("regulator_incidents") if self.is_regulator_incident else redirect("incidents")
@@ -1535,7 +1544,6 @@ def save_answers(data=None, incident=None, workflow=None, report_timeline=None):
 
     # We create a new incident workflow in all the case (history)
     incident_workflow = IncidentWorkflow.objects.create(incident=incident, workflow=workflow, report_timeline=report_timeline)
-    incident_workflow.save()
     # TO DO manage impact
     if workflow.is_impact_needed:
         impacts = data.get("impacts", [])
@@ -1616,7 +1624,7 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         observer = user.observers.first()
         entity_name = observer.name if observer else ""
 
-    log = LogReportRead.objects.create(
+    LogReportRead.objects.create(
         user=user,
         incident=incident,
         incident_report=incident_report,
@@ -1624,7 +1632,6 @@ def create_entry_log(user, incident, incident_report, action, request=None):
         role=role,
         entity_name=entity_name,
     )
-    log.save()
 
 
 def can_export_incidents(user):
