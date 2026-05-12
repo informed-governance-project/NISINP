@@ -56,17 +56,16 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
         has_selected = False
 
         for index, (option_value, option_label) in enumerate(self.choices):
-            if option_value is None:
-                option_value = ""
+            cleaned_value = option_value or ""
             subgroup = []
             if isinstance(option_label, (list, tuple)):
-                group_name = option_value
+                group_name = cleaned_value
                 subindex = 0
                 choices = option_label
             else:
                 group_name = None
                 subindex = None
-                choices = [(option_value, option_label)]
+                choices = [(cleaned_value, option_label)]
             groups.append((group_name, subgroup, index))
 
             for subvalue, sublabel in choices:
@@ -126,17 +125,16 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
         has_selected = False
 
         for index, (option_value, option_label) in enumerate(self.choices):
-            if option_value is None:
-                option_value = ""
+            cleaned_value = option_value or ""
             subgroup = []
             if isinstance(option_label, (list, tuple)):
-                group_name = option_value
+                group_name = cleaned_value
                 subindex = 0
                 choices = option_label
             else:
                 group_name = None
                 subindex = None
-                choices = [(option_value, option_label)]
+                choices = [(cleaned_value, option_label)]
             groups.append((group_name, subgroup, index))
 
             for subvalue, sublabel in choices:
@@ -500,9 +498,10 @@ def construct_services_array(root_sectors):
 
     for sector, list_of_options in categs.items():
         name = sector.name
-        while sector.parent is not None:
-            name = _(sector.parent.name) + " - " + _(name)
-            sector = sector.parent
+        current_sector = sector
+        while current_sector.parent is not None:
+            name = _(current_sector.parent.name) + " - " + _(name)
+            current_sector = current_sector.parent
         final_categs.append([name, list_of_options])
 
     return final_categs
