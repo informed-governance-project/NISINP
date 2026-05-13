@@ -825,7 +825,6 @@ class UserAdmin(admin.ModelAdmin):
         "phone_number",
         "get_regulators",
         "get_companies",
-        "get_companies_for_operator_admin",
         "get_observers",
         "get_permissions_groups",
         "get_2FA_activation",
@@ -883,14 +882,6 @@ class UserAdmin(admin.ModelAdmin):
         if "delete_selected" in actions:
             del actions["delete_selected"]
         return actions
-
-    @admin.display(description=_("Companies"))
-    def get_companies_for_operator_admin(self, obj):
-        _req = getattr(self, "_request", None)
-        if _req is None:
-            return "-"
-        user = _req.user
-        return obj.get_companies_for_operator_admin(op_admin=user)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -1026,16 +1017,12 @@ class UserAdmin(admin.ModelAdmin):
         list_display = super().get_list_display(request)
 
         if user_in_group(request.user, "PlatformAdmin"):
-            fields_to_exclude = [
-                "get_companies",
-                "get_companies_for_operator_admin",
-            ]
+            fields_to_exclude = ["get_companies"]
             list_display = [field for field in list_display if field not in fields_to_exclude]
 
         if user_in_group(request.user, "ObserverAdmin"):
             fields_to_exclude = [
                 "get_companies",
-                "get_companies_for_operator_admin",
                 "get_regulators",
                 "is_active",
             ]
@@ -1045,18 +1032,16 @@ class UserAdmin(admin.ModelAdmin):
             fields_to_exclude = [
                 "get_regulators",
                 "get_observers",
-                "get_companies_for_operator_admin",
             ]
             list_display = [field for field in list_display if field not in fields_to_exclude]
         if user_in_group(request.user, "RegulatorAdmin"):
-            fields_to_exclude = ["get_observers", "get_companies_for_operator_admin"]
+            fields_to_exclude = ["get_observers"]
             list_display = [field for field in list_display if field not in fields_to_exclude]
         if user_in_group(request.user, "OperatorAdmin"):
             fields_to_exclude = [
                 "get_regulators",
                 "get_observers",
                 "is_active",
-                "get_companies",
             ]
             list_display = [field for field in list_display if field not in fields_to_exclude]
 

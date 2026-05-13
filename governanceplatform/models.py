@@ -418,14 +418,6 @@ class User(AbstractUser, PermissionsMixin):
         return ", ".join([company.name for company in self.companies.all().distinct()])
 
     @admin.display(
-        description=_("Companies"),
-        ordering="companies__name",
-    )
-    def get_companies_for_operator_admin(self, op_admin):
-        companies = self.companies.all().distinct() & op_admin.companies.all().distinct()
-        return ", ".join([company.name for company in companies.all().distinct()])
-
-    @admin.display(
         description=_("Regulator"),
         ordering="regulators__translations__name",
     )
