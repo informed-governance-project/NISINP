@@ -53,6 +53,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("governanceplatform", "0061_usersession"),
+        # Ensures django_session table exists before we read from it
+        ("sessions", "0001_initial"),
     ]
 
     operations = [
