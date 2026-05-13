@@ -950,38 +950,40 @@ class UserAdmin(admin.ModelAdmin):
 
         return readonly_fields
 
-    def _add_fields_readonly(self, fieldsets, obj):
-        if not obj:
-            return fieldsets
-
-        additional_fields = [(field,) for field in self.get_readonly_fields(self._request, obj)]
-
-        additional_fieldset = (
-            _("Additional information"),
-            {"fields": additional_fields},
-        )
-
-        return list(fieldsets) + [additional_fieldset]
-
     def get_fieldsets(self, request, obj=None):
-        # RegulatorAdmin
-        if is_user_regulator(request.user):
-            if "object_id" in request.resolver_match.kwargs:
-                current_id = request.resolver_match.kwargs["object_id"]
-                user = User.objects.get(pk=current_id)
-                if user and not user_in_group(user, "PlatformAdmin") and not user == request.user:
-                    fieldsets = self.admin_fieldsets
-                    return self._add_fields_readonly(fieldsets, obj)
-        # PlatformAdmin
-        if user_in_group(request.user, "PlatformAdmin"):
-            if "object_id" in request.resolver_match.kwargs:
-                current_id = request.resolver_match.kwargs["object_id"]
-                user = User.objects.get(pk=current_id)
-                if user and (user_in_group(user, "RegulatorAdmin") or user_in_group(user, "PlatformAdmin")) and not user == request.user:
-                    fieldsets = self.admin_fieldsets
-                    return self._add_fields_readonly(fieldsets, obj)
 
-        return self._add_fields_readonly(self.standard_fieldsets, obj)
+        if not obj:
+            return self.standard_fieldsets
+
+        user = request.user
+        use_admin_fieldsets = False
+
+        # RegulatorAdmin
+        if is_user_regulator(user):
+            if not user_in_group(obj, "PlatformAdmin") and obj.pk != user.pk:
+                use_admin_fieldsets = True
+
+        # PlatformAdmin
+        if user_in_group(user, "PlatformAdmin"):
+            if (user_in_group(obj, "RegulatorAdmin") or user_in_group(obj, "PlatformAdmin")) and obj.pk != user.pk:
+                use_admin_fieldsets = True
+
+        fieldsets = self.admin_fieldsets if use_admin_fieldsets else self.standard_fieldsets
+        readonly_fields = self.get_readonly_fields(request, obj)
+
+        existing_fields = {field for _, opts in fieldsets for field in opts.get("fields", [])}
+
+        extra_fields = [f for f in readonly_fields if f not in existing_fields]
+
+        if extra_fields:
+            fieldsets = list(fieldsets) + [
+                (
+                    _("Additional information"),
+                    {"fields": tuple(extra_fields)},
+                )
+            ]
+
+        return fieldsets
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super().get_inline_instances(request, obj)
