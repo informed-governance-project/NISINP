@@ -462,6 +462,8 @@ def zip_files_task(user_id, project_id, task_id, error_messages):
 
 @shared_task(ignore_result=True)
 def cleanup_files(project_id, task_id, all_files=False):
+    if task_id is None:
+        return "Cleanup skipped due to missing task_id"
     try:
         Project.objects.get(id=project_id, task_id=task_id)
     except Project.DoesNotExist:

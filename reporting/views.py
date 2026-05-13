@@ -415,7 +415,7 @@ def delete_report_project(request, report_project_id: int):
         chain(
             cleanup_files.si(
                 project_id=str(report_project_id),
-                task_id=str(project.task_id),
+                task_id=str(project.task_id) if project.task_id else None,
                 all_files=True,
             ),
             delete_project_task.si(str(project.id)),
