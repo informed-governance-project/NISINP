@@ -60,7 +60,7 @@ ALLOWED_DASHBOARD_SORT_FIELDS = {
         "type": "datetime",
     },
     "created_by": {
-        "field": "author",
+        "field": "author__first_name",
         "type": "string",
     },
     "name": {
