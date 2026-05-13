@@ -5,6 +5,11 @@ All notable changes to NISINP are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `force_logout_user` O(N) session-table scan replaced by a single indexed query via a custom `UserSession` model with a `user` FK column (#758)
+
 ## [0.5.14] - 2026-05-08
 
 ### Added
