@@ -1,5 +1,7 @@
+from datetime import timedelta
+
 import pytest
-from django.utils.timezone import now, timedelta
+from django.utils.timezone import now
 
 from governanceplatform.models import UserSession
 from governanceplatform.signals import force_logout_user
