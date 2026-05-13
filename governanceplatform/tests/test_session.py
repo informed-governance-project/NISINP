@@ -14,7 +14,6 @@ def simple_user(db):
     return User.objects.create_user(
         email="sessiontest@example.com",
         password="password",
-        username="sessiontest",
     )
 
 
@@ -25,7 +24,6 @@ def other_user(db):
     return User.objects.create_user(
         email="other@example.com",
         password="password",
-        username="other",
     )
 
 
