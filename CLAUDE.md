@@ -10,17 +10,19 @@ NIS2 incident notification and governance platform for NC3-LU. Django monolith w
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Language | Python | 3.12 |
-| Framework | Django | ^5.2.2 |
+| Language | Python | >=3.12,<4 |
+| Framework | Django | >=6.0,<7 |
 | Database | PostgreSQL | 15 (CI) |
 | Package manager | Poetry | — |
-| Translations | django-parler | ^2.3 |
-| Auth | django-otp + two-factor-auth | — |
-| API | Django REST Framework + drf-spectacular | — |
-| Async tasks | Celery + Redis | — |
-| PDF generation | WeasyPrint | — |
-| Frontend | Bootstrap 5 (django-bootstrap5) | — |
-| Testing | pytest-django | — |
+| Translations | django-parler | custom fork (github.com/informed-governance-project/django-parler) |
+| Auth | django-otp + two-factor-auth | >=1.1.6 / >=1.15.5 |
+| API | Django REST Framework + drf-spectacular | >=0.29.0,<0.30 |
+| Async tasks | Celery + Redis | >=5.5.1 / >=7.4.0 |
+| PDF generation | WeasyPrint | >=68.0,<69 |
+| Frontend | Bootstrap 5 + bootstrap-icons | ^5.3.3 / ^1.11.3 |
+| JS build | Node.js + npm | 24.x / 11.x |
+| Type checking | mypy | ^2.0.0 |
+| Testing | pytest-django | ^4.11.1 |
 
 ## Build & Run
 
