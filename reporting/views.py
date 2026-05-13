@@ -88,8 +88,7 @@ def has_change_permission(request, project, action):
 
         project_sectors = project.sectors.all()
         is_user_regulator_sector = (
-            user_in_group(user, "RegulatorAdmin")
-            and project.author.regulators.first() == user.regulators.first()
+            user_in_group(user, "RegulatorAdmin") and project.author.regulators.first() == user.regulators.first()
         ) or (
             is_user_regulator(user)
             and project.author.regulators.first() == user.regulators.first()
@@ -121,9 +120,7 @@ def has_change_permission(request, project, action):
 def reporting(request):
     user = request.user
     if user_in_group(user, "RegulatorAdmin"):
-        project_queryset = Project.objects.filter(
-            author__regulators=user.regulators.first()
-        ).order_by("-updated_at")
+        project_queryset = Project.objects.filter(author__regulators=user.regulators.first()).order_by("-updated_at")
     elif user_in_group(user, "RegulatorUser"):
         project_queryset = (
             Project.objects.filter(
@@ -181,15 +178,9 @@ def reporting(request):
     page_number = reporting_filter_params.get("page")
     paginator = Paginator(project_filter_list, per_page)
     page_obj = paginator.get_page(page_number)
-    projects_running = list(
-        project_filter_list.filter(task_status=CELERY_TASK_STATUS[3][0]).values("id")
-    )
+    projects_running = list(project_filter_list.filter(task_status=CELERY_TASK_STATUS[3][0]).values("id"))
 
-    is_filtered = {
-        k: v
-        for k, v in reporting_filter_params.items()
-        if k not in ["page", "per_page", "sort_field", "sort_direction"]
-    }
+    is_filtered = {k: v for k, v in reporting_filter_params.items() if k not in ["page", "per_page", "sort_field", "sort_direction"]}
 
     context = {
         "filter": project_filter,
@@ -223,9 +214,7 @@ def dashboard_report_project(request, report_project_id: int):
         return redirect("dashboard_report_project", report_project_id=project.id)
 
     current_params = request.session.get("dashboard_project_filter_params", {}).copy()
-    current_sort_params = request.session.get(
-        "dashboard_project_sort_params", {}
-    ).copy()
+    current_sort_params = request.session.get("dashboard_project_sort_params", {}).copy()
 
     for key, values in request.GET.lists():
         current_params[key] = values if key in ["sector", "year"] else values[0]
@@ -251,9 +240,7 @@ def dashboard_report_project(request, report_project_id: int):
         ALLOWED_PROJECT_DASHBOARD_SORT_FIELDS,
     )
 
-    company_project_filter = CompanyProjectFilter(
-        dashboard_project_filter_params, queryset=company_project_qs, project=project
-    )
+    company_project_filter = CompanyProjectFilter(dashboard_project_filter_params, queryset=company_project_qs, project=project)
 
     company_project_filter_list = company_project_filter.qs
 
@@ -263,10 +250,7 @@ def dashboard_report_project(request, report_project_id: int):
         "governance_report_selected",
     ]
 
-    selected_status = {
-        field: not company_project_filter_list.filter(**{field: False}).exists()
-        for field in input_select_fields
-    }
+    selected_status = {field: not company_project_filter_list.filter(**{field: False}).exists() for field in input_select_fields}
 
     per_page = dashboard_project_filter_params.get("per_page", 10)
     page_number = dashboard_project_filter_params.get("page")
@@ -277,9 +261,7 @@ def dashboard_report_project(request, report_project_id: int):
         company_project.formSelect = CompanyProjectDashboard(instance=company_project)
 
     is_filtered = {
-        k: v
-        for k, v in dashboard_project_filter_params.items()
-        if k not in ["page", "per_page", "sort_field", "sort_direction"]
+        k: v for k, v in dashboard_project_filter_params.items() if k not in ["page", "per_page", "sort_field", "sort_direction"]
     }
 
     context = {
@@ -301,19 +283,11 @@ def create_report_project(request):
     user = request.user
     regulator = user.regulators.first()
 
-    regulation_qs = Regulation.objects.filter(
-        regulators=regulator, standard__isnull=False
-    ).distinct()
+    regulation_qs = Regulation.objects.filter(regulators=regulator, standard__isnull=False).distinct()
 
-    standard_qs = Standard.objects.filter(
-        regulator=regulator, regulation__in=regulation_qs
-    )
+    standard_qs = Standard.objects.filter(regulator=regulator, regulation__in=regulation_qs)
 
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
+    sectors_queryset = user.get_sectors().all() if user_in_group(user, "RegulatorUser") else Sector.objects.all()
 
     sector_list = get_sectors_grouped(sectors_queryset)
 
@@ -364,19 +338,11 @@ def edit_report_project(request, report_project_id: int):
     user = request.user
     regulator = user.regulators.first()
 
-    regulation_qs = Regulation.objects.filter(
-        regulators=regulator, standard__isnull=False
-    ).distinct()
+    regulation_qs = Regulation.objects.filter(regulators=regulator, standard__isnull=False).distinct()
 
-    standard_qs = Standard.objects.filter(
-        regulator=regulator, regulation__in=regulation_qs
-    )
+    standard_qs = Standard.objects.filter(regulator=regulator, regulation__in=regulation_qs)
 
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
+    sectors_queryset = user.get_sectors().all() if user_in_group(user, "RegulatorUser") else Sector.objects.all()
 
     sector_list = get_sectors_grouped(sectors_queryset)
 
@@ -419,18 +385,15 @@ def copy_report_project(request, report_project_id):
             new_project = form.save(commit=False)
             new_project.pk = None
             new_project.task_id = None
-            new_project.task_status = Project._meta.get_field(
-                "task_status"
-            ).get_default()
+            new_project.task_status = Project._meta.get_field("task_status").get_default()
             new_project.save()
             form.save_m2m()
             create_entry_log(user, project, "CREATE PROJECT")
         return redirect("reporting")
 
-    else:
-        form = CreateProjectForm(instance=project, is_copy=True)
-        context = {"form": form, "is_copy": True}
-        return render(request, "modals/create_report_project.html", context)
+    form = CreateProjectForm(instance=project, is_copy=True)
+    context = {"form": form, "is_copy": True}
+    return render(request, "modals/create_report_project.html", context)
 
 
 @login_required
@@ -445,9 +408,7 @@ def delete_report_project(request, report_project_id: int):
         if project.task_status == CELERY_TASK_STATUS[3][0]:
             messages.warning(
                 request,
-                _(
-                    "Report generation is in progress for this project. Please cancel the report generation before deleting the project."
-                ),
+                _("Report generation is in progress for this project. Please cancel the report generation before deleting the project."),
             )
             return redirect("reporting")
 
@@ -483,9 +444,7 @@ def generate_report_project(request, report_project_id: int):
 
     if not reporting_health_check():
         project.task_status = CELERY_TASK_STATUS[0][0]
-        messages.error(
-            request, _("Failed to start report generation. Please try again.")
-        )
+        messages.error(request, _("Failed to start report generation. Please try again."))
         return redirect("dashboard_report_project", report_project_id=project.id)
 
     if project.task_status == CELERY_TASK_STATUS[3][0]:
@@ -525,9 +484,7 @@ def generate_report_project(request, report_project_id: int):
         {
             "company": obj.company,
             "sector": obj.sector,
-            "years": selected_companies_project.filter(company=obj.company).values_list(
-                "year", flat=True
-            ),
+            "years": selected_companies_project.filter(company=obj.company).values_list("year", flat=True),
         }
         for obj in selected_companies_project.distinct("company", "sector")
     ]
@@ -551,9 +508,7 @@ def generate_report_project(request, report_project_id: int):
             return redirect("reporting")
 
         try:
-            company_reporting = CompanyReporting.objects.get(
-                company=company, year=year, sector=sector
-            )
+            company_reporting = CompanyReporting.objects.get(company=company, year=year, sector=sector)
         except CompanyReporting.DoesNotExist:
             if is_multiple_selected_companies:
                 error_message = f"[{company}][{sector}][{year}]: Missing risk analysis and security objectives data"
@@ -577,9 +532,7 @@ def generate_report_project(request, report_project_id: int):
 
         if not security_objectives_declaration:
             if is_multiple_selected_companies:
-                error_message = (
-                    f"[{company}][{sector}][{year}]: No security objective data found"
-                )
+                error_message = f"[{company}][{sector}][{year}]: No security objective data found"
                 error_messages.append(error_message)
                 continue
 
@@ -609,17 +562,12 @@ def generate_report_project(request, report_project_id: int):
         years_list = sorted(set(years_to_compare + [year]))
 
         base_data = {
-            "company": model_to_dict(
-                company, exclude=["phone_number", "entity_categories", "sectors"]
-            ),
+            "company": model_to_dict(company, exclude=["phone_number", "entity_categories", "sectors"]),
             "reference_year": year,
             "threshold_for_high_risk": threshold_for_high_risk,
             "top_ranking": top_ranking,
             "years": years_list,
-            "report_recommendations": [
-                rec.observation_recommendation.description
-                for rec in report_recommendations
-            ],
+            "report_recommendations": [rec.observation_recommendation.description for rec in report_recommendations],
             "company_reporting": model_to_dict(company_reporting),
             "project_id": project_id,
             "standard_id": project.standard.id,
@@ -634,12 +582,8 @@ def generate_report_project(request, report_project_id: int):
                 )
             except Template.DoesNotExist:
                 no_template_msg = _("No report template")
-                messages.error(
-                    request, messages.error(request, f"{no_template_msg} [{language}]")
-                )
-                return redirect(
-                    "dashboard_report_project", report_project_id=project.id
-                )
+                messages.error(request, messages.error(request, f"{no_template_msg} [{language}]"))
+                return redirect("dashboard_report_project", report_project_id=project.id)
 
             with override(language):
                 sector.set_current_language(language)
@@ -654,9 +598,7 @@ def generate_report_project(request, report_project_id: int):
                 prefix = f"{language}_" if len(languages) > 1 else ""
                 sector_name = sector.get_safe_translation()
                 annual_report_label = _("annual_report")
-                filename = urlquote(
-                    f"{prefix}{annual_report_label}_{year}_{company.name}_{sector_name}.{extention}"
-                )
+                filename = urlquote(f"{prefix}{annual_report_label}_{year}_{company.name}_{sector_name}.{extention}")
                 task = get_report(
                     request,
                     task_data,
@@ -666,9 +608,7 @@ def generate_report_project(request, report_project_id: int):
                     task_id,
                     is_multiple_selected_companies,
                 )
-                report_generation_tasks.append(
-                    task.on_error(on_chord_error.s(project_id, task_id))
-                )
+                report_generation_tasks.append(task.on_error(on_chord_error.s(project_id, task_id)))
 
     if error_messages and not report_generation_tasks:
         for error_message in error_messages:
@@ -676,16 +616,13 @@ def generate_report_project(request, report_project_id: int):
 
         return redirect("dashboard_report_project", report_project_id=project.id)
 
-    Project.objects.filter(id=project_id).update(
-        task_status=CELERY_TASK_STATUS[3][0], task_id=task_id
-    )
+    Project.objects.filter(id=project_id).update(task_status=CELERY_TASK_STATUS[3][0], task_id=task_id)
 
     try:
         if is_multiple_selected_companies:
-            callback = (
-                zip_files_task.si(user.id, project_id, task_id, error_messages)
-                | cleanup_files.si(project_id, task_id)
-            ).on_error(on_chord_error.s(project_id, task_id))
+            callback = (zip_files_task.si(user.id, project_id, task_id, error_messages) | cleanup_files.si(project_id, task_id)).on_error(
+                on_chord_error.s(project_id, task_id)
+            )
             chord(group(report_generation_tasks))(callback)
             if error_messages:
                 warning_message = _(
@@ -697,12 +634,8 @@ def generate_report_project(request, report_project_id: int):
             task.delay()
             success_message = _("Report is being generated.")
     except (ConnectionError, RuntimeError, CeleryError):
-        Project.objects.filter(id=project_id).update(
-            task_status=CELERY_TASK_STATUS[0][0]
-        )
-        messages.error(
-            request, _("Failed to start report generation. Please try again.")
-        )
+        Project.objects.filter(id=project_id).update(task_status=CELERY_TASK_STATUS[0][0])
+        messages.error(request, _("Failed to start report generation. Please try again."))
         return redirect("dashboard_report_project", report_project_id=project.id)
 
     if is_multiple_selected_companies and error_messages:
@@ -811,13 +744,9 @@ def bulk_update_company_project(request, report_project_id: int):
     value = request.POST.get("value") == "true"
 
     company_project_qs = project.companyproject_set.all()
-    dashboard_project_filter_params = request.session.get(
-        "dashboard_project_filter_params", {}
-    ).copy()
+    dashboard_project_filter_params = request.session.get("dashboard_project_filter_params", {}).copy()
 
-    company_project_filter = CompanyProjectFilter(
-        dashboard_project_filter_params, queryset=company_project_qs, project=project
-    )
+    company_project_filter = CompanyProjectFilter(dashboard_project_filter_params, queryset=company_project_qs, project=project)
 
     company_project_filter.qs.update(**{field: value})
     reponse = {"project_id": project.id, field: value}
@@ -856,17 +785,13 @@ def add_report_recommendations(request, company_id, sector_id, year):
         return validate_result
     company, sector, year = validate_result
 
-    redirect_url = reverse(
-        "add_report_recommendations", args=[company.id, sector.id, year]
-    )
+    redirect_url = reverse("add_report_recommendations", args=[company.id, sector.id, year])
 
     if "reset" in request.GET:
         request.session.pop("report_recommendations_filter_params", None)
         return redirect(redirect_url)
 
-    current_params = request.session.get(
-        "report_recommendations_filter_params", {}
-    ).copy()
+    current_params = request.session.get("report_recommendations_filter_params", {}).copy()
 
     for key, values in request.GET.lists():
         current_params[key] = values if key == "sectors" else values[0]
@@ -875,37 +800,25 @@ def add_report_recommendations(request, company_id, sector_id, year):
     request.session["report_recommendations_filter_params"] = current_params
 
     report_recommendations = company.get_report_recommandations(year, sector)
-    recommendations_ids = [
-        rec.observation_recommendation.id for rec in report_recommendations
-    ]
+    recommendations_ids = [rec.observation_recommendation.id for rec in report_recommendations]
 
-    recommendations_queryset = ObservationRecommendation.objects.exclude(
-        id__in=recommendations_ids
-    )
+    recommendations_queryset = ObservationRecommendation.objects.exclude(id__in=recommendations_ids)
 
-    recommendation_filter = RecommendationFilter(
-        filter_params, queryset=recommendations_queryset
-    )
+    recommendation_filter = RecommendationFilter(filter_params, queryset=recommendations_queryset)
 
     is_filtered = {k: v for k, v in filter_params.items()}
 
     if request.method == "POST":
         formset = RecommendationsSelectFormSet(request.POST)
         if formset.is_valid():
-            selected_recommendations = [
-                form.instance for form in formset if form.cleaned_data.get("selected")
-            ]
+            selected_recommendations = [form.instance for form in formset if form.cleaned_data.get("selected")]
 
-            add_new_report_recommendations(
-                company, sector, year, selected_recommendations, user
-            )
+            add_new_report_recommendations(company, sector, year, selected_recommendations, user)
             messages.success(
                 request,
                 _("Recommendations have been added successfully"),
             )
-            redirect_url = reverse(
-                "report_recommendations", args=[company.id, sector.id, year]
-            )
+            redirect_url = reverse("report_recommendations", args=[company.id, sector.id, year])
 
             return redirect(redirect_url)
 
@@ -937,15 +850,13 @@ def copy_report_recommendations(request, company_id, sector_id, year):
     if not report_recommendations:
         messages.error(
             request,
-            _(f"No recommendations from {last_year}"),
+            _("No recommendations from %s") % last_year,
         )
     else:
-        add_new_report_recommendations(
-            company, sector, year, report_recommendations, user, "COPY"
-        )
+        add_new_report_recommendations(company, sector, year, report_recommendations, user, "COPY")
         messages.success(
             request,
-            _(f"Recommendations have been copied from {last_year}"),
+            _("Recommendations have been copied from %s") % last_year,
         )
 
     redirect_url = reverse("report_recommendations", args=[company_id, sector_id, year])
@@ -963,9 +874,7 @@ def delete_report_recommendation(request, company_id, sector_id, year, report_re
     company, sector, year = validate_result
 
     try:
-        company_reporting = CompanyReporting.objects.get(
-            company=company, year=year, sector=sector
-        )
+        company_reporting = CompanyReporting.objects.get(company=company, year=year, sector=sector)
         observation = Observation.objects.get(
             company_reporting=company_reporting,
             observation_recommendations__in=[report_rec_id],
@@ -993,16 +902,12 @@ def delete_report_recommendation(request, company_id, sector_id, year, report_re
 @otp_required
 def update_report_recommendation(request, report_rec_id):
     try:
-        report_recommendation = ObservationRecommendationThrough.objects.get(
-            id=report_rec_id
-        )
+        report_recommendation = ObservationRecommendationThrough.objects.get(id=report_rec_id)
     except ObservationRecommendationThrough.DoesNotExist:
         return JsonResponse({"error": "Observation not found."}, status=404)
 
     if request.method == "POST":
-        form = ObservationRecommendationOrderForm(
-            request.POST, instance=report_recommendation
-        )
+        form = ObservationRecommendationOrderForm(request.POST, instance=report_recommendation)
         if form.is_valid():
             form.save()
             return JsonResponse({"success": True})
@@ -1020,9 +925,7 @@ def import_risk_analysis(request):
     sector_list = get_sectors_grouped(sectors_queryset)
 
     companies_queryset = (
-        Company.objects.filter(
-            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-        ).distinct()
+        Company.objects.filter(companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)).distinct()
         if user_in_group(user, "RegulatorUser")
         else Company.objects.all()
     )
@@ -1076,9 +979,7 @@ def import_risk_analysis(request):
                 return HttpResponseRedirect(request.headers.get("referer"))
 
             for sector_id in sector_ids:
-                validate_result = validate_url_arguments(
-                    request, company_id, sector_id, year
-                )
+                validate_result = validate_url_arguments(request, company_id, sector_id, year)
                 if isinstance(validate_result, HttpResponseRedirect):
                     return HttpResponseRedirect(request.headers.get("referer"))
 
@@ -1091,31 +992,19 @@ def import_risk_analysis(request):
                     )
                     continue
 
-                company_reporting_obj, created = CompanyReporting.objects.get_or_create(
-                    company=company, year=year, sector=sector
-                )
+                company_reporting_obj, created = CompanyReporting.objects.get_or_create(company=company, year=year, sector=sector)
                 if not created:
                     report_recommendations = list(
-                        ObservationRecommendationThrough.objects.filter(
-                            observation__company_reporting=company_reporting_obj
-                        )
+                        ObservationRecommendationThrough.objects.filter(observation__company_reporting=company_reporting_obj)
                     )
 
-                    comment = (
-                        str(company_reporting_obj.comment)
-                        if company_reporting_obj.comment
-                        else ""
-                    )
+                    comment = str(company_reporting_obj.comment) if company_reporting_obj.comment else ""
 
                     company_reporting_obj.delete()
-                    company_reporting_obj = CompanyReporting.objects.create(
-                        company=company, year=year, sector=sector, comment=comment
-                    )
+                    company_reporting_obj = CompanyReporting.objects.create(company=company, year=year, sector=sector, comment=comment)
 
                     if report_recommendations:
-                        add_new_report_recommendations(
-                            company, sector, year, report_recommendations, user, "COPY"
-                        )
+                        add_new_report_recommendations(company, sector, year, report_recommendations, user, "COPY")
 
                 try:
                     parsing_risk_data_json(json_file, company_reporting_obj)
@@ -1124,9 +1013,7 @@ def import_risk_analysis(request):
                     return HttpResponseRedirect(request.headers.get("referer"))
 
                 messages.success(request, _("Risk analysis successfully imported"))
-                CompanyProject.objects.filter(
-                    company=company, year=year, sector=sector
-                ).update(has_risk_assessment=True)
+                CompanyProject.objects.filter(company=company, year=year, sector=sector).update(has_risk_assessment=True)
                 return HttpResponseRedirect(request.headers.get("referer"))
 
     form = ImportRiskAnalysisForm(
@@ -1161,9 +1048,7 @@ def review_comment_report(request, company_id, sector_id, year):
         return validate_result
     company, sector, year = validate_result
     try:
-        company_reporting = CompanyReporting.objects.get(
-            company=company, year=year, sector=sector
-        )
+        company_reporting = CompanyReporting.objects.get(company=company, year=year, sector=sector)
     except CompanyReporting.DoesNotExist:
         return render(request, "reporting/dashboard.html", {})
 
@@ -1189,9 +1074,7 @@ def review_comment_report(request, company_id, sector_id, year):
 @login_required
 @otp_required
 def download_report(request, report_project_id: int, file_uuid):
-    report = get_object_or_404(
-        GeneratedReport, file_uuid=file_uuid, project__id=report_project_id
-    )
+    report = get_object_or_404(GeneratedReport, file_uuid=file_uuid, project__id=report_project_id)
     user = request.user
     project = report.project
     if not has_change_permission(request, project, "download"):
@@ -1199,9 +1082,7 @@ def download_report(request, report_project_id: int, file_uuid):
 
     file_path = report.get_file_path()
     create_entry_log(user, project, "DOWNLOAD REPORT")
-    return FileResponse(
-        open(file_path, "rb"), as_attachment=True, filename=report.filename
-    )
+    return FileResponse(open(file_path, "rb"), as_attachment=True, filename=report.filename)
 
 
 @login_required
@@ -1213,9 +1094,7 @@ def download_template(request, pk):
         bytes(template.template_file),
         content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
-    response["Content-Disposition"] = (
-        f'attachment; filename="template_{template.language}.docx"'
-    )
+    response["Content-Disposition"] = f'attachment; filename="template_{template.language}.docx"'
     return response
 
 
@@ -1244,9 +1123,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
                         new_object.name = translations
                 else:
                     for lang_index, lang_code in LANG_VALUES.items():
-                        name_value = translations.get(
-                            field_name + str(lang_index), None
-                        )
+                        name_value = translations.get(field_name + str(lang_index), None)
                         if name_value:
                             with override(lang_code):
                                 new_object.set_current_language(lang_code)
@@ -1273,11 +1150,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             return current_avg
 
         def generate_information_risk_uuid(risk):
-            return (
-                risk["informationRisk"]["uuid"]
-                if risk["informationRisk"]
-                else risk["threat"]["uuid"] + risk["vulnerability"]["uuid"]
-            )
+            return risk["informationRisk"]["uuid"] if risk["informationRisk"] else risk["threat"]["uuid"] + risk["vulnerability"]["uuid"]
 
         def calculate_risks(risk):
             def get_risk_value(risk_value, factor):
@@ -1287,15 +1160,9 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             threat = risk["threat"]
 
             return {
-                "riskConfidentiality": get_risk_value(
-                    risk["riskIntegrity"], threat["confidentiality"]
-                ),
-                "riskIntegrity": get_risk_value(
-                    risk["riskIntegrity"], threat["integrity"]
-                ),
-                "riskAvailability": get_risk_value(
-                    risk["riskAvailability"], threat["availability"]
-                ),
+                "riskConfidentiality": get_risk_value(risk["riskIntegrity"], threat["confidentiality"]),
+                "riskIntegrity": get_risk_value(risk["riskIntegrity"], threat["integrity"]),
+                "riskAvailability": get_risk_value(risk["riskAvailability"], threat["availability"]),
             }
 
         risks = instance["instanceRisks"]
@@ -1311,21 +1178,15 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             for risk in risks:
                 information_risk_uuid = generate_information_risk_uuid(risk)
 
-                new_vulnerability = create_translations(
-                    VulnerabilityData, risk["vulnerability"], "label"
-                )
+                new_vulnerability = create_translations(VulnerabilityData, risk["vulnerability"], "label")
 
                 new_threat = create_translations(ThreatData, risk["threat"], "label")
                 risk_values = calculate_risks(risk)
                 risk.update(risk_values)
                 risk.update(
                     {
-                        "uuid": generate_combined_uuid(
-                            [instance["uuid"], information_risk_uuid]
-                        ),
-                        "risk_treatment": TREATMENT_VALUES.get(
-                            risk["kindOfMeasure"], "Unknown"
-                        ),
+                        "uuid": generate_combined_uuid([instance["uuid"], information_risk_uuid]),
+                        "risk_treatment": TREATMENT_VALUES.get(risk["kindOfMeasure"], "Unknown"),
                     }
                 )
 
@@ -1406,9 +1267,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             is_root = instance.get("level") == 1 and instance.get("position") == 1
         else:
             meta_instance = instance.get("instance", {})
-            is_root = (
-                meta_instance.get("root") == 0 and meta_instance.get("parent") == 0
-            )
+            is_root = meta_instance.get("root") == 0 and meta_instance.get("parent") == 0
 
         return is_root and bool(children)
 
@@ -1428,19 +1287,13 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             threat_data["integrity"] = threat_data.get("i")
             threat_data["availability"] = threat_data.get("a")
             threat_data["label"] = get_translations_dict(threat_data, "label")
-            threat_data["description"] = get_translations_dict(
-                threat_data, "description"
-            )
+            threat_data["description"] = get_translations_dict(threat_data, "description")
             return threat_data
 
         def get_normalized_vulnerability(instance_risk, vuls):
             vulnerability_data = vuls.get(str(instance_risk["vulnerability"]), {})
-            vulnerability_data["label"] = get_translations_dict(
-                vulnerability_data, "label"
-            )
-            vulnerability_data["description"] = (
-                get_translations_dict(vulnerability_data, "description"),
-            )
+            vulnerability_data["label"] = get_translations_dict(vulnerability_data, "label")
+            vulnerability_data["description"] = (get_translations_dict(vulnerability_data, "description"),)
             return vulnerability_data
 
         if is_new_version:
@@ -1448,9 +1301,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
             asset_uuid = instance["asset"]["uuid"]
             object_uuid = instance["object"]["uuid"]
             parent_uuid = instance.get("parent_uuid", "")
-            normalized_instance["uuid"] = generate_combined_uuid(
-                [asset_uuid, object_uuid, parent_uuid]
-            )
+            normalized_instance["uuid"] = generate_combined_uuid([asset_uuid, object_uuid, parent_uuid])
 
         else:
             normalized_instance = defaultdict()
@@ -1477,9 +1328,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
                     {
                         "informationRisk": amvs.get(str(instance_risk["amv"]), {}),
                         "threat": get_normalized_threat(instance_risk, threats),
-                        "vulnerability": get_normalized_vulnerability(
-                            instance_risk, vuls
-                        ),
+                        "vulnerability": get_normalized_vulnerability(instance_risk, vuls),
                         "recommendations": recommendation_data.values(),
                         "riskConfidentiality": instance["instance"]["c"] * txv,
                         "riskIntegrity": instance["instance"]["i"] * txv,
@@ -1489,9 +1338,7 @@ def parsing_risk_data_json(json_file, company_reporting_obj):
 
             normalized_instance.update(
                 {
-                    "uuid": generate_combined_uuid(
-                        [asset_uuid, object_uuid, parent_uuid]
-                    ),
+                    "uuid": generate_combined_uuid([asset_uuid, object_uuid, parent_uuid]),
                     "name": get_translations_dict(meta_instance, "name"),
                     "label": get_translations_dict(meta_instance, "label"),
                     "confidentiality": instance["instance"]["c"],
@@ -1557,8 +1404,7 @@ def get_report(
 
     if not is_multiple_files:
         return chain(*steps, cleanup_files.si(project_id, task_id))
-    else:
-        return chain(*steps)
+    return chain(*steps)
 
 
 def validate_json_file(file):
@@ -1625,15 +1471,9 @@ def validate_url_arguments(request, company_id, sector_id, year):
     return company, sector, year
 
 
-def add_new_report_recommendations(
-    company, sector, year, report_recommendations, user, action="ADD"
-):
-    company_reporting_obj, created = CompanyReporting.objects.get_or_create(
-        company=company, year=year, sector=sector
-    )
-    observation_obj, created = Observation.objects.get_or_create(
-        company_reporting=company_reporting_obj
-    )
+def add_new_report_recommendations(company, sector, year, report_recommendations, user, action="ADD"):
+    company_reporting_obj, created = CompanyReporting.objects.get_or_create(company=company, year=year, sector=sector)
+    observation_obj, created = Observation.objects.get_or_create(company_reporting=company_reporting_obj)
     if action == "ADD":
         observation_obj.observation_recommendations.add(*report_recommendations)
 

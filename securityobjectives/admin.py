@@ -112,9 +112,7 @@ class DomainAdmin(
         super().save_model(request, obj, form, change)
 
 
-for name, method in generate_display_methods(
-    ["label"], [("standard", "label")]
-).items():
+for name, method in generate_display_methods(["label"], [("standard", "label")]).items():
     setattr(DomainAdmin, name, method)
 
 
@@ -155,10 +153,8 @@ class SecurityObjectiveInline(admin.TabularInline):
             standard_id = request.resolver_match.kwargs.get("object_id")
             # update we have the standard
             if standard_id:
-                linked_to_other_standards = (
-                    SecurityObjectivesInStandard.objects.exclude(
-                        standard_id=standard_id
-                    ).values("security_objective_id")
+                linked_to_other_standards = SecurityObjectivesInStandard.objects.exclude(standard_id=standard_id).values(
+                    "security_objective_id"
                 )
 
                 kwargs["queryset"] = (
@@ -172,11 +168,7 @@ class SecurityObjectiveInline(admin.TabularInline):
             else:
                 kwargs["queryset"] = (
                     SecurityObjective.objects.filter(creator__in=user.regulators.all())
-                    .exclude(
-                        id__in=SecurityObjectivesInStandard.objects.values(
-                            "security_objective_id"
-                        )
-                    )
+                    .exclude(id__in=SecurityObjectivesInStandard.objects.values("security_objective_id"))
                     .exclude(~Q(domain__standard__id=standard_id))
                     .order_by("unique_code")
                     .distinct()
@@ -252,9 +244,7 @@ class StandardAdmin(
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulation":
             regulator = request.user.regulators.first()
-            kwargs["queryset"] = Regulation.objects.filter(
-                regulators=regulator
-            ).distinct()
+            kwargs["queryset"] = Regulation.objects.filter(regulators=regulator).distinct()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     # save by default the regulator
@@ -324,8 +314,7 @@ class MaturityLevelAdmin(
     @admin.display(description=_("Color"))
     def color_preview(self, obj):
         return format_html(
-            '<span style="display:inline-block; width:16px; height:16px; '
-            'background:{}; border:1px solid #ccc;"></span> {}',
+            '<span style="display:inline-block; width:16px; height:16px; background:{}; border:1px solid #ccc;"></span> {}',
             obj.color,
             obj.color,
         )
@@ -352,14 +341,11 @@ class MaturityLevelAdmin(
         super().save_model(request, obj, form, change)
 
 
-for name, method in generate_display_methods(
-    ["label"], [("standard", "label")]
-).items():
+for name, method in generate_display_methods(["label"], [("standard", "label")]).items():
     setattr(MaturityLevelAdmin, name, method)
 
 
 class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = kwargs.pop("request", None)
@@ -383,9 +369,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
         attribute="domain",
         widget=TranslatedNameWidget(Domain, field="label"),
     )
-    domain_position = fields.Field(
-        column_name="domain_position", attribute="domain__position"
-    )
+    domain_position = fields.Field(column_name="domain_position", attribute="domain__position")
 
     standard = fields.Field(
         column_name="standard",
@@ -420,15 +404,12 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             cached = self._row_cache.get(id(self._current_import_row), {})
             standard = cached.get("standard")
         elif obj and obj.pk and not self._importing:
-            sois = SecurityObjectivesInStandard.objects.filter(
-                security_objective=obj
-            ).first()
+            sois = SecurityObjectivesInStandard.objects.filter(security_objective=obj).first()
             standard = sois.standard
         if standard:
             standard.set_current_language(get_language())
             return standard.label
-        else:
-            return self._current_import_row["standard"]
+        return self._current_import_row["standard"]
 
     def dehydrate_position(self, obj):
         if obj and obj.pk and not self._importing:
@@ -437,8 +418,8 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             ).first()
             if sois:
                 return sois.position
-        else:
-            return self._current_import_row["position"]
+            return None
+        return self._current_import_row["position"]
 
     def dehydrate_priority(self, obj):
         if obj and obj.pk and not self._importing:
@@ -447,14 +428,13 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
             ).first()
             if sois:
                 return sois.priority
-        else:
-            return self._current_import_row["priority"]
+            return None
+        return self._current_import_row["priority"]
 
     def dehydrate_domain_position(self, obj):
         if obj.domain and obj.domain.pk:
             return obj.domain.position
-        else:
-            return self._current_import_row["domain_position"]
+        return self._current_import_row["domain_position"]
 
     def before_import(self, dataset, **kwargs):
         self._importing = True
@@ -500,9 +480,7 @@ class SecurityObjectiveResource(TranslationUpdateMixin, resources.ModelResource)
                 }
             if standard:
                 if row["domain"] and row["domain_position"]:
-                    domain = Domain.objects.filter(
-                        standard=standard, position=row["domain_position"]
-                    ).first()
+                    domain = Domain.objects.filter(standard=standard, position=row["domain_position"]).first()
                     if not domain:
                         domain = Domain.objects.create(
                             standard=standard,
@@ -633,9 +611,7 @@ class SecurityObjectiveAdmin(
     # filter only the standards that belongs to the regulators'user
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "standards":
-            kwargs["queryset"] = Standard.objects.filter(
-                regulator=request.user.regulators.first()
-            )
+            kwargs["queryset"] = Standard.objects.filter(regulator=request.user.regulators.first())
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -643,16 +619,12 @@ class SecurityObjectiveAdmin(
         if db_field.name == "domain":
             # Regulator
             if is_user_regulator(user):
-                kwargs["queryset"] = Domain.objects.filter(
-                    creator__in=user.regulators.all()
-                ).distinct()
+                kwargs["queryset"] = Domain.objects.filter(creator__in=user.regulators.all()).distinct()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-for name, method in generate_display_methods(
-    ["description", "objective"], [("domain", "label")]
-).items():
+for name, method in generate_display_methods(["description", "objective"], [("domain", "label")]).items():
     setattr(SecurityObjectiveAdmin, name, method)
 
 
@@ -674,12 +646,8 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
         attribute="maturity_level",
         widget=TranslatedNameWidget(MaturityLevel, field="label"),
     )
-    maturity_level_level = fields.Field(
-        column_name="maturity_level_level", attribute="maturity_level_level"
-    )
-    maturity_level_color = fields.Field(
-        column_name="maturity_level_color", attribute="maturity_level_color"
-    )
+    maturity_level_level = fields.Field(column_name="maturity_level_level", attribute="maturity_level_level")
+    maturity_level_color = fields.Field(column_name="maturity_level_color", attribute="maturity_level_color")
     position = fields.Field(
         column_name="position",
         attribute="position",
@@ -694,40 +662,25 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
     )
 
     def dehydrate_maturity_level_color(self, obj):
-        if (
-            hasattr(self, "_current_import_row")
-            and self._current_import_row["maturity_level_color"] is not None
-        ):
+        if hasattr(self, "_current_import_row") and self._current_import_row["maturity_level_color"] is not None:
             return self._current_import_row["maturity_level_color"]
-        if (
-            hasattr(self, "_current_import_row")
-            and self._current_import_row["maturity_level_color"] is None
-        ):
+        if hasattr(self, "_current_import_row") and self._current_import_row["maturity_level_color"] is None:
             return ""
         if obj.maturity_level and obj.maturity_level.pk:
             return obj.maturity_level.color
-        else:
-            return self._current_import_row["maturity_level_color"]
+        return self._current_import_row["maturity_level_color"]
 
     def dehydrate_maturity_level_level(self, obj):
         if hasattr(self, "_current_import_row"):
             return self._current_import_row["maturity_level_level"]
         if obj.maturity_level and obj.maturity_level.pk:
             return obj.maturity_level.level
-        else:
-            return self._current_import_row["maturity_level_level"]
+        return self._current_import_row["maturity_level_level"]
 
     def dehydrate_standard(self, obj):
         if hasattr(self, "_current_import_row"):
             return self._current_import_row["standard"]
-        else:
-            return (
-                SecurityObjectivesInStandard.objects.filter(
-                    security_objective=obj.security_objective
-                )
-                .first()
-                .standard
-            )
+        return SecurityObjectivesInStandard.objects.filter(security_objective=obj.security_objective).first().standard
 
     def skip_row(self, instance, original, row, import_validation_errors=None):
         # Object already in used we don't change
@@ -765,11 +718,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                     creator=creator,
                 ).first()
                 row["security_objective"] = so
-            if (
-                row["maturity_level"]
-                and row["maturity_level_level"] is not None
-                and creator
-            ):
+            if row["maturity_level"] and row["maturity_level_level"] is not None and creator:
                 ml = MaturityLevel.objects.filter(
                     standard=standard,
                     level=row["maturity_level_level"],
@@ -784,9 +733,7 @@ class SecurityMeasureResource(TranslationUpdateMixin, resources.ModelResource):
                 ml.label = row["maturity_level"]
                 # add the color of domain if present of the import
                 if row["maturity_level_color"]:
-                    match = re.match(
-                        r"^#(?:[0-9a-fA-F]{3}){1,2}$", row["maturity_level_color"]
-                    )
+                    match = re.match(r"^#(?:[0-9a-fA-F]{3}){1,2}$", row["maturity_level_color"])
                     if match:
                         ml.color = row["maturity_level_color"]
                 ml.save()
@@ -830,11 +777,7 @@ class SecurityMeasureAdminForm(TranslatableModelForm, PermissionMixin):
 
         if sois and ml:
             if sois.standard_id != ml.standard_id:
-                raise ValidationError(
-                    _(
-                        "Standard of security objective and maturity level must be the same"
-                    )
-                )
+                raise ValidationError(_("Standard of security objective and maturity level must be the same"))
 
         return cleaned_data
 
@@ -906,22 +849,14 @@ class SecurityMeasureAdmin(
 
     @admin.display(description=_("Standard"))
     def standard_display(self, obj):
-        return (
-            obj.security_objective.standard_link.standard
-            if obj.security_objective.standard_link
-            else "-"
-        )
+        return obj.security_objective.standard_link.standard if obj.security_objective.standard_link else "-"
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         user = request.user
         if db_field.name == "security_objective":
             # Regulator
             if is_user_regulator(user):
-                kwargs["queryset"] = (
-                    SecurityObjective.objects.filter(creator__in=user.regulators.all())
-                    .order_by("unique_code")
-                    .distinct()
-                )
+                kwargs["queryset"] = SecurityObjective.objects.filter(creator__in=user.regulators.all()).order_by("unique_code").distinct()
 
         if db_field.name == "maturity_level":
             # Regulator filter
@@ -932,13 +867,11 @@ class SecurityMeasureAdmin(
                 object_id = request.resolver_match.kwargs.get("object_id")
                 if object_id:
                     try:
-                        security_measure = SecurityMeasure.objects.select_related(
-                            "security_objective__standard_link__standard"
-                        ).get(pk=object_id)
-
-                        standard = (
-                            security_measure.security_objective.standard_link.standard
+                        security_measure = SecurityMeasure.objects.select_related("security_objective__standard_link__standard").get(
+                            pk=object_id
                         )
+
+                        standard = security_measure.security_objective.standard_link.standard
 
                         qs = qs.filter(standard=standard)
 

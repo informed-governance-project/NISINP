@@ -15,9 +15,7 @@ from .forms import TemplateAdminForm
 from .models import Color, Configuration, ObservationRecommendation, Template
 
 
-class ObservationRecommendationResource(
-    TranslationUpdateMixin, resources.ModelResource
-):
+class ObservationRecommendationResource(TranslationUpdateMixin, resources.ModelResource):
     id = fields.Field(
         column_name="id",
         attribute="id",
@@ -49,9 +47,7 @@ class ObservationRecommendationResource(
 
 
 @admin.register(ObservationRecommendation, site=admin_site)
-class ObservationRecommendationAdmin(
-    FunctionalityMixin, CustomTranslatableAdmin, ImportExportModelAdmin
-):
+class ObservationRecommendationAdmin(FunctionalityMixin, CustomTranslatableAdmin, ImportExportModelAdmin):
     resource_class = ObservationRecommendationResource
     list_display = ["code", "description", "get_sector_name"]
     search_fields = ["code", "description"]
@@ -73,9 +69,7 @@ class ObservationRecommendationAdmin(
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "sectors":
             # exclude parent with children from the list
-            kwargs["queryset"] = Sector.objects.annotate(
-                child_count=Count("children")
-            ).exclude(parent=None, child_count__gt=0)
+            kwargs["queryset"] = Sector.objects.annotate(child_count=Count("children")).exclude(parent=None, child_count__gt=0)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -131,9 +125,7 @@ class ConfigurationAdmin(FunctionalityMixin, admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "regulation":
             regulator = request.user.regulators.first()
-            kwargs["queryset"] = Regulation.objects.filter(
-                regulators=regulator
-            ).distinct()
+            kwargs["queryset"] = Regulation.objects.filter(regulators=regulator).distinct()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):

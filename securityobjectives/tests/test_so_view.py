@@ -21,7 +21,6 @@ def test_so_user_access_without_2FA(client, populate_so_db):
         client.force_login(user)
         url_list = list_url_freetext_filter("securityobjectives", "")
         for url in url_list:
-            print(url)
             response = client.get("/" + url)
             assert response.status_code in (
                 302,
@@ -58,13 +57,7 @@ def test_can_access_so(otp_client, populate_so_db):
     users = populate_so_db["users"]
     sas = populate_so_db["sas"]
     # operator admin
-    authorized_users = [
-        u
-        for u in users
-        if u.email == "opadmin@com1.lu"
-        or u.email == "opuser@com1.lu"
-        or u.email == "regadmin@reg1.lu"
-    ]
+    authorized_users = [u for u in users if u.email == "opadmin@com1.lu" or u.email == "opuser@com1.lu" or u.email == "regadmin@reg1.lu"]
     unaccess_module_users = [
         u
         for u in users

@@ -58,30 +58,28 @@ def status_class(context, value):
         if context["is_regulator"]:
             return "border border-passed border-2"
         return "bg-passed"
-    elif value == "PASSM":
+    if value == "PASSM":
         return "bg-passed"
-    elif value == "FAIL":
+    if value == "FAIL":
         if context["is_regulator"]:
             return "border border-failed border-2"
         return "bg-failed "
-    elif value == "FAILM":
+    if value == "FAILM":
         return "bg-failed "
-    elif value == "DELIV":
+    if value == "DELIV":
         return "bg-under-review"
-    else:
-        return "bg-unsubmitted"
+    return "bg-unsubmitted"
 
 
 @register.simple_tag()
 def status_color(value):
     if value == "PASS" or value == "PASSM":
         return "text-passed"
-    elif value == "FAIL" or value == "FAILM":
+    if value == "FAIL" or value == "FAILM":
         return "text-failed "
-    elif value == "DELIV":
+    if value == "DELIV":
         return "text-under-review"
-    else:
-        return "text-unsubmitted"
+    return "text-unsubmitted"
 
 
 @register.simple_tag(takes_context=True)
@@ -90,22 +88,21 @@ def status_icon(context, value):
         if context["is_regulator"]:
             return "custom-icon-passed"
         return "custom-icon-passed-white"
-    elif value == "PASSM":
+    if value == "PASSM":
         if context["is_regulator"]:
             return "custom-icon-passed-sent"
         return "custom-icon-passed-white"
-    elif value == "FAIL":
+    if value == "FAIL":
         if context["is_regulator"]:
             return "custom-icon-failed"
         return "custom-icon-failed-white"
-    elif value == "FAILM":
+    if value == "FAILM":
         if context["is_regulator"]:
             return "custom-icon-failed-sent"
         return "custom-icon-failed-white"
-    elif value == "DELIV":
+    if value == "DELIV":
         return "custom-icon-under-review-white"
-    else:
-        return "custom-icon-unsubmitted-white"
+    return "custom-icon-unsubmitted-white"
 
 
 @register.simple_tag(takes_context=True)

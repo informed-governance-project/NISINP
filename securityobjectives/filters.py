@@ -18,9 +18,7 @@ class YearChoiceFilter(django_filters.ChoiceFilter):
 
 class StandardAnswerFilter(django_filters.FilterSet):
     year_of_submission = YearChoiceFilter()
-    sectors = django_filters.MultipleChoiceFilter(
-        widget=DropdownCheckboxSelectMultiple(), label=_("Sectors")
-    )
+    sectors = django_filters.MultipleChoiceFilter(widget=DropdownCheckboxSelectMultiple(), label=_("Sectors"))
     search = django_filters.CharFilter(method="filter_search", label=_("Search"))
 
     class Meta:
@@ -39,22 +37,14 @@ class StandardAnswerFilter(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
         submitter_user_ids = set(queryset.values_list("submitter_user", flat=True))
 
-        submitter_companies_ids = set(
-            queryset.values_list("submitter_company", flat=True)
-        )
+        submitter_companies_ids = set(queryset.values_list("submitter_company", flat=True))
 
-        self.filters["submitter_user"].queryset = User.objects.filter(
-            id__in=submitter_user_ids
-        )
+        self.filters["submitter_user"].queryset = User.objects.filter(id__in=submitter_user_ids)
 
-        self.filters["submitter_company"].queryset = Company.objects.filter(
-            id__in=submitter_companies_ids
-        )
+        self.filters["submitter_company"].queryset = Company.objects.filter(id__in=submitter_companies_ids)
 
         years = set(self.queryset.values_list("year_of_submission", flat=True))
-        self.filters["year_of_submission"].extra["choices"] = [
-            (year, year) for year in sorted(years)
-        ]
+        self.filters["year_of_submission"].extra["choices"] = [(year, year) for year in sorted(years)]
         grouped_choices = get_sectors_grouped(Sector.objects.all())
         self.filters["sectors"].field.choices = grouped_choices
 

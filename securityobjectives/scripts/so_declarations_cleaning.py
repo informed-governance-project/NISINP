@@ -19,8 +19,7 @@ def run(logger=logger):
     logger.info("running so_declarations_cleaning.py")
     try:
         declarations_delete_qs = StandardAnswer.objects.filter(
-            creation_date__lte=Now()
-            - timedelta(days=SECURITY_OBJECTIVE_RETENTION_TIME_IN_DAY)
+            creation_date__lte=Now() - timedelta(days=SECURITY_OBJECTIVE_RETENTION_TIME_IN_DAY)
         )
     except DatabaseError as e:
         logger.error(
@@ -33,9 +32,7 @@ def run(logger=logger):
     try:
         ScriptLogEntry.objects.create(
             object_id=None,
-            object_repr="System:Security Objectives script deletion "
-            + str(declarations_delete_qs.count())
-            + " declarations(s) deleted",
+            object_repr="System:Security Objectives script deletion " + str(declarations_delete_qs.count()) + " declarations(s) deleted",
             action_flag=3,
         )
     except Exception as e:

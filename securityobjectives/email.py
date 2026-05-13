@@ -18,9 +18,7 @@ def send_html_email(subject, content, recipient_list):
 def send_email(email, standard_answer):
     if email is not None:
         subject = replace_email_variables(
-            email.safe_translation_getter(
-                "subject", language_code=settings.LANGUAGE_CODE
-            ),
+            email.safe_translation_getter("subject", language_code=settings.LANGUAGE_CODE),
             standard_answer,
         )
         html_content = render_to_string_multi_languages(
@@ -37,9 +35,7 @@ def send_email(email, standard_answer):
         company_users_emails = []
         # get company user emails
         if standard_answer.submitter_company is not None:
-            company_users = CompanyUser.objects.filter(
-                company=standard_answer.submitter_company
-            ).distinct("user")
+            company_users = CompanyUser.objects.filter(company=standard_answer.submitter_company).distinct("user")
             for c in company_users:
                 company_users_emails.append(c.user.email)
         recipient_list.extend(company_users_emails)
@@ -80,11 +76,7 @@ def replace_email_variables(content, standard_answer):
             else:
                 var_txt = group_id
         else:
-            var_txt = (
-                getattr(standard_answer, key)
-                if getattr(standard_answer, key) is not None
-                else ""
-            )
+            var_txt = getattr(standard_answer, key) if getattr(standard_answer, key) is not None else ""
             if isinstance(var_txt, date):
                 var_txt = getattr(standard_answer, key).strftime("%Y-%m-%d")
         modify_content = modify_content.replace(variable, var_txt)

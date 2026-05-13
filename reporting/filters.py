@@ -24,16 +24,9 @@ class RecommendationFilter(django_filters.FilterSet):
 
     sectors = django_filters.ModelMultipleChoiceFilter(
         queryset=Sector.objects.filter(
-            ~Q(
-                id__in=Sector.objects.exclude(parent=None).values_list(
-                    "parent_id", flat=True
-                )
-            )
-            | Q(id=F("parent_id"))
+            ~Q(id__in=Sector.objects.exclude(parent=None).values_list("parent_id", flat=True)) | Q(id=F("parent_id"))
         ).order_by("parent"),
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 2"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"data-selected-text-format": "count > 2"}),
         method="filter_by_sector",
         label=_("Sectors"),
     )
@@ -52,12 +45,8 @@ class RecommendationFilter(django_filters.FilterSet):
 
 
 class ProjectFilter(django_filters.FilterSet):
-    reference_year = django_filters.MultipleChoiceFilter(
-        widget=DropdownCheckboxSelectMultiple()
-    )
-    sectors = django_filters.MultipleChoiceFilter(
-        widget=DropdownCheckboxSelectMultiple()
-    )
+    reference_year = django_filters.MultipleChoiceFilter(widget=DropdownCheckboxSelectMultiple())
+    sectors = django_filters.MultipleChoiceFilter(widget=DropdownCheckboxSelectMultiple())
     search = django_filters.CharFilter(method="filter_search", label=_("Search"))
 
     class Meta:
@@ -77,24 +66,14 @@ class ProjectFilter(django_filters.FilterSet):
 
         sectors = Sector.objects.filter(project__in=queryset).distinct()
         grouped_choices = get_sectors_grouped(sectors)
-        reference_years = (
-            queryset.values_list("reference_year", flat=True)
-            .order_by("-reference_year")
-            .distinct()
-        )
+        reference_years = queryset.values_list("reference_year", flat=True).order_by("-reference_year").distinct()
 
-        self.filters["reference_year"].field.choices = [
-            (year, year) for year in reference_years
-        ]
+        self.filters["reference_year"].field.choices = [(year, year) for year in reference_years]
         self.filters["sectors"].field.choices = grouped_choices
         self.filters["author"].queryset = User.objects.filter(id__in=author_user_ids)
         self.filters["author"].field.label_from_instance = self.user_label
-        self.filters["standard"].queryset = Standard.objects.filter(
-            project__in=queryset
-        ).distinct()
-        self.filters["standard__regulation"].queryset = Regulation.objects.filter(
-            standard__project__in=queryset
-        ).distinct()
+        self.filters["standard"].queryset = Standard.objects.filter(project__in=queryset).distinct()
+        self.filters["standard__regulation"].queryset = Regulation.objects.filter(standard__project__in=queryset).distinct()
 
     def user_label(self, user):
         full_name = user.get_full_name()
@@ -119,9 +98,7 @@ class ProjectFilter(django_filters.FilterSet):
 
 class CompanyProjectFilter(django_filters.FilterSet):
     year = django_filters.MultipleChoiceFilter(widget=DropdownCheckboxSelectMultiple())
-    sector = django_filters.MultipleChoiceFilter(
-        widget=DropdownCheckboxSelectMultiple()
-    )
+    sector = django_filters.MultipleChoiceFilter(widget=DropdownCheckboxSelectMultiple())
     search = django_filters.CharFilter(method="filter_search", label=_("Search"))
 
     class Meta:
@@ -148,9 +125,7 @@ class CompanyProjectFilter(django_filters.FilterSet):
         self.filters["year"].field.choices = [(year, year) for year in years]
 
     def filter_search(self, queryset, name, value):
-        query = Q(company__name__icontains=value) | Q(
-            sector__translations__name__icontains=value
-        )
+        query = Q(company__name__icontains=value) | Q(sector__translations__name__icontains=value)
 
         if value.isdigit():
             query |= Q(year=int(value))

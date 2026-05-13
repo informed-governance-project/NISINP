@@ -25,14 +25,10 @@ project_needs_update = Signal()
 
 # Update project when a company is changed
 @receiver(m2m_changed, sender=Company.sectors.through)
-def update_project_on_company_sectors_changed(
-    sender, instance, action, pk_set, **kwargs
-):
+def update_project_on_company_sectors_changed(sender, instance, action, pk_set, **kwargs):
     if action == "post_add":
         for project in Project.objects.all():
-            intersection = list(
-                set(project.sectors.all()) & set(instance.sectors.all())
-            )
+            intersection = list(set(project.sectors.all()) & set(instance.sectors.all()))
             if intersection:
                 project_needs_update.send(
                     sender=Project.sectors.through,
@@ -51,9 +47,7 @@ def update_project_on_company_sectors_changed(
 # when a project is saved and link with sectors is changed
 @receiver(project_needs_update)
 @receiver(m2m_changed, sender=Project.sectors.through)
-def create_company_projects_on_sectors_change(
-    sender, instance, action, pk_set, **kwargs
-):
+def create_company_projects_on_sectors_change(sender, instance, action, pk_set, **kwargs):
     if action not in ("post_add", "post_remove"):
         return
     Company = apps.get_model("governanceplatform", "Company")
@@ -178,7 +172,7 @@ def delete_orphaned_recommendationdata(sender, instance, **kwargs):
 
 @worker_process_init.connect
 def cleanup_stale_soffice(**kwargs):
-    result = subprocess.run(["pkill", "-f", "soffice.*update_toc"], capture_output=True)
+    result = subprocess.run(["pkill", "-f", "soffice.*update_toc"], capture_output=True, check=False)
     if result.returncode == 0:
         logger.info("Cleaned up stale soffice pipes on worker startup")
 

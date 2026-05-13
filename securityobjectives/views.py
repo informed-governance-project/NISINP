@@ -118,35 +118,21 @@ def get_security_objectives(request):
         template = "regulator/so_dashboard.html"
         is_regulator_admin = user_in_group(user, "RegulatorAdmin")
         if not is_regulator_admin:
-            standard_answer_queryset = StandardAnswer.objects.filter(
-                standard__regulator=regulator, sectors__in=user.get_sectors().all()
-            )
+            standard_answer_queryset = StandardAnswer.objects.filter(standard__regulator=regulator, sectors__in=user.get_sectors().all())
         if is_regulator_admin:
-            standard_answer_queryset = StandardAnswer.objects.filter(
-                standard__regulator=regulator
-            )
+            standard_answer_queryset = StandardAnswer.objects.filter(standard__regulator=regulator)
 
         standard_answer_queryset = standard_answer_queryset.exclude(status="UNDE")
 
     if is_user_operator(user):
         company = get_active_company_from_session(request)
-        standard_answer_queryset = StandardAnswer.objects.filter(
-            submitter_company=company
-        )
+        standard_answer_queryset = StandardAnswer.objects.filter(submitter_company=company)
 
-    latest_so_id = (
-        standard_answer_queryset.filter(group__id=OuterRef("group__id"))
-        .order_by("-last_update")
-        .values("id")[:1]
-    )
+    latest_so_id = standard_answer_queryset.filter(group__id=OuterRef("group__id")).order_by("-last_update").values("id")[:1]
 
-    standard_answer_queryset = standard_answer_queryset.filter(
-        id__in=Subquery(latest_so_id)
-    )
+    standard_answer_queryset = standard_answer_queryset.filter(id__in=Subquery(latest_so_id))
 
-    standard_answer_queryset = get_standard_answers_with_progress(
-        standard_answer_queryset
-    )
+    standard_answer_queryset = get_standard_answers_with_progress(standard_answer_queryset)
 
     # Apply sorting
     sort_field = so_sort_params.get("sort_field", "last_update")
@@ -159,9 +145,7 @@ def get_security_objectives(request):
         ALLOWED_SORT_FIELDS,
     )
 
-    security_objective_filter = StandardAnswerFilter(
-        so_filter_params, queryset=standard_answer_queryset
-    )
+    security_objective_filter = StandardAnswerFilter(so_filter_params, queryset=standard_answer_queryset)
 
     # Filter
     so_answer_list = security_objective_filter.qs
@@ -170,9 +154,7 @@ def get_security_objectives(request):
     paginator = Paginator(so_answer_list, per_page)
     page_obj = paginator.get_page(page_number)
 
-    is_filtered = {
-        k: v for k, v in so_filter_params.items() if k not in ["page", "per_page"]
-    }
+    is_filtered = {k: v for k, v in so_filter_params.items() if k not in ["page", "per_page"]}
 
     context = {
         "standard_answers": page_obj,
@@ -188,12 +170,7 @@ def get_security_objectives(request):
 @login_required
 @otp_required
 def create_so_declaration(request):
-    standard_list = [
-        (standard.id, str(standard))
-        for standard in Standard.objects.filter(
-            security_objectives_set__isnull=False
-        ).distinct()
-    ]
+    standard_list = [(standard.id, str(standard)) for standard in Standard.objects.filter(security_objectives_set__isnull=False).distinct()]
 
     sector_list = get_sectors_grouped(Sector.objects.all())
     if not standard_list or not sector_list:
@@ -223,9 +200,7 @@ def create_so_declaration(request):
                 new_standard_answer.save()
                 new_standard_answer.sectors.set(sectors)
                 create_entry_log(user, new_standard_answer, "CREATE", request)
-                return redirect(
-                    f"{reverse('so_declaration')}?id={new_standard_answer.id}"
-                )
+                return redirect(f"{reverse('so_declaration')}?id={new_standard_answer.id}")
             except Standard.DoesNotExist:
                 messages.error(request, _("Standard does not exist"))
 
@@ -264,13 +239,9 @@ def declaration(request):
 
     standard = standard_answer.standard
 
-    security_objectives_queryset = standard.security_objectives_set.all().order_by(
-        "position"
-    )
+    security_objectives_queryset = standard.security_objectives_set.all().order_by("position")
 
-    levels = MaturityLevel.objects.filter(standard=standard).aggregate(
-        first_level=Min("level"), last_level=Max("level")
-    )
+    levels = MaturityLevel.objects.filter(standard=standard).aggregate(first_level=Min("level"), last_level=Max("level"))
 
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
@@ -284,10 +255,7 @@ def declaration(request):
                 },
                 status=403,
             )
-        if (
-            field_name in ["is_implemented", "justification"]
-            and not standard_answer.status == "UNDE"
-        ):
+        if field_name in ["is_implemented", "justification"] and not standard_answer.status == "UNDE":
             return JsonResponse(
                 {
                     "success": False,
@@ -301,35 +269,25 @@ def declaration(request):
                 try:
                     security_objective = SecurityObjective.objects.get(pk=id_object)
                     field_to_update = {field_name: form.cleaned_data[field_name]}
-                    so_status_obj, created = (
-                        SecurityObjectiveStatus.objects.update_or_create(
-                            standard_answer=standard_answer,
-                            security_objective=security_objective,
-                            defaults={
-                                **field_to_update,
-                                "standard_answer": standard_answer,
-                                "security_objective": security_objective,
-                            },
-                        )
+                    so_status_obj, created = SecurityObjectiveStatus.objects.update_or_create(
+                        standard_answer=standard_answer,
+                        security_objective=security_objective,
+                        defaults={
+                            **field_to_update,
+                            "standard_answer": standard_answer,
+                            "security_objective": security_objective,
+                        },
                     )
 
                     standard_answer.last_update = timezone.now()
                     if is_user_regulator(user):
-                        standard_answer.status = get_standard_answer_status(
-                            standard_answer
-                        )
+                        standard_answer.status = get_standard_answer_status(standard_answer)
                     standard_answer.save()
 
-                    objective_state = get_completion_objective(
-                        security_objective, standard_answer
-                    )
+                    objective_state = get_completion_objective(security_objective, standard_answer)
                     objective_state["id"] = security_objective.pk
 
-                    if (
-                        field_name != "status"
-                        and so_status_obj
-                        and so_status_obj.status != "NOT_REVIEWED"
-                    ):
+                    if field_name != "status" and so_status_obj and so_status_obj.status != "NOT_REVIEWED":
                         so_status_obj.status = "NOT_REVIEWED"
                         so_status_obj.save()
 
@@ -340,12 +298,8 @@ def declaration(request):
                             "id": id_object,
                             "data": field_to_update,
                             "objective_state": objective_state,
-                            "ready_to_submit": declaration_is_ready_to(standard_answer)[
-                                "submit"
-                            ],
-                            "ready_to_send": declaration_is_ready_to(standard_answer)[
-                                "send"
-                            ],
+                            "ready_to_submit": declaration_is_ready_to(standard_answer)["submit"],
+                            "ready_to_send": declaration_is_ready_to(standard_answer)["send"],
                         },
                         status=201 if created else 200,
                     )
@@ -378,37 +332,25 @@ def declaration(request):
                     so_status_obj = SecurityObjectiveStatus.objects.none()
 
                     if so_score is not None:
-                        so_status_obj, __so_status_created = (
-                            SecurityObjectiveStatus.objects.update_or_create(
-                                standard_answer=standard_answer,
-                                security_objective=security_measure.security_objective,
-                                defaults={
-                                    "score": so_score,
-                                    "standard_answer": standard_answer,
-                                    "security_objective": security_measure.security_objective,
-                                },
-                            )
+                        so_status_obj, __so_status_created = SecurityObjectiveStatus.objects.update_or_create(
+                            standard_answer=standard_answer,
+                            security_objective=security_measure.security_objective,
+                            defaults={
+                                "score": so_score,
+                                "standard_answer": standard_answer,
+                                "security_objective": security_measure.security_objective,
+                            },
                         )
 
-                    if (
-                        not sma.is_implemented
-                        and not sma.justification
-                        and not sma.review_comment
-                    ):
+                    if not sma.is_implemented and not sma.justification and not sma.review_comment:
                         sma.delete()
 
                     standard_answer.last_update = timezone.now()
                     standard_answer.save()
-                    objective_state = get_completion_objective(
-                        security_measure.security_objective, standard_answer
-                    )
+                    objective_state = get_completion_objective(security_measure.security_objective, standard_answer)
                     objective_state["id"] = security_measure.security_objective.pk
 
-                    if (
-                        field_name != "review_comment"
-                        and so_status_obj
-                        and so_status_obj.status != "NOT_REVIEWED"
-                    ):
+                    if field_name != "review_comment" and so_status_obj and so_status_obj.status != "NOT_REVIEWED":
                         so_status_obj.status = "NOT_REVIEWED"
                         so_status_obj.save()
 
@@ -419,12 +361,8 @@ def declaration(request):
                             "data": field_to_update,
                             "objective_state": objective_state,
                             "so_score": f"{float(so_score):.1f}",
-                            "ready_to_submit": declaration_is_ready_to(standard_answer)[
-                                "submit"
-                            ],
-                            "ready_to_send": declaration_is_ready_to(standard_answer)[
-                                "send"
-                            ],
+                            "ready_to_submit": declaration_is_ready_to(standard_answer)["submit"],
+                            "ready_to_send": declaration_is_ready_to(standard_answer)["send"],
                         },
                         status=201 if sma_created else 200,
                     )
@@ -438,14 +376,10 @@ def declaration(request):
 
     for so_in_standard in security_objectives_queryset:
         security_objective = so_in_standard.security_objective
-        security_objective.completion_state = get_completion_objective(
-            security_objective, standard_answer
-        )
+        security_objective.completion_state = get_completion_objective(security_objective, standard_answer)
         security_objective.declaration_status = standard_answer.status
         security_objective.review_comment = standard_answer.review_comment
-        security_measures = security_objective.securitymeasure_set.all().order_by(
-            "position"
-        )
+        security_measures = security_objective.securitymeasure_set.all().order_by("position")
         try:
             so_status = SecurityObjectiveStatus.objects.get(
                 standard_answer=standard_answer,
@@ -453,9 +387,7 @@ def declaration(request):
             )
             initial = model_to_dict(so_status, fields=["status", "actions"])
             initial["is_regulator"] = is_user_regulator(user)
-            initial["is_readonly"] = (
-                is_user_operator(user) and standard_answer.status != "UNDE"
-            ) or (
+            initial["is_readonly"] = (is_user_operator(user) and standard_answer.status != "UNDE") or (
                 is_user_regulator(user) and standard_answer.status in ["PASSM", "FAILM"]
             )
 
@@ -463,9 +395,7 @@ def declaration(request):
         except SecurityObjectiveStatus.DoesNotExist:
             initial = {}
 
-        security_objective.status_form = SecurityObjectiveStatusForm(
-            initial=initial, prefix=f"{security_objective.id}"
-        )
+        security_objective.status_form = SecurityObjectiveStatusForm(initial=initial, prefix=f"{security_objective.id}")
 
         for measure in security_measures:
             try:
@@ -482,23 +412,17 @@ def declaration(request):
 
             initial["is_regulator"] = is_user_regulator(user)
             initial["has_review_comment"] = bool(standard_answer.review_comment)
-            initial["is_readonly"] = (
-                is_user_operator(user) and standard_answer.status != "UNDE"
-            ) or (
+            initial["is_readonly"] = (is_user_operator(user) and standard_answer.status != "UNDE") or (
                 is_user_regulator(user) and standard_answer.status in ["PASSM", "FAILM"]
             )
 
             security_objective = measure.security_objective
             maturity_level = measure.maturity_level
-            measure.answer_form = SecurityObjectiveAnswerForm(
-                initial=initial, prefix=f"{measure.id}"
-            )
+            measure.answer_form = SecurityObjectiveAnswerForm(initial=initial, prefix=f"{measure.id}")
 
             security_objectives[security_objective][maturity_level].append(measure)
 
-    security_objectives = {
-        so: dict(levels) for so, levels in security_objectives.items()
-    }
+    security_objectives = {so: dict(levels) for so, levels in security_objectives.items()}
 
     create_entry_log(user, standard_answer, "READ", request)
 
@@ -524,11 +448,7 @@ def copy_declaration(request, group_id: int):
         messages.error(request, _("No sectors data available"))
 
     # get the last standard from the group
-    original_standard_answer = (
-        StandardAnswer.objects.filter(group__pk=group_id)
-        .order_by("-last_update")
-        .first()
-    )
+    original_standard_answer = StandardAnswer.objects.filter(group__pk=group_id).order_by("-last_update").first()
     if not original_standard_answer:
         messages.error(request, _("Declaration not found"))
         return JsonResponse({"error": "Declaration not found"}, status=404)
@@ -562,9 +482,7 @@ def copy_declaration(request, group_id: int):
             create_entry_log(user, new_standard_answer, "CREATE", request)
             create_entry_log(user, original_standard_answer, "COPY", request)
 
-            security_measure_answers = SecurityMeasureAnswer.objects.filter(
-                standard_answer=original_standard_answer
-            )
+            security_measure_answers = SecurityMeasureAnswer.objects.filter(standard_answer=original_standard_answer)
 
             if security_measure_answers:
                 security_measure_answers_copy = [
@@ -586,16 +504,12 @@ def copy_declaration(request, group_id: int):
                     so_score = calculate_so_score(security_measure, standard_answer)
 
                     if so_score is not None:
-                        old_so_status = (
-                            original_standard_answer.securityobjectivestatus_set.filter(
-                                security_objective=security_measure.security_objective
-                            ).first()
-                        )
+                        old_so_status = original_standard_answer.securityobjectivestatus_set.filter(
+                            security_objective=security_measure.security_objective
+                        ).first()
                         if old_so_status:
                             actions = old_so_status.actions
-                            is_completely_filled_out = (
-                                old_so_status.is_completely_filled_out
-                            )
+                            is_completely_filled_out = old_so_status.is_completely_filled_out
 
                         SecurityObjectiveStatus.objects.update_or_create(
                             standard_answer=sma.standard_answer,
@@ -641,9 +555,7 @@ def submit_declaration(request, standard_answer_id: int):
     standard_answer.save()
     send_email(standard_answer.standard.submission_email, standard_answer)
     create_entry_log(user, standard_answer, "SUBMIT", request)
-    messages.success(
-        request, _("The security objectives declaration has been submitted.")
-    )
+    messages.success(request, _("The security objectives declaration has been submitted."))
 
     return redirect("securityobjectives")
 
@@ -660,9 +572,7 @@ def delete_declaration(request, standard_answer_id: int):
         standard_answer.delete()
         if group.standardanswer_set.count() == 0:
             group.delete()
-        messages.success(
-            request, _("The security objectives declaration has been deleted.")
-        )
+        messages.success(request, _("The security objectives declaration has been deleted."))
     except StandardAnswer.DoesNotExist:
         messages.error(request, _("Declaration not found"))
     return redirect("securityobjectives")
@@ -687,9 +597,7 @@ def review_comment_declaration(request, standard_answer_id: int):
         create_entry_log(user, standard_answer, "READ", request)
         initial["is_readonly"] = is_user_operator(user)
     else:
-        initial["is_readonly"] = not is_user_regulator(
-            user
-        ) or standard_answer.status in ["PASSM", "FAILM"]
+        initial["is_readonly"] = not is_user_regulator(user) or standard_answer.status in ["PASSM", "FAILM"]
         if standard_answer.status == "DELIV":
             initial["status"] = get_standard_answer_status(standard_answer)
 
@@ -735,17 +643,13 @@ def review_comment_declaration(request, standard_answer_id: int):
             sectors = standard_answer.sectors.all()
             year = standard_answer.year_of_submission
             for sector in sectors:
-                has_security_objectives = company.security_objective_exists(
-                    year, sector
+                has_security_objectives = company.security_objective_exists(year, sector)
+                CompanyProject.objects.filter(company=company, year=year, sector=sector).update(
+                    has_security_objectives=has_security_objectives
                 )
-                CompanyProject.objects.filter(
-                    company=company, year=year, sector=sector
-                ).update(has_security_objectives=has_security_objectives)
 
             with override(settings.PARLER_DEFAULT_LANGUAGE_CODE):
-                status_label = dict(STANDARD_ANSWER_REVIEW_STATUS).get(
-                    standard_answer.status, ""
-                )
+                status_label = dict(STANDARD_ANSWER_REVIEW_STATUS).get(standard_answer.status, "")
 
                 create_entry_log(
                     user,
@@ -785,9 +689,7 @@ def access_log(request, standard_answer_id: int):
         messages.error(request, _("Declaration not found"))
         return redirect("securityobjectives")
 
-    log = LogStandardAnswer.objects.filter(standard_answer=standard_answer).order_by(
-        "-timestamp"
-    )
+    log = LogStandardAnswer.objects.filter(standard_answer=standard_answer).order_by("-timestamp")
     if is_user_operator(user) or user_in_group(user, "IncidentUser"):
         log = log.exclude(user__regulatoruser__isnull=False)
 
@@ -812,20 +714,14 @@ def download_declaration_pdf(request, standard_answer_id: int):
             return redirect("securityobjectives")
         standard = standard_answer.standard
 
-        levels = MaturityLevel.objects.filter(standard=standard).aggregate(
-            first_level=Min("level"), last_level=Max("level")
-        )
-        security_objectives_queryset = standard.security_objectives_set.all().order_by(
-            "position"
-        )
+        levels = MaturityLevel.objects.filter(standard=standard).aggregate(first_level=Min("level"), last_level=Max("level"))
+        security_objectives_queryset = standard.security_objectives_set.all().order_by("position")
         security_objectives = defaultdict(lambda: defaultdict(list))
 
         for so_in_standard in security_objectives_queryset:
             security_objective = so_in_standard.security_objective
             security_objective.declaration_status = standard_answer.status
-            security_measures = security_objective.securitymeasure_set.all().order_by(
-                "position"
-            )
+            security_measures = security_objective.securitymeasure_set.all().order_by("position")
             try:
                 so_status = SecurityObjectiveStatus.objects.get(
                     standard_answer=standard_answer,
@@ -851,9 +747,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
                 maturity_level = measure.maturity_level
                 security_objectives[security_objective][maturity_level].append(measure)
 
-        security_objectives = {
-            so: dict(levels) for so, levels in security_objectives.items()
-        }
+        security_objectives = {so: dict(levels) for so, levels in security_objectives.items()}
         static_theme_dir = settings.STATIC_THEME_DIR
         font_config = FontConfiguration()
 
@@ -882,9 +776,7 @@ def download_declaration_pdf(request, standard_answer_id: int):
 
         pdf_report = htmldoc.write_pdf(stylesheets=stylesheets, font_config=font_config)
         response = HttpResponse(pdf_report, content_type="application/pdf")
-        response["Content-Disposition"] = (
-            f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
-        )
+        response["Content-Disposition"] = f"attachment;filename=Security_objective_declaration_{timezone.now().date()}.pdf"
         create_entry_log(user, standard_answer, "DOWNLOAD", request)
         return response
     except Exception:
@@ -897,26 +789,17 @@ def download_declaration_pdf(request, standard_answer_id: int):
 def import_so_declaration(request):
     user = request.user
     regulator = user.regulators.first()
-    standard_list = [
-        (standard.id, str(standard))
-        for standard in Standard.objects.filter(regulator=regulator)
-    ]
+    standard_list = [(standard.id, str(standard)) for standard in Standard.objects.filter(regulator=regulator)]
 
     if not standard_list:
         messages.error(request, _("No data available"))
 
-    sectors_queryset = (
-        user.get_sectors().all()
-        if user_in_group(user, "RegulatorUser")
-        else Sector.objects.all()
-    )
+    sectors_queryset = user.get_sectors().all() if user_in_group(user, "RegulatorUser") else Sector.objects.all()
 
     sector_list = get_sectors_grouped(sectors_queryset)
 
     companies_queryset = (
-        Company.objects.filter(
-            companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)
-        ).distinct()
+        Company.objects.filter(companyuser__sectors__in=user.get_sectors().values_list("id", flat=True)).distinct()
         if user_in_group(user, "RegulatorUser")
         else Company.objects.all()
     )
@@ -987,9 +870,7 @@ def import_so_declaration(request):
                     )
                     return HttpResponseRedirect(request.headers.get("referer"))
 
-                valid_sectors = [
-                    sector for sector in Sector.objects.filter(id__in=sectors)
-                ]
+                valid_sectors = [sector for sector in Sector.objects.filter(id__in=sectors)]
 
                 if not valid_sectors:
                     return HttpResponseRedirect(request.headers.get("referer"))
@@ -1017,35 +898,21 @@ def import_so_declaration(request):
                 )
                 return HttpResponseRedirect(request.headers.get("referer"))
 
-            security_objectives = {
-                obj.unique_code: obj for obj in standard.security_objectives.all()
-            }
+            security_objectives = {obj.unique_code: obj for obj in standard.security_objectives.all()}
 
-            for row in ws.iter_rows(
-                min_row=4, max_row=120, max_col=9, values_only=True
-            ):
+            for row in ws.iter_rows(min_row=4, max_row=120, max_col=9, values_only=True):
                 security_objective_code = row[1].split(":")[0] if row[1] else None
                 if security_objective_code:
-                    evidence = (
-                        row[6] if row[6] and default_text not in str(row[6]) else None
-                    )
-                    justification = (
-                        row[7] if row[7] and default_text not in str(row[7]) else None
-                    )
+                    evidence = row[6] if row[6] and default_text not in str(row[6]) else None
+                    justification = row[7] if row[7] and default_text not in str(row[7]) else None
                     maturity_level = row[8] if isinstance(row[8], int) else None
                     if evidence or justification or maturity_level is not None:
                         maturity_level = maturity_level if maturity_level else 0
                         evidence = evidence if evidence else ""
                         justification = justification if justification else ""
-                        evidence_and_justification = (
-                            f"{evidence}\n\n{justification}"
-                            if evidence
-                            else justification
-                        )
+                        evidence_and_justification = f"{evidence}\n\n{justification}" if evidence else justification
 
-                        security_objective = security_objectives.get(
-                            security_objective_code
-                        )
+                        security_objective = security_objectives.get(security_objective_code)
 
                         if security_objective:
                             security_measures = SecurityMeasure.objects.filter(
@@ -1054,18 +921,11 @@ def import_so_declaration(request):
                             )
 
                             for sm in security_measures:
-                                sma_justification = (
-                                    evidence_and_justification
-                                    if sm.maturity_level.level == maturity_level
-                                    else ""
-                                )
+                                sma_justification = evidence_and_justification if sm.maturity_level.level == maturity_level else ""
                                 if sma_justification:
                                     evidence_and_justification = ""
                                 is_implemented = (
-                                    True
-                                    if sm.maturity_level.level <= maturity_level
-                                    and not sm.maturity_level.level == 0
-                                    else False
+                                    True if sm.maturity_level.level <= maturity_level and not sm.maturity_level.level == 0 else False
                                 )
                                 measure_answers_imported.append(
                                     SecurityMeasureAnswer(
@@ -1095,9 +955,7 @@ def import_so_declaration(request):
                     )
 
             create_entry_log(user, new_standard_answer, "IMPORT", request)
-            messages.success(
-                request, ("The security objectives declaration has been imported.")
-            )
+            messages.success(request, ("The security objectives declaration has been imported."))
             return HttpResponseRedirect(request.headers.get("referer"))
 
     form = ImportSOForm(initial=initial or {}, choices=choices)
@@ -1106,7 +964,7 @@ def import_so_declaration(request):
 
 
 def get_standard_answers_with_progress(standard_answer_queryset):
-    standard_answers = standard_answer_queryset.annotate(
+    return standard_answer_queryset.annotate(
         total_security_objectives=Count(
             "standard__security_objectives",
             distinct=True,
@@ -1124,23 +982,18 @@ def get_standard_answers_with_progress(standard_answer_queryset):
         reviewed_percentage=Case(
             When(total_security_objectives=0, then=Value(0.0)),
             default=ExpressionWrapper(
-                F("total_security_objectives_reviewed")
-                * 100.0
-                / F("total_security_objectives"),
+                F("total_security_objectives_reviewed") * 100.0 / F("total_security_objectives"),
                 output_field=FloatField(),
             ),
         ),
         answered_percentage=Case(
             When(total_security_objectives=0, then=Value(0.0)),
             default=ExpressionWrapper(
-                F("total_security_objectives_answered")
-                * 100.0
-                / F("total_security_objectives"),
+                F("total_security_objectives_answered") * 100.0 / F("total_security_objectives"),
                 output_field=FloatField(),
             ),
         ),
     )
-    return standard_answers
 
 
 def has_change_permission(request, standard_answer, action):
@@ -1148,13 +1001,10 @@ def has_change_permission(request, standard_answer, action):
         user = request.user
         user_sectors = user.get_sectors().all()
         user_company = get_active_company_from_session(request)
-        is_standard_answer_in_user_company = (
-            is_user_operator(user) and standard_answer.submitter_company == user_company
-        )
+        is_standard_answer_in_user_company = is_user_operator(user) and standard_answer.submitter_company == user_company
         standard_sectors = standard_answer.sectors.all()
         is_user_regulator_sector = (
-            user_in_group(user, "RegulatorAdmin")
-            and standard_answer.standard.regulator == user.regulators.first()
+            user_in_group(user, "RegulatorAdmin") and standard_answer.standard.regulator == user.regulators.first()
         ) or (
             is_user_regulator(user)
             and standard_answer.standard.regulator == user.regulators.first()
@@ -1163,28 +1013,18 @@ def has_change_permission(request, standard_answer, action):
 
         match action:
             case "edit" | "download":
-                return (
-                    is_user_regulator_sector and standard_answer.status != "UNDE"
-                ) or (is_standard_answer_in_user_company)
+                return (is_user_regulator_sector and standard_answer.status != "UNDE") or (is_standard_answer_in_user_company)
             case "submit":
                 return (
-                    is_standard_answer_in_user_company
-                    and standard_answer.status == "UNDE"
-                    and standard_answer.answered_percentage == 100
+                    is_standard_answer_in_user_company and standard_answer.status == "UNDE" and standard_answer.answered_percentage == 100
                 )
             case "copy":
                 return is_standard_answer_in_user_company
             case "delete":
-                return (
-                    is_standard_answer_in_user_company
-                    and standard_answer.status == "UNDE"
-                ) or (is_user_regulator_sector)
+                return (is_standard_answer_in_user_company and standard_answer.status == "UNDE") or (is_user_regulator_sector)
             case "review_comment":
-                return (
-                    is_user_regulator_sector and standard_answer.status != "UNDE"
-                ) or (
-                    is_standard_answer_in_user_company
-                    and standard_answer.review_comment
+                return (is_user_regulator_sector and standard_answer.status != "UNDE") or (
+                    is_standard_answer_in_user_company and standard_answer.review_comment
                 )
             case "log":
                 return is_user_regulator_sector or is_standard_answer_in_user_company
@@ -1200,9 +1040,7 @@ def has_change_permission(request, standard_answer, action):
 def calculate_so_score(security_measure, standard_answer):
     try:
         scores_by_level = (
-            SecurityMeasure.objects.filter(
-                security_objective=security_measure.security_objective
-            )
+            SecurityMeasure.objects.filter(security_objective=security_measure.security_objective)
             .exclude(maturity_level__level=0)
             .values("maturity_level__level")
             .annotate(
@@ -1223,9 +1061,7 @@ def calculate_so_score(security_measure, standard_answer):
     except Exception:
         return None
 
-    total_rate = sum(score["rate"] for score in scores_by_level)
-
-    return total_rate
+    return sum(score["rate"] for score in scores_by_level)
 
 
 def create_entry_log(user, standard_answer, action, request=None):
@@ -1276,40 +1112,36 @@ def get_completion_objective(security_objective, standard_answer):
             "is_partially": False,
             "is_not_started": True,
         }
-    else:
-        annotated_queryset = queryset.annotate(
-            is_completed=Case(
-                When(
-                    Q(
-                        is_implemented=True,
-                        justification__gt="",
-                    )
-                    | Q(
-                        is_implemented=False,
-                        justification="",
-                        review_comment__gt="",
-                    )
-                    | Q(
-                        security_measure__maturity_level__level=first_maturity_level,
-                    ),
-                    then=True,
+    annotated_queryset = queryset.annotate(
+        is_completed=Case(
+            When(
+                Q(
+                    is_implemented=True,
+                    justification__gt="",
+                )
+                | Q(
+                    is_implemented=False,
+                    justification="",
+                    review_comment__gt="",
+                )
+                | Q(
+                    security_measure__maturity_level__level=first_maturity_level,
                 ),
-                default=False,
-                output_field=BooleanField(),
+                then=True,
             ),
-            is_partially=Case(
-                When(
-                    (
-                        (Q(is_implemented=True) & Q(justification=""))
-                        | (~Q(is_implemented=True) & Q(justification__gt=""))
-                    )
-                    & ~Q(security_measure__maturity_level__level=first_maturity_level),
-                    then=True,
-                ),
-                default=False,
-                output_field=BooleanField(),
+            default=False,
+            output_field=BooleanField(),
+        ),
+        is_partially=Case(
+            When(
+                ((Q(is_implemented=True) & Q(justification="")) | (~Q(is_implemented=True) & Q(justification__gt="")))
+                & ~Q(security_measure__maturity_level__level=first_maturity_level),
+                then=True,
             ),
-        )
+            default=False,
+            output_field=BooleanField(),
+        ),
+    )
 
     completed_count = annotated_queryset.filter(is_completed=True).count()
     partially_count = annotated_queryset.filter(is_partially=True).count()
@@ -1334,9 +1166,7 @@ def get_completion_objective(security_objective, standard_answer):
             ).exclude(security_measure__maturity_level__level=first_maturity_level)
         ).count()
 
-        total_others = security_objective.securitymeasure_set.exclude(
-            maturity_level__level=first_maturity_level
-        ).count()
+        total_others = security_objective.securitymeasure_set.exclude(maturity_level__level=first_maturity_level).count()
 
         others_all_checked = total_others == others_checked
 
@@ -1370,9 +1200,7 @@ def get_standard_answer_status(standard_answer):
     status = STANDARD_ANSWER_REVIEW_STATUS[1][0]
 
     status_counts_queryset = (
-        SecurityObjectiveStatus.objects.filter(standard_answer=standard_answer)
-        .values("status")
-        .annotate(count=Count("status"))
+        SecurityObjectiveStatus.objects.filter(standard_answer=standard_answer).values("status").annotate(count=Count("status"))
     )
 
     status_counts_dict = defaultdict(
@@ -1382,10 +1210,7 @@ def get_standard_answer_status(standard_answer):
 
     security_objectives_count = standard.security_objectives_set.all().count()
 
-    if (
-        sum(status_counts_dict.values()) == security_objectives_count
-        and status_counts_dict["NOT_REVIEWED"] == 0
-    ):
+    if sum(status_counts_dict.values()) == security_objectives_count and status_counts_dict["NOT_REVIEWED"] == 0:
         pass_counts = status_counts_dict["PASS"]
         fail_counts = status_counts_dict["FAIL"]
         if pass_counts == security_objectives_count:
@@ -1398,12 +1223,8 @@ def get_standard_answer_status(standard_answer):
 
 def declaration_is_ready_to(standard_answer):
     try:
-        declaration = get_standard_answers_with_progress(
-            StandardAnswer.objects.filter(pk=standard_answer.pk)
-        ).first()
-        has_failed_so = declaration.securityobjectivestatus_set.filter(
-            status="FAIL"
-        ).exists()
+        declaration = get_standard_answers_with_progress(StandardAnswer.objects.filter(pk=standard_answer.pk)).first()
+        has_failed_so = declaration.securityobjectivestatus_set.filter(status="FAIL").exists()
         submit = declaration.answered_percentage == 100 and not has_failed_so
         send = declaration.reviewed_percentage == 100
     except Exception:
@@ -1458,20 +1279,10 @@ def create_standard_answer_group(company, sectors, standard):
     sector = Sector.objects.get(id=sector_id) if sector_id else None
     sector_for_ref = sector.parent.acronym[:3] if sector and sector.parent else ""
     subsector_for_ref = sector.acronym[:3] if sector else ""
-    group_by_company = (
-        company.standardanswergroup_set.filter(
-            notification_date__year=date.today().year
-        ).count()
-        if company
-        else 1
-    )
+    group_by_company = company.standardanswergroup_set.filter(notification_date__year=date.today().year).count() if company else 1
     group_by_company += 1
     number_of_group = f"{group_by_company:04}"
-    sag = StandardAnswerGroup.objects.create(
+    return StandardAnswerGroup.objects.create(
         company=company,
-        group_id=(
-            f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_"
-            f"{number_of_group}_{date.today().year}"
-        ),
+        group_id=(f"{company_for_ref}_{framework_for_ref}_{sector_for_ref}_{subsector_for_ref}_{number_of_group}_{date.today().year}"),
     )
-    return sag

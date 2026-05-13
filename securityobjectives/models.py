@@ -11,9 +11,7 @@ from .globals import STANDARD_ANSWER_REVIEW_STATUS
 # Maturity level : define a matury (e.g. sophisticated)
 class MaturityLevel(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(
-            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
-        ),
+        label=models.CharField(verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True),
     )
     level = models.IntegerField(verbose_name=_("Level"), default=0)
     standard = models.ForeignKey(
@@ -60,9 +58,7 @@ class MaturityLevel(TranslatableModel):
 # Domain : To categorize the security objectives
 class Domain(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(
-            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
-        ),
+        label=models.CharField(verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True),
     )
     position = models.IntegerField(verbose_name=_("Position"), default=0)
     standard = models.ForeignKey(
@@ -97,17 +93,11 @@ class Domain(TranslatableModel):
             super().save(*args, **kwargs)
             return
 
-        old_standard_id = Domain.objects.values_list("standard_id", flat=True).get(
-            pk=self.pk
-        )
+        old_standard_id = Domain.objects.values_list("standard_id", flat=True).get(pk=self.pk)
 
         super().save(*args, **kwargs)
-        if (self.standard is not None and old_standard_id != self.standard.id) or (
-            self.standard is None and old_standard_id is not None
-        ):
-            SecurityObjectivesInStandard.objects.filter(
-                security_objective__domain=self
-            ).delete()
+        if (self.standard is not None and old_standard_id != self.standard.id) or (self.standard is None and old_standard_id is not None):
+            SecurityObjectivesInStandard.objects.filter(security_objective__domain=self).delete()
 
     class Meta:
         verbose_name_plural = _("Domains")
@@ -169,26 +159,16 @@ class SecurityObjective(TranslatableModel, models.Model):
             super().save(*args, **kwargs)
             return
 
-        old_domain_id = SecurityObjective.objects.values_list(
-            "domain_id", flat=True
-        ).get(pk=self.pk)
+        old_domain_id = SecurityObjective.objects.values_list("domain_id", flat=True).get(pk=self.pk)
 
         super().save(*args, **kwargs)
-        if (self.domain is not None and old_domain_id != self.domain.id) or (
-            self.domain is None and old_domain_id is not None
-        ):
+        if (self.domain is not None and old_domain_id != self.domain.id) or (self.domain is None and old_domain_id is not None):
             old_domain = None
             if old_domain_id:
                 old_domain = Domain.objects.get(pk=old_domain_id)
-            if (
-                old_domain
-                and self.domain
-                and (old_domain.standard.id == self.domain.standard.id)
-            ):
+            if old_domain and self.domain and (old_domain.standard.id == self.domain.standard.id):
                 return
-            SecurityObjectivesInStandard.objects.filter(
-                security_objective=self
-            ).delete()
+            SecurityObjectivesInStandard.objects.filter(security_objective=self).delete()
 
     class Meta:
         verbose_name_plural = _("Security Objectives")
@@ -202,9 +182,7 @@ class SecurityObjective(TranslatableModel, models.Model):
         ]
 
     def __str__(self):
-        objective_translation = self.safe_translation_getter(
-            "objective", any_language=True
-        )
+        objective_translation = self.safe_translation_getter("objective", any_language=True)
         return f"{self.unique_code}:{objective_translation}" or ""
 
 
@@ -249,9 +227,7 @@ class SecurityObjectiveEmail(TranslatableModel, models.Model):
 # Standard : A group of security objectives
 class Standard(TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(
-            verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True
-        ),
+        label=models.CharField(verbose_name=_("Label"), max_length=255, blank=True, default=None, null=True),
         description=models.TextField(verbose_name=_("Description")),
     )
     regulator = models.ForeignKey(
@@ -342,9 +318,7 @@ class SecurityMeasure(TranslatableModel):
         verbose_name=_("Security Objective"),
         on_delete=models.CASCADE,
     )
-    maturity_level = models.ForeignKey(
-        MaturityLevel, verbose_name=_("Level"), on_delete=models.SET_NULL, null=True
-    )
+    maturity_level = models.ForeignKey(MaturityLevel, verbose_name=_("Level"), on_delete=models.SET_NULL, null=True)
     translations = TranslatedFields(
         description=models.TextField(verbose_name=_("Description")),
         evidence=models.TextField(verbose_name=_("Evidence")),
@@ -380,9 +354,7 @@ class SecurityMeasure(TranslatableModel):
 
 # A group of StandardAnswer to have the versionning functionnality
 class StandardAnswerGroup(models.Model):
-    notification_date = models.DateTimeField(
-        verbose_name=_("Notification date"), default=timezone.now
-    )
+    notification_date = models.DateTimeField(verbose_name=_("Notification date"), default=timezone.now)
     # we save the company
     company = models.ForeignKey(
         "governanceplatform.Company",
@@ -412,14 +384,10 @@ class StandardAnswer(models.Model):
         default=None,
         related_name="standardanswer",
     )
-    creation_date = models.DateTimeField(
-        auto_now_add=True, verbose_name=_("Creation date")
-    )
+    creation_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
 
     last_update = models.DateTimeField(auto_now=True, verbose_name=_("Last update"))
-    submit_date = models.DateTimeField(
-        blank=True, default=None, null=True, verbose_name=_("Submission date")
-    )
+    submit_date = models.DateTimeField(blank=True, default=None, null=True, verbose_name=_("Submission date"))
     status = models.CharField(
         max_length=5,
         choices=STANDARD_ANSWER_REVIEW_STATUS,
@@ -455,18 +423,10 @@ class StandardAnswer(models.Model):
         null=True,
     )
     # the year for the one
-    year_of_submission = models.PositiveIntegerField(
-        verbose_name=_("Year of submission")
-    )
-    sectors = models.ManyToManyField(
-        "governanceplatform.sector", verbose_name=_("Sectors")
-    )
-    review_comment = models.TextField(
-        blank=True, default=None, null=True, verbose_name=_("Review comment")
-    )
-    group = models.ForeignKey(
-        StandardAnswerGroup, on_delete=models.CASCADE, verbose_name=_("Group")
-    )
+    year_of_submission = models.PositiveIntegerField(verbose_name=_("Year of submission"))
+    sectors = models.ManyToManyField("governanceplatform.sector", verbose_name=_("Sectors"))
+    review_comment = models.TextField(blank=True, default=None, null=True, verbose_name=_("Review comment"))
+    group = models.ForeignKey(StandardAnswerGroup, on_delete=models.CASCADE, verbose_name=_("Group"))
 
     def get_root_sectors(self):
         return list({sector.parent for sector in self.sectors.all()})
@@ -477,9 +437,7 @@ class StandardAnswer(models.Model):
 
 # the answer of the operator by SM
 class SecurityMeasureAnswer(models.Model):
-    security_measure_notification_date = models.DateTimeField(
-        verbose_name=_("Notification date"), default=timezone.now
-    )
+    security_measure_notification_date = models.DateTimeField(verbose_name=_("Notification date"), default=timezone.now)
     standard_answer = models.ForeignKey(
         StandardAnswer,
         verbose_name=_("Standard Answer"),
@@ -546,9 +504,7 @@ class SecurityObjectiveStatus(models.Model):
         verbose_name=_("Planned Measures"),
     )
 
-    is_completely_filled_out = models.BooleanField(
-        default=False, verbose_name=_("It is completely filled out")
-    )
+    is_completely_filled_out = models.BooleanField(default=False, verbose_name=_("It is completely filled out"))
 
     def __str__(self):
         return str(self.security_objective)

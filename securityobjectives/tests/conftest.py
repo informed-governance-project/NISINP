@@ -41,22 +41,14 @@ def populate_so_db(populate_db, create_standard_answer_group, create_standard_an
 
     # populate a standard
     populate_db["so_standard"] = import_from_json(Standard, standard, True, False)
-    populate_db["so_maturity_level"] = import_from_json(
-        MaturityLevel, levels, True, False
-    )
+    populate_db["so_maturity_level"] = import_from_json(MaturityLevel, levels, True, False)
     populate_db["so_domain"] = import_from_json(Domain, domains, True, False)
-    populate_db["so_security_objectives"] = import_from_json(
-        SecurityObjective, sos, True, False
-    )
-    populate_db["so_security_measures"] = import_from_json(
-        SecurityMeasure, sms, True, False
-    )
+    populate_db["so_security_objectives"] = import_from_json(SecurityObjective, sos, True, False)
+    populate_db["so_security_measures"] = import_from_json(SecurityMeasure, sms, True, False)
     # link SOs into standard
     for i, so in enumerate(populate_db["so_security_objectives"]):
         std = populate_db["so_standard"][0]
-        SecurityObjectivesInStandard.objects.create(
-            standard=std, security_objective=so, position=i
-        )
+        SecurityObjectivesInStandard.objects.create(standard=std, security_objective=so, position=i)
     sags = []
     sas = []
     users = populate_db["users"]
@@ -103,12 +95,11 @@ def create_standard_answer_group():
         company,
         group_id="XXXXXXXXXX-FFFFFFFFFF-SSS-SSS-NNNN-YYYY",
     ):
-        sag = StandardAnswerGroup.objects.create(
+        return StandardAnswerGroup.objects.create(
             company=company,
             notification_date=timezone.now(),
             group_id=group_id,
         )
-        return sag
 
     return _create_standard_answer_group
 

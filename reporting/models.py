@@ -134,37 +134,21 @@ class ServiceStat(models.Model):
 
     total_risks = models.IntegerField(verbose_name=_("Total of all risks"), default=0)
 
-    total_untreated_risks = models.IntegerField(
-        verbose_name=_("Total of untreated risks"), default=0
-    )
+    total_untreated_risks = models.IntegerField(verbose_name=_("Total of untreated risks"), default=0)
 
-    total_treated_risks = models.IntegerField(
-        verbose_name=_("Total of treated risks"), default=0
-    )
+    total_treated_risks = models.IntegerField(verbose_name=_("Total of treated risks"), default=0)
 
-    total_reduced_risks = models.IntegerField(
-        verbose_name=_("Total of reduced risks"), default=0
-    )
+    total_reduced_risks = models.IntegerField(verbose_name=_("Total of reduced risks"), default=0)
 
-    total_denied_risks = models.IntegerField(
-        verbose_name=_("Total of denied risks"), default=0
-    )
+    total_denied_risks = models.IntegerField(verbose_name=_("Total of denied risks"), default=0)
 
-    total_accepted_risks = models.IntegerField(
-        verbose_name=_("Total of accepted risks"), default=0
-    )
+    total_accepted_risks = models.IntegerField(verbose_name=_("Total of accepted risks"), default=0)
 
-    total_shared_risks = models.IntegerField(
-        verbose_name=_("Total of shared risks"), default=0
-    )
+    total_shared_risks = models.IntegerField(verbose_name=_("Total of shared risks"), default=0)
 
-    avg_current_risks = models.FloatField(
-        verbose_name=_("Average of current risks"), default=0
-    )
+    avg_current_risks = models.FloatField(verbose_name=_("Average of current risks"), default=0)
 
-    avg_residual_risks = models.FloatField(
-        verbose_name=_("Average of residual risks"), default=0
-    )
+    avg_residual_risks = models.FloatField(verbose_name=_("Average of residual risks"), default=0)
 
     class Meta:
         verbose_name_plural = _("Risk analysis stats")
@@ -242,9 +226,7 @@ class RiskData(models.Model):
         verbose_name=_("Availability impact"),
         default=-1,
     )
-    recommendations = models.ManyToManyField(
-        "RecommendationData", verbose_name=_("recommendations")
-    )
+    recommendations = models.ManyToManyField("RecommendationData", verbose_name=_("recommendations"))
 
     class Meta:
         verbose_name_plural = _("Risks")
@@ -264,9 +246,7 @@ class RecommendationData(models.Model):
         unique=True,
         verbose_name=_("uuid"),
     )
-    status = models.BooleanField(
-        default=False, verbose_name=_("Status of the recommendation")
-    )
+    status = models.BooleanField(default=False, verbose_name=_("Status of the recommendation"))
     due_date = models.DateTimeField(verbose_name=_("Due date"), null=True)
 
     class Meta:
@@ -275,17 +255,13 @@ class RecommendationData(models.Model):
 
     def save(self, *args, **kwargs):
         if isinstance(self.due_date, dict):
-            naive_due_date = datetime.strptime(
-                self.due_date["date"], "%Y-%m-%d %H:%M:%S.%f"
-            )
+            naive_due_date = datetime.strptime(self.due_date["date"], "%Y-%m-%d %H:%M:%S.%f")
             timezone = pytz.timezone(self.due_date["timezone"])
             self.due_date = timezone.localize(naive_due_date)
         elif isinstance(self.due_date, str):
             try:
                 naive_due_date = datetime.strptime(self.due_date, "%Y-%m-%d")
-                self.due_date = make_aware(
-                    naive_due_date, timezone=get_default_timezone()
-                )
+                self.due_date = make_aware(naive_due_date, timezone=get_default_timezone())
             except ValueError:
                 raise ValueError(f"Invalid date format: {self.due_date}")
 
@@ -346,9 +322,7 @@ class ObservationRecommendation(TranslatableModel):
         verbose_name=_("Sectors"),
         blank=True,
     )
-    creation_date = models.DateTimeField(
-        verbose_name=_("Creation date"), default=timezone.now
-    )
+    creation_date = models.DateTimeField(verbose_name=_("Creation date"), default=timezone.now)
 
     def __str__(self):
         return self.code or ""
@@ -378,9 +352,7 @@ class Observation(models.Model):
 
 class ObservationRecommendationThrough(models.Model):
     observation = models.ForeignKey("Observation", on_delete=models.CASCADE)
-    observation_recommendation = models.ForeignKey(
-        "ObservationRecommendation", on_delete=models.CASCADE
-    )
+    observation_recommendation = models.ForeignKey("ObservationRecommendation", on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -439,16 +411,8 @@ class Configuration(models.Model):
         return f"{self.standard.regulation} - {self.standard}"
 
     def clean(self):
-        if (
-            Configuration.objects.filter(
-                regulator=self.standard.regulator, standard=self.standard
-            )
-            .exclude(pk=self.pk)
-            .exists()
-        ):
-            raise ValidationError(
-                _("This regulator already has this standard configured.")
-            )
+        if Configuration.objects.filter(regulator=self.standard.regulator, standard=self.standard).exclude(pk=self.pk).exists():
+            raise ValidationError(_("This regulator already has this standard configured."))
 
 
 class Color(models.Model):
@@ -552,9 +516,7 @@ class Project(models.Model):
         verbose_name=_("Export format"),
         choices=[("docx", "docx"), ("pdf", "pdf")],
     )
-    selected_languages = ArrayField(
-        models.CharField(), verbose_name=_("Languages"), default=list
-    )
+    selected_languages = ArrayField(models.CharField(), verbose_name=_("Languages"), default=list)
     reference_year = models.PositiveIntegerField(verbose_name=_("Base year"))
 
     def get_root_sectors(self):
@@ -589,18 +551,10 @@ class CompanyProject(models.Model):
     )
     year = models.PositiveIntegerField()
     is_selected = models.BooleanField(default=False, verbose_name=_("Is selected"))
-    has_security_objectives = models.BooleanField(
-        default=False, verbose_name=_("Has security objectives")
-    )
-    has_risk_assessment = models.BooleanField(
-        default=False, verbose_name=_("Has risk assessment")
-    )
-    statistic_selected = models.BooleanField(
-        default=False, verbose_name=_("Statistics")
-    )
-    governance_report_selected = models.BooleanField(
-        default=False, verbose_name=_("Governance report")
-    )
+    has_security_objectives = models.BooleanField(default=False, verbose_name=_("Has security objectives"))
+    has_risk_assessment = models.BooleanField(default=False, verbose_name=_("Has risk assessment"))
+    statistic_selected = models.BooleanField(default=False, verbose_name=_("Statistics"))
+    governance_report_selected = models.BooleanField(default=False, verbose_name=_("Governance report"))
 
     class Meta:
         constraints = [
@@ -635,6 +589,4 @@ class GeneratedReport(models.Model):
         return f"{self.filename} ({self.user.email})"
 
     def get_file_path(self):
-        return os.path.join(
-            settings.PATH_FOR_REPORTING_PDF, str(self.project.id), str(self.file_uuid)
-        )
+        return os.path.join(settings.PATH_FOR_REPORTING_PDF, str(self.project.id), str(self.file_uuid))

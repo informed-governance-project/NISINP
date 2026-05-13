@@ -127,19 +127,14 @@ class SelectSOStandardForm(forms.Form):
 
     year = forms.ChoiceField(
         widget=forms.Select(),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 3, timezone.now().year + 2)
-        ],
+        choices=[(year, year) for year in range(timezone.now().year - 3, timezone.now().year + 2)],
         required=True,
         initial=timezone.now().year,
         label=_("Year"),
     )
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 3"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"data-selected-text-format": "count > 3"}),
         label=_("Sectors"),
     )
 
@@ -174,10 +169,7 @@ class ImportSOForm(forms.Form):
 
     year = forms.ChoiceField(
         widget=forms.Select(),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 3, timezone.now().year + 2)
-        ],
+        choices=[(year, year) for year in range(timezone.now().year - 3, timezone.now().year + 2)],
         required=True,
         initial=timezone.now().year,
         label=_("Year"),
@@ -185,9 +177,7 @@ class ImportSOForm(forms.Form):
 
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 3"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"data-selected-text-format": "count > 3"}),
         label=_("Sectors"),
     )
 
@@ -195,11 +185,7 @@ class ImportSOForm(forms.Form):
         choices = kwargs.pop("choices", {})
         super().__init__(*args, **kwargs)
 
-        if (
-            choices.get("standard")
-            and choices.get("company")
-            and choices.get("sectors")
-        ):
+        if choices.get("standard") and choices.get("company") and choices.get("sectors"):
             self.fields["standard"].choices = choices["standard"]
             self.fields["company"].choices = choices["company"]
             self.fields["sectors"].choices = choices["sectors"]
@@ -211,10 +197,7 @@ class ImportSOForm(forms.Form):
 class CopySOForm(forms.Form):
     year = forms.ChoiceField(
         widget=forms.Select(),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 3, timezone.now().year + 2)
-        ],
+        choices=[(year, year) for year in range(timezone.now().year - 3, timezone.now().year + 2)],
         required=True,
         initial=timezone.now().year,
         label=_("Year"),
@@ -222,9 +205,7 @@ class CopySOForm(forms.Form):
 
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 3"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"data-selected-text-format": "count > 3"}),
         label=_("Sectors"),
     )
 

@@ -35,10 +35,7 @@ class ImportRiskAnalysisForm(forms.Form):
 
     year = forms.ChoiceField(
         widget=forms.Select(),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 3, timezone.now().year + 2)
-        ],
+        choices=[(year, year) for year in range(timezone.now().year - 3, timezone.now().year + 2)],
         required=True,
         initial=timezone.now().year,
         label=_("Year"),
@@ -46,9 +43,7 @@ class ImportRiskAnalysisForm(forms.Form):
 
     sectors = forms.MultipleChoiceField(
         required=True,
-        widget=DropdownCheckboxSelectMultiple(
-            attrs={"data-selected-text-format": "count > 3"}
-        ),
+        widget=DropdownCheckboxSelectMultiple(attrs={"data-selected-text-format": "count > 3"}),
         label=_("Sectors"),
     )
 
@@ -80,9 +75,7 @@ class RecommendationsSelectForm(TranslatableModelForm):
         self.fields["sectors"].required = False
 
 
-RecommendationsSelectFormSet = modelformset_factory(
-    ObservationRecommendation, form=RecommendationsSelectForm, extra=0
-)
+RecommendationsSelectFormSet = modelformset_factory(ObservationRecommendation, form=RecommendationsSelectForm, extra=0)
 
 
 class ReviewCommentForm(forms.ModelForm):
@@ -155,20 +148,14 @@ class CreateProjectForm(forms.ModelForm):
     )
 
     reference_year = forms.ChoiceField(
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 4, timezone.now().year + 1)
-        ][::-1],
+        choices=[(year, year) for year in range(timezone.now().year - 4, timezone.now().year + 1)][::-1],
         required=True,
         label=_("Base year"),
     )
 
     years = forms.MultipleChoiceField(
         widget=DropdownCheckboxSelectMultiple(),
-        choices=[
-            (year, year)
-            for year in range(timezone.now().year - 20, timezone.now().year)
-        ][::-1],
+        choices=[(year, year) for year in range(timezone.now().year - 20, timezone.now().year)][::-1],
         required=False,
         label=_("Comparison years"),
     )
@@ -269,11 +256,7 @@ class CompanyProjectDashboard(forms.ModelForm):
 
         company_project_id = self.instance.pk if self.instance else None
 
-        if (
-            self.instance
-            and not self.instance.has_security_objectives
-            and not self.instance.has_risk_assessment
-        ):
+        if self.instance and not self.instance.has_security_objectives and not self.instance.has_risk_assessment:
             self.fields["is_selected"].widget.attrs["disabled"] = True
 
         for field in self.fields.values():

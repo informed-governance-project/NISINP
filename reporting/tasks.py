@@ -70,9 +70,7 @@ def generate_data(self, project_id, task_id, cleaned_data):
     language = cleaned_data.get("language", "en")
     activate(language)
     report_configuration_id = cleaned_data["report_configuration_id"]
-    colors = Configuration.objects.get(pk=report_configuration_id).colors.values_list(
-        "color"
-    )
+    colors = Configuration.objects.get(pk=report_configuration_id).colors.values_list("color")
     template_id = cleaned_data["template_id"]
     so_data = get_so_data(cleaned_data)
     risk_data = get_risk_data(cleaned_data)
@@ -135,9 +133,7 @@ def generate_docx_task(self, project_id, task_id):
 
     if Project.objects.get(id=project_id).task_status == "ABORT":
         return "Aborted"
-    subdocs_templates_dir = Path(
-        os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates")
-    )
+    subdocs_templates_dir = Path(os.path.join(settings.BASE_DIR, "reporting", "subdocs_templates"))
     success = False
     try:
         if not task_tmp_dir.exists():
@@ -145,7 +141,7 @@ def generate_docx_task(self, project_id, task_id):
                 "task_tmp_dir has disappeared before processing begins : %s",
                 task_tmp_dir,
             )
-            return
+            return None
         template_id = data["template_id"]
         template_file = Template.objects.get(pk=template_id).template_file
         template_path = BytesIO(bytes(template_file))
@@ -180,17 +176,13 @@ def generate_docx_task(self, project_id, task_id):
             },
             "table_of_highest_security_objectives_in_the_sector": {
                 "context": {
-                    "table": data["so_data"]["sector_so_by_year_desc"][
-                        str(data["reference_year"])
-                    ],
+                    "table": data["so_data"]["sector_so_by_year_desc"][str(data["reference_year"])],
                 },
                 "column_proportions": [0.05] + [0.65] + [0.15] * 2,
             },
             "table_of_lowest_security_objectives_in_the_sector": {
                 "context": {
-                    "table": data["so_data"]["sector_so_by_year_asc"][
-                        str(data["reference_year"])
-                    ],
+                    "table": data["so_data"]["sector_so_by_year_asc"][str(data["reference_year"])],
                 },
                 "column_proportions": [0.05] + [0.65] + [0.15] * 2,
             },
@@ -204,8 +196,7 @@ def generate_docx_task(self, project_id, task_id):
                 "context": {
                     "table": data["so_data"]["company_so_by_level"],
                 },
-                "column_proportions": [0.25]
-                * len(data["so_data"]["company_so_by_level"]["headers"]),
+                "column_proportions": [0.25] * len(data["so_data"]["company_so_by_level"]["headers"]),
             },
             "maturity_level_legend": {
                 "context": {
@@ -268,16 +259,12 @@ def generate_docx_task(self, project_id, task_id):
             "top_ranking": data["top_ranking"],
             "report_recommendations": report_recommendations,
             "report_observations": data["company_reporting"]["comment"],
-            "publication_date": formats.date_format(
-                datetime.date.today(), format="d F Y"
-            ),
+            "publication_date": formats.date_format(datetime.date.today(), format="d F Y"),
         }
         for chart_name, chart_data in data["charts"].items():
             chart_bytes = BytesIO(base64.b64decode(chart_data))
             chart_with = document_charts.get(chart_name, {}).get("width", Mm(170))
-            context[chart_name] = InlineImage(
-                main_doc_template, chart_bytes, width=chart_with
-            )
+            context[chart_name] = InlineImage(main_doc_template, chart_bytes, width=chart_with)
 
         for table_name, table_info in document_tables.items():
             sub_template_path = subdocs_templates_dir / f"{table_name}_template.docx"
@@ -316,8 +303,8 @@ def generate_docx_task(self, project_id, task_id):
         current_doc = main_docx_path
         tmp_output_path = task_tmp_dir / "tmp_doc.docx"
 
-        for placeholder, sub_rendered_path in rendered_subs_docs.items():
-            sub_rendered_path = Path(sub_rendered_path)
+        for placeholder, path in rendered_subs_docs.items():
+            sub_rendered_path = Path(path)
             try:
                 merge_subdoc_into_placeholder(
                     main_docx_path=current_doc,
@@ -342,9 +329,7 @@ def generate_docx_task(self, project_id, task_id):
         return "Docx generated successfully"
 
     except Exception as exc:
-        logger.exception(
-            "Error in generate_docx_task for the project %s : %s", project_id, exc
-        )
+        logger.exception("Error in generate_docx_task for the project %s : %s", project_id, exc)
         raise
     finally:
         if success and task_tmp_dir.exists():
@@ -398,13 +383,11 @@ def save_file_task(self, project_id, task_id, user_id, filename, is_multiple_fil
         return "Aborted"
     run_id = str(self.request.root_id)
     base_tmp_dir = Path(settings.PATH_FOR_REPORTING_PDF)
-    task_tmp_dir = Path(
-        base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id
-    )
+    task_tmp_dir = Path(base_tmp_dir / str(project_id) / f"tmp_files_{task_id}" / run_id)
     temp_file_path = next(task_tmp_dir.glob("tmp_doc.*"), None)
     if temp_file_path is None:
         logger.warning("Temporary file not found in %s", task_tmp_dir)
-        return
+        return None
 
     file_uuid = uuid.uuid4()
     User = get_user_model()
@@ -455,9 +438,7 @@ def zip_files_task(user_id, project_id, task_id, error_messages):
         for run_path in task_tmp_dir.iterdir():
             if not run_path.is_dir():
                 continue
-            file_path = next(
-                (f for f in run_path.iterdir() if f.suffix in (".pdf", ".docx")), None
-            )
+            file_path = next((f for f in run_path.iterdir() if f.suffix in (".pdf", ".docx")), None)
             if file_path and file_path.exists():
                 arcname = os.path.basename(file_path)
                 zipf.write(file_path, arcname=arcname)
@@ -529,6 +510,7 @@ def on_chord_error(request, exc, traceback, project_id, task_id):
     project.task_status = CELERY_TASK_STATUS[0][0]
     project.save()
     cleanup_files.delay(project_id, task_id)
+    return "Error handled and project status updated"
 
 
 @shared_task
