@@ -57,9 +57,7 @@ class SessionExpiryMiddleware:
 
             return redirect("login")
 
-        request.session["_session_expiry"] = (
-            current_timestamp + settings.SESSION_COOKIE_AGE
-        )
+        request.session["_session_expiry"] = current_timestamp + settings.SESSION_COOKIE_AGE
         request.session.modified = True
 
         if not request.session.get("company_in_use") and user.companies.exists():
@@ -117,9 +115,7 @@ class RestrictViewsMiddleware:
                 ):
                     raise Http404()
 
-            if is_user_regulator(user) and not request.session.get(
-                "is_regulator_incidents", False
-            ):
+            if is_user_regulator(user) and not request.session.get("is_regulator_incidents", False):
                 if (
                     request.path == reverse("declaration")
                     or request.path.startswith("/incidents/delete/")
@@ -167,21 +163,13 @@ class TermsAcceptanceMiddleware:
             # let the user logout and read terms
             if request.path == reverse("logout") or request.path == reverse("terms"):
                 return self.get_response(request)
-            if not request.user.accepted_terms and not request.path == reverse(
-                "accept_terms"
-            ):
+            if not request.user.accepted_terms and not request.path == reverse("accept_terms"):
                 return redirect("accept_terms")
             # we want also to check the last checked
             if TERMS_ACCEPTANCE_TIME_IN_DAYS != 0:
-                if (
-                    request.user.accepted_terms_date is None
-                    and not request.path == reverse("accept_terms")
-                ):
+                if request.user.accepted_terms_date is None and not request.path == reverse("accept_terms"):
                     return redirect("accept_terms")
-                if (
-                    request.user.accepted_terms_date is not None
-                    and not request.path == reverse("accept_terms")
-                ):
+                if request.user.accepted_terms_date is not None and not request.path == reverse("accept_terms"):
                     dt = now().date() - request.user.accepted_terms_date.date()
                     if dt.days > TERMS_ACCEPTANCE_TIME_IN_DAYS:
                         return redirect("accept_terms")
@@ -200,22 +188,16 @@ class CheckFunctionalityAccessMiddleware:
 
         resolver = resolve(request.path)
 
-        existing_functionalities = set(
-            Functionality.objects.values_list("type", flat=True)
-        )
+        existing_functionalities = set(Functionality.objects.values_list("type", flat=True))
 
-        functionalities_types = Functionality.objects.filter(
-            regulator__isnull=False
-        ).values_list("type", flat=True)
+        functionalities_types = Functionality.objects.filter(regulator__isnull=False).values_list("type", flat=True)
 
         functionality_path = resolver.route.split("/")[0]
 
         # regulator case
         if request.user.regulators.exists():
             regulator = request.user.regulators.first()
-            regulator_functionalities = regulator.functionalities.values_list(
-                "type", flat=True
-            )
+            regulator_functionalities = regulator.functionalities.values_list("type", flat=True)
 
             if functionality_path == "admin":
                 url_name = resolver.url_name
@@ -269,17 +251,13 @@ class ForceReloginMiddleware:
                 if request.method == "POST":
                     return self.get_response(request)
 
-                no_backup_tokens = request.user.staticdevice_set.filter(
-                    token_set__isnull=True
-                ).exists()
+                no_backup_tokens = request.user.staticdevice_set.filter(token_set__isnull=True).exists()
                 if no_backup_tokens:
                     return self.get_response(request)
 
                 messages.warning(
                     request,
-                    _(
-                        "For security reasons, you will need to log in again to access it."
-                    ),
+                    _("For security reasons, you will need to log in again to access it."),
                 )
                 logout(request)
                 request.session["force_relogin_done"] = True
