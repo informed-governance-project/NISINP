@@ -70,6 +70,15 @@ Tests require a running PostgreSQL instance matching the config. In CI, `DJANGO_
 Test files: `governanceplatform/tests/test_*.py`, `incidents/tests/test_*.py`
 Root `conftest.py` provides: `client`, `otp_client` fixtures, and `import_from_json` / `get_or_create_related` helpers used across tests.
 
+### Testing philosophy
+
+- Write tests before or alongside new code; don't leave coverage as an afterthought.
+- Target 80 %+ line coverage on new code paths.
+- Test **behaviours**, not implementation details — assert what the system does, not how.
+- Avoid mocking the database. Integration tests that hit a real PostgreSQL instance catch regressions that pure mock-based tests miss.
+- One test per logical scenario. Prefer many focused tests over one large test with multiple assertions.
+- Use `pytest.mark.django_db` and the provided fixtures (`client`, `otp_client`) rather than rolling your own setup.
+
 ## Project Structure
 
 ```
@@ -140,6 +149,59 @@ poetry run isort .
 poetry run flake8
 ```
 
+### Code style principles
+
+- **No speculative code.** Don't add features, fallbacks, or abstractions beyond what the task requires. A bug fix doesn't need surrounding cleanup.
+- **No defensive validation for impossibilities.** Only validate at system boundaries (user input, external APIs). Trust Django's ORM and framework guarantees internally.
+- **Comments explain WHY, never WHAT.** Well-named identifiers already document what the code does. Add a comment only when there is a hidden constraint, a subtle invariant, or a known bug workaround. Remove any comment that restates the code.
+- **Prefer editing existing files** to creating new ones. Don't duplicate logic; extend what already exists.
+- **Errors must surface.** Never swallow exceptions silently (`except: pass`). Let Django's error handling and Celery's retry mechanisms propagate failures where they can be logged and acted upon.
+- **Type hints on new public functions.** Python 3.12 supports full PEP 604 union types (`X | Y`). Use them.
+
+## Database & ORM
+
+- **Always use the ORM** over raw SQL. Raw `cursor.execute` is only acceptable in migrations where the ORM is not yet available — and even there, prefer `RunPython` with ORM calls when possible.
+- **Avoid N+1 queries.** Use `select_related` for ForeignKey/OneToOne traversals and `prefetch_related` for ManyToMany/reverse FK sets.
+- **Add database indexes** for any field used in `filter()`, `order_by()`, or a JOIN predicate that isn't already indexed.
+- **Migrations are append-only.** Never edit a committed migration. Create a new one.
+- **Data migrations** must be reversible where feasible. Provide both `forwards` and `backwards` functions.
+
+```python
+# Good — ORM, avoids N+1
+incidents = Incident.objects.select_related("company").prefetch_related("impacts")
+
+# Avoid — raw SQL in application code
+cursor.execute("SELECT * FROM incidents_incident WHERE company_id = %s", [cid])
+```
+
+## Security
+
+This application handles sensitive incident data subject to NIS2 regulations. Security is not optional.
+
+- **Input validation at every boundary.** Forms, API serializers, and management commands all receive untrusted data. Validate and sanitize before use.
+- **Never expose internal identifiers** (primary keys, session tokens) in URLs or responses unless explicitly required. Use opaque slugs or UUIDs where possible.
+- **CSRF, XSS, SQL injection** — rely on Django's built-in protections; don't bypass them. Never mark user-supplied content `safe` in templates without sanitisation.
+- **No secrets in code or logs.** `SECRET_KEY`, credentials, and API tokens live in `config.py` only. If a secret appears in a diff, rotate it immediately.
+- **Least-privilege queries.** Views should fetch only the objects the authenticated user is permitted to see. Always scope querysets by the request user's organisation/role.
+- **2FA enforcement** is handled by `middleware.py`. Do not add views that bypass `OTPRequiredMixin` or the OTP middleware without an explicit sign-off.
+
+## Performance
+
+- Measure before optimising. Use Django Debug Toolbar in dev (`debug_toolbar` is already in installed apps when `DEBUG=True`).
+- Prefer database-level aggregation (`annotate`, `aggregate`) over Python-level loops on large querysets.
+- Celery tasks exist for anything slow: PDF generation (WeasyPrint), email dispatch, heavy report queries. Don't do these synchronously in a request/response cycle.
+- Cache translated strings and expensive lookups at the view layer; `django-parler` translations hit the DB per language per object if not batched.
+
+## Accessibility
+
+Templates use Bootstrap 5. When adding or modifying UI components:
+
+- Use semantic HTML elements (`<button>`, `<nav>`, `<main>`, `<section>`) rather than `<div>` with click handlers.
+- Every interactive element must be keyboard-reachable and have a visible focus style.
+- Form inputs must have associated `<label>` elements (not just placeholders).
+- Error messages must be programmatically associated with their field (`aria-describedby` or Django form error rendering).
+- Images require descriptive `alt` text; decorative images use `alt=""`.
+
 ## Common Tasks
 
 | I want to… | Look at… |
@@ -173,3 +235,5 @@ GitHub Actions workflows:
 - `docker-ghcr.yml` — builds and pushes Docker image to ghcr.io
 - `codeql.yml` — static security analysis (Python + JavaScript)
 - `pythonapp.yml` — additional Python checks
+
+**Never bypass CI.** If a check fails, fix the root cause — don't skip hooks (`--no-verify`) or force-push over a failing status. A green CI pipeline is the minimum bar for merging.
