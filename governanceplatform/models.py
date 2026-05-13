@@ -1,8 +1,10 @@
 import uuid
 
 from cryptography.fernet import Fernet
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import models
@@ -810,3 +812,29 @@ class ScriptLogEntry(models.Model):
     # Define a method to return human-readable action names
     def action(self):
         return ACTION_FLAG_CHOICES.get(self.action_flag, "Unknown")
+
+
+class UserSession(AbstractBaseSession):
+    """Custom session model with an indexed FK to the owning user.
+
+    Enables O(1) forced-logout via ``UserSession.objects.filter(user=user).delete()``
+    instead of scanning and decoding the entire session table.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="sessions",
+    )
+
+    @classmethod
+    def get_session_store_class(cls):
+        from governanceplatform.session_backend import SessionStore
+
+        return SessionStore
+
+    class Meta:
+        verbose_name = _("User session")
+        verbose_name_plural = _("User sessions")
