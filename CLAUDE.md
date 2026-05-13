@@ -142,6 +142,7 @@ API is feature-flagged: set `API_ENABLED = True` in config to expose endpoints.
 - **Commit style**: `type: description` (feat, fix, refactor, docs, test, chore) or `[APP]Message`
 - **Branch naming**: `feat/`, `fix/`, `test/`, `review/`, descriptive kebab-case
 - **Main branch**: `master`
+- **Target branch for PRs**: `dev` — open all pull requests against `dev`, not `master`. `master` is updated only via releases.
 - **Python style**: Black + isort (configured in pyproject.toml)
 - **Linting**: flake8
 
