@@ -17,15 +17,12 @@ def populate_user_sessions(apps, schema_editor):
     from django.utils.timezone import now
 
     UserSession = apps.get_model("governanceplatform", "UserSession")
+    Session = apps.get_model("sessions", "Session")
     db = schema_editor.connection.alias
 
-    with schema_editor.connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT session_key, session_data, expire_date "
-            "FROM django_session WHERE expire_date > %s",
-            [now()],
-        )
-        rows = cursor.fetchall()
+    rows = Session.objects.using(db).filter(expire_date__gt=now()).values_list(
+        "session_key", "session_data", "expire_date"
+    )
 
     to_create = []
     for session_key, session_data, expire_date in rows:
