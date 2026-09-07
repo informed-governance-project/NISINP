@@ -1167,7 +1167,7 @@ def set_initial_datetime(form, field_name, datetime_value, timezone, previous_re
     else:
         form.fields[field_name].widget.attrs["class"] = form.fields[field_name].widget.attrs.get("class", "") + " empty_field"
 
-    if previous_report:
+    if previous_report and previous_report.report_timeline:
         previous_value = getattr(previous_report.report_timeline, field_name)
         if previous_value != datetime_value:
             form.fields[field_name].widget.attrs["class"] = form.fields[field_name].widget.attrs.get("class", "") + " answer-modified"
