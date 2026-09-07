@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the unrelated `parler` dependency (a Parler social-network API client, not part of `django-parler`). Both distributions install a `parler/__init__.py`, and the wrong one was shadowing `django-parler`'s, so every Django and Celery process started by globally suppressing urllib3 `HTTPWarning` — including the warning raised for unverified HTTPS requests
 - `requests` is now declared explicitly: `governanceplatform/rt.py` imports it directly but it was only installed as a transitive dependency of the removed `parler` package
 - Sector regulation configuration import with `--reuse` now recognises a report whose categories sit at the same position as another report's. Category options carry no link back to the report they belong to, so they were matched on category and position alone and resolved to another report's rows, which made the report look different and duplicated it along with all of its questions. A report that is created is now given its own category options instead of sharing another report's (#826)
+- Opening the timeline step of an incident report no longer fails when the previous report has no timeline. The migration that moved the timeline from the incident to the report assigned every timeline it created to the latest report, so on incidents that already existed all the earlier reports were left without one, and the comparison with the previous report raised an error instead of simply reporting no change (#871)
+- Reports left without a timeline by that migration are backfilled with a copy of their incident's latest report timeline (#871)
+- Deleting an incident report, including through the cascade from its incident and from the retention cleanup, now also deletes its timeline. The incident dates of a deleted incident were staying in the database, and the timelines already stranded that way are cleared (#871)
 
 ## [0.5.17] - 2026-08-04
 
