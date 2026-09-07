@@ -1154,10 +1154,6 @@ class QuestionOptions(models.Model):
         else:
             super().delete(*args, **kwargs)
 
-    def clean(self):
-        if self.is_mandatory and self.is_conditional:
-            raise ValidationError(_("A question cannot be both mandatory and conditionally displayed."))
-
     def save(self, *args, **kwargs):
         if self.pk and self.answer_set.exists() and not self.is_deleted():
             old = QuestionOptions.objects.get(pk=self.pk)
