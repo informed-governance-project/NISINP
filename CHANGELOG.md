@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A question can be both mandatory and conditionally displayed. Its mandatory flag is enforced only once one of its trigger answers is selected; while the trigger is unselected the question stays hidden and the report is submitted without it
 - An account whose link to the company is still awaiting approval is read-only for operator administrators: Approve and Reject are the only actions offered, and editing or deleting it is withheld until one of them is chosen (#861)
 - Deleting a user as an operator administrator now asks for confirmation in a dialog on the page instead of on a separate confirmation page (#861)
 - The batch action selector is no longer offered to operator administrators on the Users list, which act on one account at a time from the Account actions column. Other roles keep it (#861)
@@ -33,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A question conditioned on an answer of a multiple-choice question is displayed again when that answer is selected. django-bootstrap5 26.3 rewrote the template it renders multiple-choice widgets with and stopped emitting the attributes of the widget itself, which is where the map naming the question each answer opens was published, so the map no longer reached the page and the question stayed hidden whatever was selected. The mark now sits on the answer input, and such a widget is rendered from a template held in this project, so the markup of a later release cannot drop it again. Single-option questions were unaffected
+- A mandatory conditional question no longer blocks the notification form. The question is rendered hidden until its trigger answer is selected, and a hidden control carrying the HTML5 `required` attribute makes a browser refuse the submit without reporting anything, while the server-side "This field is required" error was rendered inside the hidden wrapper — leaving the Next button doing nothing with no message on screen. The combination was rejected in the admin but a sector regulation configuration import could still create it
 - Company selection now returns the user to the page they originally asked for instead of always landing on the home page
 - The email announcing that a report status changed is now sent after the new status is saved, so it no longer announces a change while quoting the previous status, and is not sent at all if the save fails (#856)
 - An email sent for an incident whose latest report carries no timeline no longer fails: `#INCIDENT_DETECTION_DATE#` falls back to the detection date of the incident and `#INCIDENT_STARTING_DATE#` renders empty (#856)
