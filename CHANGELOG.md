@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Email templates accept four more placeholders: `#INCIDENT_STATUS#` for the status of the incident, and `#REPORT_NAME#`, `#REPORT_REVIEW_STATUS#` and `#REPORT_COMMENT_ADDED#` for the name of the report, its review status, and a notice when the regulator left a review comment on it. The report an email describes is the one it concerns: a reminder or a deadline notice names the report it is chasing, which is generally not the latest one and often has no submission at all (#856)
 - The placeholders usable in an email template are listed in the admin: an "Available placeholders" button above the content field opens a dialog naming each one and what it is replaced by, `#PUBLIC_URL#` included, which was supported but undocumented (#856)
 - Unit tests for the substitution of email template placeholders (#505)
+- Incident dashboard columns for the detection, starting and resolution dates of an incident, hidden by default and selectable from the column settings. The starting and resolution dates are those of the latest submitted report, and all three columns sort like the other ones
 
 ### Changed
 
