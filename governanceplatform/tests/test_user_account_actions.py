@@ -870,3 +870,54 @@ def test_the_changelist_cost_does_not_grow_with_the_number_of_rows(otp_client, o
         client.get(CHANGELIST_URL)
 
     assert len(after.captured_queries) <= len(before.captured_queries) + 2
+
+
+# --- creating an account ---------------------------------------------------------------------
+
+
+def add_account(otp_client, context, email, **extra):
+    """Create an account from the Users add form, as an operator administrator would."""
+    client = operator_client(otp_client, context["operator_admin"], context["company"])
+    client.post(
+        f"{CHANGELIST_URL}add/",
+        {
+            "first_name": "New",
+            "last_name": "Account",
+            "email": email,
+            "phone_number": "+35226123456",
+            **extra,
+        },
+    )
+    return User.objects.get(email=email)
+
+
+@pytest.mark.django_db
+def test_an_account_created_as_administrator_gets_the_administrator_role(otp_client, operator_admin_with_pending_link):
+    """The link was created through the m2m manager, which bulk-creates it and so skips the signal
+    that assigns the operator group, leaving the account an OperatorUser with the flag set."""
+    context = operator_admin_with_pending_link
+
+    created = add_account(otp_client, context, "newadmin@com1.lu", is_administrator="on")
+
+    assert user_in_group(created, "OperatorAdmin")
+    assert CompanyUser.objects.get(user=created, company=context["company"]).is_company_administrator is True
+
+
+@pytest.mark.django_db
+def test_an_account_created_without_the_checkbox_stays_a_plain_member(otp_client, operator_admin_with_pending_link):
+    context = operator_admin_with_pending_link
+
+    created = add_account(otp_client, context, "newmember@com1.lu")
+
+    assert user_in_group(created, "OperatorUser")
+    assert CompanyUser.objects.get(user=created, company=context["company"]).is_company_administrator is False
+
+
+@pytest.mark.django_db
+def test_an_account_created_by_an_operator_administrator_is_a_member_straight_away(otp_client, operator_admin_with_pending_link):
+    """An account the operator creates itself needs no approval, unlike a suggested link."""
+    context = operator_admin_with_pending_link
+
+    created = add_account(otp_client, context, "newmember@com1.lu")
+
+    assert CompanyUser.objects.get(user=created, company=context["company"]).approved is True
