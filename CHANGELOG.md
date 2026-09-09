@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opening the timeline step of an incident report no longer fails when the previous report has no timeline. The migration that moved the timeline from the incident to the report assigned every timeline it created to the latest report, so on incidents that already existed all the earlier reports were left without one, and the comparison with the previous report raised an error instead of simply reporting no change (#871)
 - Reports left without a timeline by that migration are backfilled with a copy of their incident's latest report timeline (#871)
 - Deleting an incident report, including through the cascade from its incident and from the retention cleanup, now also deletes its timeline. The incident dates of a deleted incident were staying in the database, and the timelines already stranded that way are cleared (#871)
+- An account an operator administrator creates with "Create this user as an administrator" ticked is now given the operator administrator role. The link to the company was flagged as administrator, so the Users list showed the account as one, but the account itself was left with the permissions of a plain operator user and no access to the administration interface. The role is assigned when the link to the company is saved, and the link was being created in a way that skipped that step (#786)
 
 ## [0.5.17] - 2026-08-04
 
