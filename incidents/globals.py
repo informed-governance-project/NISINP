@@ -107,6 +107,18 @@ ALLOWED_SORT_FIELDS = {
         "field": "incident_notification_date",
         "type": "datetime",
     },
+    "detection_date": {
+        "field": "incident_detection_date",
+        "type": "datetime",
+    },
+    "starting_date": {
+        "field": "sort_latest_starting_date",
+        "type": "datetime",
+    },
+    "resolution_date": {
+        "field": "sort_latest_resolution_date",
+        "type": "datetime",
+    },
     "company_identifier": {
         "field": "sort_company_or_regulator_acronym",
         "type": "string",

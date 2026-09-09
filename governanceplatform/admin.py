@@ -1559,19 +1559,23 @@ class UserAdmin(admin.ModelAdmin):
                 group, _ = Group.objects.get_or_create(name="RegulatorUser")
                 obj.groups.add(group)
 
-            # in RegulatorUser or OperatorAdmin we can only add user for operators and default is OperatorUser
+            # in RegulatorUser we can only add user for operators and default is OperatorUser
             # operators have to be created under companies
             if user_in_group(user, "RegulatorUser"):
                 group, _ = Group.objects.get_or_create(name="OperatorUser")
                 obj.groups.add(group)
 
+            # OperatorAdmin user creation triggers post_save signal CompanyUser that assigns the operator group.
             if user_in_group(user, "OperatorAdmin"):
                 is_admin = form.cleaned_data.get("is_administrator")
                 company_in_use = get_active_company_from_session(request)
                 if company_in_use:
-                    obj.companies.add(company_in_use, through_defaults={"approved": True, "is_company_administrator": is_admin})
-                group, _ = Group.objects.get_or_create(name="OperatorUser")
-                obj.groups.add(group)
+                    CompanyUser.objects.create(
+                        user=obj,
+                        company=company_in_use,
+                        approved=True,
+                        is_company_administrator=is_admin,
+                    )
 
             # in PlatformAdmin we add by default platformadmin
             # if we are not in a popup we create a platformAdmin

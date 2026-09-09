@@ -15,7 +15,7 @@ from django.contrib.auth.models import Group
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import CharField, F, Q, Value
+from django.db.models import CharField, F, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -196,6 +196,13 @@ def get_incidents(request):
                     output_field=CharField(),
                 )
             }
+        )
+
+    if sort_field in ["starting_date", "resolution_date"]:
+        annotated_name = ALLOWED_SORT_FIELDS.get(sort_field)["field"]
+        latest_incident_workflow = IncidentWorkflow.objects.filter(incident=OuterRef("pk")).order_by("-timestamp")
+        incidents = incidents.annotate(
+            **{annotated_name: Subquery(latest_incident_workflow.values(f"report_timeline__incident_{sort_field}")[:1])}
         )
 
     incidents = sort_queryset_by_field(
