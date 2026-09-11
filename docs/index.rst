@@ -47,14 +47,6 @@ Incident Notification Module
 
 
 .. toctree::
-   :caption: Application interface
-   :maxdepth: 3
-   :hidden:
-
-   ui_administrator
-   ui_platformadmin
-
-.. toctree::
    :caption: User Manual
    :maxdepth: 3
    :hidden:
