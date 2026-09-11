@@ -35,7 +35,6 @@ Incident Notification Module
    update
    modules
    architecture
-   api-v1
 
 
 .. toctree::
