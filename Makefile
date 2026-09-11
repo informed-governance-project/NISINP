@@ -34,6 +34,9 @@ models:
 openapi:
 	python manage.py spectacular --format openapi > docs/_static/openapi.yml
 
+screenshots:
+	python docs/screenshots/capture.py
+
 generatepot:
 	python manage.py makemessages -a --keep-pot
 

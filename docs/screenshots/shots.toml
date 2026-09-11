@@ -1,0 +1,109 @@
+# Shot list for docs/screenshots/capture.py.
+#
+# `name` is the file written to docs/_static/<name>.png — it must match the
+# filename the .rst files already reference, so the docs never need editing.
+
+base_url = "http://127.0.0.1:8000"
+locale = "en-GB"
+
+[viewport]
+width = 1440
+height = 900
+
+[defaults]
+settle_ms = 400
+hide = [
+  # django-debug-toolbar rides along whenever DEBUG is on, which every local
+  # instance needs for the screenshots to be reachable at all.
+  "#djDebug",
+  "#djDebugToolbarHandle",
+  # The footer version string would otherwise re-diff every screenshot on each
+  # release, for a number the docs never refer to.
+  "footer .justify-content-between > .text-end",
+]
+# Annotations default to blue rather than the theme red, so a callout is never
+# mistaken for part of the interface.
+annotation_color = "#1a56db"
+
+[roles.operator]
+username_env = "SERIMA_SHOT_OPERATOR_USER"
+password_env = "SERIMA_SHOT_OPERATOR_PASS"
+# Set when the account belongs to more than one company, to skip the
+# company-selection interstitial deterministically.
+# company = "Example Operator SA"
+
+[roles.regulator_admin]
+username_env = "SERIMA_SHOT_REGULATOR_USER"
+password_env = "SERIMA_SHOT_REGULATOR_PASS"
+
+[roles.platform_admin]
+username_env = "SERIMA_SHOT_PLATFORM_USER"
+password_env = "SERIMA_SHOT_PLATFORM_PASS"
+
+# --- Anonymous pages -------------------------------------------------------
+
+# The theme hides the credentials form behind the landing card, so reveal it
+# before capturing — the docs describe the form, not the card.
+[[shots]]
+name = "ui_user_login_page"
+path = "/account/login"
+steps = [{ action = "click", selector = "#with-account" }]
+
+# --- Regulator administrator ------------------------------------------------
+
+[[shots]]
+name = "ui_admin_overview"
+role = "regulator_admin"
+path = "/admin/"
+full_page = true
+
+[[shots]]
+name = "ui_standard_list"
+role = "regulator_admin"
+path = "/admin/incidents/impact/"
+
+[[shots]]
+name = "ui_standard_add_edit"
+role = "regulator_admin"
+path = "/admin/incidents/impact/add/"
+
+[[shots]]
+name = "ui_admin_export"
+role = "regulator_admin"
+path = "/admin/governanceplatform/exportjob/add/"
+
+[[shots]]
+name = "ui_admin_import"
+role = "regulator_admin"
+path = "/admin/governanceplatform/importjob/add/"
+
+# --- Platform administrator -------------------------------------------------
+
+[[shots]]
+name = "ui_platform_admin"
+role = "platform_admin"
+path = "/admin/"
+full_page = true
+
+[[shots]]
+name = "ui_platform_admin_observer"
+role = "platform_admin"
+path = "/admin/governanceplatform/entitycategory/"
+
+[[shots]]
+name = "ui_observer_regulation"
+role = "platform_admin"
+path = "/admin/governanceplatform/observer/"
+
+# --- Not covered yet --------------------------------------------------------
+#
+# The published User Manual, administration and reporting chapters own the bulk
+# of the screenshots and none of them are scripted here yet:
+#
+#   user_manual_images/UM_SER_*        the split User Manual pages
+#   platform_admin_images/PLAT_ADM_*   ui_platform_admin/
+#   regulator_admin_images/Reg_Admin_* ui_regulator_admin/
+#   reporting_module_images/Rep_*      ui_reporting_module/
+#
+# ui_admin_export / ui_admin_import above belong to ui_import-export.rst, which
+# is not in any toctree — capture them only if that page comes back.
