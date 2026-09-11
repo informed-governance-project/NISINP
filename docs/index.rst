@@ -123,9 +123,9 @@ Operators under supervision can use the module to submit their incident notifica
 This project is lead by `NC3-LU <https://www.nc3.lu>`__ and developed in partnership with `ILR.lu <https://web.ilr.lu>`_ and
 `IBPT.be <https://www.ibpt.be>`_.
 
-.. figure:: _static/folder1/Overview.png
+.. figure:: _static/incident_notification/overview.png
    :alt: Screenshot of the list of incidents from the regulator view.
-   :target: _static/screenshot_incidents-page.png
+   :target: _static/incident_notification/overview.png
 
    Screenshot of the list of incidents from the regulator view.
 
