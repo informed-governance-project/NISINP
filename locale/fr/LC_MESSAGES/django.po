@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-09-01 14:45+0200\n"
-"PO-Revision-Date: 2026-09-11 05:28+0000\n"
+"PO-Revision-Date: 2026-09-12 10:28+0000\n"
 "Last-Translator: Pascal Bertrand <Pascal.bertrand+RegAdmin@ilr.lu>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -93,7 +93,7 @@ msgstr "Créer cet utilisateur en tant qu'administrateur"
 #: governanceplatform/admin.py:1082
 #, python-format
 msgid "%(user)s is now linked to your company."
-msgstr ""
+msgstr "%(user)s est maintenant lié à votre entreprise ou organisation."
 
 #: governanceplatform/admin.py:1094
 #, python-format
